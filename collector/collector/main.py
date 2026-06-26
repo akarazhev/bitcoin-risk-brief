@@ -11,7 +11,8 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from app.risk import calculate_risk_series
 from collector.coingecko import CoinGeckoClient, market_chart_to_daily_rows
 from collector.config import settings
-from collector.db_writer import write_brief, write_ohlcv_rows, write_risk_rows, write_validation
+from collector.history import has_valid_turnover, merge_ohlcv_rows
+from collector.db_writer import fetch_ohlcv_rows, write_brief, write_ohlcv_rows, write_risk_rows, write_validation
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
 logger = logging.getLogger(__name__)
@@ -22,12 +23,25 @@ async def collect_once(pool: asyncpg.Pool, *, days: str) -> None:
     client = CoinGeckoClient(api_key=settings.coingecko_api_key)
     payload = await client.fetch_bitcoin_market_chart(days=days)
     rows = market_chart_to_daily_rows(payload)
-    risk_points = calculate_risk_series(rows)
     ohlcv_count = await write_ohlcv_rows(pool, rows)
+    persisted_rows = await fetch_ohlcv_rows(pool)
+    merged_rows = merge_ohlcv_rows(persisted_rows, rows)
+    turnover_enabled = has_valid_turnover(merged_rows)
+    risk_points = calculate_risk_series(merged_rows, turnover_enabled=turnover_enabled)
     risk_count = await write_risk_rows(pool, risk_points)
-    await write_validation(pool, risk_points)
+    await write_validation(
+        pool,
+        risk_points,
+        turnover_enabled=turnover_enabled,
+        source_row_count=len(merged_rows),
+    )
     await write_brief(pool, risk_points)
-    logger.info("Collection complete: %d ohlcv rows, %d risk rows", ohlcv_count, risk_count)
+    logger.info(
+        "Collection complete: %d refreshed ohlcv rows, %d merged rows, %d risk rows",
+        ohlcv_count,
+        len(merged_rows),
+        risk_count,
+    )
 
 
 async def main(*, run_now: bool = False, backfill: bool = False) -> None:

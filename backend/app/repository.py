@@ -25,6 +25,21 @@ def _serialize_row(row: asyncpg.Record) -> dict[str, Any]:
     }
 
 
+def _serialize_ohlcv_row(row: asyncpg.Record) -> dict[str, Any]:
+    timestamp = row["timestamp"]
+    return {
+        "date": timestamp.date(),
+        "open": float(row["open_usd"]),
+        "high": float(row["high_usd"]),
+        "low": float(row["low_usd"]),
+        "close": float(row["close_usd"]),
+        "volume": float(row["volume_usd"]),
+        "market_cap": float(row["market_cap_usd"]),
+        "circulating_supply": float(row["circulating_supply"]),
+        "source": row["source"],
+    }
+
+
 async def fetch_latest_risk(pool: asyncpg.Pool) -> dict[str, Any] | None:
     row = await pool.fetchrow(
         """
@@ -73,6 +88,21 @@ async def fetch_risk_history(
         limit,
     )
     return [_serialize_row(row) for row in reversed(rows)]
+
+
+async def fetch_ohlcv_history(pool: asyncpg.Pool, *, limit: int = 5000) -> list[dict[str, Any]]:
+    rows = await pool.fetch(
+        """
+        SELECT
+          timestamp, open_usd, high_usd, low_usd, close_usd, volume_usd,
+          market_cap_usd, circulating_supply, source
+        FROM btc_ohlcv_daily
+        ORDER BY timestamp DESC
+        LIMIT $1
+        """,
+        limit,
+    )
+    return [_serialize_ohlcv_row(row) for row in reversed(rows)]
 
 
 async def fetch_latest_brief(pool: asyncpg.Pool) -> dict[str, Any] | None:

@@ -43,6 +43,13 @@ Open: `http://localhost:3001`
 - `GET /api/brief/latest`
 - `POST /api/waitlist` with `{ "contact": "user@example.com", "locale": "en", "source": "landing" }`
 
+
+## Risk Methodology
+
+Risk uses `crypto-scout-canonical-v1`, aligned with `crypto-scout-analytics`: HLC3 price, EMA365 trend deviation, 30-day realized volatility, turnover as `ln(volume / market_cap)`, robust rolling z-scores with a 1460-day window and 365-day minimum, and canonical weights of `0.60/0.25/0.15` when turnover is enabled. `/api/risk/levels` solves target prices through the same risk function at `0.025` risk increments.
+
+Daily refreshes recalculate risk over persisted OHLCV history plus the latest CoinGecko rows, so an all-time backfill keeps providing long context. Full early-BTC CSV stitching from `crypto-scout-analytics` is not included in this mini-product yet.
+
 ## Data Source Notes
 
 The collector uses CoinGecko `coins/bitcoin/market_chart`. `COINGECKO_BACKFILL_DAYS=max` is intended for an all-history bootstrap where the active CoinGecko plan permits it. For lower tiers, set `COINGECKO_BACKFILL_DAYS=365` or use an API key with the allowed history range.

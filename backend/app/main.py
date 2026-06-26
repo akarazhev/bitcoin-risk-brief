@@ -14,10 +14,12 @@ from app.db import connect, disconnect, get_pool
 from app.repository import (
     fetch_latest_brief,
     fetch_latest_risk,
+    fetch_ohlcv_history,
     fetch_previous_risk,
     fetch_risk_history,
     upsert_waitlist_lead,
 )
+from app.risk import METHODOLOGY_VERSION
 from app.risk_levels import build_risk_levels
 from app.waitlist import InvalidWaitlistContact
 
@@ -74,10 +76,30 @@ async def risk_history(
 
 @app.get("/api/risk/levels")
 async def risk_levels() -> dict[str, Any]:
-    latest = await fetch_latest_risk(get_pool())
-    if latest is None:
-        raise HTTPException(status_code=404, detail="Risk data has not been collected yet")
-    return {"data": build_risk_levels(latest), "meta": {"base": latest}}
+    pool = get_pool()
+    latest = await fetch_latest_risk(pool)
+    source_rows = await fetch_ohlcv_history(pool)
+    if latest is None or len(source_rows) < 2:
+        raise HTTPException(status_code=404, detail="Risk source data has not been collected yet")
+
+    turnover_enabled = all(row["volume"] > 0 and row["market_cap"] > 0 for row in source_rows)
+    levels = build_risk_levels(source_rows, {"turnover_enabled": turnover_enabled})
+    return {
+        "data": [
+            {"risk": row["risk"], "price_usd": round(row["price"], 2)}
+            for row in levels["risk_level_rows"]
+        ],
+        "meta": {
+            "base": latest,
+            "methodology_version": METHODOLOGY_VERSION,
+            "evaluation_date": levels["evaluation_date"].isoformat(),
+            "current_price": levels["current_price"],
+            "current_risk": levels["current_risk"],
+            "turnover_enabled": levels["turnover_enabled"],
+            "risk_step": 0.025,
+            "source_row_count": len(source_rows),
+        },
+    }
 
 
 @app.get("/api/brief/latest")

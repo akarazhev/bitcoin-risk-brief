@@ -1,12 +1,13 @@
 from __future__ import annotations
 
+import json
 from datetime import datetime, time, timezone
 from typing import Any
 
 import asyncpg
 
 from app.brief import build_brief
-from app.risk import RiskPoint, classify_risk
+from app.risk import METHODOLOGY_VERSION, ROBUST_Z_MIN_PERIODS, ROBUST_Z_WINDOW, RiskPoint, classify_risk
 
 
 def _as_timestamp(day) -> datetime:
@@ -48,6 +49,32 @@ async def write_ohlcv_rows(pool: asyncpg.Pool, rows: list[dict[str, Any]]) -> in
         records,
     )
     return len(records)
+
+
+async def fetch_ohlcv_rows(pool: asyncpg.Pool) -> list[dict[str, Any]]:
+    rows = await pool.fetch(
+        """
+        SELECT
+          timestamp, open_usd, high_usd, low_usd, close_usd, volume_usd,
+          market_cap_usd, circulating_supply, source
+        FROM btc_ohlcv_daily
+        ORDER BY timestamp ASC
+        """
+    )
+    return [
+        {
+            "date": row["timestamp"].date(),
+            "open": float(row["open_usd"]),
+            "high": float(row["high_usd"]),
+            "low": float(row["low_usd"]),
+            "close": float(row["close_usd"]),
+            "volume": float(row["volume_usd"]),
+            "market_cap": float(row["market_cap_usd"]),
+            "circulating_supply": float(row["circulating_supply"]),
+            "source": row["source"],
+        }
+        for row in rows
+    ]
 
 
 async def write_risk_rows(pool: asyncpg.Pool, points: list[RiskPoint]) -> int:
@@ -93,10 +120,25 @@ async def write_risk_rows(pool: asyncpg.Pool, points: list[RiskPoint]) -> int:
     return len(records)
 
 
-async def write_validation(pool: asyncpg.Pool, points: list[RiskPoint]) -> None:
+async def write_validation(
+    pool: asyncpg.Pool,
+    points: list[RiskPoint],
+    *,
+    turnover_enabled: bool,
+    source_row_count: int,
+) -> None:
     if not points:
         return
     risk_range_ok = all(0.0 <= point.risk <= 1.0 for point in points)
+    payload = {
+        "source": "coingecko_with_persisted_history",
+        "methodology_version": METHODOLOGY_VERSION,
+        "robust_z_window": ROBUST_Z_WINDOW,
+        "robust_z_min_periods": ROBUST_Z_MIN_PERIODS,
+        "turnover_enabled": turnover_enabled,
+        "source_row_count": source_row_count,
+        "risk_row_count": len(points),
+    }
     await pool.execute(
         """
         INSERT INTO btc_risk_validation (
@@ -116,8 +158,11 @@ async def write_validation(pool: asyncpg.Pool, points: list[RiskPoint]) -> None:
         _as_timestamp(points[-1].day),
         len(points),
         risk_range_ok,
-        f"{len(points)} daily BTC risk rows computed; risk_range_ok={risk_range_ok}",
-        '{"source":"coingecko","version":"risk-v1"}',
+        (
+            f"{len(points)} daily BTC risk rows computed with {METHODOLOGY_VERSION}; "
+            f"turnover_enabled={turnover_enabled}; risk_range_ok={risk_range_ok}"
+        ),
+        json.dumps(payload),
     )
 
 
@@ -151,5 +196,5 @@ async def write_brief(pool: asyncpg.Pool, points: list[RiskPoint]) -> None:
         """,
         _as_timestamp(latest.day),
         brief["snapshot_version"],
-        __import__("json").dumps(brief),
+        json.dumps(brief),
     )
