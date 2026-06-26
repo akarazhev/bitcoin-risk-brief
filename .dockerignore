@@ -1,0 +1,11 @@
+.git
+.env
+.env.*
+node_modules
+dist
+coverage
+__pycache__
+.pytest_cache
+data
+*.log
+.DS_Store

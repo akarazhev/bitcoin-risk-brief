@@ -1,0 +1,88 @@
+version: "3.8"
+
+services:
+  timescaledb:
+    image: timescale/timescaledb:2.17.2-pg16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: bitcoin_risk_brief
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+    expose:
+      - "5432"
+    volumes:
+      - ./data/timescaledb:/var/lib/postgresql/data
+      - ./migrations:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d bitcoin_risk_brief"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://postgres:${DB_PASSWORD:-postgres}@timescaledb:5432/bitcoin_risk_brief
+      APP_ENV: ${APP_ENV:-development}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3001}
+    expose:
+      - "8000"
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "python -c 'import urllib.request; urllib.request.urlopen(\"http://localhost:8000/api/health\")'"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - app-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      VITE_WAITLIST_ENDPOINT: ${VITE_WAITLIST_ENDPOINT:-}
+    ports:
+      - "${FRONTEND_BIND_IP:-127.0.0.1}:${FRONTEND_PORT:-3001}:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:3000/ || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - app-network
+
+  data-collector:
+    build:
+      context: .
+      dockerfile: ./collector/Dockerfile
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://postgres:${DB_PASSWORD:-postgres}@timescaledb:5432/bitcoin_risk_brief
+      COINGECKO_API_KEY: ${COINGECKO_API_KEY:-}
+      COINGECKO_BACKFILL_DAYS: ${COINGECKO_BACKFILL_DAYS:-max}
+      COINGECKO_REFRESH_DAYS: ${COINGECKO_REFRESH_DAYS:-365}
+      SCHEDULE_CRON_HOUR: ${SCHEDULE_CRON_HOUR:-1}
+      SCHEDULE_CRON_MINUTE: ${SCHEDULE_CRON_MINUTE:-0}
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
