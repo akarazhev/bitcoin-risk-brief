@@ -1,5 +1,7 @@
 # Production Readiness
 
+This document defines the current production-pilot gate for Bitcoin Risk Brief.
+
 ## Release Gates
 
 Run these before every deploy:
@@ -21,11 +23,23 @@ curl -fsS http://localhost:3001/api/health
 curl -fsS http://localhost:3001/api/readiness
 ```
 
-`/api/readiness` returns HTTP 200 only when risk data exists, validation exists, data is fresh, risk range validation passed, the validation source is `coinmarketcap_csv`, and the latest risk timestamp matches the validation coverage end.
+Also verify latest risk and risk levels are consistent:
+
+```bash
+python3 - <<'PY'
+import json
+from urllib.request import urlopen
+latest = json.load(urlopen('http://localhost:3001/api/risk/latest'))['data']
+levels = json.load(urlopen('http://localhost:3001/api/risk/levels'))
+print(abs(latest['risk'] - levels['meta']['current_risk']))
+PY
+```
 
 ## Production Environment
 
-Start from `.env.production.example`, not `.env.example`. Required production changes:
+Start from `.env.production.example`, not `.env.example`.
+
+Required production changes:
 
 - Set `APP_ENV=production`.
 - Replace `DB_PASSWORD` with a long random value.
@@ -34,12 +48,27 @@ Start from `.env.production.example`, not `.env.example`. Required production ch
 - Keep `DATA_FRESHNESS_MAX_AGE_DAYS=2` unless the product explicitly accepts slower updates.
 - Tune `WAITLIST_RATE_LIMIT_PER_HOUR` for expected traffic.
 
+## Readiness Contract
+
+`/api/readiness` returns HTTP 200 only when:
+
+- latest risk data exists;
+- validation data exists;
+- validation row count is positive;
+- risk range validation passed;
+- latest risk timestamp matches validation coverage end;
+- validation source is `coinmarketcap_csv`;
+- data age is within `DATA_FRESHNESS_MAX_AGE_DAYS`.
+
+A non-200 readiness response should block deploy promotion and should alert in production.
+
 ## Data Pipeline Guarantees
 
 - `collector/btc-csv/btc_usd_daily.csv` is the canonical source.
 - Scheduled collector runs fetch only missing completed UTC days from CoinMarketCap.
-- Remote deltas must exactly match the requested contiguous daily range. Non-contiguous deltas fail without rewriting the CSV.
-- CSV writes use atomic replace, so a failed write should not leave a partial canonical CSV.
+- Remote deltas must exactly match the requested contiguous daily range.
+- Non-contiguous deltas fail without rewriting the CSV.
+- CSV writes use atomic replace.
 - Every import recalculates all risk rows and removes DB rows after the CSV tail.
 
 ## Security Controls
@@ -47,7 +76,8 @@ Start from `.env.production.example`, not `.env.example`. Required production ch
 - Public responses include baseline security headers at the nginx entrypoint.
 - Backend responses also set API-safe security headers.
 - `POST /api/waitlist` uses input validation, parameterized SQL, and an in-memory per-client rate limit.
-- Waitlist contacts are stored server-side only; the frontend does not persist submitted contacts in browser storage.
+- Waitlist contacts are stored server-side only.
+- The frontend does not persist submitted contacts in browser storage.
 
 ## Remaining External Operations
 
@@ -57,3 +87,11 @@ These are operational tasks outside this repository:
 - Configure host-level backups for `./data/timescaledb` or move TimescaleDB to a managed PostgreSQL/Timescale service.
 - Put TLS, request logging, and edge rate limiting in front of the frontend service.
 - Configure alerts on `/api/readiness` returning non-200 or collector logs containing remote refresh failures.
+
+## Related Docs
+
+- [Architecture](architecture.md)
+- [Data Pipeline](data-pipeline.md)
+- [Security and Privacy](security-and-privacy.md)
+- [Operations](operations.md)
+- [Testing and Quality](testing-and-quality.md)

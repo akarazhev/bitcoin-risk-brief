@@ -1,14 +1,38 @@
 # Bitcoin Risk Brief
 
-Standalone EN/RU mini-product for testing demand around a daily Bitcoin risk signal.
+Bitcoin Risk Brief is a standalone EN/RU mini-product for validating demand around a focused daily Bitcoin risk signal. It collects canonical BTC/USD daily data, computes a `crypto-scout-canonical-v1` risk metric, exposes read-only API endpoints, renders risk charts and risk levels, and stores waitlist leads in PostgreSQL.
 
-## What It Includes
+## Current Status
 
-- TimescaleDB for BTC OHLCV, risk history, validation state, and brief snapshots.
-- Python collector for one-time backfill and daily scheduled refresh.
-- FastAPI backend with read-only risk/brief endpoints.
-- React + Vite frontend with ECharts visualizations and EN/RU copy.
-- `podman-compose` orchestration.
+The product is ready for a production pilot after environment-specific deployment work is completed. The local stack has been verified with containerized `run-now`, readiness checks, security headers, full Python tests, frontend tests, frontend build, compose validation, and API smoke checks.
+
+External production tasks still required before public launch:
+
+- Run one live collector refresh with a real `COINMARKETCAP_API_KEY`.
+- Configure TLS, domain routing, request logs, and edge rate limiting.
+- Configure backups for TimescaleDB data or move the database to a managed service.
+- Configure alerts on `/api/readiness` and collector failures.
+
+## Product Surface
+
+- Daily BTC risk metric from `0.0` to `1.0`.
+- Stable states: `low`, `neutral`, `high`.
+- Historical risk chart.
+- Risk-level price ladder at `0.025` risk increments.
+- Daily brief payload in English and Russian.
+- Waitlist form for email or Telegram handles.
+- Readiness endpoint for deployment probes and alerts.
+
+## Architecture
+
+| Service | Stack | Purpose |
+| --- | --- | --- |
+| `timescaledb` | TimescaleDB/PostgreSQL | BTC OHLCV, risk rows, validation state, brief snapshots, waitlist leads |
+| `data-collector` | Python, asyncpg, APScheduler, httpx | Daily CSV refresh, full CSV import, risk recomputation |
+| `backend` | FastAPI, asyncpg | API, readiness, waitlist storage, risk and brief reads |
+| `frontend` | React, Vite, ECharts, nginx | Public EN/RU interface and API proxy |
+
+The stack is orchestrated with `podman-compose`.
 
 ## Quick Start
 
@@ -26,15 +50,34 @@ Open: `http://localhost:3001`
 
 ```bash
 ./scripts/manage.sh start       # build and start services
-./scripts/manage.sh migrate     # apply idempotent bootstrap schema to an existing DB
+./scripts/manage.sh migrate     # apply idempotent schema to an existing DB
 ./scripts/manage.sh stop        # stop services
 ./scripts/manage.sh logs        # follow logs
 ./scripts/manage.sh backfill    # import canonical local BTC CSV once
 ./scripts/manage.sh run-now     # refresh BTC CSV from CMC if configured, then import
-./scripts/manage.sh test-python # local unit tests for risk and collector transform
+./scripts/manage.sh test-python # backend and collector unit tests
 ```
 
-## API
+## Documentation
+
+- [Documentation Index](docs/README.md)
+- [Architecture](docs/architecture.md)
+- [Data Pipeline](docs/data-pipeline.md)
+- [Risk Methodology](docs/risk-methodology.md)
+- [API Reference](docs/api-reference.md)
+- [Waitlist](docs/waitlist.md)
+- [Security and Privacy](docs/security-and-privacy.md)
+- [Operations](docs/operations.md)
+- [Production Readiness](docs/production-readiness.md)
+- [Testing and Quality](docs/testing-and-quality.md)
+
+## Data Source
+
+The canonical source is `collector/btc-csv/btc_usd_daily.csv`. The collector treats this file as durable local source of truth. Scheduled collector runs only fetch missing completed UTC days from the official CoinMarketCap OHLCV Historical endpoint and atomically append validated rows to the CSV before importing the full file into TimescaleDB.
+
+If `COINMARKETCAP_API_KEY` is empty, remote refresh is skipped and the current CSV is still imported and used for risk recomputation.
+
+## API Overview
 
 - `GET /api/health`
 - `GET /api/readiness`
@@ -42,27 +85,29 @@ Open: `http://localhost:3001`
 - `GET /api/risk/history?limit=2000`
 - `GET /api/risk/levels`
 - `GET /api/brief/latest`
-- `POST /api/waitlist` with `{ "contact": "user@example.com", "locale": "en", "source": "landing" }`
+- `POST /api/waitlist`
 
+Detailed response shapes are documented in [API Reference](docs/api-reference.md).
 
 ## Risk Methodology
 
-Risk uses `crypto-scout-canonical-v1`, aligned with `crypto-scout-analytics`: HLC3 price, EMA365 trend deviation, 30-day realized volatility, turnover as `ln(volume / market_cap)`, robust rolling z-scores with a 1460-day window and 365-day minimum, and canonical weights of `0.60/0.25/0.15` when turnover is enabled. `/api/risk/levels` solves target prices through the same risk function at `0.025` risk increments.
+Risk uses `crypto-scout-canonical-v1`, aligned with `crypto-scout-analytics`: HLC3 price, EMA365 trend deviation, 30-day realized volatility, turnover as `ln(volume / market_cap)`, robust rolling z-scores with a 1460-day window and 365-day minimum, and canonical weights of `0.60/0.25/0.15` when turnover is enabled.
 
-The canonical source is `collector/btc-csv/btc_usd_daily.csv`, currently covering daily BTC/USD rows from `2010-07-13` onward. `./scripts/manage.sh backfill` imports the whole CSV into TimescaleDB and recalculates every risk row. `./scripts/manage.sh run-now` and the scheduled collector first try to fetch missing completed UTC days from CoinMarketCap OHLCV Historical, append them to the host-mounted CSV, then import the full CSV and recalculate risk. If `COINMARKETCAP_API_KEY` is empty, remote refresh is skipped and the existing CSV is still imported.
+Risk levels are solved through the same risk model at `0.025` risk increments. They are scenario outputs, not trading instructions.
 
-## Data Source Notes
+## Production Configuration
 
-The collector uses the official CoinMarketCap OHLCV Historical API (`/v2/cryptocurrency/ohlcv/historical`, `id=1`, `time_period=daily`) only for daily deltas after the local CSV tail. The CSV is bind-mounted into the `data-collector` container at `/app/collector/btc-csv`, so scheduled container runs update the repository copy instead of an ephemeral image file.
+Use `.env.production.example` as the production template. Do not deploy with `.env.example` defaults.
 
-## Production Readiness
+Production must set at least:
 
-Use `.env.production.example` for deploy configuration and `docs/production-readiness.md` for the release checklist. The backend exposes `/api/readiness` for deployment probes and alerting.
+- `APP_ENV=production`
+- `DB_PASSWORD` to a long random secret
+- `CORS_ORIGINS` to the public HTTPS origin
+- `COINMARKETCAP_API_KEY` to a production key
+- `DATA_FRESHNESS_MAX_AGE_DAYS` to the accepted freshness threshold
+- `WAITLIST_RATE_LIMIT_PER_HOUR` to the expected traffic profile
 
-## Product Scope
+## Disclaimer
 
-This repo deliberately excludes auth, billing, broad chart catalogs, and alert delivery. It exists to validate whether users want a focused daily BTC risk product before expanding.
-
-## Waitlist Storage
-
-The frontend waitlist form stores leads in PostgreSQL via `POST /api/waitlist`. The backend accepts email addresses and Telegram handles, normalizes contacts to avoid duplicates, and stores locale/source metadata in `waitlist_leads`. This does not send notifications yet.
+Bitcoin Risk Brief is an analytics and research product. It is not financial advice, investment advice, or a trading recommendation.
