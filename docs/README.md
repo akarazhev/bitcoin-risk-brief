@@ -10,7 +10,8 @@ This directory documents the current Bitcoin Risk Brief mini-product in English.
 - [API Reference](api-reference.md): public endpoints, request/response shapes, and readiness semantics.
 - [Waitlist](waitlist.md): lead capture behavior, validation rules, storage model, and privacy notes.
 - [Security and Privacy](security-and-privacy.md): headers, input validation, rate limiting, secrets, and PII handling.
-- [Operations](operations.md): local commands, container lifecycle, database maintenance, and troubleshooting.
+- [Operations](operations.md): local commands, container lifecycle, database maintenance, backups, and troubleshooting.
+- [Ubuntu and Cloudflare Tunnel Deployment](deploy-ubuntu-cloudflare.md): local-server deployment for Ubuntu, ByFly, Cloudflare Tunnel, backups, monitoring, and rollback.
 - [Production Readiness](production-readiness.md): release gates, production environment, guarantees, and external launch tasks.
 - [Testing and Quality](testing-and-quality.md): test commands, coverage areas, smoke checks, and CI workflow.
 

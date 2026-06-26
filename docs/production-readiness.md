@@ -44,6 +44,7 @@ Required production changes:
 - Set `APP_ENV=production`.
 - Replace `DB_PASSWORD` with a long random value.
 - Set `CORS_ORIGINS` to the public HTTPS domain only.
+- Keep `FRONTEND_BIND_IP=127.0.0.1` when Cloudflare Tunnel is the only ingress.
 - Set `COINMARKETCAP_API_KEY` to the production key.
 - Keep `DATA_FRESHNESS_MAX_AGE_DAYS=2` unless the product explicitly accepts slower updates.
 - Tune `WAITLIST_RATE_LIMIT_PER_HOUR` for expected traffic.
@@ -84,8 +85,9 @@ A non-200 readiness response should block deploy promotion and should alert in p
 These are operational tasks outside this repository:
 
 - Run one live `./scripts/manage.sh run-now` with the real `COINMARKETCAP_API_KEY` before public launch.
-- Configure host-level backups for `./data/timescaledb` or move TimescaleDB to a managed PostgreSQL/Timescale service.
-- Put TLS, request logging, and edge rate limiting in front of the frontend service.
+- Configure Cloudflare Tunnel for the public hostname and keep the frontend bound to localhost.
+- Configure scheduled `./scripts/backup.sh` runs and copy backups off the server.
+- Put TLS, request logging, WAF rules, and edge rate limiting in front of the frontend service.
 - Configure alerts on `/api/readiness` returning non-200 or collector logs containing remote refresh failures.
 
 ## Related Docs
@@ -94,4 +96,5 @@ These are operational tasks outside this repository:
 - [Data Pipeline](data-pipeline.md)
 - [Security and Privacy](security-and-privacy.md)
 - [Operations](operations.md)
+- [Ubuntu and Cloudflare Tunnel Deployment](deploy-ubuntu-cloudflare.md)
 - [Testing and Quality](testing-and-quality.md)

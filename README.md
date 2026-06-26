@@ -9,8 +9,8 @@ The product is ready for a production pilot after environment-specific deploymen
 External production tasks still required before public launch:
 
 - Run one live collector refresh with a real `COINMARKETCAP_API_KEY`.
-- Configure TLS, domain routing, request logs, and edge rate limiting.
-- Configure backups for TimescaleDB data or move the database to a managed service.
+- Configure Cloudflare Tunnel, TLS edge policy, request logs, and edge rate limiting.
+- Configure scheduled backups for TimescaleDB data and the canonical BTC CSV.
 - Configure alerts on `/api/readiness` and collector failures.
 
 ## Product Surface
@@ -68,6 +68,7 @@ Open: `http://localhost:3001`
 - [Waitlist](docs/waitlist.md)
 - [Security and Privacy](docs/security-and-privacy.md)
 - [Operations](docs/operations.md)
+- [Ubuntu and Cloudflare Tunnel Deployment](docs/deploy-ubuntu-cloudflare.md)
 - [Production Readiness](docs/production-readiness.md)
 - [Testing and Quality](docs/testing-and-quality.md)
 
@@ -107,6 +108,7 @@ Production must set at least:
 - `COINMARKETCAP_API_KEY` to a production key
 - `DATA_FRESHNESS_MAX_AGE_DAYS` to the accepted freshness threshold
 - `WAITLIST_RATE_LIMIT_PER_HOUR` to the expected traffic profile
+- `FRONTEND_BIND_IP=127.0.0.1` when Cloudflare Tunnel is the only public ingress
 
 ## Disclaimer
 
