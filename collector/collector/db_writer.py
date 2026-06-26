@@ -72,6 +72,43 @@ async def fetch_latest_turnover_enabled(pool: asyncpg.Pool) -> bool | None:
     return bool(row["turnover_enabled"]) if row else None
 
 
+def _parse_delete_count(status: str) -> int:
+    parts = status.split()
+    if len(parts) == 2 and parts[0].upper() == "DELETE":
+        return int(parts[1])
+    return 0
+
+
+async def delete_rows_after_csv_end(pool: asyncpg.Pool, latest_day) -> dict[str, int]:
+    cutoff = as_timestamp(latest_day)
+    ohlcv_status = await pool.execute(
+        """
+        DELETE FROM btc_ohlcv_daily
+        WHERE timestamp > $1
+        """,
+        cutoff,
+    )
+    risk_status = await pool.execute(
+        """
+        DELETE FROM btc_risk_daily
+        WHERE timestamp > $1
+        """,
+        cutoff,
+    )
+    brief_status = await pool.execute(
+        """
+        DELETE FROM brief_snapshots
+        WHERE as_of > $1
+        """,
+        cutoff,
+    )
+    return {
+        "ohlcv": _parse_delete_count(ohlcv_status),
+        "risk": _parse_delete_count(risk_status),
+        "brief": _parse_delete_count(brief_status),
+    }
+
+
 async def write_risk_rows(pool: asyncpg.Pool, points: list[RiskPoint]) -> int:
     records = [
         (

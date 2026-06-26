@@ -29,8 +29,8 @@ Open: `http://localhost:3001`
 ./scripts/manage.sh migrate     # apply idempotent bootstrap schema to an existing DB
 ./scripts/manage.sh stop        # stop services
 ./scripts/manage.sh logs        # follow logs
-./scripts/manage.sh backfill    # fetch configured all-time BTC history once
-./scripts/manage.sh run-now     # rolling refresh
+./scripts/manage.sh backfill    # import canonical local BTC CSV once
+./scripts/manage.sh run-now     # refresh BTC CSV from CMC if configured, then import
 ./scripts/manage.sh test-python # local unit tests for risk and collector transform
 ```
 
@@ -48,11 +48,11 @@ Open: `http://localhost:3001`
 
 Risk uses `crypto-scout-canonical-v1`, aligned with `crypto-scout-analytics`: HLC3 price, EMA365 trend deviation, 30-day realized volatility, turnover as `ln(volume / market_cap)`, robust rolling z-scores with a 1460-day window and 365-day minimum, and canonical weights of `0.60/0.25/0.15` when turnover is enabled. `/api/risk/levels` solves target prices through the same risk function at `0.025` risk increments.
 
-Canonical backfill now loads local BTC CSV history from `collector/btc-csv` for `2010-07-13` through `2013-12-31`, merges it with CoinGecko later history, validates the source stitch, and stores stitch diagnostics in `btc_risk_validation.validation_json`. If there is no source overlap and no explicit manual audit signoff, turnover is disabled while price-based features remain provisional. Daily refreshes recalculate risk over persisted OHLCV history plus the latest CoinGecko rows, so a successful all-time backfill keeps providing long context.
+The canonical source is `collector/btc-csv/btc_usd_daily.csv`, currently covering daily BTC/USD rows from `2010-07-13` onward. `./scripts/manage.sh backfill` imports the whole CSV into TimescaleDB and recalculates every risk row. `./scripts/manage.sh run-now` and the scheduled collector first try to fetch missing completed UTC days from CoinMarketCap OHLCV Historical, append them to the host-mounted CSV, then import the full CSV and recalculate risk. If `COINMARKETCAP_API_KEY` is empty, remote refresh is skipped and the existing CSV is still imported.
 
 ## Data Source Notes
 
-The collector uses CoinGecko `coins/bitcoin/market_chart`. `COINGECKO_BACKFILL_DAYS=max` is intended for an all-history bootstrap where the active CoinGecko plan permits it. For lower tiers, set `COINGECKO_BACKFILL_DAYS=365` or use an API key with the allowed history range.
+The collector uses the official CoinMarketCap OHLCV Historical API (`/v2/cryptocurrency/ohlcv/historical`, `id=1`, `time_period=daily`) only for daily deltas after the local CSV tail. The CSV is bind-mounted into the `data-collector` container at `/app/collector/btc-csv`, so scheduled container runs update the repository copy instead of an ephemeral image file.
 
 ## Product Scope
 

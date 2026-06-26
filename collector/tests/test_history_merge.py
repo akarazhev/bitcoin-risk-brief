@@ -49,10 +49,6 @@ class HistoryMergeTest(unittest.TestCase):
         self.assertEqual(merged[-1]["close"], 44_000.0)
 
 
-if __name__ == "__main__":
-    unittest.main()
-
-
 from app.risk import RiskPoint
 from collector.records import build_ohlcv_records, build_validation_payload
 
@@ -60,19 +56,19 @@ from collector.records import build_ohlcv_records, build_validation_payload
 class CollectorRecordBuilderTest(unittest.TestCase):
     def test_ohlcv_records_preserve_row_source(self) -> None:
         rows = [
-            row(date(2013, 12, 31), 800.0, "csv"),
-            row(date(2014, 1, 1), 820.0, "coingecko"),
+            row(date(2026, 6, 24), 800.0, "coinmarketcap_csv"),
+            row(date(2026, 6, 25), 820.0, "coinmarketcap_api"),
         ]
 
         records = build_ohlcv_records(rows)
 
-        self.assertEqual(records[0][-1], "csv")
-        self.assertEqual(records[1][-1], "coingecko")
+        self.assertEqual(records[0][-1], "coinmarketcap_csv")
+        self.assertEqual(records[1][-1], "coinmarketcap_api")
 
-    def test_validation_payload_includes_stitch_and_methodology_metadata(self) -> None:
+    def test_validation_payload_includes_source_and_methodology_metadata(self) -> None:
         points = [
             RiskPoint(
-                day=date(2014, 1, 1),
+                day=date(2026, 6, 25),
                 price_hlc3=800.0,
                 risk=0.5,
                 score=0.0,
@@ -82,18 +78,21 @@ class CollectorRecordBuilderTest(unittest.TestCase):
                 z_trend_dev=0.0,
                 z_vol_regime=0.0,
                 z_turnover=0.0,
-                turnover_enabled=False,
+                turnover_enabled=True,
             )
         ]
 
         payload = build_validation_payload(
             points,
-            turnover_enabled=False,
+            turnover_enabled=True,
             source_row_count=1,
-            stitch_validation={"status": "provisional_price_only", "turnover_enabled": False},
-            validation={"missing_date_count": 0},
+            validation={"missing_date_count": 0, "source_strategy": "coinmarketcap_csv"},
         )
 
+        self.assertEqual(payload["source"], "coinmarketcap_csv")
         self.assertEqual(payload["methodology_version"], "crypto-scout-canonical-v1")
-        self.assertEqual(payload["stitch_validation"]["status"], "provisional_price_only")
         self.assertEqual(payload["validation"]["missing_date_count"], 0)
+
+
+if __name__ == "__main__":
+    unittest.main()

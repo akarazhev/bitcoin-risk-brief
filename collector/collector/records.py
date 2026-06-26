@@ -21,7 +21,7 @@ def build_ohlcv_records(rows: list[dict[str, Any]]) -> list[tuple[Any, ...]]:
             row["volume"],
             row["market_cap"],
             row["circulating_supply"],
-            row.get("source", "coingecko"),
+            row.get("source", "coinmarketcap_csv"),
         )
         for row in rows
     ]
@@ -35,8 +35,11 @@ def build_validation_payload(
     stitch_validation: dict[str, Any] | None = None,
     validation: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
+    source = "coinmarketcap_csv"
+    if validation and validation.get("source_strategy"):
+        source = str(validation["source_strategy"])
     payload = {
-        "source": "csv_coingecko_merged" if stitch_validation else "coingecko_with_persisted_history",
+        "source": source,
         "methodology_version": METHODOLOGY_VERSION,
         "robust_z_window": ROBUST_Z_WINDOW,
         "robust_z_min_periods": ROBUST_Z_MIN_PERIODS,

@@ -36,7 +36,9 @@ services:
       timescaledb:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "python -c 'import urllib.request; urllib.request.urlopen(\"http://localhost:8000/api/health\")'"]
+      test:
+        - CMD-SHELL
+        - python -c 'import urllib.request; urllib.request.urlopen("http://localhost:8000/api/health")'
       interval: 15s
       timeout: 5s
       retries: 3
@@ -72,11 +74,14 @@ services:
     restart: unless-stopped
     environment:
       DATABASE_URL: postgresql://postgres:${DB_PASSWORD:-postgres}@timescaledb:5432/bitcoin_risk_brief
-      COINGECKO_API_KEY: ${COINGECKO_API_KEY:-}
-      COINGECKO_BACKFILL_DAYS: ${COINGECKO_BACKFILL_DAYS:-max}
-      COINGECKO_REFRESH_DAYS: ${COINGECKO_REFRESH_DAYS:-365}
+      COINMARKETCAP_API_KEY: ${COINMARKETCAP_API_KEY:-}
+      COINMARKETCAP_BASE_URL: ${COINMARKETCAP_BASE_URL:-https://pro-api.coinmarketcap.com}
+      COINMARKETCAP_BITCOIN_ID: ${COINMARKETCAP_BITCOIN_ID:-1}
+      COINMARKETCAP_CONVERT: ${COINMARKETCAP_CONVERT:-USD}
       SCHEDULE_CRON_HOUR: ${SCHEDULE_CRON_HOUR:-1}
       SCHEDULE_CRON_MINUTE: ${SCHEDULE_CRON_MINUTE:-0}
+    volumes:
+      - ./collector/btc-csv:/app/collector/btc-csv
     depends_on:
       timescaledb:
         condition: service_healthy

@@ -90,7 +90,19 @@ async def fetch_risk_history(
     return [_serialize_row(row) for row in reversed(rows)]
 
 
-async def fetch_ohlcv_history(pool: asyncpg.Pool, *, limit: int = 5000) -> list[dict[str, Any]]:
+async def fetch_ohlcv_history(pool: asyncpg.Pool, *, limit: int | None = None) -> list[dict[str, Any]]:
+    if limit is None:
+        rows = await pool.fetch(
+            """
+            SELECT
+              timestamp, open_usd, high_usd, low_usd, close_usd, volume_usd,
+              market_cap_usd, circulating_supply, source
+            FROM btc_ohlcv_daily
+            ORDER BY timestamp ASC
+            """
+        )
+        return [_serialize_ohlcv_row(row) for row in rows]
+
     rows = await pool.fetch(
         """
         SELECT

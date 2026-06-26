@@ -15,18 +15,18 @@
 **Files:**
 - Modify: `backend/tests/test_risk_sources.py`
 
-- [ ] Add failing tests for `load_btc_usd_daily_csv` using `collector/btc-csv/btc_usd_daily.csv`.
-- [ ] Add failing tests for `build_csv_risk_dataset` over the full CSV.
-- [ ] Verify RED with `PYTHONPATH=backend:collector python3 -m unittest backend.tests.test_risk_sources -v`.
+- [x] Add failing tests for `load_btc_usd_daily_csv` using `collector/btc-csv/btc_usd_daily.csv`.
+- [x] Add failing tests for `build_csv_risk_dataset` over the full CSV.
+- [x] Verify RED with `PYTHONPATH=backend:collector python3 -m unittest backend.tests.test_risk_sources -v`.
 
 ### Task 2: CMC API Parsing Tests
 
 **Files:**
 - Modify: `collector/tests/test_transform.py`
 
-- [ ] Replace CoinGecko transform test with CMC OHLCV historical response parsing.
-- [ ] Test that parsed rows include open/high/low/close/volume/market_cap/circulating_supply and `source='coinmarketcap_api'`.
-- [ ] Verify RED with `PYTHONPATH=backend:collector python3 -m unittest discover -s collector/tests -p 'test_transform.py' -v`.
+- [x] Replace CoinGecko transform test with CMC OHLCV historical response parsing.
+- [x] Test that parsed rows include open/high/low/close/volume/market_cap/circulating_supply and `source='coinmarketcap_api'`.
+- [x] Verify RED with `PYTHONPATH=backend:collector python3 -m unittest discover -s collector/tests -p 'test_transform.py' -v`.
 
 ### Task 3: Source and API Implementation
 
@@ -35,10 +35,10 @@
 - Create: `collector/collector/coinmarketcap.py`
 - Delete: `collector/collector/coingecko.py`
 
-- [ ] Implement full CSV load/write/merge helpers.
-- [ ] Implement `build_csv_risk_dataset(csv_path)`.
-- [ ] Implement CMC API client and parser for `/v2/cryptocurrency/ohlcv/historical`.
-- [ ] Remove CoinGecko runtime module.
+- [x] Implement full CSV load/write/merge helpers.
+- [x] Implement `build_csv_risk_dataset(csv_path)`.
+- [x] Implement CMC API client and parser for `/v2/cryptocurrency/ohlcv/historical`.
+- [x] Remove CoinGecko runtime module.
 
 ### Task 4: Collector Wiring
 
@@ -49,14 +49,15 @@
 - Modify: `podman-compose.yml`
 - Modify: `.env.example`
 
-- [ ] Replace CoinGecko env vars with CoinMarketCap settings.
-- [ ] Add `./collector/btc-csv:/app/collector/btc-csv` bind mount for data-collector.
-- [ ] Make scheduled run update CSV when API key exists, then import full CSV into DB.
-- [ ] Make backfill import the CSV without network dependency.
+- [x] Replace CoinGecko env vars with CoinMarketCap settings.
+- [x] Add `./collector/btc-csv:/app/collector/btc-csv` bind mount for data-collector.
+- [x] Make scheduled run update CSV when API key exists, then import full CSV into DB.
+- [x] Make backfill import the CSV without network dependency.
 
 ### Task 5: Verification and Commit
 
-- [ ] Run Python tests, compileall, frontend tests/build, compose validate.
-- [ ] Build backend/data-collector/frontend containers.
-- [ ] Run `./scripts/manage.sh run-now` and verify API consistency.
-- [ ] Commit local changes.
+- [x] Run Python tests, compileall, frontend tests/build, compose validate.
+- [x] Build backend/data-collector/frontend containers.
+- [x] Run `./scripts/manage.sh run-now` and verify API consistency.
+- [x] Add stale-row cleanup so CSV import removes DB rows after the CSV tail.
+- [x] Commit local changes.

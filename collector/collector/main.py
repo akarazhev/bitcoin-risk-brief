@@ -9,54 +9,28 @@ from pathlib import Path
 import asyncpg
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
-from app.risk import calculate_risk_series
-from app.risk_sources import build_merged_risk_dataset
-from collector.coingecko import CoinGeckoClient, market_chart_to_daily_rows
+from app.risk_sources import build_csv_risk_dataset
 from collector.config import settings
-from collector.history import has_valid_turnover, merge_ohlcv_rows
-from collector.db_writer import fetch_latest_turnover_enabled, fetch_ohlcv_rows, write_brief, write_ohlcv_rows, write_risk_rows, write_validation
+from collector.csv_refresh import refresh_csv_from_coinmarketcap
+from collector.db_writer import delete_rows_after_csv_end, write_brief, write_ohlcv_rows, write_risk_rows, write_validation
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
 logger = logging.getLogger(__name__)
-BTC_CSV_DIR = Path(__file__).resolve().parents[1] / "btc-csv"
+BTC_CSV_PATH = Path(__file__).resolve().parents[1] / "btc-csv" / "btc_usd_daily.csv"
 
 
-async def collect_once(pool: asyncpg.Pool, *, days: str) -> None:
-    logger.info("Fetching BTC market chart from CoinGecko: days=%s", days)
-    client = CoinGeckoClient(api_key=settings.coingecko_api_key)
-    payload = await client.fetch_bitcoin_market_chart(days=days)
-    rows = market_chart_to_daily_rows(payload)
-    ohlcv_count = await write_ohlcv_rows(pool, rows)
-    persisted_rows = await fetch_ohlcv_rows(pool)
-    merged_rows = merge_ohlcv_rows(persisted_rows, rows)
-    previous_turnover_enabled = await fetch_latest_turnover_enabled(pool)
-    turnover_enabled = previous_turnover_enabled if previous_turnover_enabled is not None else has_valid_turnover(merged_rows)
-    risk_points = calculate_risk_series(merged_rows, turnover_enabled=turnover_enabled)
-    risk_count = await write_risk_rows(pool, risk_points)
-    await write_validation(
-        pool,
-        risk_points,
-        turnover_enabled=turnover_enabled,
-        source_row_count=len(merged_rows),
-    )
-    await write_brief(pool, risk_points)
-    logger.info(
-        "Collection complete: %d refreshed ohlcv rows, %d merged rows, %d risk rows",
-        ohlcv_count,
-        len(merged_rows),
-        risk_count,
-    )
+async def import_csv_once(pool: asyncpg.Pool, *, refresh_remote: bool) -> None:
+    refreshed_count = 0
+    if refresh_remote:
+        refreshed_count = await refresh_csv_from_coinmarketcap(
+            BTC_CSV_PATH,
+            api_key=settings.coinmarketcap_api_key,
+            base_url=settings.coinmarketcap_base_url,
+            bitcoin_id=settings.coinmarketcap_bitcoin_id,
+            convert=settings.coinmarketcap_convert,
+        )
 
-
-async def backfill_once(pool: asyncpg.Pool, *, days: str) -> None:
-    logger.info("Fetching canonical BTC backfill from CoinGecko: days=%s", days)
-    client = CoinGeckoClient(api_key=settings.coingecko_api_key)
-    payload = await client.fetch_bitcoin_market_chart(days=days)
-    dataset = build_merged_risk_dataset(
-        csv_dir=BTC_CSV_DIR,
-        coingecko_market_chart=payload,
-        manual_audit_signoff=settings.manual_audit_signoff(),
-    )
+    dataset = build_csv_risk_dataset(BTC_CSV_PATH)
     ohlcv_count = await write_ohlcv_rows(pool, dataset["source_rows"])
     risk_count = await write_risk_rows(pool, dataset["risk_points"])
     await write_validation(
@@ -64,16 +38,17 @@ async def backfill_once(pool: asyncpg.Pool, *, days: str) -> None:
         dataset["risk_points"],
         turnover_enabled=dataset["validation"]["turnover_enabled"],
         source_row_count=len(dataset["source_rows"]),
-        stitch_validation=dataset["stitch_validation"],
         validation=dataset["validation"],
         validation_summary=dataset["validation_summary"],
     )
     await write_brief(pool, dataset["risk_points"])
+    deleted_counts = await delete_rows_after_csv_end(pool, dataset["source_rows"][-1]["date"])
     logger.info(
-        "Canonical backfill complete: %d ohlcv rows, %d risk rows, stitch=%s",
+        "CSV import complete: %d refreshed CSV rows, %d ohlcv rows, %d risk rows, deleted stale rows=%s",
+        refreshed_count,
         ohlcv_count,
         risk_count,
-        dataset["stitch_validation"]["status"],
+        deleted_counts,
     )
 
 
@@ -81,18 +56,18 @@ async def main(*, run_now: bool = False, backfill: bool = False) -> None:
     pool = await asyncpg.create_pool(settings.database_url, min_size=1, max_size=3)
     try:
         if backfill:
-            await backfill_once(pool, days=settings.coingecko_backfill_days)
+            await import_csv_once(pool, refresh_remote=False)
             return
         if run_now:
-            await collect_once(pool, days=settings.coingecko_refresh_days)
+            await import_csv_once(pool, refresh_remote=True)
             return
 
         scheduler = AsyncIOScheduler(timezone="UTC")
         scheduler.add_job(
-            collect_once,
+            import_csv_once,
             "cron",
             args=[pool],
-            kwargs={"days": settings.coingecko_refresh_days},
+            kwargs={"refresh_remote": True},
             hour=settings.schedule_cron_hour,
             minute=settings.schedule_cron_minute,
             id="btc_risk_collection",
@@ -111,7 +86,7 @@ async def main(*, run_now: bool = False, backfill: bool = False) -> None:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Bitcoin Risk Brief collector")
-    parser.add_argument("--run-now", action="store_true", help="Run a rolling refresh and exit")
-    parser.add_argument("--backfill", action="store_true", help="Run all-time configured backfill and exit")
+    parser.add_argument("--run-now", action="store_true", help="Refresh BTC CSV if possible, import CSV, recalculate risk, and exit")
+    parser.add_argument("--backfill", action="store_true", help="Import the canonical BTC CSV, recalculate risk, and exit")
     args = parser.parse_args()
     asyncio.run(main(run_now=args.run_now, backfill=args.backfill))
