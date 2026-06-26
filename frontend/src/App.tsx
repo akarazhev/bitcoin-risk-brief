@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import ReactECharts from 'echarts-for-react'
 import { Bell, Languages, Radio, Send, ShieldAlert } from 'lucide-react'
-import { fetchBrief, fetchLatestRisk, fetchRiskHistory, fetchRiskLevels } from './api'
+import { fetchBrief, fetchLatestRisk, fetchRiskHistory, fetchRiskLevels, joinWaitlist } from './api'
 import type { BriefPayload, RiskLevel, RiskPoint } from './types'
 
 type Locale = 'en' | 'ru'
@@ -24,7 +24,9 @@ const copy = {
     waitlistBody: 'Leave an email or Telegram handle. The first test cohort gets the risk alert free.',
     placeholder: 'email or @telegram',
     join: 'Join waitlist',
-    joined: 'Saved locally. Connect VITE_WAITLIST_ENDPOINT to send submissions.',
+    joined: 'Saved. You are on the Bitcoin Risk Brief waitlist.',
+    joinError: 'Enter a valid email or Telegram handle.',
+    joining: 'Saving...',
     loading: 'Loading risk data...',
     empty: 'No collected data yet. Run the collector backfill to populate TimescaleDB.',
   },
@@ -45,7 +47,9 @@ const copy = {
     waitlistBody: 'Оставь email или Telegram. Первая тестовая группа получит риск-алерт бесплатно.',
     placeholder: 'email или @telegram',
     join: 'В лист ожидания',
-    joined: 'Сохранено локально. Подключи VITE_WAITLIST_ENDPOINT для отправки заявок.',
+    joined: 'Сохранено. Ты в листе ожидания Bitcoin Risk Brief.',
+    joinError: 'Укажи корректный email или Telegram.',
+    joining: 'Сохраняю...',
     loading: 'Загружаю risk data...',
     empty: 'Данных пока нет. Запусти collector backfill, чтобы заполнить TimescaleDB.',
   },
@@ -76,6 +80,8 @@ export default function App() {
   const [error, setError] = useState<string | null>(null)
   const [lead, setLead] = useState('')
   const [joined, setJoined] = useState(false)
+  const [joinError, setJoinError] = useState<string | null>(null)
+  const [joining, setJoining] = useState(false)
   const t = copy[locale]
 
   useEffect(() => {
@@ -114,15 +120,22 @@ export default function App() {
     series: [{ name: 'Price', type: 'bar', data: levels.map((row) => row.price_usd), itemStyle: { color: '#5bd6c6', borderRadius: [4, 4, 0, 0] } }],
   }), [levels])
 
-  async function joinWaitlist() {
+  async function submitWaitlist(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
     const value = lead.trim()
-    if (!value) return
-    localStorage.setItem('bitcoin-risk-brief-lead', value)
-    const endpoint = import.meta.env.VITE_WAITLIST_ENDPOINT as string | undefined
-    if (endpoint) {
-      await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ lead: value, locale }) })
+    if (!value || joining) return
+    setJoining(true)
+    setJoinError(null)
+    try {
+      await joinWaitlist({ contact: value, locale, source: 'landing' })
+      localStorage.setItem('bitcoin-risk-brief-lead', value)
+      setJoined(true)
+    } catch {
+      setJoined(false)
+      setJoinError(t.joinError)
+    } finally {
+      setJoining(false)
     }
-    setJoined(true)
   }
 
   if (error && !latest) {
@@ -191,11 +204,12 @@ export default function App() {
           <h2>{t.waitlistTitle}</h2>
           <p>{t.waitlistBody}</p>
         </div>
-        <div className="lead-form">
-          <input value={lead} onChange={(event) => setLead(event.target.value)} placeholder={t.placeholder} />
-          <button onClick={joinWaitlist}><Send size={16} /> {t.join}</button>
-        </div>
+        <form className="lead-form" onSubmit={submitWaitlist}>
+          <input value={lead} onChange={(event) => setLead(event.target.value)} placeholder={t.placeholder} aria-label={t.placeholder} />
+          <button type="submit" disabled={joining}><Send size={16} /> {joining ? t.joining : t.join}</button>
+        </form>
         {joined && <p className="joined">{t.joined}</p>}
+        {joinError && <p className="joined error-text">{joinError}</p>}
       </section>
     </main>
   )

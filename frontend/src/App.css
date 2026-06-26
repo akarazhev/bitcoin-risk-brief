@@ -62,6 +62,8 @@ h1 { margin: 0; font-size: clamp(3rem, 9vw, 7rem); line-height: 0.9; letter-spac
 .lead-form input { min-width: 0; flex: 1; border: 1px solid #343943; background: #0c0d0f; color: #f4f0e8; border-radius: 8px; padding: 12px; }
 .lead-form button { display: inline-flex; align-items: center; gap: 8px; border: 0; border-radius: 8px; padding: 12px 14px; background: #f2b84b; color: #16120b; font-weight: 800; cursor: pointer; }
 .joined { grid-column: 1 / -1; color: #5bd6c6 !important; }
+.error-text { color: #ff6b5f !important; }
+.lead-form button:disabled { cursor: wait; opacity: 0.72; }
 .loading { color: #c8c4bd; }
 .empty-state { max-width: 560px; }
 .empty-state svg { color: #ff6b5f; }

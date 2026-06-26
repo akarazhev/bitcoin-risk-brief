@@ -36,3 +36,15 @@ export interface RiskLevel {
   risk: number
   price_usd: number
 }
+
+export interface WaitlistRequest {
+  contact: string
+  locale: 'en' | 'ru'
+  source: string
+}
+
+export interface WaitlistResponse {
+  contact_type: 'email' | 'telegram'
+  locale: 'en' | 'ru'
+  created: boolean
+}
