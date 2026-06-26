@@ -82,7 +82,7 @@ async def risk_levels() -> dict[str, Any]:
     if latest is None or len(source_rows) < 2:
         raise HTTPException(status_code=404, detail="Risk source data has not been collected yet")
 
-    turnover_enabled = all(row["volume"] > 0 and row["market_cap"] > 0 for row in source_rows)
+    turnover_enabled = bool(latest["turnover_enabled"])
     levels = build_risk_levels(source_rows, {"turnover_enabled": turnover_enabled})
     return {
         "data": [

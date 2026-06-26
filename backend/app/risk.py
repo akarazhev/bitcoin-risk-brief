@@ -179,9 +179,7 @@ def calculate_risk_series(rows: list[dict[str, Any]], *, turnover_enabled: bool 
     if not normalized:
         return []
 
-    effective_turnover_enabled = turnover_enabled and all(
-        row["volume"] > 0 and row["market_cap"] > 0 for row in normalized
-    )
+    effective_turnover_enabled = turnover_enabled and all(row["market_cap"] > 0 for row in normalized)
     weights = TURNOVER_ENABLED_WEIGHTS if effective_turnover_enabled else TURNOVER_DISABLED_WEIGHTS
 
     prices = [_compute_hlc3(row) for row in normalized]

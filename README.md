@@ -48,7 +48,7 @@ Open: `http://localhost:3001`
 
 Risk uses `crypto-scout-canonical-v1`, aligned with `crypto-scout-analytics`: HLC3 price, EMA365 trend deviation, 30-day realized volatility, turnover as `ln(volume / market_cap)`, robust rolling z-scores with a 1460-day window and 365-day minimum, and canonical weights of `0.60/0.25/0.15` when turnover is enabled. `/api/risk/levels` solves target prices through the same risk function at `0.025` risk increments.
 
-Daily refreshes recalculate risk over persisted OHLCV history plus the latest CoinGecko rows, so an all-time backfill keeps providing long context. Full early-BTC CSV stitching from `crypto-scout-analytics` is not included in this mini-product yet.
+Canonical backfill now loads local BTC CSV history from `collector/btc-csv` for `2010-07-13` through `2013-12-31`, merges it with CoinGecko later history, validates the source stitch, and stores stitch diagnostics in `btc_risk_validation.validation_json`. If there is no source overlap and no explicit manual audit signoff, turnover is disabled while price-based features remain provisional. Daily refreshes recalculate risk over persisted OHLCV history plus the latest CoinGecko rows, so a successful all-time backfill keeps providing long context.
 
 ## Data Source Notes
 

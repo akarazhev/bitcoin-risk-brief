@@ -1,34 +1,17 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime, time, timezone
 from typing import Any
 
 import asyncpg
 
 from app.brief import build_brief
-from app.risk import METHODOLOGY_VERSION, ROBUST_Z_MIN_PERIODS, ROBUST_Z_WINDOW, RiskPoint, classify_risk
-
-
-def _as_timestamp(day) -> datetime:
-    return datetime.combine(day, time.min, tzinfo=timezone.utc)
+from app.risk import RiskPoint, classify_risk
+from collector.records import as_timestamp, build_ohlcv_records, build_validation_payload
 
 
 async def write_ohlcv_rows(pool: asyncpg.Pool, rows: list[dict[str, Any]]) -> int:
-    records = [
-        (
-            _as_timestamp(row["date"]),
-            row["open"],
-            row["high"],
-            row["low"],
-            row["close"],
-            row["volume"],
-            row["market_cap"],
-            row["circulating_supply"],
-            "coingecko",
-        )
-        for row in rows
-    ]
+    records = build_ohlcv_records(rows)
     await pool.executemany(
         """
         INSERT INTO btc_ohlcv_daily (
@@ -77,10 +60,22 @@ async def fetch_ohlcv_rows(pool: asyncpg.Pool) -> list[dict[str, Any]]:
     ]
 
 
+async def fetch_latest_turnover_enabled(pool: asyncpg.Pool) -> bool | None:
+    row = await pool.fetchrow(
+        """
+        SELECT turnover_enabled
+        FROM btc_risk_daily
+        ORDER BY timestamp DESC
+        LIMIT 1
+        """
+    )
+    return bool(row["turnover_enabled"]) if row else None
+
+
 async def write_risk_rows(pool: asyncpg.Pool, points: list[RiskPoint]) -> int:
     records = [
         (
-            _as_timestamp(point.day),
+            as_timestamp(point.day),
             point.price_hlc3,
             point.risk,
             point.score,
@@ -126,19 +121,24 @@ async def write_validation(
     *,
     turnover_enabled: bool,
     source_row_count: int,
+    stitch_validation: dict[str, Any] | None = None,
+    validation: dict[str, Any] | None = None,
+    validation_summary: str | None = None,
 ) -> None:
     if not points:
         return
     risk_range_ok = all(0.0 <= point.risk <= 1.0 for point in points)
-    payload = {
-        "source": "coingecko_with_persisted_history",
-        "methodology_version": METHODOLOGY_VERSION,
-        "robust_z_window": ROBUST_Z_WINDOW,
-        "robust_z_min_periods": ROBUST_Z_MIN_PERIODS,
-        "turnover_enabled": turnover_enabled,
-        "source_row_count": source_row_count,
-        "risk_row_count": len(points),
-    }
+    payload = build_validation_payload(
+        points,
+        turnover_enabled=turnover_enabled,
+        source_row_count=source_row_count,
+        stitch_validation=stitch_validation,
+        validation=validation,
+    )
+    summary = validation_summary or (
+        f"{len(points)} daily BTC risk rows computed with {payload['methodology_version']}; "
+        f"turnover_enabled={turnover_enabled}; risk_range_ok={risk_range_ok}"
+    )
     await pool.execute(
         """
         INSERT INTO btc_risk_validation (
@@ -154,15 +154,12 @@ async def write_validation(
           validation_summary = EXCLUDED.validation_summary,
           validation_json = EXCLUDED.validation_json
         """,
-        _as_timestamp(points[0].day),
-        _as_timestamp(points[-1].day),
+        as_timestamp(points[0].day),
+        as_timestamp(points[-1].day),
         len(points),
         risk_range_ok,
-        (
-            f"{len(points)} daily BTC risk rows computed with {METHODOLOGY_VERSION}; "
-            f"turnover_enabled={turnover_enabled}; risk_range_ok={risk_range_ok}"
-        ),
-        json.dumps(payload),
+        summary,
+        json.dumps(payload, default=str),
     )
 
 
@@ -172,7 +169,7 @@ async def write_brief(pool: asyncpg.Pool, points: list[RiskPoint]) -> None:
     latest = points[-1]
     previous = points[-2] if len(points) > 1 else None
     latest_payload = {
-        "timestamp": _as_timestamp(latest.day).isoformat(),
+        "timestamp": as_timestamp(latest.day).isoformat(),
         "risk": latest.risk,
         "risk_state": classify_risk(latest.risk),
         "price_usd": latest.price_hlc3,
@@ -180,7 +177,7 @@ async def write_brief(pool: asyncpg.Pool, points: list[RiskPoint]) -> None:
     previous_payload = None
     if previous is not None:
         previous_payload = {
-            "timestamp": _as_timestamp(previous.day).isoformat(),
+            "timestamp": as_timestamp(previous.day).isoformat(),
             "risk": previous.risk,
             "risk_state": classify_risk(previous.risk),
             "price_usd": previous.price_hlc3,
@@ -194,7 +191,7 @@ async def write_brief(pool: asyncpg.Pool, points: list[RiskPoint]) -> None:
           payload_json = EXCLUDED.payload_json,
           created_at = now()
         """,
-        _as_timestamp(latest.day),
+        as_timestamp(latest.day),
         brief["snapshot_version"],
         json.dumps(brief),
     )
