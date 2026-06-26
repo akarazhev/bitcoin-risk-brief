@@ -6,12 +6,20 @@ from typing import Annotated, Any
 
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel, Field
 
 from app.brief import build_brief
 from app.config import settings
 from app.db import connect, disconnect, get_pool
-from app.repository import fetch_latest_brief, fetch_latest_risk, fetch_previous_risk, fetch_risk_history
+from app.repository import (
+    fetch_latest_brief,
+    fetch_latest_risk,
+    fetch_previous_risk,
+    fetch_risk_history,
+    upsert_waitlist_lead,
+)
 from app.risk_levels import build_risk_levels
+from app.waitlist import InvalidWaitlistContact
 
 
 @asynccontextmanager
@@ -23,12 +31,18 @@ async def lifespan(_app: FastAPI):
         await disconnect()
 
 
+class WaitlistRequest(BaseModel):
+    contact: str = Field(min_length=3, max_length=254)
+    locale: str = Field(default="en", max_length=8)
+    source: str = Field(default="landing", max_length=64)
+
+
 app = FastAPI(title="Bitcoin Risk Brief API", version="0.1.0", lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=list(settings.cors_origins),
     allow_credentials=False,
-    allow_methods=["GET"],
+    allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
 
@@ -77,3 +91,24 @@ async def brief_latest() -> dict[str, Any]:
         raise HTTPException(status_code=404, detail="Brief data has not been collected yet")
     previous = await fetch_previous_risk(pool)
     return {"data": build_brief(latest, previous)}
+
+
+@app.post("/api/waitlist", status_code=201)
+async def waitlist_join(payload: WaitlistRequest) -> dict[str, Any]:
+    try:
+        lead = await upsert_waitlist_lead(
+            get_pool(),
+            contact=payload.contact,
+            locale=payload.locale,
+            source=payload.source,
+        )
+    except InvalidWaitlistContact as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    return {
+        "data": {
+            "contact_type": lead["contact_type"],
+            "locale": lead["locale"],
+            "created": lead["created"],
+        }
+    }
+

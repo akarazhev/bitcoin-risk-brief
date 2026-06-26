@@ -16,6 +16,7 @@ Standalone EN/RU mini-product for testing demand around a daily Bitcoin risk sig
 cp .env.example .env
 ./scripts/manage.sh validate
 ./scripts/manage.sh start
+./scripts/manage.sh migrate
 ./scripts/manage.sh backfill
 ```
 
@@ -25,6 +26,7 @@ Open: `http://localhost:3001`
 
 ```bash
 ./scripts/manage.sh start       # build and start services
+./scripts/manage.sh migrate     # apply idempotent bootstrap schema to an existing DB
 ./scripts/manage.sh stop        # stop services
 ./scripts/manage.sh logs        # follow logs
 ./scripts/manage.sh backfill    # fetch configured all-time BTC history once
@@ -39,6 +41,7 @@ Open: `http://localhost:3001`
 - `GET /api/risk/history?limit=2000`
 - `GET /api/risk/levels`
 - `GET /api/brief/latest`
+- `POST /api/waitlist` with `{ "contact": "user@example.com", "locale": "en", "source": "landing" }`
 
 ## Data Source Notes
 
@@ -47,3 +50,7 @@ The collector uses CoinGecko `coins/bitcoin/market_chart`. `COINGECKO_BACKFILL_D
 ## Product Scope
 
 This repo deliberately excludes auth, billing, broad chart catalogs, and alert delivery. It exists to validate whether users want a focused daily BTC risk product before expanding.
+
+## Waitlist Storage
+
+The frontend waitlist form stores leads in PostgreSQL via `POST /api/waitlist`. The backend accepts email addresses and Telegram handles, normalizes contacts to avoid duplicates, and stores locale/source metadata in `waitlist_leads`. This does not send notifications yet.

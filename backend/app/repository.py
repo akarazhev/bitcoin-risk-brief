@@ -88,3 +88,49 @@ async def fetch_latest_brief(pool: asyncpg.Pool) -> dict[str, Any] | None:
         return None
     payload = row["payload_json"]
     return json.loads(payload) if isinstance(payload, str) else dict(payload)
+
+
+async def upsert_waitlist_lead(
+    pool: asyncpg.Pool,
+    *,
+    contact: str,
+    locale: str = "en",
+    source: str = "landing",
+) -> dict[str, Any]:
+    from app.waitlist import normalize_locale, normalize_source, normalize_waitlist_contact
+
+    normalized = normalize_waitlist_contact(contact)
+    clean_locale = normalize_locale(locale)
+    clean_source = normalize_source(source)
+    row = await pool.fetchrow(
+        """
+        INSERT INTO waitlist_leads (contact, normalized_contact, contact_type, locale, source, status)
+        VALUES ($1, $2, $3, $4, $5, 'active')
+        ON CONFLICT (normalized_contact) DO UPDATE SET
+          contact = EXCLUDED.contact,
+          contact_type = EXCLUDED.contact_type,
+          locale = EXCLUDED.locale,
+          source = EXCLUDED.source,
+          status = 'active',
+          updated_at = now()
+        RETURNING
+          id::text, contact, normalized_contact, contact_type, locale, source, status,
+          (created_at = updated_at) AS created
+        """,
+        normalized.contact,
+        normalized.normalized_contact,
+        normalized.contact_type,
+        clean_locale,
+        clean_source,
+    )
+    return {
+        "id": row["id"],
+        "contact": row["contact"],
+        "normalized_contact": row["normalized_contact"],
+        "contact_type": row["contact_type"],
+        "locale": row["locale"],
+        "source": row["source"],
+        "status": row["status"],
+        "created": bool(row["created"]),
+    }
+

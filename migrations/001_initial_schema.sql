@@ -60,3 +60,23 @@ CREATE TABLE IF NOT EXISTS brief_snapshots (
     UNIQUE (as_of, snapshot_version)
 );
 CREATE INDEX IF NOT EXISTS idx_brief_snapshots_as_of_desc ON brief_snapshots (as_of DESC);
+
+CREATE TABLE IF NOT EXISTS waitlist_leads (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    contact TEXT NOT NULL,
+    normalized_contact TEXT NOT NULL,
+    contact_type TEXT NOT NULL,
+    locale TEXT NOT NULL DEFAULT 'en',
+    source TEXT NOT NULL DEFAULT 'landing',
+    status TEXT NOT NULL DEFAULT 'active',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    CONSTRAINT waitlist_leads_contact_type_check CHECK (contact_type IN ('email', 'telegram')),
+    CONSTRAINT waitlist_leads_locale_check CHECK (locale IN ('en', 'ru')),
+    CONSTRAINT waitlist_leads_status_check CHECK (status IN ('active')),
+    CONSTRAINT waitlist_leads_normalized_contact_length_check CHECK (length(normalized_contact) BETWEEN 3 AND 254),
+    UNIQUE (normalized_contact)
+);
+CREATE INDEX IF NOT EXISTS idx_waitlist_leads_created_at_desc ON waitlist_leads (created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_waitlist_leads_contact_type ON waitlist_leads (contact_type);
+

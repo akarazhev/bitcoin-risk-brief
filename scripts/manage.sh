@@ -9,6 +9,9 @@ case "${1:-help}" in
     ${COMPOSE} -f "${COMPOSE_FILE}" config >/dev/null
     echo "compose config ok"
     ;;
+  migrate)
+    ${COMPOSE} -f "${COMPOSE_FILE}" exec timescaledb psql -U postgres -d bitcoin_risk_brief -f /docker-entrypoint-initdb.d/001_initial_schema.sql
+    ;;
   start)
     ${COMPOSE} -f "${COMPOSE_FILE}" up -d --build
     ;;
@@ -29,6 +32,6 @@ case "${1:-help}" in
     PYTHONPATH=backend:collector python3 -m unittest discover -s collector/tests -v
     ;;
   help|*)
-    echo "Usage: $0 {validate|start|stop|logs [service]|backfill|run-now|test-python}"
+    echo "Usage: $0 {validate|migrate|start|stop|logs [service]|backfill|run-now|test-python}"
     ;;
 esac
