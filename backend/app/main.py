@@ -1,0 +1,79 @@
+from __future__ import annotations
+
+from contextlib import asynccontextmanager
+from datetime import date
+from typing import Annotated, Any
+
+from fastapi import FastAPI, HTTPException, Query
+from fastapi.middleware.cors import CORSMiddleware
+
+from app.brief import build_brief
+from app.config import settings
+from app.db import connect, disconnect, get_pool
+from app.repository import fetch_latest_brief, fetch_latest_risk, fetch_previous_risk, fetch_risk_history
+from app.risk_levels import build_risk_levels
+
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    await connect()
+    try:
+        yield
+    finally:
+        await disconnect()
+
+
+app = FastAPI(title="Bitcoin Risk Brief API", version="0.1.0", lifespan=lifespan)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=list(settings.cors_origins),
+    allow_credentials=False,
+    allow_methods=["GET"],
+    allow_headers=["*"],
+)
+
+
+@app.get("/api/health")
+async def health() -> dict[str, str]:
+    return {"status": "ok"}
+
+
+@app.get("/api/risk/latest")
+async def risk_latest() -> dict[str, Any]:
+    latest = await fetch_latest_risk(get_pool())
+    if latest is None:
+        raise HTTPException(status_code=404, detail="Risk data has not been collected yet")
+    return {"data": latest}
+
+
+@app.get("/api/risk/history")
+async def risk_history(
+    start_date: Annotated[date | None, Query(description="Start date YYYY-MM-DD")] = None,
+    end_date: Annotated[date | None, Query(description="End date YYYY-MM-DD")] = None,
+    limit: Annotated[int, Query(ge=2, le=5000)] = 2000,
+) -> dict[str, Any]:
+    if start_date and end_date and start_date > end_date:
+        raise HTTPException(status_code=400, detail="start_date must be earlier than end_date")
+    rows = await fetch_risk_history(get_pool(), start_date=start_date, end_date=end_date, limit=limit)
+    return {"data": rows, "meta": {"returned_points": len(rows)}}
+
+
+@app.get("/api/risk/levels")
+async def risk_levels() -> dict[str, Any]:
+    latest = await fetch_latest_risk(get_pool())
+    if latest is None:
+        raise HTTPException(status_code=404, detail="Risk data has not been collected yet")
+    return {"data": build_risk_levels(latest), "meta": {"base": latest}}
+
+
+@app.get("/api/brief/latest")
+async def brief_latest() -> dict[str, Any]:
+    pool = get_pool()
+    persisted = await fetch_latest_brief(pool)
+    if persisted is not None:
+        return {"data": persisted}
+    latest = await fetch_latest_risk(pool)
+    if latest is None:
+        raise HTTPException(status_code=404, detail="Brief data has not been collected yet")
+    previous = await fetch_previous_risk(pool)
+    return {"data": build_brief(latest, previous)}
