@@ -12,6 +12,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from app.risk_sources import build_csv_risk_dataset
 from collector.config import settings
 from collector.csv_refresh import refresh_csv_from_coinmarketcap
+from collector.db_pool import create_pool_with_retry
 from collector.db_writer import delete_rows_after_csv_end, write_brief, write_ohlcv_rows, write_risk_rows, write_validation
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
@@ -53,7 +54,7 @@ async def import_csv_once(pool: asyncpg.Pool, *, refresh_remote: bool) -> None:
 
 
 async def main(*, run_now: bool = False, backfill: bool = False) -> None:
-    pool = await asyncpg.create_pool(settings.database_url, min_size=1, max_size=3)
+    pool = await create_pool_with_retry(settings.database_url, create_pool=asyncpg.create_pool, min_size=1, max_size=3)
     try:
         if backfill:
             await import_csv_once(pool, refresh_remote=False)

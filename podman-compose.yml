@@ -30,6 +30,8 @@ services:
       DATABASE_URL: postgresql://postgres:${DB_PASSWORD:-postgres}@timescaledb:5432/bitcoin_risk_brief
       APP_ENV: ${APP_ENV:-development}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3001}
+      DATA_FRESHNESS_MAX_AGE_DAYS: ${DATA_FRESHNESS_MAX_AGE_DAYS:-2}
+      WAITLIST_RATE_LIMIT_PER_HOUR: ${WAITLIST_RATE_LIMIT_PER_HOUR:-20}
     expose:
       - "8000"
     depends_on:

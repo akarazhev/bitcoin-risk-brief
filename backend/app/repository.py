@@ -117,6 +117,35 @@ async def fetch_ohlcv_history(pool: asyncpg.Pool, *, limit: int | None = None) -
     return [_serialize_ohlcv_row(row) for row in reversed(rows)]
 
 
+async def fetch_latest_validation(pool: asyncpg.Pool) -> dict[str, Any] | None:
+    row = await pool.fetchrow(
+        """
+        SELECT
+          computed_at, covered_start, covered_end, row_count, risk_range_ok,
+          validation_summary, validation_json
+        FROM btc_risk_validation
+        WHERE validation_key = 'latest'
+        LIMIT 1
+        """
+    )
+    if not row:
+        return None
+    validation_json = row["validation_json"]
+    if isinstance(validation_json, str):
+        validation_json = json.loads(validation_json)
+    else:
+        validation_json = dict(validation_json)
+    return {
+        "computed_at": row["computed_at"],
+        "covered_start": row["covered_start"],
+        "covered_end": row["covered_end"],
+        "row_count": int(row["row_count"]),
+        "risk_range_ok": bool(row["risk_range_ok"]),
+        "validation_summary": row["validation_summary"],
+        "validation_json": validation_json,
+    }
+
+
 async def fetch_latest_brief(pool: asyncpg.Pool) -> dict[str, Any] | None:
     row = await pool.fetchrow(
         """

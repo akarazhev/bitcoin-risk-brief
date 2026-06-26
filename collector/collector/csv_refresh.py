@@ -23,6 +23,22 @@ def last_completed_utc_day(now: datetime | None = None) -> date:
     return current.astimezone(timezone.utc).date() - timedelta(days=1)
 
 
+def validate_fetched_delta(fetched_rows: list[dict[str, Any]], *, start_date: date, end_date: date) -> None:
+    if not fetched_rows:
+        return
+    dates = [row["date"] for row in fetched_rows]
+    expected_dates = [start_date + timedelta(days=offset) for offset in range((end_date - start_date).days + 1)]
+    if dates != expected_dates:
+        missing_dates = sorted(set(expected_dates) - set(dates))
+        extra_dates = sorted(set(dates) - set(expected_dates))
+        details = []
+        if missing_dates:
+            details.append("missing daily dates: " + ", ".join(day.isoformat() for day in missing_dates[:5]))
+        if extra_dates:
+            details.append("unexpected daily dates: " + ", ".join(day.isoformat() for day in extra_dates[:5]))
+        raise ValueError("CoinMarketCap delta is not contiguous for requested range; " + "; ".join(details))
+
+
 async def refresh_csv_from_coinmarketcap(
     csv_path: str | Path,
     *,
@@ -60,6 +76,7 @@ async def refresh_csv_from_coinmarketcap(
     if not fetched_rows:
         logger.info("CoinMarketCap returned no BTC OHLCV rows for %s..%s", start_date.isoformat(), end_date.isoformat())
         return 0
+    validate_fetched_delta(fetched_rows, start_date=start_date, end_date=end_date)
 
     merged_rows = merge_daily_rows(existing_rows, fetched_rows)
     write_btc_usd_daily_csv(path, merged_rows)

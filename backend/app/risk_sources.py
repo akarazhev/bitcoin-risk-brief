@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import csv
 import math
+import os
 from datetime import date, datetime, time, timezone
 from pathlib import Path
 from typing import Any
@@ -173,27 +174,33 @@ def write_btc_usd_daily_csv(csv_path: str | Path, rows: list[dict[str, Any]]) ->
     path.parent.mkdir(parents=True, exist_ok=True)
     _validate_daily_rows(rows, label="CoinMarketCap BTC USD CSV")
 
-    with path.open("w", encoding="utf-8", newline="") as handle:
-        writer = csv.writer(handle, delimiter=";", lineterminator="\n")
-        writer.writerow(BTC_USD_DAILY_HEADER)
-        for row in rows:
-            day = row["date"]
-            writer.writerow(
-                [
-                    _format_cmc_timestamp(row.get("time_open", day)),
-                    _format_cmc_timestamp(row.get("time_close", day), end_of_day=True),
-                    _format_cmc_timestamp(row.get("time_high", row.get("time_open", day))),
-                    _format_cmc_timestamp(row.get("time_low", row.get("time_open", day))),
-                    _serialize_number(row["open"]),
-                    _serialize_number(row["high"]),
-                    _serialize_number(row["low"]),
-                    _serialize_number(row["close"]),
-                    _serialize_number(row["volume"]),
-                    _serialize_number(row["market_cap"]),
-                    _serialize_number(row["circulating_supply"]),
-                    _format_cmc_timestamp(row.get("timestamp", row.get("time_close", day)), end_of_day=True),
-                ]
-            )
+    temp_path = path.with_name(f".{path.name}.tmp")
+    try:
+        with temp_path.open("w", encoding="utf-8", newline="") as handle:
+            writer = csv.writer(handle, delimiter=";", lineterminator="\n")
+            writer.writerow(BTC_USD_DAILY_HEADER)
+            for row in rows:
+                day = row["date"]
+                writer.writerow(
+                    [
+                        _format_cmc_timestamp(row.get("time_open", day)),
+                        _format_cmc_timestamp(row.get("time_close", day), end_of_day=True),
+                        _format_cmc_timestamp(row.get("time_high", row.get("time_open", day))),
+                        _format_cmc_timestamp(row.get("time_low", row.get("time_open", day))),
+                        _serialize_number(row["open"]),
+                        _serialize_number(row["high"]),
+                        _serialize_number(row["low"]),
+                        _serialize_number(row["close"]),
+                        _serialize_number(row["volume"]),
+                        _serialize_number(row["market_cap"]),
+                        _serialize_number(row["circulating_supply"]),
+                        _format_cmc_timestamp(row.get("timestamp", row.get("time_close", day)), end_of_day=True),
+                    ]
+                )
+        os.replace(temp_path, path)
+    finally:
+        if temp_path.exists():
+            temp_path.unlink()
 
 
 def validate_risk_dataset(

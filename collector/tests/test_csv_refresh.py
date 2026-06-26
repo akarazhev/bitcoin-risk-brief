@@ -95,5 +95,39 @@ class CoinMarketCapCsvRefreshTest(unittest.IsolatedAsyncioTestCase):
         self.assertEqual([row["date"] for row in rows], [date(2026, 6, 25)])
 
 
+class GapCoinMarketCapClient:
+    calls: list[dict] = []
+
+    def __init__(self, *, api_key: str, base_url: str) -> None:
+        self.api_key = api_key
+        self.base_url = base_url
+
+    async def fetch_bitcoin_ohlcv_historical(self, *, time_start, time_end, convert, bitcoin_id):
+        self.calls.append({"time_start": time_start, "time_end": time_end})
+        return [daily_row(date(2026, 6, 26), 103.0, "coinmarketcap_api")]
+
+
+class CoinMarketCapCsvDeltaValidationTest(unittest.IsolatedAsyncioTestCase):
+    async def test_refresh_rejects_non_contiguous_remote_delta_without_rewriting_csv(self) -> None:
+        GapCoinMarketCapClient.calls = []
+        with tempfile.TemporaryDirectory() as temp_dir:
+            csv_path = Path(temp_dir) / "btc_usd_daily.csv"
+            write_btc_usd_daily_csv(csv_path, [daily_row(date(2026, 6, 24), 101.0)])
+            original_content = csv_path.read_text(encoding="utf-8")
+
+            with self.assertRaisesRegex(ValueError, "missing daily dates"):
+                await refresh_csv_from_coinmarketcap(
+                    csv_path,
+                    api_key="cmc-key",
+                    base_url="https://sandbox-api.coinmarketcap.com",
+                    bitcoin_id=1,
+                    convert="USD",
+                    now=datetime(2026, 6, 27, 12, 0, tzinfo=timezone.utc),
+                    client_factory=GapCoinMarketCapClient,
+                )
+
+            self.assertEqual(csv_path.read_text(encoding="utf-8"), original_content)
+
+
 if __name__ == "__main__":
     unittest.main()

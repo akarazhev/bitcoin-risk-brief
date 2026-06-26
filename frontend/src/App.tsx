@@ -128,7 +128,6 @@ export default function App() {
     setJoinError(null)
     try {
       await joinWaitlist({ contact: value, locale, source: 'landing' })
-      localStorage.setItem('bitcoin-risk-brief-lead', value)
       setJoined(true)
     } catch {
       setJoined(false)

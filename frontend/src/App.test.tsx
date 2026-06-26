@@ -38,3 +38,18 @@ test('submits waitlist contacts to the backend API', async () => {
     expect(apiMocks.joinWaitlist).toHaveBeenCalledWith({ contact: 'USER@example.com', locale: 'en', source: 'landing' })
   })
 })
+
+
+test('does not persist waitlist contacts in browser storage', async () => {
+  const setItemSpy = vi.spyOn(Storage.prototype, 'setItem')
+  render(<App />)
+
+  fireEvent.change(await screen.findByPlaceholderText('email or @telegram'), { target: { value: 'USER@example.com' } })
+  fireEvent.click(screen.getByRole('button', { name: /join waitlist/i }))
+
+  await waitFor(() => {
+    expect(apiMocks.joinWaitlist).toHaveBeenCalledWith({ contact: 'USER@example.com', locale: 'en', source: 'landing' })
+  })
+  expect(setItemSpy).not.toHaveBeenCalled()
+  setItemSpy.mockRestore()
+})

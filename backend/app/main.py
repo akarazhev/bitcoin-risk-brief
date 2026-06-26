@@ -2,9 +2,11 @@ from __future__ import annotations
 
 from contextlib import asynccontextmanager
 from datetime import date
+import time
 from typing import Annotated, Any
 
 from fastapi import FastAPI, HTTPException, Query
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
@@ -14,13 +16,17 @@ from app.db import connect, disconnect, get_pool
 from app.repository import (
     fetch_latest_brief,
     fetch_latest_risk,
+    fetch_latest_validation,
     fetch_ohlcv_history,
     fetch_previous_risk,
     fetch_risk_history,
     upsert_waitlist_lead,
 )
+from app.rate_limit import FixedWindowRateLimiter
+from app.readiness import build_readiness_payload
 from app.risk import METHODOLOGY_VERSION
 from app.risk_levels import build_risk_levels
+from app.security import build_security_headers
 from app.waitlist import InvalidWaitlistContact
 
 
@@ -40,6 +46,10 @@ class WaitlistRequest(BaseModel):
 
 
 app = FastAPI(title="Bitcoin Risk Brief API", version="0.1.0", lifespan=lifespan)
+waitlist_rate_limiter = FixedWindowRateLimiter(
+    limit=max(1, settings.waitlist_rate_limit_per_hour),
+    window_seconds=3600,
+)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=list(settings.cors_origins),
@@ -49,9 +59,51 @@ app.add_middleware(
 )
 
 
+
+
+def _client_key(request) -> str:
+    forwarded_for = request.headers.get("x-forwarded-for")
+    if forwarded_for:
+        return forwarded_for.split(",", 1)[0].strip()
+    if request.client and request.client.host:
+        return request.client.host
+    return "unknown"
+
+
+@app.middleware("http")
+async def waitlist_rate_limit_middleware(request, call_next):
+    if request.method == "POST" and request.url.path == "/api/waitlist":
+        if not waitlist_rate_limiter.allow(_client_key(request), now=time.time()):
+            return JSONResponse(status_code=429, content={"detail": "Too many waitlist requests"})
+    return await call_next(request)
+
+
+@app.middleware("http")
+async def security_headers_middleware(request, call_next):
+    response = await call_next(request)
+    for header_name, header_value in build_security_headers(app_env=settings.app_env).items():
+        response.headers.setdefault(header_name, header_value)
+    return response
+
+
 @app.get("/api/health")
 async def health() -> dict[str, str]:
     return {"status": "ok"}
+
+
+
+
+@app.get("/api/readiness")
+async def readiness() -> JSONResponse:
+    pool = get_pool()
+    latest = await fetch_latest_risk(pool)
+    validation = await fetch_latest_validation(pool)
+    payload, status_code = build_readiness_payload(
+        latest,
+        validation,
+        max_age_days=settings.data_freshness_max_age_days,
+    )
+    return JSONResponse(status_code=status_code, content=payload)
 
 
 @app.get("/api/risk/latest")

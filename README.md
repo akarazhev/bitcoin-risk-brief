@@ -37,6 +37,7 @@ Open: `http://localhost:3001`
 ## API
 
 - `GET /api/health`
+- `GET /api/readiness`
 - `GET /api/risk/latest`
 - `GET /api/risk/history?limit=2000`
 - `GET /api/risk/levels`
@@ -53,6 +54,10 @@ The canonical source is `collector/btc-csv/btc_usd_daily.csv`, currently coverin
 ## Data Source Notes
 
 The collector uses the official CoinMarketCap OHLCV Historical API (`/v2/cryptocurrency/ohlcv/historical`, `id=1`, `time_period=daily`) only for daily deltas after the local CSV tail. The CSV is bind-mounted into the `data-collector` container at `/app/collector/btc-csv`, so scheduled container runs update the repository copy instead of an ephemeral image file.
+
+## Production Readiness
+
+Use `.env.production.example` for deploy configuration and `docs/production-readiness.md` for the release checklist. The backend exposes `/api/readiness` for deployment probes and alerting.
 
 ## Product Scope
 
