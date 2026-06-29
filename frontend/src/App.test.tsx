@@ -25,10 +25,32 @@ vi.mock('echarts-for-react', () => ({
 }))
 
 const apiMocks = vi.hoisted(() => ({
+  fetchReadiness: vi.fn(async () => ({
+    status: 'ready',
+    checks: {
+      risk_data_available: true,
+      validation_available: true,
+      risk_range_ok: true,
+      validation_has_rows: true,
+      latest_matches_validation_end: true,
+      source_is_canonical: true,
+      data_fresh: true,
+    },
+    data: {
+      latest_date: '2026-06-26',
+      covered_end: '2026-06-26',
+      data_age_days: 1,
+      max_age_days: 2,
+      source: 'coinmarketcap_csv',
+      row_count: 5827,
+      methodology_version: 'crypto-scout-canonical-v1',
+    },
+  })),
   joinWaitlist: vi.fn(async () => ({ data: { contact_type: 'email', locale: 'en', created: true } })),
 }))
 
 vi.mock('./api', () => ({
+  fetchReadiness: apiMocks.fetchReadiness,
   fetchLatestRisk: async () => ({ data: { timestamp: '2026-06-26T00:00:00Z', price_usd: 100000, risk: 0.7, score: 1, risk_state: 'high', trend_dev: 1, vol_regime: 0.1, turnover: null, z_trend_dev: 1, z_vol_regime: 1, z_turnover: null, turnover_enabled: false } }),
   fetchRiskHistory: async () => ({ data: [
     { timestamp: '2026-06-24T00:00:00Z', price_usd: 98000, risk: 0.52, score: 0.52, risk_state: 'neutral', trend_dev: 1, vol_regime: 0.1, turnover: null, z_trend_dev: 1, z_vol_regime: 1, z_turnover: null, turnover_enabled: false },
@@ -60,6 +82,28 @@ function setCompactViewport(matches: boolean) {
 
 beforeEach(() => {
   chartMocks.resize.mockClear()
+  apiMocks.fetchReadiness.mockClear()
+  apiMocks.fetchReadiness.mockResolvedValue({
+    status: 'ready',
+    checks: {
+      risk_data_available: true,
+      validation_available: true,
+      risk_range_ok: true,
+      validation_has_rows: true,
+      latest_matches_validation_end: true,
+      source_is_canonical: true,
+      data_fresh: true,
+    },
+    data: {
+      latest_date: '2026-06-26',
+      covered_end: '2026-06-26',
+      data_age_days: 1,
+      max_age_days: 2,
+      source: 'coinmarketcap_csv',
+      row_count: 5827,
+      methodology_version: 'crypto-scout-canonical-v1',
+    },
+  })
   apiMocks.joinWaitlist.mockClear()
   setCompactViewport(false)
 })
@@ -68,6 +112,60 @@ test('renders the Bitcoin Risk Brief shell', async () => {
   render(<App />)
   expect(await screen.findByText('Bitcoin Risk Brief')).toBeInTheDocument()
   expect(await screen.findByText('Current risk')).toBeInTheDocument()
+})
+
+test('renders readiness freshness and validation near the latest data date', async () => {
+  render(<App />)
+
+  expect(apiMocks.fetchReadiness).toHaveBeenCalled()
+  expect(await screen.findByText('Updated')).toBeInTheDocument()
+  expect(screen.getAllByText('2026-06-26').length).toBeGreaterThan(0)
+  expect(screen.getByText('Readiness ready')).toBeInTheDocument()
+  expect(screen.getByText('Validation passed')).toBeInTheDocument()
+  expect(screen.getByText('Latest date: 2026-06-26')).toBeInTheDocument()
+  expect(screen.getByText('Fresh: 1 day old')).toBeInTheDocument()
+  expect(screen.getByText('Covered end: 2026-06-26')).toBeInTheDocument()
+})
+
+test('renders degraded readiness copy without hiding the latest risk', async () => {
+  apiMocks.fetchReadiness.mockResolvedValueOnce({
+    status: 'degraded',
+    checks: {
+      risk_data_available: true,
+      validation_available: true,
+      risk_range_ok: false,
+      validation_has_rows: true,
+      latest_matches_validation_end: false,
+      source_is_canonical: true,
+      data_fresh: false,
+    },
+    data: {
+      latest_date: '2026-06-20',
+      covered_end: '2026-06-19',
+      data_age_days: 6,
+      max_age_days: 2,
+      source: 'coinmarketcap_csv',
+      row_count: 5827,
+      methodology_version: 'crypto-scout-canonical-v1',
+    },
+  })
+
+  render(<App />)
+
+  expect(await screen.findByText('Current risk')).toBeInTheDocument()
+  expect(screen.getByText('Readiness degraded')).toBeInTheDocument()
+  expect(screen.getByText('Validation needs attention')).toBeInTheDocument()
+  expect(screen.getByText('Data is 6 days old')).toBeInTheDocument()
+  expect(screen.getByText('Covered end: 2026-06-19')).toBeInTheDocument()
+})
+
+test('renders methodology reference and no-advice disclaimer', async () => {
+  render(<App />)
+
+  expect(await screen.findByText('Methodology')).toBeInTheDocument()
+  expect(screen.getByText('crypto-scout-canonical-v1')).toBeInTheDocument()
+  expect(screen.getByRole('link', { name: /methodology/i })).toHaveAttribute('href', '#methodology')
+  expect(screen.getByText('Risk levels are scenario outputs, not financial advice or trading instructions.')).toBeInTheDocument()
 })
 
 test('submits waitlist contacts to the backend API', async () => {
@@ -149,6 +247,8 @@ test('uses accessible risk threshold labels outside the chart canvas', async () 
 
   expect(await screen.findByText('Low / Neutral')).toBeInTheDocument()
   expect(screen.getByText('Neutral / High')).toBeInTheDocument()
+  expect(screen.getByText('Low / Neutral near $82,000')).toBeInTheDocument()
+  expect(screen.getByText('Neutral / High near $118,000')).toBeInTheDocument()
 
   const riskChart = await screen.findByTestId('chart-risk')
   const riskOption = JSON.parse(riskChart.dataset.option ?? '{}')

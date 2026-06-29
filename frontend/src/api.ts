@@ -1,4 +1,4 @@
-import type { BriefPayload, RiskLevel, RiskPoint, WaitlistRequest, WaitlistResponse } from './types'
+import type { BriefPayload, ReadinessPayload, RiskLevel, RiskPoint, WaitlistRequest, WaitlistResponse } from './types'
 
 async function getJson<T>(path: string): Promise<T> {
   const response = await fetch(path)
@@ -34,6 +34,15 @@ export async function fetchRiskLevels() {
 
 export async function fetchBrief() {
   return getJson<{ data: BriefPayload }>('/api/brief/latest')
+}
+
+export async function fetchReadiness() {
+  const response = await fetch('/api/readiness')
+  const payload = (await response.json()) as ReadinessPayload
+  if (!response.ok && response.status !== 503) {
+    throw new Error(`Request failed: ${response.status}`)
+  }
+  return payload
 }
 
 export async function joinWaitlist(payload: WaitlistRequest) {

@@ -37,6 +37,32 @@ export interface RiskLevel {
   price_usd: number
 }
 
+export type ReadinessStatus = 'ready' | 'degraded'
+
+export interface ReadinessChecks {
+  risk_data_available: boolean
+  validation_available: boolean
+  risk_range_ok: boolean
+  validation_has_rows: boolean
+  latest_matches_validation_end: boolean
+  source_is_canonical: boolean
+  data_fresh: boolean
+}
+
+export interface ReadinessPayload {
+  status: ReadinessStatus
+  checks: ReadinessChecks
+  data: {
+    latest_date: string | null
+    covered_end: string | null
+    data_age_days: number | null
+    max_age_days: number
+    source: string | null
+    row_count: number
+    methodology_version: string | null
+  }
+}
+
 export interface WaitlistRequest {
   contact: string
   locale: 'en' | 'ru'
