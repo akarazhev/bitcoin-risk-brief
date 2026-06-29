@@ -87,11 +87,27 @@ Planned production-pilot coverage should also include:
 
 GitHub Actions workflow: `.github/workflows/ci.yml`.
 
-Jobs:
+The workflow runs on every push to `main` and on every pull request targeting `main`.
 
-- Python tests and compile check.
-- Frontend tests and build.
-- Compose config validation.
+Required status checks:
+
+- `backend-tests`: installs Python dependencies and runs `PYTHONPATH=backend:collector python -m unittest discover -s backend/tests -v`.
+- `collector-tests`: installs Python dependencies and runs `PYTHONPATH=backend:collector python -m unittest discover -s collector/tests -v`.
+- `python-compile`: runs `python3 -m compileall backend collector`.
+- `frontend-tests`: installs frontend dependencies with `npm ci --prefix frontend` and runs `npm test --prefix frontend`.
+- `frontend-build`: installs frontend dependencies with `npm ci --prefix frontend` and runs `npm run build --prefix frontend`.
+- `compose-validation`: runs `docker compose -f podman-compose.yml config >/dev/null`.
+
+Branch protection expectations for `main`:
+
+- Require a pull request before merging changes into `main`.
+- Require status checks to pass before merging.
+- Require branches to be up to date before merging.
+- Require the six CI checks listed above.
+- Restrict direct pushes to `main`; emergency direct pushes still run CI and should be fixed or reverted if any required check fails.
+
+With those rules, a failing backend test, collector test, frontend test, frontend build, Python compile check, or compose
+validation blocks promotion to `main`.
 
 ## Manual Smoke Checks
 
