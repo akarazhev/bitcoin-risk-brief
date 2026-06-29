@@ -41,9 +41,9 @@ The long-running `data-collector` service schedules the same refresh/import flow
 - `SCHEDULE_CRON_HOUR`, default `1`
 - `SCHEDULE_CRON_MINUTE`, default `0`
 
-## CoinMarketCap Delta Fetch
+## Optional CoinMarketCap API Delta Fetch
 
-The collector uses the official CoinMarketCap OHLCV Historical endpoint:
+When an API key is configured, the collector uses the official CoinMarketCap OHLCV Historical endpoint:
 
 ```text
 /v2/cryptocurrency/ohlcv/historical
@@ -58,6 +58,35 @@ Runtime parameters:
 - `time_end` is the last completed UTC day
 
 Transient HTTP/request errors are retried with exponential backoff. Permanent HTTP errors fail fast.
+
+The API path is an optional convenience path. Production-pilot operation must not depend on a paid CoinMarketCap account
+being available.
+
+## Planned Downloaded CSV Intake
+
+The production-pilot data plan should support an operator-downloaded CSV from the public CoinMarketCap Bitcoin historical
+data page:
+
+```text
+https://coinmarketcap.com/currencies/bitcoin/historical-data/
+```
+
+This should be implemented as a manual or semi-automated import workflow, not as brittle page scraping. The operator
+downloads the CSV, stages it on the server, and runs an import command that validates the file before replacing the
+canonical CSV.
+
+The downloaded CSV intake should:
+
+- accept an explicit staged CSV file path;
+- normalize supported CoinMarketCap historical-data columns into the canonical local CSV schema;
+- reject unknown, missing, or incompatible required columns;
+- reject partial files, duplicate dates, date gaps, and non-daily rows;
+- preserve the existing canonical CSV when validation fails;
+- atomically replace `collector/btc-csv/btc_usd_daily.csv` only after validation succeeds;
+- run the same database import, risk recomputation, and readiness checks as the current CSV-backed flow.
+
+The existing API delta refresh can remain available for environments that have an API key, but the documented production
+pilot path should be valid with only the downloaded CSV.
 
 ## Delta Validation
 

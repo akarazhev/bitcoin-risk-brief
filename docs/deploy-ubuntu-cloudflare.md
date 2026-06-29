@@ -23,7 +23,8 @@ Cloudflare Tunnel is a good fit for this environment because the server does not
 - Podman and `podman-compose` are available on the host.
 - The repository is deployed under `/opt/bitcoin-risk-brief`.
 - A Cloudflare-managed DNS zone is available for the public hostname, for example `risk.example.com`.
-- A production CoinMarketCap API key is available.
+- Either a production CoinMarketCap API key is available for the optional API refresh path, or operators will use the
+  documented downloaded CSV refresh path.
 
 ## Host Preparation
 
@@ -70,10 +71,13 @@ DB_PASSWORD=replace-with-a-long-random-password
 FRONTEND_BIND_IP=127.0.0.1
 FRONTEND_PORT=3001
 CORS_ORIGINS=https://risk.example.com
-COINMARKETCAP_API_KEY=replace-with-production-cmc-key
+COINMARKETCAP_API_KEY=
 DATA_FRESHNESS_MAX_AGE_DAYS=2
 WAITLIST_RATE_LIMIT_PER_HOUR=20
 ```
+
+Set `COINMARKETCAP_API_KEY` only when using the optional API refresh path. Without a paid API account, leave it empty and
+refresh the canonical BTC CSV through the documented downloaded CSV workflow when that path is implemented.
 
 Generate a database password on the server:
 
@@ -165,7 +169,8 @@ Recommended initial settings:
 - HTTP Strict Transport Security: enable after the hostname is confirmed stable.
 - WAF managed rules: enabled.
 - Rate limiting: start with conservative limits on `/api/waitlist` and `/api/*`.
-- Cache: do not cache API responses unless explicit cache headers are added later.
+- Bot/spam controls: start in a low-friction mode and tighten if waitlist spam or abusive traffic appears.
+- Cache: do not cache API responses unless explicit cache headers and invalidation behavior are added.
 
 ## Backups
 

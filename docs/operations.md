@@ -38,6 +38,24 @@ Refresh from CoinMarketCap if configured, then import the full CSV:
 ./scripts/manage.sh run-now
 ```
 
+If `COINMARKETCAP_API_KEY` is empty, `run-now` imports the existing canonical CSV and recomputes risk without remote
+network refresh.
+
+## Planned Downloaded CSV Refresh
+
+Production-pilot operation should support refreshing BTC history from a CSV downloaded by an operator from:
+
+```text
+https://coinmarketcap.com/currencies/bitcoin/historical-data/
+```
+
+That workflow is not a replacement for validation. The import command should stage the downloaded file, normalize it to
+the canonical CSV schema, reject gaps or incompatible columns, atomically replace `collector/btc-csv/btc_usd_daily.csv`
+only after validation passes, and then run the normal database import/readiness checks.
+
+Until that workflow exists, operators should treat `collector/btc-csv/btc_usd_daily.csv` as the canonical source and use
+`./scripts/manage.sh backfill` or `./scripts/manage.sh run-now` to import it.
+
 Open the app:
 
 ```text

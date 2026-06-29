@@ -74,6 +74,14 @@ Frontend tests cover:
 - waitlist submission;
 - no browser persistent storage for waitlist contacts.
 
+Planned production-pilot coverage should also include:
+
+- readiness/freshness rendering, including degraded and API-error states;
+- non-empty chart rendering checks for risk history and risk levels;
+- downloaded CoinMarketCap CSV intake validation once that path is implemented;
+- cache invalidation behavior after a successful collector/import run;
+- waitlist abuse and edge-rate-limit smoke checks in the deployed environment.
+
 ## CI
 
 GitHub Actions workflow: `.github/workflows/ci.yml`.
@@ -106,6 +114,41 @@ PY
 ```
 
 The printed delta should be `0.0` or within floating-point noise.
+
+## Browser And Device QA
+
+Before public launch, verify the product page across the launch matrix:
+
+- current desktop Chrome, Safari, and Firefox;
+- mobile Safari on iOS;
+- mobile Chrome on Android;
+- narrow mobile, tablet, laptop, and wide desktop viewport widths.
+
+The check should cover:
+
+- first load, loading states, and API-error states;
+- readiness/freshness badge and degraded-data copy;
+- risk history and risk levels charts rendering non-empty and within their containers;
+- waitlist form validation, success, and rate-limited/error states;
+- locale switching if enabled on the page;
+- text wrapping, spacing, contrast, and no overlapping UI at target widths.
+
+Automated smoke checks should cover the highest-risk layout and chart failures. Manual QA can cover browser-specific
+visual polish until the project has a broader e2e suite.
+
+## Documentation Hygiene
+
+Documentation changes should keep the following files aligned:
+
+- `docs/production-roadmap.md` for planned work and launch gates;
+- `docs/data-pipeline.md` for supported data refresh paths;
+- `docs/security-and-privacy.md` for current and planned security controls;
+- `docs/production-readiness.md` for the deploy-time gate;
+- `docs/operations.md` for operator commands.
+
+Before launch, remove or clearly label stale assumptions from older docs. Historical files under `docs/superpowers/` can
+remain as implementation history, but current operational docs should not require readers to reconcile conflicting
+runtime behavior.
 
 ## Known Build Warning
 
