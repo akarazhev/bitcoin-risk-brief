@@ -27,11 +27,28 @@ case "${1:-help}" in
   run-now)
     ${COMPOSE} -f "${COMPOSE_FILE}" run --rm data-collector python -m collector.main --run-now
     ;;
+  import-cmc-csv)
+    if [[ -z "${2:-}" ]]; then
+      echo "Usage: $0 import-cmc-csv collector/btc-csv/incoming/bitcoin-historical-data.csv [expected-end-date]" >&2
+      exit 2
+    fi
+    input_path="${2#./}"
+    if [[ "${input_path}" != collector/btc-csv/incoming/* ]]; then
+      echo "Stage downloaded CSV under collector/btc-csv/incoming/ so the data-collector container can read it" >&2
+      exit 2
+    fi
+    extra_args=()
+    if [[ -n "${3:-}" ]]; then
+      extra_args=(--expected-end-date "${3}")
+    fi
+    ${COMPOSE} -f "${COMPOSE_FILE}" run --rm data-collector \
+      python -m collector.main --import-cmc-csv "/app/${input_path}" "${extra_args[@]}"
+    ;;
   test-python)
     PYTHONPATH=backend:collector python3 -m unittest discover -s backend/tests -v
     PYTHONPATH=backend:collector python3 -m unittest discover -s collector/tests -v
     ;;
   help|*)
-    echo "Usage: $0 {validate|migrate|start|stop|logs [service]|backfill|run-now|test-python}"
+    echo "Usage: $0 {validate|migrate|start|stop|logs [service]|backfill|run-now|import-cmc-csv <path> [expected-end-date]|test-python}"
     ;;
 esac

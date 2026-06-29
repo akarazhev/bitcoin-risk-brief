@@ -16,6 +16,14 @@ podman-compose -f podman-compose.yml build backend data-collector frontend
 ./scripts/manage.sh run-now
 ```
 
+If the production refresh path is an operator-downloaded CSV instead of the optional API key path, stage the downloaded
+file and run this before the final readiness check:
+
+```bash
+EXPECTED_END_DATE="$(date -u -d 'yesterday' +%F)"
+./scripts/manage.sh import-cmc-csv collector/btc-csv/incoming/bitcoin-historical-data.csv "${EXPECTED_END_DATE}"
+```
+
 After services are running, verify:
 
 ```bash
@@ -54,8 +62,8 @@ Required production changes:
 - Set `CORS_ORIGINS` to the public HTTPS domain only.
 - Keep `FRONTEND_BIND_IP=127.0.0.1` when Cloudflare Tunnel is the only ingress.
 - Set `COINMARKETCAP_API_KEY` only if the optional API refresh path is used.
-- If no paid CoinMarketCap API account is available, implement and use the documented downloaded CSV intake workflow, and
-  leave `COINMARKETCAP_API_KEY` empty intentionally.
+- If no paid CoinMarketCap API account is available, use the documented downloaded CSV intake workflow and leave
+  `COINMARKETCAP_API_KEY` empty intentionally.
 - Keep `DATA_FRESHNESS_MAX_AGE_DAYS=2` unless the product explicitly accepts slower updates.
 - Tune `WAITLIST_RATE_LIMIT_PER_HOUR` for expected traffic.
 
@@ -78,8 +86,8 @@ A non-200 readiness response should block deploy promotion and should alert in p
 - `collector/btc-csv/btc_usd_daily.csv` is the canonical source.
 - When the optional API path is configured, scheduled collector runs fetch only missing completed UTC days from
   CoinMarketCap.
-- The production-pilot path should also support validated imports from operator-downloaded CoinMarketCap historical CSVs.
-- Remote deltas and downloaded CSV inputs must exactly match the expected contiguous daily range.
+- The production-pilot path supports validated imports from operator-downloaded CoinMarketCap historical CSVs.
+- Remote deltas and downloaded CSV imports must exactly match the expected contiguous daily range.
 - Non-contiguous or invalid inputs fail without rewriting the canonical CSV.
 - CSV writes use atomic replace.
 - Every import recalculates all risk rows and removes DB rows after the CSV tail.

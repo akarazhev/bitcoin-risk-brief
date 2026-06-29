@@ -77,7 +77,7 @@ WAITLIST_RATE_LIMIT_PER_HOUR=20
 ```
 
 Set `COINMARKETCAP_API_KEY` only when using the optional API refresh path. Without a paid API account, leave it empty and
-refresh the canonical BTC CSV through the documented downloaded CSV workflow when that path is implemented.
+refresh the canonical BTC CSV through the documented downloaded CSV workflow.
 
 Generate a database password on the server:
 
@@ -97,6 +97,17 @@ curl -fsS http://127.0.0.1:3001/api/readiness
 ```
 
 `/api/readiness` should return HTTP 200 before the public hostname is opened.
+
+If `COINMARKETCAP_API_KEY` is empty and the canonical CSV is stale, download the Bitcoin historical CSV from
+CoinMarketCap, stage it under `collector/btc-csv/incoming/`, and import it before the readiness check:
+
+```bash
+mkdir -p collector/btc-csv/incoming
+cp ~/Downloads/bitcoin-historical-data.csv collector/btc-csv/incoming/
+EXPECTED_END_DATE="$(date -u -d 'yesterday' +%F)"
+./scripts/manage.sh import-cmc-csv collector/btc-csv/incoming/bitcoin-historical-data.csv "${EXPECTED_END_DATE}"
+curl -fsS http://127.0.0.1:3001/api/readiness
+```
 
 ## Cloudflare Tunnel Option A: Host Service
 

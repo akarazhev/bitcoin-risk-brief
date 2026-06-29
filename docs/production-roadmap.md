@@ -28,6 +28,7 @@ Already implemented:
 - FastAPI backend with latest risk, history, levels, brief, waitlist, health, and readiness endpoints.
 - TimescaleDB storage and migration script.
 - Canonical BTC CSV import and CoinMarketCap API delta refresh when an API key is configured.
+- Validated operator-downloaded CoinMarketCap historical CSV import without a paid API key.
 - Server-side waitlist storage with validation and rate limiting.
 - Containerized local stack and Ubuntu plus Cloudflare Tunnel deployment docs.
 - Production readiness, operations, security, testing, architecture, and data-pipeline documentation.
@@ -38,7 +39,6 @@ Known product gaps from the alignment review and production planning:
 - methodology version and no-advice disclaimer are not visible on the page;
 - methodology docs are not exposed through public product navigation;
 - the risk ladder does not explicitly call out the nearest state-change prices.
-- there is no documented CSV download/import workflow for refreshing data from the public CoinMarketCap historical data page when no paid API account is available;
 - there is no explicit API caching and invalidation strategy for public risk, history, levels, brief, or readiness data;
 - bot, spam, and attack protection is not yet validated beyond the backend waitlist rate limiter and planned Cloudflare controls;
 - browser/device QA is not yet broad enough to prove the interface behaves correctly across the launch target matrix;

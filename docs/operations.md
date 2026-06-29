@@ -41,20 +41,48 @@ Refresh from CoinMarketCap if configured, then import the full CSV:
 If `COINMARKETCAP_API_KEY` is empty, `run-now` imports the existing canonical CSV and recomputes risk without remote
 network refresh.
 
-## Planned Downloaded CSV Refresh
+## Downloaded CoinMarketCap CSV Refresh
 
-Production-pilot operation should support refreshing BTC history from a CSV downloaded by an operator from:
+Refresh BTC history without a paid CoinMarketCap API account by downloading a CSV from:
 
 ```text
 https://coinmarketcap.com/currencies/bitcoin/historical-data/
 ```
 
-That workflow is not a replacement for validation. The import command should stage the downloaded file, normalize it to
-the canonical CSV schema, reject gaps or incompatible columns, atomically replace `collector/btc-csv/btc_usd_daily.csv`
-only after validation passes, and then run the normal database import/readiness checks.
+Use a date range that starts at the day after the canonical CSV tail, or download the full available Bitcoin history.
+The target tail is normally the last completed UTC day.
 
-Until that workflow exists, operators should treat `collector/btc-csv/btc_usd_daily.csv` as the canonical source and use
-`./scripts/manage.sh backfill` or `./scripts/manage.sh run-now` to import it.
+Stage the downloaded file where the `data-collector` container can read it:
+
+```bash
+mkdir -p collector/btc-csv/incoming
+cp ~/Downloads/bitcoin-historical-data.csv collector/btc-csv/incoming/
+```
+
+Optionally inspect the downloaded range before importing:
+
+```bash
+PYTHONPATH=backend:collector python3 - <<'PY'
+from pathlib import Path
+from collector.downloaded_csv import load_coinmarketcap_downloaded_csv
+
+rows = load_coinmarketcap_downloaded_csv(Path("collector/btc-csv/incoming/bitcoin-historical-data.csv"))
+print(rows[0]["date"], rows[-1]["date"], len(rows))
+PY
+```
+
+Import and require coverage through the expected UTC tail:
+
+```bash
+EXPECTED_END_DATE="$(date -u -d 'yesterday' +%F)"
+./scripts/manage.sh import-cmc-csv collector/btc-csv/incoming/bitcoin-historical-data.csv "${EXPECTED_END_DATE}"
+```
+
+The command validates the downloaded schema, rejects partial files, duplicate dates and daily gaps, atomically replaces
+`collector/btc-csv/btc_usd_daily.csv` only after validation passes, and then runs the normal database import, risk
+recomputation, validation write, brief write, and stale-row cleanup.
+
+If validation fails, the existing canonical CSV is preserved. Fix the downloaded file or date range and rerun the command.
 
 Open the app:
 
@@ -93,7 +121,8 @@ Production readiness:
 curl -fsS http://localhost:3001/api/readiness
 ```
 
-Readiness should be used for deployment probes and monitoring alerts.
+Readiness should be used for deployment probes and monitoring alerts. After a downloaded CSV import, readiness should be
+HTTP 200 before the refreshed data is trusted.
 
 ## Backups
 
@@ -165,6 +194,16 @@ Inspect `/api/readiness` and check which flag failed. Common causes:
 ### Collector skips remote refresh
 
 If `COINMARKETCAP_API_KEY` is empty, this is expected. The collector still imports the existing CSV and recomputes risk.
+
+### Downloaded CSV import fails
+
+The canonical CSV is preserved when a downloaded import fails. Common causes:
+
+- the file was not staged under `collector/btc-csv/incoming/`;
+- required columns such as `Date`, `Open`, `High`, `Low`, `Close`, `Volume`, or `Market Cap` are missing;
+- the downloaded range skips one or more daily dates;
+- the file ends before the existing canonical tail;
+- `--expected-end-date` is later than the merged CSV tail.
 
 ### Collector fails on remote delta
 

@@ -17,3 +17,5 @@ data/
 .idea/
 backups/
 .cloudflared/
+collector/btc-csv/incoming/*
+!collector/btc-csv/incoming/.gitkeep

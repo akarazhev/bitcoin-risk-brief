@@ -16,21 +16,22 @@ All services run under `podman-compose.yml` on the `app-network` bridge network.
 ## Runtime Flow
 
 1. The collector reads `collector/btc-csv/btc_usd_daily.csv`.
-2. If running in refresh mode and `COINMARKETCAP_API_KEY` is set, it asks CoinMarketCap for missing completed UTC days after the CSV tail.
-3. The fetched delta must exactly match the expected contiguous daily date range.
-4. Valid fetched rows are merged into the CSV with atomic file replacement.
-5. The full CSV is imported into TimescaleDB.
-6. The risk series is recomputed from the full canonical source history.
-7. Validation metadata and a latest brief snapshot are written.
-8. Rows after the CSV tail are deleted from OHLCV, risk, and brief tables to prevent stale mixed-source data.
-9. The backend serves API reads from TimescaleDB.
-10. The frontend displays current risk, risk history, risk levels, brief text, and waitlist capture.
+2. If an operator runs `import-cmc-csv`, the collector validates the staged CoinMarketCap historical CSV and merges it into the canonical CSV only when the result is contiguous.
+3. If running in refresh mode and `COINMARKETCAP_API_KEY` is set, it asks CoinMarketCap for missing completed UTC days after the CSV tail.
+4. Downloaded rows and API-fetched deltas must exactly match the expected contiguous daily date range.
+5. Valid rows are merged into the CSV with atomic file replacement.
+6. The full CSV is imported into TimescaleDB.
+7. The risk series is recomputed from the full canonical source history.
+8. Validation metadata and a latest brief snapshot are written.
+9. Rows after the CSV tail are deleted from OHLCV, risk, and brief tables to prevent stale mixed-source data.
+10. The backend serves API reads from TimescaleDB.
+11. The frontend displays current risk, risk history, risk levels, brief text, and waitlist capture.
 
 ## Repository Layout
 
 ```text
 backend/                 FastAPI application and risk methodology code
-collector/               Python collector, CSV refresh, database writer, BTC CSV source
+collector/               Python collector, downloaded/API CSV refresh, database writer, BTC CSV source
 collector/btc-csv/       Canonical BTC/USD daily CSV
 frontend/                React/Vite UI and nginx config
 migrations/              Idempotent PostgreSQL/TimescaleDB schema

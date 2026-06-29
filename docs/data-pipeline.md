@@ -34,6 +34,20 @@ Backfill imports the current CSV without network access and recomputes all risk 
 
 Run-now attempts a remote refresh when `COINMARKETCAP_API_KEY` is set. If no key is present, it skips remote refresh and imports the current CSV.
 
+### Downloaded CoinMarketCap CSV Import
+
+```bash
+./scripts/manage.sh import-cmc-csv collector/btc-csv/incoming/bitcoin-historical-data.csv 2026-06-28
+```
+
+The first argument is a CSV downloaded from the public CoinMarketCap Bitcoin historical data page and staged under
+`collector/btc-csv/incoming/`. The optional second argument is the UTC date the merged canonical CSV must cover through;
+operators normally set it to the last completed UTC day.
+
+The import command validates the downloaded file, atomically replaces the canonical CSV only after validation succeeds,
+imports the full canonical CSV into TimescaleDB, recomputes risk, writes validation metadata and the daily brief, and
+removes derived database rows after the CSV tail.
+
 ### Scheduled Collector
 
 The long-running `data-collector` service schedules the same refresh/import flow once per day using UTC cron settings:
@@ -62,44 +76,43 @@ Transient HTTP/request errors are retried with exponential backoff. Permanent HT
 The API path is an optional convenience path. Production-pilot operation must not depend on a paid CoinMarketCap account
 being available.
 
-## Planned Downloaded CSV Intake
+## Downloaded CSV Intake
 
-The production-pilot data plan should support an operator-downloaded CSV from the public CoinMarketCap Bitcoin historical
-data page:
+Production-pilot operation supports an operator-downloaded CSV from the public CoinMarketCap Bitcoin historical data
+page:
 
 ```text
 https://coinmarketcap.com/currencies/bitcoin/historical-data/
 ```
 
-This should be implemented as a manual or semi-automated import workflow, not as brittle page scraping. The operator
-downloads the CSV, stages it on the server, and runs an import command that validates the file before replacing the
-canonical CSV.
+This is a manual operator workflow, not page scraping. The operator downloads the CSV, stages it under
+`collector/btc-csv/incoming/`, and runs `./scripts/manage.sh import-cmc-csv`.
 
-The downloaded CSV intake should:
+The downloaded CSV intake:
 
-- accept an explicit staged CSV file path;
-- normalize supported CoinMarketCap historical-data columns into the canonical local CSV schema;
-- reject unknown, missing, or incompatible required columns;
-- reject partial files, duplicate dates, date gaps, and non-daily rows;
-- preserve the existing canonical CSV when validation fails;
-- atomically replace `collector/btc-csv/btc_usd_daily.csv` only after validation succeeds;
-- run the same database import, risk recomputation, and readiness checks as the current CSV-backed flow.
+- accepts an explicit staged CSV file path;
+- normalizes supported CoinMarketCap historical-data columns into the canonical local CSV schema;
+- rejects missing or incompatible required columns and ignores unsupported extra columns;
+- rejects partial files, duplicate dates, date gaps, and non-daily rows;
+- preserves the existing canonical CSV when validation fails;
+- atomically replaces `collector/btc-csv/btc_usd_daily.csv` only after validation succeeds;
+- runs the same database import, risk recomputation, and readiness checks as the current CSV-backed flow.
 
-The existing API delta refresh can remain available for environments that have an API key, but the documented production
-pilot path should be valid with only the downloaded CSV.
+The API delta refresh remains available for environments that have an API key, but the documented production-pilot path
+is valid with only the downloaded CSV.
 
 ## Delta Validation
 
-Remote deltas must exactly match the requested date range.
+Remote deltas and downloaded CSV imports must exactly match the intended date range.
 
-The collector rejects a remote delta when:
+The collector rejects a remote delta or downloaded CSV import when:
 
 - a requested day is missing;
 - an unexpected date is returned;
 - dates are out of order;
 - the merged CSV would contain gaps or invalid source rows.
 
-When validation fails, the CSV is not rewritten.
+When validation fails, the canonical CSV is not rewritten.
 
 ## CSV Write Safety
 

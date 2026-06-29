@@ -63,6 +63,7 @@ Collector tests cover:
 - CoinMarketCap payload parsing;
 - CoinMarketCap retry and permanent error behavior;
 - CSV refresh and remote delta validation;
+- downloaded CoinMarketCap CSV intake validation;
 - database stale-row cleanup;
 - database pool retry behavior;
 - source preservation in database records;
@@ -78,7 +79,6 @@ Planned production-pilot coverage should also include:
 
 - readiness/freshness rendering, including degraded and API-error states;
 - non-empty chart rendering checks for risk history and risk levels;
-- downloaded CoinMarketCap CSV intake validation once that path is implemented;
 - cache invalidation behavior after a successful collector/import run;
 - waitlist abuse and edge-rate-limit smoke checks in the deployed environment.
 

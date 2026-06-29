@@ -8,7 +8,7 @@ The product is ready for a production pilot after environment-specific deploymen
 
 External production tasks still required before public launch:
 
-- Run one live collector refresh with a real `COINMARKETCAP_API_KEY`.
+- Run one live data refresh using the downloaded CoinMarketCap CSV workflow or the optional API key path.
 - Configure Cloudflare Tunnel, TLS edge policy, request logs, and edge rate limiting.
 - Configure scheduled backups for TimescaleDB data and the canonical BTC CSV.
 - Configure alerts on `/api/readiness` and collector failures.
@@ -55,6 +55,7 @@ Open: `http://localhost:3001`
 ./scripts/manage.sh logs        # follow logs
 ./scripts/manage.sh backfill    # import canonical local BTC CSV once
 ./scripts/manage.sh run-now     # refresh BTC CSV from CMC if configured, then import
+./scripts/manage.sh import-cmc-csv collector/btc-csv/incoming/bitcoin-historical-data.csv 2026-06-28
 ./scripts/manage.sh test-python # backend and collector unit tests
 ```
 
@@ -74,9 +75,9 @@ Open: `http://localhost:3001`
 
 ## Data Source
 
-The canonical source is `collector/btc-csv/btc_usd_daily.csv`. The collector treats this file as durable local source of truth. Scheduled collector runs only fetch missing completed UTC days from the official CoinMarketCap OHLCV Historical endpoint and atomically append validated rows to the CSV before importing the full file into TimescaleDB.
+The canonical source is `collector/btc-csv/btc_usd_daily.csv`. The collector treats this file as durable local source of truth. Operators can refresh it without a paid API account by staging a CSV downloaded from the public CoinMarketCap Bitcoin historical data page under `collector/btc-csv/incoming/` and running `./scripts/manage.sh import-cmc-csv`.
 
-If `COINMARKETCAP_API_KEY` is empty, remote refresh is skipped and the current CSV is still imported and used for risk recomputation.
+If `COINMARKETCAP_API_KEY` is configured, scheduled collector runs can also fetch missing completed UTC days from the official CoinMarketCap OHLCV Historical endpoint. If the key is empty, remote API refresh is skipped and the current CSV is still imported and used for risk recomputation.
 
 ## API Overview
 
@@ -105,7 +106,7 @@ Production must set at least:
 - `APP_ENV=production`
 - `DB_PASSWORD` to a long random secret
 - `CORS_ORIGINS` to the public HTTPS origin
-- `COINMARKETCAP_API_KEY` to a production key
+- `COINMARKETCAP_API_KEY` only if the optional API refresh path is used; otherwise leave it empty and use the downloaded CSV workflow
 - `DATA_FRESHNESS_MAX_AGE_DAYS` to the accepted freshness threshold
 - `WAITLIST_RATE_LIMIT_PER_HOUR` to the expected traffic profile
 - `FRONTEND_BIND_IP=127.0.0.1` when Cloudflare Tunnel is the only public ingress
