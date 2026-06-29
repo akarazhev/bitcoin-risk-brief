@@ -4,6 +4,7 @@ This directory documents the current Bitcoin Risk Brief mini-product in English.
 
 ## Core Documents
 
+- [Product Spec and Alignment Review](01-bitcoin-risk-brief.md): original validation-product spec plus current implementation gaps against the MVP reliability requirements.
 - [Architecture](architecture.md): service layout, runtime flow, repository structure, and database responsibilities.
 - [Data Pipeline](data-pipeline.md): canonical CSV source, CoinMarketCap refresh, validation, import, and failure behavior.
 - [Risk Methodology](risk-methodology.md): `crypto-scout-canonical-v1`, features, weights, risk states, and risk levels.
