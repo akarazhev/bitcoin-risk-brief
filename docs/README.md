@@ -14,6 +14,7 @@ This directory documents the current Bitcoin Risk Brief mini-product in English.
 - [Operations](operations.md): local commands, container lifecycle, database maintenance, backups, and troubleshooting.
 - [Ubuntu and Cloudflare Tunnel Deployment](deploy-ubuntu-cloudflare.md): local-server deployment for Ubuntu, ByFly, Cloudflare Tunnel, backups, monitoring, and rollback.
 - [Production Readiness](production-readiness.md): release gates, production environment, guarantees, and external launch tasks.
+- [Production Roadmap](production-roadmap.md): phased roadmap from current MVP to public production-pilot readiness.
 - [Testing and Quality](testing-and-quality.md): test commands, coverage areas, smoke checks, and CI workflow.
 
 ## Historical Planning Docs
