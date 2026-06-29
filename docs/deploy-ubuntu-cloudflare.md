@@ -98,13 +98,22 @@ curl -fsS http://127.0.0.1:3001/api/readiness
 
 `/api/readiness` should return HTTP 200 before the public hostname is opened.
 
-If `COINMARKETCAP_API_KEY` is empty and the canonical CSV is stale, download the Bitcoin historical CSV from
-CoinMarketCap, stage it under `collector/btc-csv/incoming/`, and import it before the readiness check:
+If `COINMARKETCAP_API_KEY` is empty and the canonical CSV is stale, first try the automatic public CoinMarketCap
+download before the readiness check:
 
 ```bash
+EXPECTED_END_DATE="$(date -u -d 'yesterday' +%F)"
+./scripts/manage.sh download-cmc-csv "${EXPECTED_END_DATE}"
+curl -fsS http://127.0.0.1:3001/api/readiness
+```
+
+If the public endpoint automation is unavailable, download the Bitcoin historical CSV from CoinMarketCap, stage it under
+`collector/btc-csv/incoming/`, and import it manually:
+
+```bash
+EXPECTED_END_DATE="$(date -u -d 'yesterday' +%F)"
 mkdir -p collector/btc-csv/incoming
 cp ~/Downloads/bitcoin-historical-data.csv collector/btc-csv/incoming/
-EXPECTED_END_DATE="$(date -u -d 'yesterday' +%F)"
 ./scripts/manage.sh import-cmc-csv collector/btc-csv/incoming/bitcoin-historical-data.csv "${EXPECTED_END_DATE}"
 curl -fsS http://127.0.0.1:3001/api/readiness
 ```

@@ -34,6 +34,23 @@ Backfill imports the current CSV without network access and recomputes all risk 
 
 Run-now attempts a remote refresh when `COINMARKETCAP_API_KEY` is set. If no key is present, it skips remote refresh and imports the current CSV.
 
+### Automatic Public CoinMarketCap CSV Download
+
+```bash
+./scripts/manage.sh download-cmc-csv 2026-06-28
+```
+
+The optional argument is the UTC date the merged canonical CSV must cover through. If omitted, the collector targets the
+last completed UTC day.
+
+This command fetches missing Bitcoin daily rows after the canonical CSV tail from CoinMarketCap's public historical-data
+JSON endpoint, filters the returned window down to the requested range, writes a staged CSV under
+`collector/btc-csv/incoming/`, and then runs the same validated CSV import used by `import-cmc-csv`.
+
+The public endpoint is not the official paid API contract. Treat this path as best-effort automation: if CoinMarketCap
+changes or blocks the endpoint, the command fails before rewriting the canonical CSV and operators should use the manual
+downloaded CSV workflow or the official API-key refresh path.
+
 ### Downloaded CoinMarketCap CSV Import
 
 ```bash
@@ -76,7 +93,7 @@ Transient HTTP/request errors are retried with exponential backoff. Permanent HT
 The API path is an optional convenience path. Production-pilot operation must not depend on a paid CoinMarketCap account
 being available.
 
-## Downloaded CSV Intake
+## Public And Downloaded CSV Intake
 
 Production-pilot operation supports an operator-downloaded CSV from the public CoinMarketCap Bitcoin historical data
 page:
@@ -85,12 +102,17 @@ page:
 https://coinmarketcap.com/currencies/bitcoin/historical-data/
 ```
 
-This is a manual operator workflow, not page scraping. The operator downloads the CSV, stages it under
-`collector/btc-csv/incoming/`, and runs `./scripts/manage.sh import-cmc-csv`.
+The preferred no-key workflow is `./scripts/manage.sh download-cmc-csv`, which uses the public historical-data JSON that
+the page uses to render and download CSV data. It only writes a staged CSV after the endpoint returns a complete
+contiguous range.
 
-The downloaded CSV intake:
+The manual fallback is still supported: the operator downloads the CSV, stages it under `collector/btc-csv/incoming/`,
+and runs `./scripts/manage.sh import-cmc-csv`.
 
-- accepts an explicit staged CSV file path;
+The public/downloaded CSV intake:
+
+- stages automatic downloads under `collector/btc-csv/incoming/`;
+- accepts an explicit staged CSV file path for manual downloads;
 - normalizes supported CoinMarketCap historical-data columns into the canonical local CSV schema;
 - rejects missing or incompatible required columns and ignores unsupported extra columns;
 - rejects partial files, duplicate dates, date gaps, and non-daily rows;
@@ -99,13 +121,13 @@ The downloaded CSV intake:
 - runs the same database import, risk recomputation, and readiness checks as the current CSV-backed flow.
 
 The API delta refresh remains available for environments that have an API key, but the documented production-pilot path
-is valid with only the downloaded CSV.
+is valid with only the public/manual CSV workflows.
 
 ## Delta Validation
 
-Remote deltas and downloaded CSV imports must exactly match the intended date range.
+Remote deltas, public downloads, and downloaded CSV imports must exactly match the intended date range.
 
-The collector rejects a remote delta or downloaded CSV import when:
+The collector rejects a remote delta, public download, or downloaded CSV import when:
 
 - a requested day is missing;
 - an unexpected date is returned;

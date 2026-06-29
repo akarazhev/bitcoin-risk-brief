@@ -16,8 +16,15 @@ podman-compose -f podman-compose.yml build backend data-collector frontend
 ./scripts/manage.sh run-now
 ```
 
-If the production refresh path is an operator-downloaded CSV instead of the optional API key path, stage the downloaded
-file and run this before the final readiness check:
+If the production refresh path is no-key CoinMarketCap public data instead of the optional API key path, run this before
+the final readiness check:
+
+```bash
+EXPECTED_END_DATE="$(date -u -d 'yesterday' +%F)"
+./scripts/manage.sh download-cmc-csv "${EXPECTED_END_DATE}"
+```
+
+If the public endpoint automation is unavailable, stage a manually downloaded CSV and run:
 
 ```bash
 EXPECTED_END_DATE="$(date -u -d 'yesterday' +%F)"
@@ -46,7 +53,7 @@ PY
 Before public launch, also complete and record:
 
 - browser/device QA for the launch matrix;
-- selected BTC data refresh path: downloaded CSV intake or optional CoinMarketCap API refresh;
+- selected BTC data refresh path: automatic public CSV download, manual downloaded CSV intake, or optional CoinMarketCap API refresh;
 - cache policy for public read endpoints;
 - Cloudflare WAF, bot protection, and edge rate limits;
 - documentation hygiene pass across roadmap, data pipeline, security, testing, operations, and deployment docs.
@@ -62,7 +69,7 @@ Required production changes:
 - Set `CORS_ORIGINS` to the public HTTPS domain only.
 - Keep `FRONTEND_BIND_IP=127.0.0.1` when Cloudflare Tunnel is the only ingress.
 - Set `COINMARKETCAP_API_KEY` only if the optional API refresh path is used.
-- If no paid CoinMarketCap API account is available, use the documented downloaded CSV intake workflow and leave
+- If no paid CoinMarketCap API account is available, use the documented automatic or manual public CSV workflow and leave
   `COINMARKETCAP_API_KEY` empty intentionally.
 - Keep `DATA_FRESHNESS_MAX_AGE_DAYS=2` unless the product explicitly accepts slower updates.
 - Tune `WAITLIST_RATE_LIMIT_PER_HOUR` for expected traffic.
@@ -86,8 +93,9 @@ A non-200 readiness response should block deploy promotion and should alert in p
 - `collector/btc-csv/btc_usd_daily.csv` is the canonical source.
 - When the optional API path is configured, scheduled collector runs fetch only missing completed UTC days from
   CoinMarketCap.
-- The production-pilot path supports validated imports from operator-downloaded CoinMarketCap historical CSVs.
-- Remote deltas and downloaded CSV imports must exactly match the expected contiguous daily range.
+- The production-pilot path supports automatic public CoinMarketCap downloads and validated imports from
+  operator-downloaded CoinMarketCap historical CSVs.
+- Remote deltas, public downloads, and downloaded CSV imports must exactly match the expected contiguous daily range.
 - Non-contiguous or invalid inputs fail without rewriting the canonical CSV.
 - CSV writes use atomic replace.
 - Every import recalculates all risk rows and removes DB rows after the CSV tail.

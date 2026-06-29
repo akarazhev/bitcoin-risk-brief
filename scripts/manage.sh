@@ -27,6 +27,14 @@ case "${1:-help}" in
   run-now)
     ${COMPOSE} -f "${COMPOSE_FILE}" run --rm data-collector python -m collector.main --run-now
     ;;
+  download-cmc-csv)
+    extra_args=()
+    if [[ -n "${2:-}" ]]; then
+      extra_args=(--expected-end-date "${2}")
+    fi
+    ${COMPOSE} -f "${COMPOSE_FILE}" run --rm data-collector \
+      python -m collector.main --download-cmc-csv "${extra_args[@]}"
+    ;;
   import-cmc-csv)
     if [[ -z "${2:-}" ]]; then
       echo "Usage: $0 import-cmc-csv collector/btc-csv/incoming/bitcoin-historical-data.csv [expected-end-date]" >&2
@@ -49,6 +57,6 @@ case "${1:-help}" in
     PYTHONPATH=backend:collector python3 -m unittest discover -s collector/tests -v
     ;;
   help|*)
-    echo "Usage: $0 {validate|migrate|start|stop|logs [service]|backfill|run-now|import-cmc-csv <path> [expected-end-date]|test-python}"
+    echo "Usage: $0 {validate|migrate|start|stop|logs [service]|backfill|run-now|download-cmc-csv [expected-end-date]|import-cmc-csv <path> [expected-end-date]|test-python}"
     ;;
 esac

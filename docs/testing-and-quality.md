@@ -63,6 +63,7 @@ Collector tests cover:
 - CoinMarketCap payload parsing;
 - CoinMarketCap retry and permanent error behavior;
 - CSV refresh and remote delta validation;
+- automatic public CoinMarketCap CSV download validation;
 - downloaded CoinMarketCap CSV intake validation;
 - database stale-row cleanup;
 - database pool retry behavior;

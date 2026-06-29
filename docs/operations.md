@@ -41,7 +41,24 @@ Refresh from CoinMarketCap if configured, then import the full CSV:
 If `COINMARKETCAP_API_KEY` is empty, `run-now` imports the existing canonical CSV and recomputes risk without remote
 network refresh.
 
-## Downloaded CoinMarketCap CSV Refresh
+## Automatic Public CoinMarketCap CSV Refresh
+
+Refresh BTC history without a paid CoinMarketCap API account:
+
+```bash
+EXPECTED_END_DATE="$(date -u -d 'yesterday' +%F)"
+./scripts/manage.sh download-cmc-csv "${EXPECTED_END_DATE}"
+```
+
+The command fetches the missing days after the canonical CSV tail from CoinMarketCap's public historical-data endpoint,
+stages the result under `collector/btc-csv/incoming/`, validates the staged CSV, atomically updates
+`collector/btc-csv/btc_usd_daily.csv`, and runs the normal database import, risk recomputation, validation write, brief
+write, and stale-row cleanup.
+
+If the public endpoint returns an incomplete range, an error response, HTML, or blocked content, the command fails before
+rewriting the canonical CSV. Use the manual workflow below or the optional official API-key refresh path.
+
+## Manual Downloaded CoinMarketCap CSV Refresh
 
 Refresh BTC history without a paid CoinMarketCap API account by downloading a CSV from:
 
@@ -121,8 +138,8 @@ Production readiness:
 curl -fsS http://localhost:3001/api/readiness
 ```
 
-Readiness should be used for deployment probes and monitoring alerts. After a downloaded CSV import, readiness should be
-HTTP 200 before the refreshed data is trusted.
+Readiness should be used for deployment probes and monitoring alerts. After an automatic or manual CSV import, readiness
+should be HTTP 200 before the refreshed data is trusted.
 
 ## Backups
 

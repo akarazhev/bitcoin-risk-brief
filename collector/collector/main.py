@@ -12,10 +12,12 @@ from app.risk_sources import build_csv_risk_dataset
 from collector.config import settings
 from collector.csv_refresh import refresh_csv_from_coinmarketcap
 from collector.downloaded_csv import import_coinmarketcap_downloaded_csv
+from collector.public_cmc_download import download_public_coinmarketcap_csv
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
 logger = logging.getLogger(__name__)
 BTC_CSV_PATH = Path(__file__).resolve().parents[1] / "btc-csv" / "btc_usd_daily.csv"
+CMC_INCOMING_DIR = BTC_CSV_PATH.parent / "incoming"
 
 
 async def import_csv_once(pool: Any, *, refresh_remote: bool) -> None:
@@ -84,11 +86,37 @@ async def import_downloaded_csv_once(
     await import_csv_once(pool, refresh_remote=False)
 
 
+async def download_public_cmc_csv_once(pool: Any, *, expected_end_date: date | None) -> None:
+    result = await download_public_coinmarketcap_csv(
+        BTC_CSV_PATH,
+        CMC_INCOMING_DIR,
+        expected_end_date=expected_end_date,
+    )
+    if result is None:
+        logger.info("BTC CSV already covers the requested public CoinMarketCap range; importing existing CSV")
+        await import_csv_once(pool, refresh_remote=False)
+        return
+
+    logger.info(
+        "Public CoinMarketCap CSV staged: %s (%d rows, %s..%s)",
+        result.downloaded_csv_path,
+        result.row_count,
+        result.start_date.isoformat(),
+        result.end_date.isoformat(),
+    )
+    await import_downloaded_csv_once(
+        pool,
+        result.downloaded_csv_path,
+        expected_end_date=result.end_date,
+    )
+
+
 async def main(
     *,
     run_now: bool = False,
     backfill: bool = False,
     import_cmc_csv: str | Path | None = None,
+    download_cmc_csv: bool = False,
     expected_end_date: date | None = None,
 ) -> None:
     import asyncpg
@@ -99,6 +127,9 @@ async def main(
     try:
         if import_cmc_csv is not None:
             await import_downloaded_csv_once(pool, import_cmc_csv, expected_end_date=expected_end_date)
+            return
+        if download_cmc_csv:
+            await download_public_cmc_csv_once(pool, expected_end_date=expected_end_date)
             return
         if backfill:
             await import_csv_once(pool, refresh_remote=False)
@@ -139,6 +170,11 @@ if __name__ == "__main__":
         type=Path,
         help="Validate an operator-downloaded CoinMarketCap historical CSV, replace the canonical CSV, import it, and exit",
     )
+    mode.add_argument(
+        "--download-cmc-csv",
+        action="store_true",
+        help="Download missing Bitcoin historical rows from CoinMarketCap public data, import the staged CSV, and exit",
+    )
     parser.add_argument(
         "--expected-end-date",
         type=parse_cli_date,
@@ -150,6 +186,7 @@ if __name__ == "__main__":
             run_now=args.run_now,
             backfill=args.backfill,
             import_cmc_csv=args.import_cmc_csv,
+            download_cmc_csv=args.download_cmc_csv,
             expected_end_date=args.expected_end_date,
         )
     )

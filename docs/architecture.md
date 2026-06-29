@@ -16,16 +16,17 @@ All services run under `podman-compose.yml` on the `app-network` bridge network.
 ## Runtime Flow
 
 1. The collector reads `collector/btc-csv/btc_usd_daily.csv`.
-2. If an operator runs `import-cmc-csv`, the collector validates the staged CoinMarketCap historical CSV and merges it into the canonical CSV only when the result is contiguous.
-3. If running in refresh mode and `COINMARKETCAP_API_KEY` is set, it asks CoinMarketCap for missing completed UTC days after the CSV tail.
-4. Downloaded rows and API-fetched deltas must exactly match the expected contiguous daily date range.
-5. Valid rows are merged into the CSV with atomic file replacement.
-6. The full CSV is imported into TimescaleDB.
-7. The risk series is recomputed from the full canonical source history.
-8. Validation metadata and a latest brief snapshot are written.
-9. Rows after the CSV tail are deleted from OHLCV, risk, and brief tables to prevent stale mixed-source data.
-10. The backend serves API reads from TimescaleDB.
-11. The frontend displays current risk, risk history, risk levels, brief text, and waitlist capture.
+2. If an operator runs `download-cmc-csv`, the collector fetches missing rows from CoinMarketCap's public historical-data endpoint, stages a CSV, validates it, and merges it only when the result is contiguous.
+3. If an operator runs `import-cmc-csv`, the collector validates the staged CoinMarketCap historical CSV and merges it into the canonical CSV only when the result is contiguous.
+4. If running in refresh mode and `COINMARKETCAP_API_KEY` is set, it asks CoinMarketCap for missing completed UTC days after the CSV tail.
+5. Public downloads, downloaded rows, and API-fetched deltas must exactly match the expected contiguous daily date range.
+6. Valid rows are merged into the CSV with atomic file replacement.
+7. The full CSV is imported into TimescaleDB.
+8. The risk series is recomputed from the full canonical source history.
+9. Validation metadata and a latest brief snapshot are written.
+10. Rows after the CSV tail are deleted from OHLCV, risk, and brief tables to prevent stale mixed-source data.
+11. The backend serves API reads from TimescaleDB.
+12. The frontend displays current risk, risk history, risk levels, brief text, and waitlist capture.
 
 ## Repository Layout
 
