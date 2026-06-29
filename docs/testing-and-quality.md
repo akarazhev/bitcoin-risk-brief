@@ -20,6 +20,12 @@ Run frontend tests:
 npm test --prefix frontend
 ```
 
+Run frontend browser smoke checks:
+
+```bash
+npm run smoke --prefix frontend
+```
+
 Build frontend:
 
 ```bash
@@ -75,11 +81,21 @@ Frontend tests cover:
 - app shell rendering;
 - waitlist submission;
 - no browser persistent storage for waitlist contacts.
+- readiness/freshness rendering, including degraded copy;
+- API-unavailable copy for failed risk data loads;
+- explicit empty chart states for missing history or levels rows;
+- compact chart options, resize behavior, and accessible threshold labels.
+
+Frontend browser smoke checks cover:
+
+- desktop and mobile layout without horizontal overflow;
+- non-empty risk history and risk levels chart canvases;
+- degraded readiness state rendering;
+- API failure rendering that does not look like fresh data;
+- Playwright Chromium, Firefox, WebKit, Pixel 5, and iPhone 13 profiles.
 
 Planned production-pilot coverage should also include:
 
-- readiness/freshness rendering, including degraded and API-error states;
-- non-empty chart rendering checks for risk history and risk levels;
 - cache invalidation behavior after a successful collector/import run;
 - waitlist abuse and edge-rate-limit smoke checks in the deployed environment.
 
@@ -96,6 +112,8 @@ Required status checks:
 - `python-compile`: runs `python3 -m compileall backend collector`.
 - `frontend-tests`: installs frontend dependencies with `npm ci --prefix frontend` and runs `npm test --prefix frontend`.
 - `frontend-build`: installs frontend dependencies with `npm ci --prefix frontend` and runs `npm run build --prefix frontend`.
+- `frontend-smoke`: installs frontend dependencies, installs Playwright Chromium, Firefox, and WebKit, then runs
+  `npm run smoke --prefix frontend`.
 - `compose-validation`: runs `docker compose -f podman-compose.yml config >/dev/null`.
 
 Branch protection expectations for `main`:
@@ -103,11 +121,11 @@ Branch protection expectations for `main`:
 - Require a pull request before merging changes into `main`.
 - Require status checks to pass before merging.
 - Require branches to be up to date before merging.
-- Require the six CI checks listed above.
+- Require the seven CI checks listed above.
 - Restrict direct pushes to `main`; emergency direct pushes still run CI and should be fixed or reverted if any required check fails.
 
-With those rules, a failing backend test, collector test, frontend test, frontend build, Python compile check, or compose
-validation blocks promotion to `main`.
+With those rules, a failing backend test, collector test, frontend test, frontend smoke check, frontend build, Python
+compile check, or compose validation blocks promotion to `main`.
 
 ## Manual Smoke Checks
 
@@ -153,6 +171,8 @@ The check should cover:
 Automated smoke checks should cover the highest-risk layout and chart failures. Manual QA can cover browser-specific
 visual polish until the project has a broader e2e suite.
 
+Current frontend QA results are recorded in [Frontend QA](frontend-qa.md).
+
 ## Documentation Hygiene
 
 Documentation changes should keep the following files aligned:
@@ -167,6 +187,9 @@ Before launch, remove or clearly label stale assumptions from older docs. Histor
 remain as implementation history, but current operational docs should not require readers to reconcile conflicting
 runtime behavior.
 
-## Known Build Warning
+## Frontend Chart Bundle Budget
 
-The frontend production build currently emits a Vite chunk-size warning because ECharts is bundled into the main app chunk. The build succeeds. Code-splitting ECharts is a future performance improvement, not a current correctness blocker.
+The frontend lazy-loads ECharts through `frontend/src/Chart.tsx`. The initial app chunk is expected to stay below
+500 kB minified. The lazy chart chunk is accepted up to 650 kB minified because it contains the ECharts canvas renderer
+and the small set of chart modules used by the public page. `npm run build --prefix frontend` should complete without
+unexpected Vite chunk warnings.

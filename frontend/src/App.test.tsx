@@ -8,7 +8,7 @@ const chartMocks = vi.hoisted(() => ({
   resize: vi.fn(),
 }))
 
-vi.mock('echarts-for-react', () => ({
+vi.mock('./Chart', () => ({
   default: ({
     option,
     onChartReady,
@@ -25,6 +25,10 @@ vi.mock('echarts-for-react', () => ({
 }))
 
 const apiMocks = vi.hoisted(() => ({
+  fetchLatestRisk: vi.fn(),
+  fetchRiskHistory: vi.fn(),
+  fetchRiskLevels: vi.fn(),
+  fetchBrief: vi.fn(),
   fetchReadiness: vi.fn(async () => ({
     status: 'ready',
     checks: {
@@ -51,16 +55,10 @@ const apiMocks = vi.hoisted(() => ({
 
 vi.mock('./api', () => ({
   fetchReadiness: apiMocks.fetchReadiness,
-  fetchLatestRisk: async () => ({ data: { timestamp: '2026-06-26T00:00:00Z', price_usd: 100000, risk: 0.7, score: 1, risk_state: 'high', trend_dev: 1, vol_regime: 0.1, turnover: null, z_trend_dev: 1, z_vol_regime: 1, z_turnover: null, turnover_enabled: false } }),
-  fetchRiskHistory: async () => ({ data: [
-    { timestamp: '2026-06-24T00:00:00Z', price_usd: 98000, risk: 0.52, score: 0.52, risk_state: 'neutral', trend_dev: 1, vol_regime: 0.1, turnover: null, z_trend_dev: 1, z_vol_regime: 1, z_turnover: null, turnover_enabled: false },
-    { timestamp: '2026-06-25T00:00:00Z', price_usd: 99000, risk: 0.63, score: 0.63, risk_state: 'neutral', trend_dev: 1, vol_regime: 0.1, turnover: null, z_trend_dev: 1, z_vol_regime: 1, z_turnover: null, turnover_enabled: false },
-  ], meta: { returned_points: 2 } }),
-  fetchRiskLevels: async () => ({ data: [
-    { risk: 0.35, price_usd: 82000 },
-    { risk: 0.65, price_usd: 118000 },
-  ], meta: { base: {} } }),
-  fetchBrief: async () => ({ data: { snapshot_version: 'v1', as_of: '2026-06-26T00:00:00Z', risk: 0.7, risk_state: 'high', price_usd: 100000, delta_risk: 0.1, sections: { en: { summary: 'Risk elevated', what_changed: 'Changed', avoid_now: 'Avoid', confirm_next: 'Confirm' }, ru: { summary: 'Риск повышен', what_changed: 'Изменилось', avoid_now: 'Избегай', confirm_next: 'Проверь' } } } }),
+  fetchLatestRisk: apiMocks.fetchLatestRisk,
+  fetchRiskHistory: apiMocks.fetchRiskHistory,
+  fetchRiskLevels: apiMocks.fetchRiskLevels,
+  fetchBrief: apiMocks.fetchBrief,
   joinWaitlist: apiMocks.joinWaitlist,
 }))
 
@@ -82,6 +80,20 @@ function setCompactViewport(matches: boolean) {
 
 beforeEach(() => {
   chartMocks.resize.mockClear()
+  apiMocks.fetchLatestRisk.mockReset()
+  apiMocks.fetchLatestRisk.mockResolvedValue({ data: { timestamp: '2026-06-26T00:00:00Z', price_usd: 100000, risk: 0.7, score: 1, risk_state: 'high', trend_dev: 1, vol_regime: 0.1, turnover: null, z_trend_dev: 1, z_vol_regime: 1, z_turnover: null, turnover_enabled: false } })
+  apiMocks.fetchRiskHistory.mockReset()
+  apiMocks.fetchRiskHistory.mockResolvedValue({ data: [
+    { timestamp: '2026-06-24T00:00:00Z', price_usd: 98000, risk: 0.52, score: 0.52, risk_state: 'neutral', trend_dev: 1, vol_regime: 0.1, turnover: null, z_trend_dev: 1, z_vol_regime: 1, z_turnover: null, turnover_enabled: false },
+    { timestamp: '2026-06-25T00:00:00Z', price_usd: 99000, risk: 0.63, score: 0.63, risk_state: 'neutral', trend_dev: 1, vol_regime: 0.1, turnover: null, z_trend_dev: 1, z_vol_regime: 1, z_turnover: null, turnover_enabled: false },
+  ], meta: { returned_points: 2 } })
+  apiMocks.fetchRiskLevels.mockReset()
+  apiMocks.fetchRiskLevels.mockResolvedValue({ data: [
+    { risk: 0.35, price_usd: 82000 },
+    { risk: 0.65, price_usd: 118000 },
+  ], meta: { base: {} } })
+  apiMocks.fetchBrief.mockReset()
+  apiMocks.fetchBrief.mockResolvedValue({ data: { snapshot_version: 'v1', as_of: '2026-06-26T00:00:00Z', risk: 0.7, risk_state: 'high', price_usd: 100000, delta_risk: 0.1, sections: { en: { summary: 'Risk elevated', what_changed: 'Changed', avoid_now: 'Avoid', confirm_next: 'Confirm' }, ru: { summary: 'Риск повышен', what_changed: 'Изменилось', avoid_now: 'Избегай', confirm_next: 'Проверь' } } } })
   apiMocks.fetchReadiness.mockClear()
   apiMocks.fetchReadiness.mockResolvedValue({
     status: 'ready',
@@ -112,6 +124,14 @@ test('renders the Bitcoin Risk Brief shell', async () => {
   render(<App />)
   expect(await screen.findByText('Bitcoin Risk Brief')).toBeInTheDocument()
   expect(await screen.findByText('Current risk')).toBeInTheDocument()
+})
+
+test('renders a loading state while risk data is pending', () => {
+  apiMocks.fetchLatestRisk.mockReturnValueOnce(new Promise(() => {}))
+
+  render(<App />)
+
+  expect(screen.getByText('Loading risk data...')).toBeInTheDocument()
 })
 
 test('renders readiness freshness and validation near the latest data date', async () => {
@@ -157,6 +177,28 @@ test('renders degraded readiness copy without hiding the latest risk', async () 
   expect(screen.getByText('Validation needs attention')).toBeInTheDocument()
   expect(screen.getByText('Data is 6 days old')).toBeInTheDocument()
   expect(screen.getByText('Covered end: 2026-06-19')).toBeInTheDocument()
+})
+
+test('renders a distinct API unavailable state when risk data cannot load', async () => {
+  apiMocks.fetchLatestRisk.mockRejectedValueOnce(new Error('Request failed: 500'))
+
+  render(<App />)
+
+  expect(await screen.findByText('Risk data is temporarily unavailable')).toBeInTheDocument()
+  expect(screen.getByText('Request failed: 500')).toBeInTheDocument()
+  expect(screen.queryByText('No collected data yet. Run the collector backfill to populate TimescaleDB.')).not.toBeInTheDocument()
+})
+
+test('renders explicit empty chart states when history or levels have no rows', async () => {
+  apiMocks.fetchRiskHistory.mockResolvedValueOnce({ data: [], meta: { returned_points: 0 } })
+  apiMocks.fetchRiskLevels.mockResolvedValueOnce({ data: [], meta: { base: {} } })
+
+  render(<App />)
+
+  expect(await screen.findByText('Risk history is unavailable until observations are loaded.')).toBeInTheDocument()
+  expect(screen.getByText('Risk levels are unavailable until the latest model input is ready.')).toBeInTheDocument()
+  expect(screen.queryByTestId('chart-risk')).not.toBeInTheDocument()
+  expect(screen.queryByTestId('chart-price')).not.toBeInTheDocument()
 })
 
 test('renders methodology reference and no-advice disclaimer', async () => {

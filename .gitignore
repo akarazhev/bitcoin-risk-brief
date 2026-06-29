@@ -10,6 +10,7 @@ htmlcov/
 node_modules/
 dist/
 coverage/
+test-results/
 data/
 .DS_Store
 *.log

@@ -11,6 +11,7 @@ Run these before every deploy:
 python3 -m compileall backend collector
 npm test --prefix frontend
 npm run build --prefix frontend
+npm run smoke --prefix frontend
 ./scripts/manage.sh validate
 podman-compose -f podman-compose.yml build backend data-collector frontend
 ./scripts/manage.sh run-now
@@ -128,6 +129,9 @@ headers are expected at the public hostname. `POST /api/waitlist` must not be ca
 Before public traffic, verify the page on current desktop Chrome, Safari, Firefox, mobile Safari, and mobile Chrome. The
 check should cover loading, degraded readiness, API errors, chart rendering, waitlist states, locale behavior, and common
 mobile/desktop viewport widths.
+
+The automated frontend smoke matrix and current results are recorded in [Frontend QA](frontend-qa.md). Treat that as the
+minimum automated check; repeat a short manual pass on the production hostname before public launch.
 
 ## Remaining External Operations
 

@@ -15,6 +15,7 @@ This directory documents the current Bitcoin Risk Brief mini-product in English.
 - [Ubuntu and Cloudflare Tunnel Deployment](deploy-ubuntu-cloudflare.md): local-server deployment for Ubuntu, ByFly, Cloudflare Tunnel, backups, monitoring, and rollback.
 - [Production Readiness](production-readiness.md): release gates, production environment, data refresh choice, caching, security, browser/device QA, and external launch tasks.
 - [Production Roadmap](production-roadmap.md): phased roadmap from current MVP to public production-pilot readiness.
+- [Frontend QA](frontend-qa.md): desktop/mobile browser smoke matrix, chart rendering checks, visual QA notes, and frontend bundle budget.
 - [Testing and Quality](testing-and-quality.md): test commands, coverage areas, browser/device QA, documentation hygiene, smoke checks, and CI workflow.
 
 ## Historical Planning Docs

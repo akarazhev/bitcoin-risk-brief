@@ -1,6 +1,5 @@
-import { useEffect, useMemo, useState } from 'react'
+import { Suspense, lazy, useEffect, useMemo, useState } from 'react'
 import type { EChartsOption } from 'echarts'
-import ReactECharts from 'echarts-for-react'
 import { Bell, CheckCircle2, ExternalLink, Languages, Radio, Send, ShieldAlert, TriangleAlert } from 'lucide-react'
 import { fetchBrief, fetchLatestRisk, fetchReadiness, fetchRiskHistory, fetchRiskLevels, joinWaitlist } from './api'
 import type { BriefPayload, ReadinessPayload, RiskLevel, RiskPoint } from './types'
@@ -9,6 +8,7 @@ type Locale = 'en' | 'ru'
 type ThresholdCallout = { risk: number; text: string }
 const COMPACT_CHART_QUERY = '(max-width: 640px)'
 const AUTO_CHART_SIZE = { width: 'auto', height: 'auto' } as const
+const Chart = lazy(() => import('./Chart'))
 
 const copy = {
   en: {
@@ -51,6 +51,11 @@ const copy = {
     joining: 'Saving...',
     loading: 'Loading risk data...',
     empty: 'No collected data yet. Run the collector backfill to populate TimescaleDB.',
+    loadErrorTitle: 'Risk data is temporarily unavailable',
+    loadErrorBody: 'The page could not load the latest risk payload. Treat the signal as unavailable until the API recovers.',
+    chartLoading: 'Loading chart...',
+    historyEmpty: 'Risk history is unavailable until observations are loaded.',
+    levelsEmpty: 'Risk levels are unavailable until the latest model input is ready.',
   },
   ru: {
     eyebrow: 'Ежедневный BTC риск-сигнал',
@@ -92,6 +97,11 @@ const copy = {
     joining: 'Сохраняю...',
     loading: 'Загружаю risk data...',
     empty: 'Данных пока нет. Запусти collector backfill, чтобы заполнить TimescaleDB.',
+    loadErrorTitle: 'Данные о риске временно недоступны',
+    loadErrorBody: 'Страница не смогла загрузить последний пакет данных о риске. Считай сигнал недоступным, пока API не восстановится.',
+    chartLoading: 'Загружаю график...',
+    historyEmpty: 'История риска недоступна, пока наблюдения не загружены.',
+    levelsEmpty: 'Уровни риска недоступны, пока нет последнего входа модели.',
   },
 } as const
 
@@ -249,10 +259,11 @@ export default function App() {
   if (error && !latest) {
     return (
       <main className="shell centered">
-        <section className="empty-state">
+        <section className="empty-state error-state" aria-live="polite">
           <ShieldAlert size={30} />
-          <h1>{t.empty}</h1>
-          <p>{error}</p>
+          <h1>{t.loadErrorTitle}</h1>
+          <p>{t.loadErrorBody}</p>
+          <p className="error-detail">{error}</p>
         </section>
       </main>
     )
@@ -358,9 +369,24 @@ export default function App() {
               {thresholdCallouts.map((callout) => <span key={callout.risk}>{callout.text}</span>)}
             </div>
           )}
-          <ReactECharts option={riskOption} notMerge opts={AUTO_CHART_SIZE} onChartReady={resizeChartWhenReady} style={{ height: 360, width: '100%' }} />
+          {history.length > 0 ? (
+            <Suspense fallback={<div className="chart-placeholder" role="status">{t.chartLoading}</div>}>
+              <Chart option={riskOption} notMerge opts={AUTO_CHART_SIZE} onChartReady={resizeChartWhenReady} style={{ height: 360, width: '100%' }} />
+            </Suspense>
+          ) : (
+            <div className="chart-empty" role="status">{t.historyEmpty}</div>
+          )}
         </article>
-        <article className="chart-panel"><h2>{t.levels}</h2><ReactECharts option={levelsOption} notMerge opts={AUTO_CHART_SIZE} onChartReady={resizeChartWhenReady} style={{ height: 360, width: '100%' }} /></article>
+        <article className="chart-panel">
+          <h2>{t.levels}</h2>
+          {levels.length > 0 ? (
+            <Suspense fallback={<div className="chart-placeholder" role="status">{t.chartLoading}</div>}>
+              <Chart option={levelsOption} notMerge opts={AUTO_CHART_SIZE} onChartReady={resizeChartWhenReady} style={{ height: 360, width: '100%' }} />
+            </Suspense>
+          ) : (
+            <div className="chart-empty" role="status">{t.levelsEmpty}</div>
+          )}
+        </article>
       </section>
     </main>
   )
