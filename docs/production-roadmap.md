@@ -51,7 +51,7 @@ Verified on 2026-06-30 from repository files and recent commit history.
 | Phase 6: Production Environment And Deployment | Pending | Requires production host, `.env`, Cloudflare Tunnel, and public endpoint verification |
 | Phase 7: Backups, Restore, And Monitoring | Pending | Requires production backup schedule, off-server copy, restore drill, and alerts |
 | Phase 8: Launch Checklist And First Traffic Test | Pending | Requires public-host launch checks and first traffic test |
-| Phase 9: Post-Launch Learning Loop | Pending | Starts after launch traffic creates usage evidence |
+| Phase 9: Post-Launch Learning Loop | Pending | Starts after launch traffic creates usage evidence, including optional agent-access demand testing |
 
 Remaining production-pilot gaps after Phase 1-5:
 
@@ -271,12 +271,21 @@ Deliverables:
 
 - Review waitlist conversion, repeat visits, and direct user questions.
 - Track requests for alerts, daily notifications, and personal plan comparisons.
+- Run an Agent Access Demand Test if the first traffic test creates enough attention to justify a small integration
+  experiment.
+- Publish a lightweight Agent Access Pack for HTTP-capable agents that uses the existing public endpoints, requires a
+  readiness-first flow, and keeps the risk output framed as analytics rather than financial advice.
+- Track `source=agent_access` waitlist leads and direct integration requests for API keys, webhooks, MCP, SDKs, embeds,
+  alerts, or commercial reuse.
 - Avoid broad feature expansion until demand signals justify it.
-- If demand is positive, design the next validation increment: alerts, daily email/Telegram, or paid beta.
+- If demand is positive, design the next validation increment: alerts, daily email/Telegram, paid beta, or paid API
+  access for integrations.
 
 Acceptance criteria:
 
 - Product decisions are based on usage and waitlist evidence, not feature appetite.
+- Agent access is judged by waitlist leads and integration requests, not raw API traffic alone.
+- The first agent-access experiment does not add new API, auth, billing, SDK, MCP, or SLA scope before demand is proven.
 - The next scope is a small validation step, not a general crypto dashboard.
 
 ## Working Order
@@ -318,3 +327,4 @@ The project is ready for a first public production pilot when:
 - [Ubuntu and Cloudflare Tunnel Deployment](deploy-ubuntu-cloudflare.md)
 - [Testing and Quality](testing-and-quality.md)
 - [Security and Privacy](security-and-privacy.md)
+- [Agent Access Demand Test Design](superpowers/specs/2026-06-30-agent-access-demand-test-design.md)

@@ -19,8 +19,8 @@ This directory documents the current Bitcoin Risk Brief mini-product in English.
 - [Frontend QA](frontend-qa.md): desktop/mobile browser smoke matrix, chart rendering checks, visual QA notes, and frontend bundle budget.
 - [Testing and Quality](testing-and-quality.md): test commands, coverage areas, browser/device QA, documentation hygiene, smoke checks, and CI workflow.
 
-## Historical Planning Docs
+## Planning Docs
 
-The `docs/superpowers/` directory contains historical implementation specs and plans. Those files are useful for audit
-trail and context. The documents listed above describe current runtime behavior and, where explicitly marked, planned
-production-pilot work.
+The `docs/superpowers/` directory contains active design specs plus historical implementation specs and plans. Those
+files are useful for audit trail and context. The documents listed above describe current runtime behavior and, where
+explicitly marked, planned production-pilot or post-launch work.
