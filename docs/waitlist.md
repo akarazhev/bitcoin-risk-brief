@@ -64,7 +64,9 @@ Important columns:
 WAITLIST_RATE_LIMIT_PER_HOUR=20
 ```
 
-For public production, this should be complemented with edge-level rate limiting.
+For public production, complement this with the repo-managed Cloudflare edge rule from
+`scripts/cloudflare_edge_rules.py`, which limits `POST /api/waitlist` to 5 requests per minute per IP and bypasses cache
+for waitlist submissions.
 
 ## Current Scope
 

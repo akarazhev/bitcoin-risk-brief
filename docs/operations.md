@@ -124,6 +124,10 @@ Follow a single service:
 ./scripts/manage.sh logs timescaledb
 ```
 
+Backend API access logs include method, path, status, client key, Cloudflare ray ID when present, cache status, and
+duration. Use them to distinguish normal page loads from bursts against `/api/waitlist` or `/api/*` without logging
+waitlist contact values.
+
 ## Health and Readiness
 
 Basic health:
@@ -140,6 +144,78 @@ curl -fsS http://localhost:3001/api/readiness
 
 Readiness should be used for deployment probes and monitoring alerts. After an automatic or manual CSV import, readiness
 should be HTTP 200 before the refreshed data is trusted.
+
+## Cache Verification
+
+Public read endpoints are cacheable at the backend and edge:
+
+- `/api/readiness`
+- `/api/risk/latest`
+- `/api/risk/history`
+- `/api/risk/levels`
+- `/api/brief/latest`
+
+Check cache headers on a public read endpoint:
+
+```bash
+curl -sD - -o /tmp/bitcoin-risk-latest.json http://localhost:3001/api/risk/latest
+```
+
+Expected headers include `Cache-Control`, `ETag`, `X-Cache`, and `X-Cache-Version`. Repeat the same request and confirm
+`X-Cache: HIT` once the backend has built the payload:
+
+```bash
+curl -sD - -o /tmp/bitcoin-risk-latest.json http://localhost:3001/api/risk/latest
+```
+
+Verify conditional revalidation:
+
+```bash
+ETAG="$(curl -sD - -o /tmp/bitcoin-risk-latest.json http://localhost:3001/api/risk/latest | awk 'BEGIN{IGNORECASE=1} /^etag:/ {print $2}' | tr -d '\r')"
+curl -s -o /dev/null -w "%{http_code}\n" -H "If-None-Match: ${ETAG}" http://localhost:3001/api/risk/latest
+```
+
+The second command should print `304`.
+
+After `backfill`, `run-now`, `download-cmc-csv`, or `import-cmc-csv`, the collector writes a new
+`btc_risk_validation` marker. The backend derives `X-Cache-Version` from that marker, so the next public read misses the
+old in-process cache and rebuilds from the database. If Cloudflare cache is enabled, purge the hostname or wait for
+`PUBLIC_CACHE_MAX_AGE_SECONDS` before using cached public data for a launch snapshot.
+
+`POST /api/waitlist` must remain uncached. Confirm it returns `Cache-Control: no-store` during launch checks.
+
+## Cloudflare Edge Rules
+
+Render the repo-managed Cloudflare WAF, rate-limit, cache, and waitlist bot-challenge rules:
+
+```bash
+python3 scripts/cloudflare_edge_rules.py render --hostname risk.example.com > /tmp/bitcoin-risk-cloudflare-edge.json
+```
+
+Apply the rules with an operator API token:
+
+```bash
+export CLOUDFLARE_ZONE_ID=replace-with-zone-id
+export CLOUDFLARE_API_TOKEN=replace-with-api-token
+python3 scripts/cloudflare_edge_rules.py apply \
+  --zone-id "${CLOUDFLARE_ZONE_ID}" \
+  --hostname risk.example.com
+```
+
+The script preserves unrelated Cloudflare rules and only replaces rules with refs starting `bitcoin-risk-brief:`. After
+applying it, enable Cloudflare Bot Fight Mode, Super Bot Fight Mode, or equivalent dashboard bot protection if the active
+plan supports it.
+
+Verify the public hostname after applying edge rules:
+
+```bash
+curl -fsS https://risk.example.com/api/health
+curl -sD - -o /tmp/bitcoin-risk-readiness.json https://risk.example.com/api/readiness
+curl -sD - -o /tmp/bitcoin-risk-latest.json https://risk.example.com/api/risk/latest
+```
+
+Public read responses should include `Cache-Control`, `ETag`, and `X-Cache-Version`. Waitlist submissions should still
+work for normal users and return `Cache-Control: no-store`.
 
 ## Backups
 

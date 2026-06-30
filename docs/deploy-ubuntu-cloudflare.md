@@ -187,10 +187,57 @@ Recommended initial settings:
 - Local service URL: keep `http://127.0.0.1:3001` for host-service tunnel, or `http://frontend:3000` for compose-managed tunnel.
 - Always Use HTTPS: enabled.
 - HTTP Strict Transport Security: enable after the hostname is confirmed stable.
-- WAF managed rules: enabled.
-- Rate limiting: start with conservative limits on `/api/waitlist` and `/api/*`.
-- Bot/spam controls: start in a low-friction mode and tighten if waitlist spam or abusive traffic appears.
-- Cache: do not cache API responses unless explicit cache headers and invalidation behavior are added.
+- WAF managed rules: enabled for the hostname.
+- Bot/spam controls: enable the Cloudflare bot protection available on the active plan and start in a low-friction mode.
+- Rate limiting:
+  - `POST /api/waitlist`: 5 requests per minute per IP, managed challenge or block repeated offenders.
+  - `/api/*`: 120 requests per minute per IP, managed challenge or throttle bursts.
+- Cache:
+  - respect origin `Cache-Control` for `GET /api/readiness`, `/api/risk/latest`, `/api/risk/history`,
+    `/api/risk/levels`, and `/api/brief/latest`;
+  - bypass cache for `POST /api/waitlist`;
+  - purge the hostname after a production import only when the public result must update before the short origin
+    `max-age` expires.
+
+After enabling edge controls, verify from the public hostname:
+
+```bash
+curl -sD - -o /tmp/bitcoin-risk-latest.json https://risk.example.com/api/risk/latest
+curl -sD - -o /tmp/bitcoin-risk-readiness.json https://risk.example.com/api/readiness
+```
+
+Both public read responses should include `Cache-Control`, `ETag`, and `X-Cache-Version`.
+
+The repository includes a repeatable Rulesets API helper for the WAF, custom waitlist bot challenge, rate limits, and
+cache settings. Render the exact payload before applying it:
+
+```bash
+python3 scripts/cloudflare_edge_rules.py render --hostname risk.example.com > /tmp/bitcoin-risk-cloudflare-edge.json
+```
+
+Apply it with an API token that can edit zone rulesets and cache rules:
+
+```bash
+export CLOUDFLARE_ZONE_ID=replace-with-zone-id
+export CLOUDFLARE_API_TOKEN=replace-with-api-token
+python3 scripts/cloudflare_edge_rules.py apply \
+  --zone-id "${CLOUDFLARE_ZONE_ID}" \
+  --hostname risk.example.com
+```
+
+The script preserves unrelated existing rules and replaces only rules whose `ref` starts with `bitcoin-risk-brief:`. It
+manages:
+
+- Cloudflare Managed Ruleset execution scoped to the public hostname;
+- a custom managed challenge for suspicious non-verified bot-like waitlist submissions;
+- `POST /api/waitlist` rate limiting at 5 requests per minute per IP;
+- `/api/*` burst limiting at 120 requests per minute per IP, excluding the waitlist rule above;
+- cache bypass for `POST /api/waitlist`;
+- origin-header-respecting cache behavior for the public read endpoints.
+
+After the script succeeds, enable Cloudflare Bot Fight Mode, Super Bot Fight Mode, or the equivalent bot protection
+available on the active plan in the Cloudflare dashboard and confirm normal page loads and waitlist submissions still
+work.
 
 ## Backups
 

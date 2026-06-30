@@ -15,6 +15,7 @@ npm run smoke --prefix frontend
 ./scripts/manage.sh validate
 podman-compose -f podman-compose.yml build backend data-collector frontend
 ./scripts/manage.sh run-now
+python3 scripts/cloudflare_edge_rules.py render --hostname risk.example.com > /tmp/bitcoin-risk-cloudflare-edge.json
 ```
 
 If the production refresh path is no-key CoinMarketCap public data instead of the optional API key path, run this before
@@ -51,12 +52,24 @@ print(abs(latest['risk'] - levels['meta']['current_risk']))
 PY
 ```
 
+Verify public read cache headers and conditional revalidation:
+
+```bash
+curl -sD - -o /tmp/bitcoin-risk-latest.json http://localhost:3001/api/risk/latest
+ETAG="$(curl -sD - -o /tmp/bitcoin-risk-latest.json http://localhost:3001/api/risk/latest | awk 'BEGIN{IGNORECASE=1} /^etag:/ {print $2}' | tr -d '\r')"
+curl -s -o /dev/null -w "%{http_code}\n" -H "If-None-Match: ${ETAG}" http://localhost:3001/api/risk/latest
+```
+
+The first response should include `Cache-Control`, `ETag`, `X-Cache`, and `X-Cache-Version`. The conditional request
+should print `304`.
+
 Before public launch, also complete and record:
 
 - browser/device QA for the launch matrix;
 - selected BTC data refresh path: automatic public CSV download, manual downloaded CSV intake, or optional CoinMarketCap API refresh;
 - cache policy for public read endpoints;
-- Cloudflare WAF, bot protection, and edge rate limits;
+- Cloudflare WAF, bot protection, cache rules, and edge rate limits rendered and applied with
+  `scripts/cloudflare_edge_rules.py`, plus dashboard bot protection enabled where required by the Cloudflare plan;
 - documentation hygiene pass across roadmap, data pipeline, security, testing, operations, and deployment docs.
 
 ## Production Environment
@@ -74,6 +87,9 @@ Required production changes:
   `COINMARKETCAP_API_KEY` empty intentionally.
 - Keep `DATA_FRESHNESS_MAX_AGE_DAYS=2` unless the product explicitly accepts slower updates.
 - Tune `WAITLIST_RATE_LIMIT_PER_HOUR` for expected traffic.
+- Keep the public cache defaults unless launch testing shows a reason to tune them:
+  `PUBLIC_CACHE_TTL_SECONDS=300`, `PUBLIC_CACHE_MAX_AGE_SECONDS=60`, and
+  `PUBLIC_CACHE_STALE_WHILE_REVALIDATE_SECONDS=300`.
 
 ## Readiness Contract
 
@@ -103,7 +119,7 @@ A non-200 readiness response should block deploy promotion and should alert in p
 
 ## Performance And Caching Gate
 
-Before public traffic, define and verify the cache policy for public read endpoints:
+Before public traffic, verify the implemented cache policy for public read endpoints:
 
 - latest risk;
 - risk history;
@@ -111,8 +127,14 @@ Before public traffic, define and verify the cache policy for public read endpoi
 - daily brief;
 - readiness.
 
-The cache policy must document maximum age, invalidation or refresh behavior after a successful data import, and which
-headers are expected at the public hostname. `POST /api/waitlist` must not be cached.
+These endpoints should return `Cache-Control`, `ETag`, `X-Cache`, and `X-Cache-Version`. Backend cache invalidation is
+versioned from `btc_risk_validation`; after a successful import, the collector rewrites validation and the next backend
+read rebuilds against the new version. `POST /api/waitlist` must return `Cache-Control: no-store` and must not be cached
+by Cloudflare.
+
+At the Cloudflare edge, respect origin cache headers for the public GET API paths and bypass `/api/waitlist`. If a launch
+snapshot must reflect a just-completed import immediately, purge the public hostname or wait for
+`PUBLIC_CACHE_MAX_AGE_SECONDS`.
 
 ## Security Controls
 
@@ -121,8 +143,14 @@ headers are expected at the public hostname. `POST /api/waitlist` must not be ca
 - `POST /api/waitlist` uses input validation, parameterized SQL, and an in-memory per-client rate limit.
 - Waitlist contacts are stored server-side only.
 - The frontend does not persist submitted contacts in browser storage.
-- Cloudflare WAF managed rules, edge rate limits, and bot/spam controls should be active before public traffic.
-- Abuse smoke checks should confirm bursty waitlist/API traffic is blocked or rate-limited without breaking normal use.
+- Cloudflare WAF managed rules, edge rate limits, cache rules, and repo-managed waitlist bot challenge should be active
+  before public traffic. Render/apply them with `scripts/cloudflare_edge_rules.py`.
+- Cloudflare Bot Fight Mode, Super Bot Fight Mode, or equivalent dashboard bot protection should be enabled after the
+  script is applied and smoke-tested.
+- Initial Cloudflare limits should protect `POST /api/waitlist` at 5 requests per minute per IP and `/api/*` at 120
+  requests per minute per IP, adjusted only after reviewing real traffic.
+- Abuse smoke checks should confirm bursty waitlist/API traffic is challenged, blocked, or rate-limited without breaking
+  normal page use.
 
 ## Browser And Device Gate
 
@@ -140,8 +168,11 @@ These are operational tasks outside this repository:
 - Run one live data refresh/import on the production host before public launch, using either the optional
   `COINMARKETCAP_API_KEY` path or the validated downloaded CSV workflow.
 - Configure Cloudflare Tunnel for the public hostname and keep the frontend bound to localhost.
+- Apply `scripts/cloudflare_edge_rules.py` to the Cloudflare zone for WAF, rate-limit, cache, and waitlist bot-challenge
+  rules.
 - Configure scheduled `./scripts/backup.sh` runs and copy backups off the server.
 - Put TLS, request logging, WAF rules, and edge rate limiting in front of the frontend service.
+- Configure Cloudflare cache behavior to respect public read endpoint headers and bypass waitlist submissions.
 - Configure alerts on `/api/readiness` returning non-200 or collector logs containing remote refresh failures.
 
 ## Related Docs

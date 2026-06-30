@@ -30,6 +30,10 @@ Already implemented:
 - Canonical BTC CSV import and CoinMarketCap API delta refresh when an API key is configured.
 - Validated operator-downloaded CoinMarketCap historical CSV import without a paid API key.
 - Server-side waitlist storage with validation and rate limiting.
+- Public read endpoint caching for readiness, latest risk, history, levels, and brief responses, with validation-versioned
+  refresh after successful imports.
+- No-store waitlist responses, backend request logging, and repo-managed Cloudflare WAF, waitlist bot-challenge,
+  cache-rule, and edge rate-limit settings for the production pilot.
 - Containerized local stack and Ubuntu plus Cloudflare Tunnel deployment docs.
 - Production readiness, operations, security, testing, architecture, and data-pipeline documentation.
 
@@ -38,9 +42,9 @@ Known product gaps from the alignment review and production planning:
 - public freshness and validation state are not visible on the page;
 - methodology version and no-advice disclaimer are not visible on the page;
 - methodology docs are not exposed through public product navigation;
-- the risk ladder does not explicitly call out the nearest state-change prices.
-- there is no explicit API caching and invalidation strategy for public risk, history, levels, brief, or readiness data;
-- bot, spam, and attack protection is not yet validated beyond the backend waitlist rate limiter and planned Cloudflare controls;
+- the risk ladder does not explicitly call out the nearest state-change prices;
+- public Cloudflare WAF, bot protection, cache, and rate-limit settings still need to be applied and verified on the
+  production hostname before launch;
 - browser/device QA is not yet broad enough to prove the interface behaves correctly across the launch target matrix;
 - design polish and documentation cleanup remain before public pilot launch.
 

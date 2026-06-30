@@ -22,6 +22,24 @@ Errors use FastAPI's default JSON shape:
 { "detail": "..." }
 ```
 
+## Public Read Caching
+
+The public read endpoints `/api/readiness`, `/api/risk/latest`, `/api/risk/history`, `/api/risk/levels`, and
+`/api/brief/latest` use the backend public endpoint cache.
+
+Successful cached responses include:
+
+| Header | Meaning |
+| --- | --- |
+| `Cache-Control` | Defaults to `public, max-age=60, stale-while-revalidate=300`; tune with `PUBLIC_CACHE_MAX_AGE_SECONDS` and `PUBLIC_CACHE_STALE_WHILE_REVALIDATE_SECONDS`. |
+| `ETag` | Strong validator for conditional browser and edge revalidation. |
+| `X-Cache` | `MISS` when the backend rebuilt the payload, `HIT` when the in-process cache served it. |
+| `X-Cache-Version` | Validation marker derived from the latest `btc_risk_validation` row. It changes after successful imports. |
+
+Clients may send `If-None-Match` with the last `ETag`; unchanged responses return HTTP 304. The backend cache TTL is
+controlled by `PUBLIC_CACHE_TTL_SECONDS` and defaults to 300 seconds. The cache key includes the full request path and
+query string, so filtered history requests are cached separately.
+
 ## GET /api/health
 
 Basic process health check.
@@ -172,6 +190,9 @@ Response shape:
 ## POST /api/waitlist
 
 Stores or updates a waitlist lead.
+
+`POST /api/waitlist` is never cacheable. Responses include `Cache-Control: no-store` and `Pragma: no-cache`, including
+validation and rate-limit responses.
 
 Request:
 

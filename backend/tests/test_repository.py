@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 
 sys.modules.setdefault("asyncpg", types.SimpleNamespace(Record=dict, Pool=object))
 
-from app.repository import fetch_ohlcv_history
+from app.repository import fetch_ohlcv_history, fetch_public_data_version
 
 
 class FakePool:
@@ -33,6 +33,16 @@ class FakePool:
         ]
 
 
+class FakeVersionPool:
+    def __init__(self, row) -> None:
+        self.row = row
+        self.query = ""
+
+    async def fetchrow(self, query: str, *params):
+        self.query = query
+        return self.row
+
+
 class OhlcvHistoryRepositoryTest(unittest.IsolatedAsyncioTestCase):
     async def test_fetch_ohlcv_history_defaults_to_full_history(self) -> None:
         pool = FakePool()
@@ -42,6 +52,33 @@ class OhlcvHistoryRepositoryTest(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(len(rows), 1)
         self.assertNotIn("LIMIT", pool.query.upper())
         self.assertEqual(pool.params, ())
+
+
+class PublicDataVersionRepositoryTest(unittest.IsolatedAsyncioTestCase):
+    async def test_public_data_version_uses_latest_validation_marker(self) -> None:
+        pool = FakeVersionPool(
+            {
+                "computed_at": datetime(2026, 6, 26, 1, 2, 3, tzinfo=timezone.utc),
+                "covered_end": datetime(2026, 6, 26, tzinfo=timezone.utc),
+                "row_count": 5827,
+                "risk_range_ok": True,
+            }
+        )
+
+        version = await fetch_public_data_version(pool)
+
+        self.assertEqual(
+            version,
+            "validation:2026-06-26T01:02:03+00:00:2026-06-26T00:00:00+00:00:5827:true",
+        )
+        self.assertIn("btc_risk_validation", pool.query)
+
+    async def test_public_data_version_is_empty_without_validation(self) -> None:
+        pool = FakeVersionPool(None)
+
+        version = await fetch_public_data_version(pool)
+
+        self.assertEqual(version, "validation:empty")
 
 
 if __name__ == "__main__":

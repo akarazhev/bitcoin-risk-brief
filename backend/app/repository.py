@@ -146,6 +146,24 @@ async def fetch_latest_validation(pool: asyncpg.Pool) -> dict[str, Any] | None:
     }
 
 
+async def fetch_public_data_version(pool: asyncpg.Pool) -> str:
+    row = await pool.fetchrow(
+        """
+        SELECT computed_at, covered_end, row_count, risk_range_ok
+        FROM btc_risk_validation
+        WHERE validation_key = 'latest'
+        LIMIT 1
+        """
+    )
+    if not row:
+        return "validation:empty"
+    risk_range_ok = "true" if bool(row["risk_range_ok"]) else "false"
+    return (
+        f"validation:{row['computed_at'].isoformat()}:"
+        f"{row['covered_end'].isoformat()}:{int(row['row_count'])}:{risk_range_ok}"
+    )
+
+
 async def fetch_latest_brief(pool: asyncpg.Pool) -> dict[str, Any] | None:
     row = await pool.fetchrow(
         """
@@ -204,4 +222,3 @@ async def upsert_waitlist_lead(
         "status": row["status"],
         "created": bool(row["created"]),
     }
-
