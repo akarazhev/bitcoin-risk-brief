@@ -1,5 +1,9 @@
 # Full Bitcoin Risk Source Parity Implementation Plan
 
+> Status: superseded. Last reviewed 2026-06-30. This CoinGecko-oriented plan is not a current implementation guide.
+> Current data-source behavior is the canonical CoinMarketCap CSV source with public/manual CSV intake and optional CMC
+> API delta refresh.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** add early BTC CSV bootstrap, source stitch validation, and merged backfill to Bitcoin Risk Brief.

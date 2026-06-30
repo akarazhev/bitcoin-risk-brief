@@ -1,5 +1,8 @@
 # Database Waitlist Design
 
+> Status: completed. Last reviewed 2026-06-30. Waitlist storage, validation, frontend submission, and no-store API
+> behavior are implemented.
+
 ## Goal
 
 Persist waitlist leads in PostgreSQL/TimescaleDB so Bitcoin Risk Brief can measure real demand without implementing delivery or notification infrastructure yet.

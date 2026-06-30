@@ -1,5 +1,8 @@
 # USB Server Kit Implementation Plan
 
+> Status: completed in repository, operator copy pending. Last reviewed 2026-06-30. Templates and tests exist under
+> `server-kit/`; physical USB staging under `/Volumes/USB/bitcoin-risk-brief-server-kit/` is an operator action.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Build a complete USB server setup and deployment kit for `bitcoin-risk-brief`.

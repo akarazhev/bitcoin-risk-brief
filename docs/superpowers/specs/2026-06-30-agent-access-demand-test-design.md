@@ -1,5 +1,8 @@
 # Agent Access Demand Test Design
 
+> Status: future-facing. Last reviewed 2026-06-30. This remains a Phase 9 post-launch experiment and does not block the
+> production-pilot gate.
+
 ## Goal
 
 Test whether AI agents are a useful distribution and integration channel for Bitcoin Risk Brief after the first public

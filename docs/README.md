@@ -4,7 +4,7 @@ This directory documents the current Bitcoin Risk Brief mini-product in English.
 
 ## Core Documents
 
-- [Product Spec and Alignment Review](01-bitcoin-risk-brief.md): original validation-product spec plus current implementation gaps against the MVP reliability requirements.
+- [Product Spec and Alignment Review](01-bitcoin-risk-brief.md): original validation-product spec plus current implementation alignment and remaining production-pilot operations.
 - [Architecture](architecture.md): service layout, runtime flow, repository structure, and database responsibilities.
 - [Data Pipeline](data-pipeline.md): canonical CSV source, automatic public CoinMarketCap download, manual downloaded CSV intake, optional CoinMarketCap API refresh, validation, import, and failure behavior.
 - [Risk Methodology](risk-methodology.md): `crypto-scout-canonical-v1`, features, weights, risk states, and risk levels.
@@ -19,8 +19,8 @@ This directory documents the current Bitcoin Risk Brief mini-product in English.
 - [Frontend QA](frontend-qa.md): desktop/mobile browser smoke matrix, chart rendering checks, visual QA notes, and frontend bundle budget.
 - [Testing and Quality](testing-and-quality.md): test commands, coverage areas, browser/device QA, documentation hygiene, smoke checks, and CI workflow.
 
-## Planning Docs
+## Superpowers Archive
 
-The `docs/superpowers/` directory contains active design specs plus historical implementation specs and plans. Those
-files are useful for audit trail and context. The documents listed above describe current runtime behavior and, where
-explicitly marked, planned production-pilot or post-launch work.
+The `docs/superpowers/` directory contains design specs and implementation plans created during agent-assisted work.
+Use [Superpowers Docs Index](superpowers/README.md) to see which files are completed, superseded, or still future-facing.
+The core documents listed above remain the source of truth for current runtime and operational behavior.

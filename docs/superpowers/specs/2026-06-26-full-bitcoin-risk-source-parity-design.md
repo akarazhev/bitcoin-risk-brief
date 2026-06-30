@@ -1,5 +1,9 @@
 # Full Bitcoin Risk Source Parity Design
 
+> Status: superseded. Last reviewed 2026-06-30. This was an intermediate CoinGecko/source-stitch design. Current
+> implementation uses `collector/btc-csv/btc_usd_daily.csv` as the canonical source, public/manual CoinMarketCap CSV
+> intake, and optional CoinMarketCap API delta refresh. Use `docs/data-pipeline.md` for current behavior.
+
 **Goal:** give Bitcoin Risk Brief the same source-bootstrap discipline as `crypto-scout-analytics`: early local BTC CSV history, source stitch validation, and canonical risk calculation over the merged dataset.
 
 ## Scope

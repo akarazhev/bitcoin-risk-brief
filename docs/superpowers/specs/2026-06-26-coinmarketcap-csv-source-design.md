@@ -1,5 +1,8 @@
 # CoinMarketCap CSV Source Design
 
+> Status: completed. Last reviewed 2026-06-30. The CSV-first source strategy is implemented and extended with automatic
+> public CoinMarketCap CSV download and manual staged CSV import.
+
 **Goal:** make `collector/btc-csv/btc_usd_daily.csv` the canonical Bitcoin OHLCV source and use the official CoinMarketCap API only for daily delta updates.
 
 ## Source Strategy

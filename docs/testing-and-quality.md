@@ -60,9 +60,12 @@ Backend tests cover:
 - canonical CSV source loading and risk dataset construction;
 - repository full-history behavior;
 - readiness payload rules;
+- public read cache headers, ETags, and no-store waitlist headers;
 - security headers;
 - waitlist validation and upsert behavior;
-- fixed-window rate limiter behavior.
+- fixed-window rate limiter behavior;
+- Cloudflare edge-rule rendering, merge behavior, and apply flow;
+- fully qualified container image references in Dockerfiles and compose files.
 
 Collector tests cover:
 
@@ -76,14 +79,20 @@ Collector tests cover:
 - source preservation in database records;
 - OHLCV merge helper behavior.
 
+Server-kit tests cover:
+
+- rootless systemd service script safety checks;
+- debug script evidence collection and secret masking.
+
 Frontend tests cover:
 
 - app shell rendering;
 - waitlist submission;
-- no browser persistent storage for waitlist contacts.
+- no browser persistent storage for waitlist contacts;
 - readiness/freshness rendering, including degraded copy;
 - API-unavailable copy for failed risk data loads;
 - explicit empty chart states for missing history or levels rows;
+- methodology/disclaimer copy and nearest threshold callouts;
 - compact chart options, resize behavior, and accessible threshold labels.
 
 Frontend browser smoke checks cover:
@@ -115,6 +124,12 @@ Required status checks:
 - `frontend-smoke`: installs frontend dependencies, installs Playwright Chromium, Firefox, and WebKit, then runs
   `npm run smoke --prefix frontend`.
 - `compose-validation`: runs `docker compose -f podman-compose.yml config >/dev/null`.
+
+`server-kit/tests` is not part of the current CI workflow. Run it locally after changing `server-kit/` scripts:
+
+```bash
+python3 -m unittest discover -s server-kit/tests -v
+```
 
 Branch protection expectations for `main`:
 

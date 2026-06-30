@@ -1,5 +1,8 @@
 # Public CoinMarketCap Download Automation Plan
 
+> Status: completed. Last reviewed 2026-06-30. Implemented by `collector/collector/public_cmc_download.py`,
+> `collector.main --download-cmc-csv`, `./scripts/manage.sh download-cmc-csv [expected-end-date]`, and collector tests.
+
 **Goal:** add an operator command that automatically fetches Bitcoin historical rows from CoinMarketCap's public historical-data JSON endpoint, stages a CSV, and reuses the existing validated CSV import path.
 
 ## Scope

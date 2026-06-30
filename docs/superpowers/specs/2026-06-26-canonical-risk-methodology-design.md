@@ -1,5 +1,8 @@
 # Canonical Risk Methodology Design
 
+> Status: completed. Last reviewed 2026-06-30. The methodology and risk-level solver are implemented, but the
+> CoinGecko data-flow notes from the original design are superseded by the canonical CoinMarketCap CSV source.
+
 **Goal:** align Bitcoin Risk Brief risk math and price-risk levels with the canonical Bitcoin methodology used by `crypto-scout-analytics`.
 
 ## Scope
@@ -10,11 +13,13 @@ This pass makes the mini-product methodologically consistent at the calculation 
 - Use robust rolling z-scores with a 1460-day window, 365-day minimum, and clipping to `[-6, 6]`.
 - Use canonical weights: `0.60 trend + 0.25 volatility + 0.15 turnover` when turnover is enabled, and `0.70 trend + 0.30 volatility` when turnover is disabled.
 - Build risk levels by solving hypothetical prices through the same risk function, not by applying a heuristic multiplier to the current price.
-- Recompute risk over the accumulated persisted OHLCV history plus the latest CoinGecko refresh rows, so daily refreshes do not discard older context after a backfill.
+- Recompute risk over the full canonical CSV-backed OHLCV history on each import, so daily refreshes do not discard older
+  context after a backfill.
 
 ## Explicit Non-Goals
 
-Full data-source parity is not included in this pass. The mini-product will still use CoinGecko-derived OHLCV rows and persisted local history. It will not yet copy the early 2010-2013 BTC CSV history, full source stitch validation, or manual audit workflow from `crypto-scout-analytics`.
+Full data-source parity was addressed by replacing runtime CoinGecko collection with the canonical CoinMarketCap-style
+BTC CSV. Current runtime behavior is documented in `docs/data-pipeline.md`.
 
 ## API Compatibility
 
@@ -22,13 +27,14 @@ Full data-source parity is not included in this pass. The mini-product will stil
 
 ## Data Flow
 
-1. Collector fetches current CoinGecko rows.
-2. Collector writes refreshed OHLCV rows.
-3. Collector loads all persisted OHLCV rows.
-4. Collector calculates risk over the full merged history.
+1. Collector loads `collector/btc-csv/btc_usd_daily.csv`.
+2. Optional refresh paths merge missing completed UTC days into the CSV only after contiguous-range validation.
+3. Collector imports the full CSV into TimescaleDB.
+4. Collector calculates risk over the full canonical history.
 5. Collector writes risk rows, validation metadata, and the latest brief snapshot.
 6. Backend level endpoint loads source OHLCV rows and calculates risk levels through the canonical solver.
 
 ## Risks
 
-With only 365 days of CoinGecko data, early points remain neutral because robust z-scores require 365 observations. The all-time backfill path is still the correct way to populate enough context for useful canonical outputs.
+The canonical CSV must remain contiguous and long enough for robust z-score history. If the CSV is truncated or stale,
+readiness and validation should fail before the public page treats the signal as current.

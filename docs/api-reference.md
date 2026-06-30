@@ -27,7 +27,7 @@ Errors use FastAPI's default JSON shape:
 The public read endpoints `/api/readiness`, `/api/risk/latest`, `/api/risk/history`, `/api/risk/levels`, and
 `/api/brief/latest` use the backend public endpoint cache.
 
-Successful cached responses include:
+Cached responses include:
 
 | Header | Meaning |
 | --- | --- |
@@ -74,7 +74,8 @@ Response shape:
     "data_age_days": 1,
     "max_age_days": 2,
     "source": "coinmarketcap_csv",
-    "row_count": 5827
+    "row_count": 5827,
+    "methodology_version": "crypto-scout-canonical-v1"
   }
 }
 ```

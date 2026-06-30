@@ -1,5 +1,8 @@
 # USB Server Kit Design
 
+> Status: completed in repository, operator copy pending. Last reviewed 2026-06-30. Scripts and README live under
+> `server-kit/`; copying to a physical USB volume remains an operator step.
+
 ## Goal
 
 Create a complete USB handoff kit for configuring a new MSI Cubi Ubuntu server and deploying `bitcoin-risk-brief` without SSH or port forwarding.

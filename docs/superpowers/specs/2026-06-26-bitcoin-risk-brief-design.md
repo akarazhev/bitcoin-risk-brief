@@ -1,5 +1,8 @@
 # Bitcoin Risk Brief Design
 
+> Status: completed. Last reviewed 2026-06-30. The baseline product is implemented; production-pilot operations are
+> tracked in `docs/production-readiness.md` and `docs/production-roadmap.md`.
+
 ## Goal
 
 Build a standalone EN/RU mini-product that collects BTC market history, calculates a daily Bitcoin Risk score, stores it in TimescaleDB, and presents the latest risk state, history, levels, and brief in a focused frontend.

@@ -1,5 +1,8 @@
 # Bitcoin Risk Brief Implementation Plan
 
+> Status: completed, historical. Last reviewed 2026-06-30. Unchecked boxes in this early plan are stale tracking, not
+> current work. Runtime CoinGecko collection was later replaced by the canonical CoinMarketCap CSV source.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Build a standalone Bitcoin Risk Brief mini-product with collector, backend, frontend, TimescaleDB, and podman-compose orchestration.

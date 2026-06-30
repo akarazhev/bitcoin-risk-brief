@@ -1,12 +1,15 @@
 # Canonical Risk Methodology Implementation Plan
 
+> Status: completed, historical. Last reviewed 2026-06-30. Unchecked boxes are stale tracking; canonical risk math,
+> risk-level solving, source OHLCV reads, and validation metadata are implemented. Current CI targets Python 3.13.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** replace the mini-product risk calculation and risk-level heuristic with the canonical `crypto-scout-analytics` methodology while preserving frontend API compatibility.
 
 **Architecture:** Keep the mini-product small, but port the canonical calculation units into `backend/app/risk.py` and `backend/app/risk_levels.py`. The collector writes refreshed OHLCV first, then recalculates over persisted history. The backend level endpoint reads OHLCV source rows and returns solved risk levels with compatibility mapping to `price_usd`.
 
-**Tech Stack:** Python 3.12, FastAPI, asyncpg, TimescaleDB/PostgreSQL, unittest.
+**Tech Stack:** Python 3.13, FastAPI, asyncpg, TimescaleDB/PostgreSQL, unittest.
 
 ---
 

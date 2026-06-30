@@ -1,5 +1,8 @@
 # CoinMarketCap CSV Source Implementation Plan
 
+> Status: completed. Last reviewed 2026-06-30. This plan reflects the implemented CMC CSV-first collector and was later
+> extended by the public/manual CSV intake paths documented in `docs/data-pipeline.md`.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** replace CoinGecko runtime collection with a CoinMarketCap CSV-first collector that updates `btc_usd_daily.csv` daily and imports it into TimescaleDB.

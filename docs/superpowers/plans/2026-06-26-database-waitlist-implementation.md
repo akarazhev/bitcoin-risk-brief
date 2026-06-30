@@ -1,5 +1,8 @@
 # Database Waitlist Implementation Plan
 
+> Status: completed, historical. Last reviewed 2026-06-30. Unchecked boxes are stale tracking; backend validation,
+> PostgreSQL storage, frontend submission, no browser persistence, and tests are implemented.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Persist frontend waitlist submissions in PostgreSQL/TimescaleDB.
