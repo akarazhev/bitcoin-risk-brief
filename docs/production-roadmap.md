@@ -37,20 +37,36 @@ Already implemented:
 - Containerized local stack and Ubuntu plus Cloudflare Tunnel deployment docs.
 - Production readiness, operations, security, testing, architecture, and data-pipeline documentation.
 
-Known product gaps from the alignment review and production planning:
+## Current Roadmap Status
 
-- public freshness and validation state are not visible on the page;
-- methodology version and no-advice disclaimer are not visible on the page;
-- methodology docs are not exposed through public product navigation;
-- the risk ladder does not explicitly call out the nearest state-change prices;
+Verified on 2026-06-30 from repository files and recent commit history.
+
+| Phase | Status | Repository evidence |
+| --- | --- | --- |
+| Phase 1: Public Trust Layer | Complete | `ca85ad4`, `frontend/src/App.tsx`, `frontend/src/App.test.tsx` |
+| Phase 2: Data Source Resilience And Documentation Hygiene | Complete | `9fe25cd`, `7f7b8c4`, `collector/collector/main.py`, `collector/tests/test_downloaded_csv_import.py`, `collector/tests/test_public_cmc_download.py` |
+| Phase 3: CI And Quality Gates | Complete | `1b162a5`, `.github/workflows/ci.yml`, `docs/testing-and-quality.md` |
+| Phase 4: Frontend Production Quality | Complete | `22793fb`, `frontend/e2e/frontend-quality.spec.ts`, `frontend/src/Chart.tsx`, `docs/frontend-qa.md` |
+| Phase 5: Performance, Caching, And Abuse Protection | Complete in repository | `3c66df9`, `backend/app/public_cache.py`, `backend/app/main.py`, `scripts/cloudflare_edge_rules.py`, `backend/tests/test_cloudflare_edge_rules.py` |
+| Phase 6: Production Environment And Deployment | Pending | Requires production host, `.env`, Cloudflare Tunnel, and public endpoint verification |
+| Phase 7: Backups, Restore, And Monitoring | Pending | Requires production backup schedule, off-server copy, restore drill, and alerts |
+| Phase 8: Launch Checklist And First Traffic Test | Pending | Requires public-host launch checks and first traffic test |
+| Phase 9: Post-Launch Learning Loop | Pending | Starts after launch traffic creates usage evidence |
+
+Remaining production-pilot gaps after Phase 1-5:
+
+- production `.env`, host deployment, Cloudflare Tunnel, and public hostname checks still need to be completed;
 - public Cloudflare WAF, bot protection, cache, and rate-limit settings still need to be applied and verified on the
   production hostname before launch;
-- browser/device QA is not yet broad enough to prove the interface behaves correctly across the launch target matrix;
-- design polish and documentation cleanup remain before public pilot launch.
+- daily backups, off-server copy, restore drill, and monitoring alerts still need to be configured and verified;
+- a launch snapshot, waitlist test, browser/device check on the public hostname, and first traffic test still need to run;
+- post-launch learning cannot start until real usage and waitlist evidence exist.
 
 ## Roadmap Phases
 
 ### Phase 1: Public Trust Layer
+
+Status: Complete. Verified by commit `ca85ad4`, `frontend/src/App.tsx`, and `frontend/src/App.test.tsx`.
 
 Goal: make the public page honest enough for first external users.
 
@@ -71,6 +87,9 @@ Acceptance criteria:
 - Tests cover readiness rendering, degraded state copy, methodology/disclaimer copy, and next-band callouts.
 
 ### Phase 2: Data Source Resilience And Documentation Hygiene
+
+Status: Complete. Verified by commits `9fe25cd` and `7f7b8c4`, collector CLI support in `collector/collector/main.py`,
+and CSV intake tests in `collector/tests/test_downloaded_csv_import.py` and `collector/tests/test_public_cmc_download.py`.
 
 Goal: keep BTC data fresh without depending on a paid CoinMarketCap API account and keep documentation aligned with the
 actual system.
@@ -96,6 +115,8 @@ Acceptance criteria:
 
 ### Phase 3: CI And Quality Gates
 
+Status: Complete. Verified by commit `1b162a5`, `.github/workflows/ci.yml`, and `docs/testing-and-quality.md`.
+
 Goal: protect `main` and make future changes cheap to verify.
 
 Deliverables:
@@ -112,6 +133,9 @@ Acceptance criteria:
 - The CI workflow is documented in `docs/testing-and-quality.md`.
 
 ### Phase 4: Frontend Production Quality
+
+Status: Complete. Verified by commit `22793fb`, `frontend/e2e/frontend-quality.spec.ts`, `frontend/src/Chart.tsx`, and
+`docs/frontend-qa.md`. Repeat a short manual pass on the public hostname during Phase 8.
 
 Goal: reduce avoidable frontend and product-experience risk before launch.
 
@@ -137,6 +161,10 @@ Acceptance criteria:
 
 ### Phase 5: Performance, Caching, And Abuse Protection
 
+Status: Complete in repository. Verified by commit `3c66df9`, `backend/app/public_cache.py`, `backend/app/main.py`,
+`scripts/cloudflare_edge_rules.py`, and `backend/tests/test_cloudflare_edge_rules.py`. Applying and smoke-testing the
+Cloudflare settings on the public hostname remains part of Phase 6 and Phase 8.
+
 Goal: make the public page fast enough for first traffic and resistant to simple bot or abuse traffic.
 
 Deliverables:
@@ -161,6 +189,8 @@ Acceptance criteria:
 
 ### Phase 6: Production Environment And Deployment
 
+Status: Pending.
+
 Goal: run the full stack on the intended production-pilot host.
 
 Deliverables:
@@ -184,6 +214,8 @@ Acceptance criteria:
 
 ### Phase 7: Backups, Restore, And Monitoring
 
+Status: Pending.
+
 Goal: make production operations recoverable.
 
 Deliverables:
@@ -205,6 +237,8 @@ Acceptance criteria:
 - Operators know how to inspect collector, backend, frontend, and database logs.
 
 ### Phase 8: Launch Checklist And First Traffic Test
+
+Status: Pending.
 
 Goal: launch deliberately and measure product demand.
 
@@ -228,6 +262,8 @@ Acceptance criteria:
 - The product can measure waitlist conversion and repeat visits.
 
 ### Phase 9: Post-Launch Learning Loop
+
+Status: Pending.
 
 Goal: decide whether the single BTC risk signal is worth extending.
 
