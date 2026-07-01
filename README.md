@@ -4,14 +4,20 @@ Bitcoin Risk Brief is a standalone EN/RU mini-product for validating demand arou
 
 ## Current Status
 
-The product is ready for a production pilot after environment-specific deployment work is completed. The local stack has been verified with containerized `run-now`, readiness checks, security headers, full Python tests, frontend tests, frontend build, compose validation, and API smoke checks.
+The product now has a live production-pilot hostname at `https://bitcoinriskbrief.minihub.app`. As of 2026-07-01,
+public GET smoke checks through Cloudflare pass for health, readiness, latest risk, and conditional `ETag`
+revalidation. The local stack has also been verified with containerized `run-now`, readiness checks, security headers,
+full Python tests, frontend tests, frontend build, compose validation, and API smoke checks.
 
-External production tasks still required before public launch:
+External production tasks still required before treating the pilot as publicly launched:
 
-- Run one live data refresh using the automatic public CoinMarketCap download, manual downloaded CSV workflow, or optional API key path.
-- Configure Cloudflare Tunnel, TLS edge policy, request logs, and edge rate limiting.
-- Configure scheduled backups for TimescaleDB data and the canonical BTC CSV.
+- Confirm the production host runbook, `.env`, and data-refresh workflow are the documented source of truth.
+- Configure scheduled backups for TimescaleDB data and the canonical BTC CSV, copy them off-server, and run a restore drill.
 - Configure alerts on `/api/readiness` and collector failures.
+- Complete a short browser/device pass on the public hostname.
+- Run a deliberate waitlist smoke test and first traffic test.
+- Decide whether the current Cloudflare Free-plan edge subset is enough for launch or whether to upgrade for managed WAF
+  and broader API burst-rate-limit entitlement.
 
 ## Product Surface
 

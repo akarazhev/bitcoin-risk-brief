@@ -39,7 +39,7 @@ Already implemented:
 
 ## Current Roadmap Status
 
-Verified on 2026-06-30 from repository files and recent commit history.
+Verified on 2026-07-01 from repository files, recent commit history, and public hostname smoke checks.
 
 | Phase | Status | Repository evidence |
 | --- | --- | --- |
@@ -47,17 +47,29 @@ Verified on 2026-06-30 from repository files and recent commit history.
 | Phase 2: Data Source Resilience And Documentation Hygiene | Complete | `9fe25cd`, `7f7b8c4`, `collector/collector/main.py`, `collector/tests/test_downloaded_csv_import.py`, `collector/tests/test_public_cmc_download.py` |
 | Phase 3: CI And Quality Gates | Complete | `1b162a5`, `.github/workflows/ci.yml`, `docs/testing-and-quality.md` |
 | Phase 4: Frontend Production Quality | Complete | `22793fb`, `frontend/e2e/frontend-quality.spec.ts`, `frontend/src/Chart.tsx`, `docs/frontend-qa.md` |
-| Phase 5: Performance, Caching, And Abuse Protection | Complete in repository | `3c66df9`, `backend/app/public_cache.py`, `backend/app/main.py`, `scripts/cloudflare_edge_rules.py`, `backend/tests/test_cloudflare_edge_rules.py` |
-| Phase 6: Production Environment And Deployment | Pending | Requires production host, `.env`, Cloudflare Tunnel, and public endpoint verification |
+| Phase 5: Performance, Caching, And Abuse Protection | Complete in repository; Free-plan edge subset applied | `3c66df9`, `5bb179d`, `backend/app/public_cache.py`, `backend/app/main.py`, `scripts/cloudflare_edge_rules.py`, `backend/tests/test_cloudflare_edge_rules.py` |
+| Phase 6: Production Environment And Deployment | In progress | `bitcoinriskbrief.minihub.app` public `/api/health`, `/api/readiness`, `/api/risk/latest`, and conditional `ETag` checks passed on 2026-07-01 |
 | Phase 7: Backups, Restore, And Monitoring | Pending | Requires production backup schedule, off-server copy, restore drill, and alerts |
-| Phase 8: Launch Checklist And First Traffic Test | Pending | Requires public-host launch checks and first traffic test |
+| Phase 8: Launch Checklist And First Traffic Test | Pending; public API smoke partially complete | Requires waitlist smoke, browser/device pass on the public hostname, launch snapshot, and first traffic test |
 | Phase 9: Post-Launch Learning Loop | Pending | Starts after launch traffic creates usage evidence, including optional agent-access demand testing |
 
-Remaining production-pilot gaps after Phase 1-5:
+Current production-pilot progress after Phase 1-5:
 
-- production `.env`, host deployment, Cloudflare Tunnel, and public hostname checks still need to be completed;
-- public Cloudflare WAF, bot protection, cache, and rate-limit settings still need to be applied and verified on the
-  production hostname before launch;
+- public hostname `bitcoinriskbrief.minihub.app` is connected through Cloudflare and returns 200 for `/api/health`,
+  `/api/readiness`, and `/api/risk/latest`;
+- public read caching is observable through `Cache-Control`, validation-versioned `ETag`, `X-Cache: HIT`, and a 304
+  conditional response for `/api/risk/latest`;
+- Cloudflare Rulesets API apply succeeded for the custom waitlist bot challenge, one waitlist rate-limit rule, waitlist
+  cache bypass, and public-read origin-cache rules;
+- the active Cloudflare plan did not entitle the zone to execute the managed WAF ruleset, more than one rate-limit rule,
+  a rate-limit period other than 10 seconds, or a mitigation timeout other than 10 seconds, so the current public edge
+  config intentionally uses the Free-plan-compatible subset.
+
+Remaining production-pilot gaps:
+
+- confirm the production host runbook, `.env`, service path, and data-refresh workflow are the documented source of truth;
+- decide whether to accept the current Cloudflare Free-plan subset for first traffic or upgrade/configure additional WAF,
+  bot protection, and broader API burst-rate-limit controls;
 - daily backups, off-server copy, restore drill, and monitoring alerts still need to be configured and verified;
 - a launch snapshot, waitlist test, browser/device check on the public hostname, and first traffic test still need to run;
 - post-launch learning cannot start until real usage and waitlist evidence exist.
@@ -161,9 +173,15 @@ Acceptance criteria:
 
 ### Phase 5: Performance, Caching, And Abuse Protection
 
-Status: Complete in repository. Verified by commit `3c66df9`, `backend/app/public_cache.py`, `backend/app/main.py`,
-`scripts/cloudflare_edge_rules.py`, and `backend/tests/test_cloudflare_edge_rules.py`. Applying and smoke-testing the
-Cloudflare settings on the public hostname remains part of Phase 6 and Phase 8.
+Status: Complete in repository and partially applied at the public edge. Verified by commits `3c66df9` and `5bb179d`,
+`backend/app/public_cache.py`, `backend/app/main.py`, `scripts/cloudflare_edge_rules.py`, and
+`backend/tests/test_cloudflare_edge_rules.py`. On 2026-07-01, `bitcoinriskbrief.minihub.app` returned 200 for public
+GET smoke checks and 304 for conditional `/api/risk/latest` revalidation with `X-Cache: HIT`.
+
+The active Cloudflare plan is using the Free-plan-compatible subset: custom waitlist bot challenge, one waitlist
+rate-limit rule with `period=10` and `mitigation_timeout=10`, waitlist cache bypass, and origin-header-respecting cache
+rules for public read endpoints. Managed WAF execution and the broader `/api/*` burst limit remain launch-risk items
+unless the Cloudflare plan is upgraded or the limitation is explicitly accepted for first traffic.
 
 Goal: make the public page fast enough for first traffic and resistant to simple bot or abuse traffic.
 
@@ -189,7 +207,8 @@ Acceptance criteria:
 
 ### Phase 6: Production Environment And Deployment
 
-Status: Pending.
+Status: In progress. Public hostname smoke checks passed on 2026-07-01 for `bitcoinriskbrief.minihub.app`. The remaining
+work is to confirm the production host runbook, environment, service path, and refresh workflow as documented operations.
 
 Goal: run the full stack on the intended production-pilot host.
 
@@ -208,8 +227,10 @@ Acceptance criteria:
 
 - `curl -fsS http://127.0.0.1:3001/api/health` succeeds.
 - `curl -fsS http://127.0.0.1:3001/api/readiness` succeeds.
-- `curl -fsS https://risk.example.com/api/health` succeeds for the configured public hostname.
-- `curl -fsS https://risk.example.com/api/readiness` succeeds for the configured public hostname.
+- `curl -fsS https://risk.example.com/api/health` succeeds for the configured public hostname. Current pilot hostname:
+  `https://bitcoinriskbrief.minihub.app/api/health`.
+- `curl -fsS https://risk.example.com/api/readiness` succeeds for the configured public hostname. Current pilot hostname:
+  `https://bitcoinriskbrief.minihub.app/api/readiness`.
 - The public frontend loads, API calls use the intended HTTPS origin, and the selected data-refresh path is documented.
 
 ### Phase 7: Backups, Restore, And Monitoring
@@ -238,7 +259,7 @@ Acceptance criteria:
 
 ### Phase 8: Launch Checklist And First Traffic Test
 
-Status: Pending.
+Status: Pending; public API smoke checks are partially complete.
 
 Goal: launch deliberately and measure product demand.
 
@@ -252,6 +273,18 @@ Deliverables:
 - Capture the first production snapshot: commit, data date, readiness payload, and public hostname.
 - Confirm caching, bot protection, and edge rate limits are active.
 - Start a small traffic test.
+
+Progress recorded on 2026-07-01:
+
+- `GET https://bitcoinriskbrief.minihub.app/api/health` returned 200 with `{"status":"ok"}`.
+- `GET https://bitcoinriskbrief.minihub.app/api/readiness` returned 200 with `status: ready`, `source:
+  coinmarketcap_csv`, `latest_date: 2026-06-30`, `covered_end: 2026-06-30`, and `row_count: 5832`.
+- `GET https://bitcoinriskbrief.minihub.app/api/risk/latest` returned 200 with `X-Cache: HIT`.
+- Conditional `GET https://bitcoinriskbrief.minihub.app/api/risk/latest` with `If-None-Match` returned 304 with
+  `X-Cache: HIT`.
+
+Still pending for Phase 8: waitlist production smoke, browser/device pass on the public hostname, launch snapshot, and
+first traffic test.
 
 Acceptance criteria:
 

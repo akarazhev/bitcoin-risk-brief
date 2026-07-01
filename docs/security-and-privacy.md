@@ -72,6 +72,19 @@ python3 scripts/cloudflare_edge_rules.py render --hostname risk.example.com
 CLOUDFLARE_API_TOKEN=... python3 scripts/cloudflare_edge_rules.py apply --zone-id "${CLOUDFLARE_ZONE_ID}" --hostname risk.example.com
 ```
 
+For the current `bitcoinriskbrief.minihub.app` Free-plan pilot, the accepted subset skips the managed WAF ruleset and the
+broader `/api/*` burst rule, and uses Cloudflare's allowed 10-second rate-limit window:
+
+```bash
+CLOUDFLARE_API_TOKEN=... python3 scripts/cloudflare_edge_rules.py apply \
+  --zone-id "${CLOUDFLARE_ZONE_ID}" \
+  --hostname bitcoinriskbrief.minihub.app \
+  --skip-managed-waf \
+  --waitlist-rate-limit-only \
+  --rate-limit-period 10 \
+  --rate-limit-mitigation-timeout 10
+```
+
 The helper preserves unrelated Cloudflare rules and replaces only rules with refs starting `bitcoin-risk-brief:`.
 
 ## Bot And Abuse Protection
@@ -81,10 +94,12 @@ waitlist limiter is only a fallback control; it is not enough by itself for publ
 
 Before launch, configure and verify:
 
-- Cloudflare WAF managed rules for common web attacks;
+- Cloudflare WAF managed rules for common web attacks when the active plan is entitled to run them, or a documented
+  launch limitation/upgrade decision when it is not;
 - the repo-managed custom bot challenge for suspicious waitlist submissions plus Cloudflare Bot Fight Mode,
   Super Bot Fight Mode, or the equivalent bot protection available on the active plan;
-- edge rate limits for `POST /api/waitlist` and bursty `/api/*` traffic using the starting thresholds above;
+- edge rate limits for `POST /api/waitlist` and bursty `/api/*` traffic using the starting thresholds above, or the
+  documented Free-plan-compatible waitlist-only subset for first traffic;
 - a cache rule that respects origin `Cache-Control` for public GET endpoints and bypasses `POST /api/waitlist`;
 - backend API access logs that include method, path, status, client key, Cloudflare ray ID, cache status, and duration
   without logging waitlist contact values;

@@ -202,9 +202,22 @@ python3 scripts/cloudflare_edge_rules.py apply \
   --hostname risk.example.com
 ```
 
+For a Cloudflare Free plan that is not entitled to execute the managed WAF ruleset, create more than one rate-limit rule,
+or use 60-second rate-limit windows, apply the current public-pilot subset instead:
+
+```bash
+python3 scripts/cloudflare_edge_rules.py apply \
+  --zone-id "${CLOUDFLARE_ZONE_ID}" \
+  --hostname bitcoinriskbrief.minihub.app \
+  --skip-managed-waf \
+  --waitlist-rate-limit-only \
+  --rate-limit-period 10 \
+  --rate-limit-mitigation-timeout 10
+```
+
 The script preserves unrelated Cloudflare rules and only replaces rules with refs starting `bitcoin-risk-brief:`. After
 applying it, enable Cloudflare Bot Fight Mode, Super Bot Fight Mode, or equivalent dashboard bot protection if the active
-plan supports it.
+plan supports it. Record any accepted plan limitations before first traffic.
 
 Verify the public hostname after applying edge rules:
 

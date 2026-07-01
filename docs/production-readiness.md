@@ -2,6 +2,24 @@
 
 This document defines the current production-pilot gate for Bitcoin Risk Brief.
 
+## Current Public Pilot Snapshot
+
+Recorded on 2026-07-01 for `https://bitcoinriskbrief.minihub.app`:
+
+- Cloudflare Rulesets API apply succeeded for the custom waitlist bot challenge, one waitlist rate-limit rule, waitlist
+  cache bypass, and public-read origin-cache rules.
+- The active Cloudflare plan required the Free-plan-compatible rate-limit settings:
+  `--skip-managed-waf --waitlist-rate-limit-only --rate-limit-period 10 --rate-limit-mitigation-timeout 10`.
+- `GET /api/health` returned 200 with `{"status":"ok"}`.
+- `GET /api/readiness` returned 200 with `status: ready`, `source: coinmarketcap_csv`, `latest_date: 2026-06-30`,
+  `covered_end: 2026-06-30`, and `row_count: 5832`.
+- `GET /api/risk/latest` returned 200 with `X-Cache: HIT`.
+- Conditional `GET /api/risk/latest` with `If-None-Match` returned 304 with `X-Cache: HIT`.
+
+This snapshot confirms the public hostname, readiness path, and public-read cache behavior. It does not replace the
+remaining launch checks: waitlist production smoke, browser/device QA on the public hostname, backup/restore setup,
+alerts, and the first traffic test.
+
 ## Release Gates
 
 Run these before every deploy:
@@ -144,7 +162,9 @@ snapshot must reflect a just-completed import immediately, purge the public host
 - Waitlist contacts are stored server-side only.
 - The frontend does not persist submitted contacts in browser storage.
 - Cloudflare WAF managed rules, edge rate limits, cache rules, and repo-managed waitlist bot challenge should be active
-  before public traffic. Render/apply them with `scripts/cloudflare_edge_rules.py`.
+  before public traffic when the active Cloudflare plan is entitled to run them. Render/apply them with
+  `scripts/cloudflare_edge_rules.py`. If the zone is on a Free plan, use the documented Free-plan-compatible subset and
+  record the accepted limitation before first traffic.
 - Cloudflare Bot Fight Mode, Super Bot Fight Mode, or equivalent dashboard bot protection should be enabled after the
   script is applied and smoke-tested.
 - Initial Cloudflare limits should protect `POST /api/waitlist` at 5 requests per minute per IP and `/api/*` at 120
@@ -163,17 +183,27 @@ minimum automated check; repeat a short manual pass on the production hostname b
 
 ## Remaining External Operations
 
-These are operational tasks outside this repository:
+These are operational tasks outside this repository.
 
-- Run one live data refresh/import on the production host before public launch, using either the optional
-  `COINMARKETCAP_API_KEY` path or the validated downloaded CSV workflow.
-- Configure Cloudflare Tunnel for the public hostname and keep the frontend bound to localhost.
-- Apply `scripts/cloudflare_edge_rules.py` to the Cloudflare zone for WAF, rate-limit, cache, and waitlist bot-challenge
-  rules.
+Completed or partially completed as of 2026-07-01:
+
+- Cloudflare Tunnel/public hostname is serving `https://bitcoinriskbrief.minihub.app`.
+- Public `/api/health`, `/api/readiness`, `/api/risk/latest`, and conditional `/api/risk/latest` checks pass through
+  Cloudflare.
+- Cloudflare edge cache settings and the waitlist-specific rate-limit/custom challenge subset were applied with
+  `scripts/cloudflare_edge_rules.py`.
+
+Still required before treating the pilot as publicly launched:
+
+- Confirm the production host runbook, `.env`, service path, and selected data-refresh workflow.
+- Decide whether to accept the current Cloudflare Free-plan subset for first traffic or upgrade/configure additional WAF,
+  bot protection, and broader API burst-rate-limit controls.
 - Configure scheduled `./scripts/backup.sh` runs and copy backups off the server.
-- Put TLS, request logging, WAF rules, and edge rate limiting in front of the frontend service.
-- Configure Cloudflare cache behavior to respect public read endpoint headers and bypass waitlist submissions.
+- Put request logging, backup health, and operational review in place.
 - Configure alerts on `/api/readiness` returning non-200 or collector logs containing remote refresh failures.
+- Complete a short browser/device QA pass on the public hostname.
+- Submit a deliberate test waitlist lead and verify it is stored server-side without caching the response.
+- Capture the launch snapshot and run the first small traffic test.
 
 ## Related Docs
 

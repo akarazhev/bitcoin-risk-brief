@@ -225,6 +225,20 @@ python3 scripts/cloudflare_edge_rules.py apply \
   --hostname risk.example.com
 ```
 
+For the current `bitcoinriskbrief.minihub.app` Free-plan pilot, Cloudflare did not allow the managed WAF ruleset, more
+than one rate-limit rule, a 60-second rate-limit period, or mitigation timeouts other than 10 seconds. Apply the accepted
+subset with:
+
+```bash
+python3 scripts/cloudflare_edge_rules.py apply \
+  --zone-id "${CLOUDFLARE_ZONE_ID}" \
+  --hostname bitcoinriskbrief.minihub.app \
+  --skip-managed-waf \
+  --waitlist-rate-limit-only \
+  --rate-limit-period 10 \
+  --rate-limit-mitigation-timeout 10
+```
+
 The script preserves unrelated existing rules and replaces only rules whose `ref` starts with `bitcoin-risk-brief:`. It
 manages:
 
@@ -234,6 +248,9 @@ manages:
 - `/api/*` burst limiting at 120 requests per minute per IP, excluding the waitlist rule above;
 - cache bypass for `POST /api/waitlist`;
 - origin-header-respecting cache behavior for the public read endpoints.
+
+When the Free-plan subset flags are used, the managed WAF and `/api/*` burst limiting bullets above are intentionally
+skipped. Record that limitation in the launch snapshot or upgrade the Cloudflare plan before broader traffic.
 
 After the script succeeds, enable Cloudflare Bot Fight Mode, Super Bot Fight Mode, or the equivalent bot protection
 available on the active plan in the Cloudflare dashboard and confirm normal page loads and waitlist submissions still
