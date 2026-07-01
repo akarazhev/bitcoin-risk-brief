@@ -104,9 +104,13 @@ The first paid test should be simple:
 
 - free public latest risk;
 - email or Telegram daily brief for early users;
-- paid beta at `EUR 9-19/month` only if users request alerts or history-based guidance.
+- paid beta at `EUR 9-19/month` only if users request alerts, history-based guidance, or lightweight
+  risk-signal access for one product or AI agent.
 
 Do not introduce multiple tiers for this micro-product.
+
+Commercial redistribution, white-label use, SLA commitments, high-volume API limits, or custom methodology work should not
+be included in the `EUR 9-19/month` test. Those belong to a later integration or licensing offer if demand is proven.
 
 ## Reliability Requirements
 

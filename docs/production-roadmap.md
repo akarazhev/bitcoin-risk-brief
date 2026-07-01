@@ -306,12 +306,16 @@ Deliverables:
 
 - Review waitlist conversion, repeat visits, and direct user questions.
 - Track requests for alerts, daily notifications, and personal plan comparisons.
-- Run an Agent Access Demand Test if the first traffic test creates enough attention to justify a small integration
-  experiment.
+- Run an Agent Access And Risk-Signal Licensing Demand Test if the first traffic test creates enough attention to justify
+  a small integration experiment.
 - Publish a lightweight Agent Access Pack for HTTP-capable agents that uses the existing public endpoints, requires a
   readiness-first flow, and keeps the risk output framed as analytics rather than financial advice.
 - Track `source=agent_access` waitlist leads and direct integration requests for API keys, webhooks, MCP, SDKs, embeds,
   alerts, or commercial reuse.
+- If professionals or agent builders ask to reuse only the BTC risk metric, test a low-friction `EUR 9-19/month`
+  early license before designing enterprise pricing. This test should cover one product or AI agent, clear attribution,
+  current methodology/freshness metadata, and modest usage; it must exclude redistribution, white-label, SLA, high-volume
+  limits, and custom methodology work.
 - Avoid broad feature expansion until demand signals justify it.
 - If demand is positive, design the next validation increment: alerts, daily email/Telegram, paid beta, or paid API
   access for integrations.
@@ -321,6 +325,8 @@ Acceptance criteria:
 - Product decisions are based on usage and waitlist evidence, not feature appetite.
 - Agent access is judged by waitlist leads and integration requests, not raw API traffic alone.
 - The first agent-access experiment does not add new API, auth, billing, SDK, MCP, or SLA scope before demand is proven.
+- The `EUR 9-19/month` risk-signal license is treated as an early paid-intent test, not as a complete commercial API
+  plan or redistribution license.
 - The next scope is a small validation step, not a general crypto dashboard.
 
 ### Phase 10: Risk Methodology Research
@@ -431,6 +437,6 @@ The project is ready for a first public production pilot when:
 - [Ubuntu and Cloudflare Tunnel Deployment](deploy-ubuntu-cloudflare.md)
 - [Testing and Quality](testing-and-quality.md)
 - [Security and Privacy](security-and-privacy.md)
-- [Agent Access Demand Test Design](superpowers/specs/2026-06-30-agent-access-demand-test-design.md)
+- [Agent Access And Risk-Signal Licensing Demand Test Design](superpowers/specs/2026-06-30-agent-access-demand-test-design.md)
 - [Risk Methodology Research Design](superpowers/specs/2026-07-01-risk-methodology-research-design.md)
 - [Distribution Channel Research Design](superpowers/specs/2026-07-01-distribution-channel-research-design.md)
