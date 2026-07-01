@@ -46,6 +46,32 @@ Waitlist contacts are stored in PostgreSQL. The frontend does not store submitte
 
 The product currently has no authentication and no user accounts. Waitlist contacts are operational lead data and should be handled as PII.
 
+## Product Analytics Privacy
+
+Future persisted product analytics should collect only the fields needed to understand demand and abuse patterns. The
+current backend access logs are operational logs; a product analytics table or aggregate should be designed separately
+before the product relies on repeat-use, source-attribution, endpoint-usage, or integration counts.
+
+Product analytics may store:
+
+- event time bucket;
+- normalized endpoint group and method;
+- status code or status family;
+- locale when provided;
+- explicit source values such as `landing`, `agent_access`, `risk_signal_license`, `pwa`, `telegram_mini_app`, or
+  `browser_extension`;
+- rotating anonymous client or visitor hashes;
+- user-agent family;
+- cache status when available.
+
+Product analytics must not store request bodies, waitlist contact values, raw IP addresses, full user-agent strings, or
+detailed browser fingerprints. Do not join raw request history to waitlist contact values unless a later design explains
+the need, consent basis, retention policy, and operator access controls.
+
+If raw analytics events are introduced, retain them only briefly, for example 30-90 days, then keep aggregate daily stats
+that do not contain contact values, raw IPs, or full user-agent strings. Future professional API usage tracking should
+identify products or agents through API client records and key identifiers or hashes, not through raw IP addresses.
+
 ## Rate Limiting
 
 `POST /api/waitlist` has an in-memory fixed-window per-client rate limit controlled by

@@ -18,7 +18,8 @@ Production-pilot readiness means:
 - the user interface has been checked across the target browsers, screen sizes, and devices;
 - product, operations, security, testing, and data-pipeline docs are current and agree with the implemented system;
 - the deployed stack can be updated, monitored, backed up, restored, and rolled back;
-- the first traffic test can measure whether a single BTC risk signal creates waitlist and repeat-visit demand.
+- the first traffic test can measure whether a single BTC risk signal creates waitlist, repeat-visit, source-attributed,
+  and endpoint-usage demand without storing raw IP addresses in product analytics.
 
 ## Current Baseline
 
@@ -274,6 +275,10 @@ Deliverables:
 - Check the launch browser/device matrix and record any accepted limitations.
 - Capture the first production snapshot: commit, data date, readiness payload, and public hostname.
 - Confirm caching, bot protection, and edge rate limits are active.
+- Confirm the first-traffic measurement path for visits, repeat-use estimate, source attribution, endpoint usage, and
+  waitlist conversion. Existing backend access logs and Cloudflare analytics may be enough for the first snapshot, but
+  persisted product analytics should follow the Product Analytics And Usage Attribution design before product decisions
+  depend on repeat-use or integration counts.
 - Start a small traffic test.
 
 Progress recorded on 2026-07-01:
@@ -294,7 +299,8 @@ Acceptance criteria:
 - Waitlist submission works and respects rate limiting.
 - The readiness endpoint is 200 at launch.
 - Cached public data remains consistent with the latest successful import.
-- The product can measure waitlist conversion and repeat visits.
+- The product can measure waitlist conversion, repeat visits, source attribution, and endpoint demand without storing raw
+  IP addresses or waitlist contact values in analytics events.
 
 ### Phase 9: Post-Launch Learning Loop
 
@@ -316,6 +322,9 @@ Deliverables:
   early license before designing enterprise pricing. This test should cover one product or AI agent, clear attribution,
   current methodology/freshness metadata, and modest usage; it must exclude redistribution, white-label, SLA, high-volume
   limits, and custom methodology work.
+- If agent or professional-product demand appears, design client-level API usage tracking with API client identities, key
+  identifiers or hashes, daily request counts, endpoint groups, methodology version, status counts, and usage limits. Do
+  not use raw IP addresses as the billing or licensing identity.
 - Avoid broad feature expansion until demand signals justify it.
 - If demand is positive, design the next validation increment: alerts, daily email/Telegram, paid beta, or paid API
   access for integrations.
@@ -327,6 +336,8 @@ Acceptance criteria:
 - The first agent-access experiment does not add new API, auth, billing, SDK, MCP, or SLA scope before demand is proven.
 - The `EUR 9-19/month` risk-signal license is treated as an early paid-intent test, not as a complete commercial API
   plan or redistribution license.
+- Professional product or agent usage is judged by explicit source values or future client/API keys, not by raw IP traffic
+  alone.
 - The next scope is a small validation step, not a general crypto dashboard.
 
 ### Phase 10: Risk Methodology Research
@@ -438,5 +449,6 @@ The project is ready for a first public production pilot when:
 - [Testing and Quality](testing-and-quality.md)
 - [Security and Privacy](security-and-privacy.md)
 - [Agent Access And Risk-Signal Licensing Demand Test Design](superpowers/specs/2026-06-30-agent-access-demand-test-design.md)
+- [Product Analytics And Usage Attribution Design](superpowers/specs/2026-07-01-product-analytics-usage-attribution-design.md)
 - [Risk Methodology Research Design](superpowers/specs/2026-07-01-risk-methodology-research-design.md)
 - [Distribution Channel Research Design](superpowers/specs/2026-07-01-distribution-channel-research-design.md)
