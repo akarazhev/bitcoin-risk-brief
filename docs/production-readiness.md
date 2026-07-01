@@ -92,8 +92,8 @@ Before public launch, also complete and record:
 - Cloudflare WAF, bot protection, cache rules, and edge rate limits rendered and applied with
   `scripts/cloudflare_edge_rules.py`, plus dashboard bot protection enabled where required by the Cloudflare plan;
 - documentation hygiene pass across roadmap, data pipeline, security, testing, operations, and deployment docs;
-- after implementation freeze, a private/portfolio presentation pass covering the root README, docs index, GitHub
-  description/topics, optional screenshot or GIF, and repository hygiene.
+- after implementation freeze, a private/portfolio presentation pass covering the root README, docs index, sibling
+  product-ideas brief, GitHub description/topics, optional screenshot or GIF, and repository hygiene.
 
 ## Production Environment
 
@@ -225,8 +225,8 @@ Still required before treating the pilot as publicly launched:
   collector logs containing scheduled/public/API refresh failures.
 - Complete a short browser/device QA pass on the public hostname.
 - Submit a deliberate test waitlist lead and verify it is stored server-side without caching the response.
-- Complete the documentation and portfolio presentation pass if the repository will be shown as a private/portfolio
-  project.
+- Complete the documentation and portfolio presentation pass, including the sibling product-ideas brief, if the
+  repository will be shown as a private/portfolio project.
 - Capture the launch snapshot and run the first small traffic test.
 
 ## Related Docs

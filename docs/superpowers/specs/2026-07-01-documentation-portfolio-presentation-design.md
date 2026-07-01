@@ -34,6 +34,7 @@ The pass should include:
   pipeline docs;
 - clear separation between current runtime behavior and historical/future-facing `docs/superpowers/` specs;
 - GitHub repository description and topics suitable for a private or portfolio project;
+- synchronized external product brief in the sibling `product-ideas` workspace;
 - optional screenshot or short GIF of the first viewport;
 - optional social preview image if the repository is shown in a portfolio context.
 
@@ -59,6 +60,32 @@ Recommended sections:
 - disclaimer that the project is analytics, not financial advice.
 
 The README should link to detailed docs instead of duplicating them.
+
+## External Product Brief
+
+The portfolio pass should also update the sibling product-ideas brief:
+
+```text
+/Users/andrey.karazhev/Developer/startups/product-ideas/01-bitcoin-risk-brief.md
+```
+
+That file should stay product-facing rather than engineering-facing. It should explain why the product exists, what
+validation hypothesis it tests, what has actually been built, and which future ideas remain unvalidated.
+
+Recommended updates:
+
+- current product status and pilot URL if it is safe to share;
+- implemented product surface and reliability controls;
+- current pricing/demand-test hypothesis;
+- completed operational maturity points, such as readiness, caching, no-key data refresh, deployment docs, and backups
+  when verified;
+- future-facing ideas clearly separated from implemented behavior: agent/API access, widgets, localization,
+  distribution-channel research, and risk methodology research;
+- explicit non-goals: intraday trading signals, broad multi-asset dashboard, financial advice, and open-source community
+  launch.
+
+The product-ideas brief is not the runtime source of truth. If it conflicts with the repository README, API docs, or
+operations docs, update it to match the repository rather than changing runtime docs to match the older product brief.
 
 ## Documentation Cleanup
 
@@ -118,6 +145,8 @@ Out of scope for the private/portfolio pass:
   README and linked docs within a few minutes.
 - The README does not claim that planned features are already implemented.
 - Core docs agree with the implemented code and selected production/deployment path.
+- The external product-ideas brief is synchronized with the final product narrative and clearly separates shipped,
+  validated, and future-facing ideas.
 - GitHub description and topics are ready for a private or portfolio repository.
 - No local secrets, backups, or generated artifacts are tracked.
 - The project remains positioned as analytics, not financial advice or trading recommendations.

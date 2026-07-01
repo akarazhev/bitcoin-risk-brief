@@ -215,10 +215,10 @@ remain as implementation history, but current operational docs should not requir
 runtime behavior.
 
 After implementation freeze, run a documentation and portfolio presentation pass before sharing the private repository
-with external reviewers. Check that the root README, docs index, GitHub description/topics, optional screenshot or GIF,
-and repository hygiene reflect the implemented product rather than future plans. Do not add open-source community files
-such as `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, or public issue templates unless the repository is intentionally made
-public.
+with external reviewers. Check that the root README, docs index, sibling product-ideas brief, GitHub
+description/topics, optional screenshot or GIF, and repository hygiene reflect the implemented product rather than
+future plans. Do not add open-source community files such as `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, or public issue
+templates unless the repository is intentionally made public.
 
 ## Frontend Chart Bundle Budget
 

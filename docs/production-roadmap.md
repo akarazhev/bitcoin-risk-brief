@@ -318,7 +318,8 @@ Deliverables:
   persisted product analytics should follow the Product Analytics And Usage Attribution design before product decisions
   depend on repeat-use or integration counts.
 - After implementation freeze, complete the Documentation And Portfolio Presentation pass: professional README, current
-  docs, private/portfolio GitHub description and topics, screenshot or GIF if useful, and repository hygiene check.
+  docs, synchronized `product-ideas/01-bitcoin-risk-brief.md`, private/portfolio GitHub description and topics,
+  screenshot or GIF if useful, and repository hygiene check.
 - Start a small traffic test.
 
 Progress recorded on 2026-07-01:
@@ -343,8 +344,8 @@ Acceptance criteria:
 - First public page load after backend startup or nightly import does not expose users to slow database-backed cache
   misses for the standard public payloads.
 - The first-viewport price input labels the HLC3 value as `Model price` if daily `Low` and `High` are shown alongside it.
-- The root README and core docs describe current behavior, not stale plans, and the private/portfolio GitHub description
-  plus topics are ready.
+- The root README, core docs, and sibling product-ideas brief describe current behavior and future ideas without stale
+  claims, and the private/portfolio GitHub description plus topics are ready.
 - The product can measure waitlist conversion, repeat visits, source attribution, and endpoint demand without storing raw
   IP addresses or waitlist contact values in analytics events.
 - Enabled locales pass desktop and mobile QA without clipped text, overlapping UI, inconsistent no-advice framing, or
