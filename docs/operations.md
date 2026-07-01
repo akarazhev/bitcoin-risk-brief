@@ -290,6 +290,10 @@ Each backup directory contains:
 
 Backups should be copied off the server. Keeping the only backup under `./backups` protects against accidental database edits, but not against disk failure.
 
+For USB-based production updates, run a fresh backup before deploying the new project snapshot and copy the new backup
+off the server before promotion. The planned USB Update And Install Kit V2 keeps backup artifacts out of the workstation
+project snapshot while making the backup gate explicit in the server update flow.
+
 ## Restore Notes
 
 Restore only into a staging copy or an intentionally empty production database:

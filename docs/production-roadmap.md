@@ -18,6 +18,8 @@ Production-pilot readiness means:
 - the user interface has been checked across the target browsers, screen sizes, and devices;
 - product, operations, security, testing, and data-pipeline docs are current and agree with the implemented system;
 - the deployed stack can be updated, monitored, backed up, restored, and rolled back;
+- USB-based updates and fresh installs can be prepared reproducibly without copying local secrets, dependency caches, or
+  stale build artifacts;
 - the first traffic test can measure whether a single BTC risk signal creates waitlist, repeat-visit, source-attributed,
   and endpoint-usage demand without storing raw IP addresses in product analytics.
 
@@ -36,6 +38,8 @@ Already implemented:
 - No-store waitlist responses, backend request logging, and repo-managed Cloudflare WAF, waitlist bot-challenge,
   cache-rule, and edge rate-limit settings for the production pilot.
 - Containerized local stack and Ubuntu plus Cloudflare Tunnel deployment docs.
+- Server-run USB kit scripts for host bootstrap, optional `cloudflared` install, project deploy, service enablement,
+  health checks, and debug reports.
 - Production readiness, operations, security, testing, architecture, and data-pipeline documentation.
 
 ## Current Roadmap Status
@@ -71,6 +75,7 @@ Current production-pilot progress after Phase 1-5:
 Remaining production-pilot gaps:
 
 - confirm the production host runbook, `.env`, service path, and data-refresh workflow are the documented source of truth;
+- make USB kit preparation reproducible from the workstation and connect update promotion to a backup-before-update gate;
 - implement and verify scheduled public CoinMarketCap refresh so the production pilot can update nightly without a
   `COINMARKETCAP_API_KEY`;
 - measure first-load latency on cache misses and add public payload cache warmup or precomputed expensive payloads if the
@@ -230,7 +235,11 @@ Deliverables:
   the optional `COINMARKETCAP_API_KEY` or the documented CSV download/import workflow.
 - Configure the scheduled refresh strategy so production defaults to public CoinMarketCap download first, optional
   official API fallback when a key is configured, and manual downloaded CSV import as the last fallback.
-- Deploy the repository under `/opt/bitcoin-risk-brief`.
+- Deploy the repository through the selected production path: direct Git workflow under `/opt/bitcoin-risk-brief` or
+  local USB deployment under `/srv/projects/bitcoin-risk-brief`.
+- If using the local USB deployment path, prepare the deployment USB from a reproducible kit that contains only the
+  filtered project snapshot, scripts, docs, manifest, and checksums. Do not include local `.env`, `.git`, backups,
+  dependency caches, build output, or container images.
 - Run `validate`, `start`, `migrate`, and one live `run-now`.
 - Configure Cloudflare Tunnel for the public hostname.
 - Keep the frontend bound to localhost when Cloudflare Tunnel is the only ingress.
@@ -247,6 +256,8 @@ Acceptance criteria:
 - The public frontend loads, API calls use the intended HTTPS origin, and the selected data-refresh path is documented.
 - A production deployment with an empty `COINMARKETCAP_API_KEY` can refresh through the last completed UTC day via the
   scheduled public CoinMarketCap download path without manual operator action.
+- If USB deployment is used, the operator can identify the project revision on the USB and verify that no local secrets
+  were staged.
 
 ### Phase 7: Backups, Restore, And Monitoring
 
@@ -258,6 +269,7 @@ Deliverables:
 
 - Schedule `scripts/backup.sh` daily on the production host.
 - Copy backups off the server.
+- Require a fresh backup before USB-based production updates and copy that backup off the server before promotion.
 - Track backup age and backup command failures.
 - Run a restore drill into a staging or empty database.
 - Configure public uptime monitoring on `/api/health`.
@@ -270,6 +282,7 @@ Deliverables:
 Acceptance criteria:
 
 - A recent PostgreSQL dump and BTC CSV backup exist off-server.
+- A production update runbook includes the backup-before-update gate for USB-based deployments.
 - A restore drill has been completed and documented.
 - Readiness failures produce an alert.
 - Scheduled no-key refresh failures are visible in collector logs and alerts, and failed downloads do not rewrite the

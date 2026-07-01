@@ -22,6 +22,8 @@ Last reviewed: 2026-07-01.
   application-rate-limited.
 - Server-kit scripts live under `server-kit/` and include bootstrap, optional `cloudflared` install, deploy, user service
   enablement, health check, and debug helpers.
+- USB kit v2 is planned as a reproducible workstation-side packaging flow plus a server-side backup-before-update gate;
+  it is not a full offline deployment artifact.
 
 ## Status
 
@@ -37,6 +39,7 @@ Last reviewed: 2026-07-01.
 | `specs/2026-07-01-public-payload-cache-warmup-precompute-design.md` | Future-facing | Phase 5/8 performance hardening for first-load cache warmup and expensive payload precompute. |
 | `specs/2026-07-01-localization-quality-language-expansion-design.md` | Future-facing | Phase 8 localization add-on for EN/RU copy polish, ES/DE launch scope, and deferred AR/ZH research. |
 | `specs/2026-07-01-scheduled-public-cmc-refresh-design.md` | Future-facing | Phase 6/7 operational hardening for nightly no-key public CoinMarketCap refresh. |
+| `specs/2026-07-01-usb-update-install-kit-v2-design.md` | Future-facing | Phase 6/7 operational hardening for reproducible USB preparation, install/update flows, and backup-before-update. |
 | `specs/2026-07-01-risk-methodology-research-design.md` | Future-facing | Phase 10 research track; v1 remains the production metric until evidence supports a versioned v2. |
 | `specs/2026-07-01-distribution-channel-research-design.md` | Future-facing | Phase 11 distribution track; evaluates PWA, Telegram Mini App, browser extensions, and conditional platform wrappers. |
 | `specs/2026-06-30-usb-server-kit-design.md` | Completed in repository | Templates and scripts exist under `server-kit/`; USB copy remains an operator action. |

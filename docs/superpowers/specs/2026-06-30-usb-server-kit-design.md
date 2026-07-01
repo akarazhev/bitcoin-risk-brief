@@ -1,7 +1,9 @@
 # USB Server Kit Design
 
 > Status: completed in repository, operator copy pending. Last reviewed 2026-06-30. Scripts and README live under
-> `server-kit/`; copying to a physical USB volume remains an operator step.
+> `server-kit/`; copying to a physical USB volume remains an operator step. Follow-up:
+> `2026-07-01-usb-update-install-kit-v2-design.md` defines a planned reproducible packaging and backup-before-update
+> flow.
 
 ## Goal
 

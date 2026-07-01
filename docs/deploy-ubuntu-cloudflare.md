@@ -21,7 +21,8 @@ Cloudflare Tunnel is a good fit for this environment because the server does not
 
 - Ubuntu LTS server with SSH access.
 - Podman and `podman-compose` are available on the host.
-- The repository is deployed under `/opt/bitcoin-risk-brief`.
+- The direct Git workflow in this guide deploys the repository under `/opt/bitcoin-risk-brief`; the USB server-kit path
+  defaults to `/srv/projects/bitcoin-risk-brief`.
 - A Cloudflare-managed DNS zone is available for the public hostname, for example `risk.example.com`.
 - Either a production CoinMarketCap API key is available for the optional API refresh path, or operators will use the
   documented downloaded CSV refresh path.
@@ -305,6 +306,8 @@ public download fails without a successful API fallback.
 
 ## Update Procedure
 
+The direct Git workflow is:
+
 ```bash
 cd /opt/bitcoin-risk-brief
 git pull --ff-only
@@ -317,6 +320,12 @@ curl -fsS https://risk.example.com/api/readiness
 ```
 
 Run `./scripts/backup.sh` before updates that include migrations.
+
+For local-server deployments through USB, the planned USB Update And Install Kit V2 should replace manual copying. The
+USB should contain only the filtered project snapshot, server-kit scripts, docs, manifest, and checksums. It should not
+contain local `.env`, `.git`, backups, dependency caches, build output, or container images. Before applying an update
+from USB, create a fresh backup from the currently deployed project and copy it off the server. The server-kit deploy
+script defaults to `/srv/projects/bitcoin-risk-brief`.
 
 ## Rollback
 

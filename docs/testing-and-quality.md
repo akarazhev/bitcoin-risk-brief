@@ -133,6 +133,10 @@ Required status checks:
 python3 -m unittest discover -s server-kit/tests -v
 ```
 
+If the planned USB Update And Install Kit V2 packaging script is implemented, add focused tests for the staged USB
+contents: required docs and scripts are present, `.env` and `.git` are excluded, backups and dependency caches are
+excluded, scripts are executable, and the manifest plus checksums are written.
+
 Branch protection expectations for `main`:
 
 - Require a pull request before merging changes into `main`.

@@ -85,6 +85,9 @@ Before public launch, also complete and record:
 
 - browser/device QA for the launch matrix;
 - selected BTC data refresh path: automatic public CSV download, manual downloaded CSV intake, or optional CoinMarketCap API refresh;
+- selected deployment path: direct Git workflow or USB-based local-server deployment. If USB deployment is used, verify
+  the kit contains a filtered project snapshot, server-kit scripts, docs, manifest, and checksums, and does not contain
+  local `.env`, `.git`, backups, dependency caches, build output, or container images;
 - cache policy for public read endpoints;
 - Cloudflare WAF, bot protection, cache rules, and edge rate limits rendered and applied with
   `scripts/cloudflare_edge_rules.py`, plus dashboard bot protection enabled where required by the Cloudflare plan;
@@ -208,6 +211,8 @@ Completed or partially completed as of 2026-07-01:
 Still required before treating the pilot as publicly launched:
 
 - Confirm the production host runbook, `.env`, service path, and selected data-refresh workflow.
+- If the production host is updated through USB, replace manual copying with the planned USB Update And Install Kit V2 or
+  record the manual verification evidence until that script exists.
 - Decide whether to accept the current Cloudflare Free-plan subset for first traffic or upgrade/configure additional WAF,
   bot protection, and broader API burst-rate-limit controls.
 - Configure scheduled `./scripts/backup.sh` runs and copy backups off the server.
