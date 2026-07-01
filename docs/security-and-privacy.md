@@ -50,6 +50,9 @@ Before active traffic, decide and document the public privacy posture for waitli
 who can access them, how manual outreach works, and how a user can unsubscribe or request deletion. If the project adds
 email or Telegram delivery later, update this section before sending recurring messages.
 
+Before recurring email or Telegram delivery, also complete the deferred email/outreach readiness gate: opt-in source,
+sender or bot ownership, unsubscribe or stop handling, provider recovery, no-advice framing, and delivery privacy copy.
+
 ## Product Analytics Privacy
 
 Future persisted product analytics should collect only the fields needed to understand demand and abuse patterns. The

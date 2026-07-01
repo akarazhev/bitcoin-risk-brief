@@ -398,6 +398,13 @@ Deliverables:
 - Avoid broad feature expansion until demand signals justify it.
 - If demand is positive, design the next validation increment: alerts, daily email/Telegram, paid beta, or paid API
   access for integrations.
+- Before recurring email or Telegram delivery, complete the email/outreach readiness gate: sender identity, platform
+  ownership, opt-in source, unsubscribe or stop handling, provider recovery, no-advice framing, and privacy copy.
+- Before accepting the first paid-beta payment or paid risk-signal license, complete the paid-beta/licensing readiness
+  gate: payment or invoice path, owner, currency, tax assumptions, refund/cancel policy, entitlement, attribution,
+  support/contact path, usage limits, and separation from anonymous analytics.
+- Before broader professional exposure, review account recovery paths, synthetic journey monitoring needs, and a small
+  trust artifact covering methodology version, data source, freshness expectation, and accepted limitations.
 
 Acceptance criteria:
 
@@ -409,6 +416,8 @@ Acceptance criteria:
 - Professional product or agent usage is judged by explicit source values or future client/API keys, not by raw IP traffic
   alone.
 - The next scope is a small validation step, not a general crypto dashboard.
+- Recurring notifications, paid beta access, paid risk-signal licenses, and broader trust claims are gated by explicit
+  readiness checks rather than added opportunistically.
 
 ### Phase 10: Risk Methodology Research
 
