@@ -294,10 +294,14 @@ Minimum checks:
 - Public uptime check: `https://risk.example.com/api/health`.
 - Production gate check: `https://risk.example.com/api/readiness`.
 - Daily collector logs after the configured UTC schedule.
+- Scheduled public CoinMarketCap refresh status when running without `COINMARKETCAP_API_KEY`; until the
+  public-download-first scheduler is implemented, run `./scripts/manage.sh download-cmc-csv` manually when the CSV is
+  stale.
 - Backup log freshness and backup file age.
 - Cloudflare Tunnel connector health in the Cloudflare dashboard.
 
-Alert immediately when `/api/readiness` is non-200 after the daily collector window.
+Alert immediately when `/api/readiness` is non-200 or stale after the daily collector window, or when the scheduled
+public download fails without a successful API fallback.
 
 ## Update Procedure
 

@@ -128,6 +128,9 @@ A non-200 readiness response should block deploy promotion and should alert in p
 - `collector/btc-csv/btc_usd_daily.csv` is the canonical source.
 - When the optional API path is configured, scheduled collector runs fetch only missing completed UTC days from
   CoinMarketCap.
+- Before active traffic, the production scheduler should be hardened and verified to use public CoinMarketCap download
+  first when `COINMARKETCAP_API_KEY` is empty. Until that is implemented, operators must run
+  `./scripts/manage.sh download-cmc-csv` manually when the canonical CSV is stale.
 - The production-pilot path supports automatic public CoinMarketCap downloads and validated imports from
   operator-downloaded CoinMarketCap historical CSVs.
 - Remote deltas, public downloads, and downloaded CSV imports must exactly match the expected contiguous daily range.
@@ -203,8 +206,11 @@ Still required before treating the pilot as publicly launched:
 - Decide whether to accept the current Cloudflare Free-plan subset for first traffic or upgrade/configure additional WAF,
   bot protection, and broader API burst-rate-limit controls.
 - Configure scheduled `./scripts/backup.sh` runs and copy backups off the server.
+- Implement and verify scheduled public-download-first refresh if the production pilot will run without a
+  `COINMARKETCAP_API_KEY`.
 - Put request logging, backup health, and operational review in place.
-- Configure alerts on `/api/readiness` returning non-200 or collector logs containing remote refresh failures.
+- Configure alerts on `/api/readiness` returning non-200, readiness becoming stale after the nightly update window, or
+  collector logs containing scheduled/public/API refresh failures.
 - Complete a short browser/device QA pass on the public hostname.
 - Submit a deliberate test waitlist lead and verify it is stored server-side without caching the response.
 - Capture the launch snapshot and run the first small traffic test.

@@ -58,6 +58,23 @@ write, and stale-row cleanup.
 If the public endpoint returns an incomplete range, an error response, HTML, or blocked content, the command fails before
 rewriting the canonical CSV. Use the manual workflow below or the optional official API-key refresh path.
 
+## Scheduled Public CoinMarketCap Refresh
+
+The desired production-pilot scheduler is public-download-first: once per day after the UTC day closes, the
+`data-collector` should try the same public CoinMarketCap download path automatically, then import the validated
+canonical CSV, recompute risk, write validation and brief data, and leave `/api/readiness` fresh.
+
+Current implementation note: the long-running scheduled collector still uses the `run-now` refresh behavior. With an
+empty `COINMARKETCAP_API_KEY`, it imports the existing CSV and recomputes risk, but it does not yet automatically invoke
+the public download path.
+
+Until the scheduled public-download-first behavior is implemented and verified, operators should run
+`./scripts/manage.sh download-cmc-csv` after the last completed UTC day when the canonical CSV is stale. Manual
+`import-cmc-csv` remains the fallback if the public endpoint automation is unavailable.
+
+When implemented, scheduled no-key refresh failures should be visible in collector logs and readiness alerts. A failed
+public download must not rewrite `collector/btc-csv/btc_usd_daily.csv`.
+
 ## Manual Downloaded CoinMarketCap CSV Refresh
 
 Refresh BTC history without a paid CoinMarketCap API account by downloading a CSV from:

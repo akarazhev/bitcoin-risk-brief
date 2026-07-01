@@ -71,6 +71,8 @@ Current production-pilot progress after Phase 1-5:
 Remaining production-pilot gaps:
 
 - confirm the production host runbook, `.env`, service path, and data-refresh workflow are the documented source of truth;
+- implement and verify scheduled public CoinMarketCap refresh so the production pilot can update nightly without a
+  `COINMARKETCAP_API_KEY`;
 - decide whether to accept the current Cloudflare Free-plan subset for first traffic or upgrade/configure additional WAF,
   bot protection, and broader API burst-rate-limit controls;
 - daily backups, off-server copy, restore drill, and monitoring alerts still need to be configured and verified;
@@ -220,6 +222,8 @@ Deliverables:
 - Create production `.env` from `.env.production.example`.
 - Set production values for `APP_ENV`, `DB_PASSWORD`, `CORS_ORIGINS`, freshness limit, waitlist rate limit, and either
   the optional `COINMARKETCAP_API_KEY` or the documented CSV download/import workflow.
+- Configure the scheduled refresh strategy so production defaults to public CoinMarketCap download first, optional
+  official API fallback when a key is configured, and manual downloaded CSV import as the last fallback.
 - Deploy the repository under `/opt/bitcoin-risk-brief`.
 - Run `validate`, `start`, `migrate`, and one live `run-now`.
 - Configure Cloudflare Tunnel for the public hostname.
@@ -235,6 +239,8 @@ Acceptance criteria:
 - `curl -fsS https://risk.example.com/api/readiness` succeeds for the configured public hostname. Current pilot hostname:
   `https://bitcoinriskbrief.minihub.app/api/readiness`.
 - The public frontend loads, API calls use the intended HTTPS origin, and the selected data-refresh path is documented.
+- A production deployment with an empty `COINMARKETCAP_API_KEY` can refresh through the last completed UTC day via the
+  scheduled public CoinMarketCap download path without manual operator action.
 
 ### Phase 7: Backups, Restore, And Monitoring
 
@@ -251,6 +257,8 @@ Deliverables:
 - Configure public uptime monitoring on `/api/health`.
 - Configure production gate monitoring on `/api/readiness`.
 - Alert on collector refresh failures and readiness degradation after the daily collector window.
+- Alert when the scheduled public CoinMarketCap refresh fails, when optional API fallback is used after a public-download
+  failure, or when `/api/readiness` is stale after the nightly update window.
 - Monitor Cloudflare Tunnel connector health.
 
 Acceptance criteria:
@@ -258,6 +266,8 @@ Acceptance criteria:
 - A recent PostgreSQL dump and BTC CSV backup exist off-server.
 - A restore drill has been completed and documented.
 - Readiness failures produce an alert.
+- Scheduled no-key refresh failures are visible in collector logs and alerts, and failed downloads do not rewrite the
+  canonical CSV.
 - Operators know how to inspect collector, backend, frontend, and database logs.
 
 ### Phase 8: Launch Checklist And First Traffic Test
@@ -434,6 +444,7 @@ The project is ready for a first public production pilot when:
 
 - Phase 1 is complete;
 - BTC data refresh works through the documented CSV download/import path or an explicitly configured CoinMarketCap API key;
+- scheduled production refresh can run without a CoinMarketCap API key by using the public CoinMarketCap download path;
 - CI passes on `main`;
 - the production host returns 200 from public `/api/health` and `/api/readiness`;
 - the first live data refresh/import has completed on the production host;
@@ -456,5 +467,6 @@ The project is ready for a first public production pilot when:
 - [Agent Access And Risk-Signal Licensing Demand Test Design](superpowers/specs/2026-06-30-agent-access-demand-test-design.md)
 - [Product Analytics And Usage Attribution Design](superpowers/specs/2026-07-01-product-analytics-usage-attribution-design.md)
 - [Localization Quality And Language Expansion Design](superpowers/specs/2026-07-01-localization-quality-language-expansion-design.md)
+- [Scheduled Public CoinMarketCap Refresh Design](superpowers/specs/2026-07-01-scheduled-public-cmc-refresh-design.md)
 - [Risk Methodology Research Design](superpowers/specs/2026-07-01-risk-methodology-research-design.md)
 - [Distribution Channel Research Design](superpowers/specs/2026-07-01-distribution-channel-research-design.md)

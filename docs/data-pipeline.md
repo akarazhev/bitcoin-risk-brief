@@ -67,10 +67,19 @@ removes derived database rows after the CSV tail.
 
 ### Scheduled Collector
 
-The long-running `data-collector` service schedules the same refresh/import flow once per day using UTC cron settings:
+The long-running `data-collector` service schedules a refresh/import flow once per day using UTC cron settings:
 
 - `SCHEDULE_CRON_HOUR`, default `1`
 - `SCHEDULE_CRON_MINUTE`, default `0`
+
+Current implementation note: the scheduled path uses the same remote-refresh behavior as `run-now`. It fetches missing
+completed UTC days only when `COINMARKETCAP_API_KEY` is configured. If no key is present, it imports the existing
+canonical CSV and recomputes risk without network refresh.
+
+Planned production-pilot hardening: scheduled runs should use public CoinMarketCap download first when no API key is
+configured, then optional official API fallback when a key exists, and manual downloaded CSV import as the operator
+fallback. See
+[Scheduled Public CoinMarketCap Refresh Design](superpowers/specs/2026-07-01-scheduled-public-cmc-refresh-design.md).
 
 ## Optional CoinMarketCap API Delta Fetch
 
