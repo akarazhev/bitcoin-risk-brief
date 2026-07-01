@@ -53,6 +53,7 @@ Verified on 2026-07-01 from repository files, recent commit history, and public 
 | Phase 8: Launch Checklist And First Traffic Test | Pending; public API smoke partially complete | Requires waitlist smoke, browser/device pass on the public hostname, launch snapshot, and first traffic test |
 | Phase 9: Post-Launch Learning Loop | Pending | Starts after launch traffic creates usage evidence, including optional agent-access demand testing |
 | Phase 10: Risk Methodology Research | Pending | Starts only after launch evidence justifies method work; current production metric remains `crypto-scout-canonical-v1` |
+| Phase 11: Distribution Channel Research | Pending | Evaluates PWA, Telegram Mini App, browser extension, and other channel packaging after launch evidence |
 
 Current production-pilot progress after Phase 1-5:
 
@@ -356,6 +357,39 @@ Acceptance criteria:
   infrastructure.
 - If evidence is weak, the product keeps `crypto-scout-canonical-v1` and avoids methodology churn.
 
+### Phase 11: Distribution Channel Research
+
+Status: Pending.
+
+Goal: evaluate whether additional packaging and platform channels can improve discovery, repeat use, and paid-intent
+signals without turning the product into a multi-platform maintenance burden.
+
+Deliverables:
+
+- Create a channel scorecard for PWA, Telegram Mini App, browser extensions, VK Mini Apps, WeChat Mini Programs, and
+  Discord Activities.
+- Evaluate PWA/installable web app first because it reuses the current web product with the lowest packaging overhead.
+- Evaluate Telegram Mini App as the first social-platform experiment for crypto-native distribution and future
+  notification or subscription tests.
+- Treat browser extensions as later candidates that need a real daily utility, such as a BTC risk badge, popup, quick
+  link, or validated alert workflow.
+- Keep VK Mini Apps, WeChat Mini Programs, and Discord Activities conditional until audience, partner, or community
+  evidence justifies platform-specific work.
+- Track channel demand through explicit waitlist or analytics source values such as `source=pwa`,
+  `source=telegram_mini_app`, and `source=browser_extension`.
+- Preserve readiness/freshness display, API error handling, degraded-data states, and no-financial-advice framing in
+  every channel experiment.
+
+Acceptance criteria:
+
+- No more than one new distribution channel is implemented at a time.
+- The first experiment has defined source tracking and success metrics before implementation.
+- Platform wrappers do not introduce new backend scope unless a separate design justifies it.
+- Browser extensions are not published as simple website launchers.
+- WeChat, VK, and Discord remain out of scope until channel-specific demand exists.
+- Distribution work supports retention and demand validation; monetization remains tied to alerts, recurring briefs,
+  paid API/agent access, or premium context.
+
 ## Working Order
 
 Recommended implementation order:
@@ -370,6 +404,7 @@ Recommended implementation order:
 8. Launch Checklist And First Traffic Test.
 9. Post-Launch Learning Loop.
 10. Risk Methodology Research.
+11. Distribution Channel Research.
 
 ## Production-Pilot Gate
 
@@ -398,3 +433,4 @@ The project is ready for a first public production pilot when:
 - [Security and Privacy](security-and-privacy.md)
 - [Agent Access Demand Test Design](superpowers/specs/2026-06-30-agent-access-demand-test-design.md)
 - [Risk Methodology Research Design](superpowers/specs/2026-07-01-risk-methodology-research-design.md)
+- [Distribution Channel Research Design](superpowers/specs/2026-07-01-distribution-channel-research-design.md)
