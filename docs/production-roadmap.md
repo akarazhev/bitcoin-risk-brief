@@ -20,6 +20,8 @@ Production-pilot readiness means:
 - the deployed stack can be updated, monitored, backed up, restored, and rolled back;
 - USB-based updates and fresh installs can be prepared reproducibly without copying local secrets, dependency caches, or
   stale build artifacts;
+- after implementation stabilizes, the private or portfolio repository has a professional README, current docs, and
+  accurate GitHub description/topics;
 - the first traffic test can measure whether a single BTC risk signal creates waitlist, repeat-visit, source-attributed,
   and endpoint-usage demand without storing raw IP addresses in product analytics.
 
@@ -315,6 +317,8 @@ Deliverables:
   waitlist conversion. Existing backend access logs and Cloudflare analytics may be enough for the first snapshot, but
   persisted product analytics should follow the Product Analytics And Usage Attribution design before product decisions
   depend on repeat-use or integration counts.
+- After implementation freeze, complete the Documentation And Portfolio Presentation pass: professional README, current
+  docs, private/portfolio GitHub description and topics, screenshot or GIF if useful, and repository hygiene check.
 - Start a small traffic test.
 
 Progress recorded on 2026-07-01:
@@ -327,7 +331,8 @@ Progress recorded on 2026-07-01:
   `X-Cache: HIT`.
 
 Still pending for Phase 8: waitlist production smoke, browser/device pass on the public hostname, localization add-on if
-accepted for pre-traffic scope, launch snapshot, and first traffic test.
+accepted for pre-traffic scope, documentation and portfolio presentation pass after implementation freeze, launch
+snapshot, and first traffic test.
 
 Acceptance criteria:
 
@@ -338,6 +343,8 @@ Acceptance criteria:
 - First public page load after backend startup or nightly import does not expose users to slow database-backed cache
   misses for the standard public payloads.
 - The first-viewport price input labels the HLC3 value as `Model price` if daily `Low` and `High` are shown alongside it.
+- The root README and core docs describe current behavior, not stale plans, and the private/portfolio GitHub description
+  plus topics are ready.
 - The product can measure waitlist conversion, repeat visits, source attribution, and endpoint demand without storing raw
   IP addresses or waitlist contact values in analytics events.
 - Enabled locales pass desktop and mobile QA without clipped text, overlapping UI, inconsistent no-advice framing, or
@@ -480,6 +487,7 @@ The project is ready for a first public production pilot when:
 - alerting exists for readiness failures;
 - browser/device QA has been completed for the launch matrix;
 - project documentation has been cleaned up and matches the launch configuration;
+- the private or portfolio repository presentation has been reviewed if the project will be shown to external reviewers;
 - a rollback path has been verified or rehearsed.
 
 ## Related Docs
@@ -493,6 +501,7 @@ The project is ready for a first public production pilot when:
 - [Agent Access And Risk-Signal Licensing Demand Test Design](superpowers/specs/2026-06-30-agent-access-demand-test-design.md)
 - [Product Analytics And Usage Attribution Design](superpowers/specs/2026-07-01-product-analytics-usage-attribution-design.md)
 - [Public Payload Cache Warmup And Precompute Design](superpowers/specs/2026-07-01-public-payload-cache-warmup-precompute-design.md)
+- [Documentation And Portfolio Presentation Design](superpowers/specs/2026-07-01-documentation-portfolio-presentation-design.md)
 - [Localization Quality And Language Expansion Design](superpowers/specs/2026-07-01-localization-quality-language-expansion-design.md)
 - [Scheduled Public CoinMarketCap Refresh Design](superpowers/specs/2026-07-01-scheduled-public-cmc-refresh-design.md)
 - [Risk Methodology Research Design](superpowers/specs/2026-07-01-risk-methodology-research-design.md)

@@ -214,6 +214,12 @@ Before launch, remove or clearly label stale assumptions from older docs. Histor
 remain as implementation history, but current operational docs should not require readers to reconcile conflicting
 runtime behavior.
 
+After implementation freeze, run a documentation and portfolio presentation pass before sharing the private repository
+with external reviewers. Check that the root README, docs index, GitHub description/topics, optional screenshot or GIF,
+and repository hygiene reflect the implemented product rather than future plans. Do not add open-source community files
+such as `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, or public issue templates unless the repository is intentionally made
+public.
+
 ## Frontend Chart Bundle Budget
 
 The frontend lazy-loads ECharts through `frontend/src/Chart.tsx`. The initial app chunk is expected to stay below
