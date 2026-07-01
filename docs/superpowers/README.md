@@ -5,7 +5,7 @@ documentation source. For current behavior, use the core docs in `docs/README.md
 
 Unchecked boxes inside files marked completed, historical, or superseded are original plan tracking, not current TODOs.
 
-Last reviewed: 2026-06-30.
+Last reviewed: 2026-07-01.
 
 ## Current Implementation Summary
 
@@ -33,6 +33,7 @@ Last reviewed: 2026-06-30.
 | `specs/2026-06-26-database-waitlist-design.md` | Completed | Waitlist storage, validation, and API behavior are implemented. |
 | `specs/2026-06-26-full-bitcoin-risk-source-parity-design.md` | Superseded | Earlier CoinGecko/source-stitch design is replaced by the canonical CoinMarketCap CSV source. |
 | `specs/2026-06-30-agent-access-demand-test-design.md` | Future-facing | Phase 9 experiment; not part of the production-pilot gate. |
+| `specs/2026-07-01-risk-methodology-research-design.md` | Future-facing | Phase 10 research track; v1 remains the production metric until evidence supports a versioned v2. |
 | `specs/2026-06-30-usb-server-kit-design.md` | Completed in repository | Templates and scripts exist under `server-kit/`; USB copy remains an operator action. |
 | `plans/2026-06-26-bitcoin-risk-brief-implementation.md` | Completed, historical | Some unchecked boxes reflect stale tracking, not current work. |
 | `plans/2026-06-26-canonical-risk-methodology-implementation.md` | Completed, historical | Current code uses Python 3.13 in CI and canonical CMC CSV data. |

@@ -52,6 +52,7 @@ Verified on 2026-07-01 from repository files, recent commit history, and public 
 | Phase 7: Backups, Restore, And Monitoring | Pending | Requires production backup schedule, off-server copy, restore drill, and alerts |
 | Phase 8: Launch Checklist And First Traffic Test | Pending; public API smoke partially complete | Requires waitlist smoke, browser/device pass on the public hostname, launch snapshot, and first traffic test |
 | Phase 9: Post-Launch Learning Loop | Pending | Starts after launch traffic creates usage evidence, including optional agent-access demand testing |
+| Phase 10: Risk Methodology Research | Pending | Starts only after launch evidence justifies method work; current production metric remains `crypto-scout-canonical-v1` |
 
 Current production-pilot progress after Phase 1-5:
 
@@ -321,6 +322,34 @@ Acceptance criteria:
 - The first agent-access experiment does not add new API, auth, billing, SDK, MCP, or SLA scope before demand is proven.
 - The next scope is a small validation step, not a general crypto dashboard.
 
+### Phase 10: Risk Methodology Research
+
+Status: Pending.
+
+Goal: evaluate whether the BTC risk metric can become more accurate, robust, or explainable without destabilizing the
+public product.
+
+Deliverables:
+
+- Keep `crypto-scout-canonical-v1` stable through the production pilot and initial demand test.
+- Define what "more accurate" means before changing any formula.
+- Compare the current methodology against candidate inputs only after launch evidence justifies research work.
+- Treat the Fear and Greed Index as external context or a confirmation signal, not as a default core-score component.
+- Research on-chain data as a possible future `crypto-scout-canonical-v2` input, starting with one durable
+  valuation-family candidate instead of a broad indicator basket.
+- Require any candidate data source to have historical coverage, licensing clarity, reproducible backfill, stable daily
+  updates, documented revision behavior, and operational failure behavior that does not break readiness.
+- If a new methodology wins, design it as a versioned v2 with side-by-side comparison, updated docs, API metadata, and
+  interpretation limits.
+
+Acceptance criteria:
+
+- No production metric change happens before there is launch usage evidence and a written research comparison.
+- Methodology decisions are based on defined quality criteria, not a general desire for a more complex formula.
+- Fear and Greed does not enter the core score unless later evidence overrides the current context-only recommendation.
+- On-chain candidates are evaluated for data quality and operational reliability before any production integration.
+- If evidence is weak, the product keeps `crypto-scout-canonical-v1` and avoids methodology churn.
+
 ## Working Order
 
 Recommended implementation order:
@@ -334,6 +363,7 @@ Recommended implementation order:
 7. Backups, Restore, And Monitoring.
 8. Launch Checklist And First Traffic Test.
 9. Post-Launch Learning Loop.
+10. Risk Methodology Research.
 
 ## Production-Pilot Gate
 
@@ -361,3 +391,4 @@ The project is ready for a first public production pilot when:
 - [Testing and Quality](testing-and-quality.md)
 - [Security and Privacy](security-and-privacy.md)
 - [Agent Access Demand Test Design](superpowers/specs/2026-06-30-agent-access-demand-test-design.md)
+- [Risk Methodology Research Design](superpowers/specs/2026-07-01-risk-methodology-research-design.md)
