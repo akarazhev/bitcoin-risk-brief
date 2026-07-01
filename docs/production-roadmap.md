@@ -73,6 +73,8 @@ Remaining production-pilot gaps:
 - confirm the production host runbook, `.env`, service path, and data-refresh workflow are the documented source of truth;
 - implement and verify scheduled public CoinMarketCap refresh so the production pilot can update nightly without a
   `COINMARKETCAP_API_KEY`;
+- measure first-load latency on cache misses and add public payload cache warmup or precomputed expensive payloads if the
+  first real user would otherwise pay the database/build cost after startup or nightly import;
 - decide whether to accept the current Cloudflare Free-plan subset for first traffic or upgrade/configure additional WAF,
   bot protection, and broader API burst-rate-limit controls;
 - daily backups, off-server copy, restore drill, and monitoring alerts still need to be configured and verified;
@@ -196,6 +198,8 @@ Deliverables:
   readiness.
 - Invalidate or refresh cached data after a successful collector/import run so users do not see stale risk data after the
   canonical CSV changes.
+- As a pre-traffic hardening follow-up, measure first-load latency for `X-Cache: MISS` responses and warm or precompute
+  standard public payloads if the first request after startup or nightly import is slow.
 - Document which endpoints must not be cached, especially `POST /api/waitlist`.
 - Configure Cloudflare WAF managed rules, bot protections appropriate for a public pilot, and edge rate limits for
   `/api/waitlist` and `/api/*`.
@@ -206,6 +210,8 @@ Acceptance criteria:
 
 - Repeated public page loads do not require unnecessary database work for unchanged daily data.
 - Cache behavior is observable and has a clear invalidation path after data refresh.
+- If first cache misses are slow, standard public payloads are warmed for the current validation version before active
+  traffic reaches the public hostname.
 - Waitlist submissions cannot be cached and still store server-side only.
 - Basic bot, spam, and burst-traffic tests are blocked or rate-limited without breaking normal page use.
 - Security and caching expectations are documented in `docs/security-and-privacy.md` and `docs/production-readiness.md`.
@@ -288,6 +294,8 @@ Deliverables:
   channel research justify them.
 - Capture the first production snapshot: commit, data date, readiness payload, and public hostname.
 - Confirm caching, bot protection, and edge rate limits are active.
+- Measure first public read latency for both `X-Cache: MISS` and `X-Cache: HIT`; if MISS latency is user-visible, apply
+  the Public Payload Cache Warmup And Precompute design before active traffic.
 - Confirm the first-traffic measurement path for visits, repeat-use estimate, source attribution, endpoint usage, and
   waitlist conversion. Existing backend access logs and Cloudflare analytics may be enough for the first snapshot, but
   persisted product analytics should follow the Product Analytics And Usage Attribution design before product decisions
@@ -312,6 +320,8 @@ Acceptance criteria:
 - Waitlist submission works and respects rate limiting.
 - The readiness endpoint is 200 at launch.
 - Cached public data remains consistent with the latest successful import.
+- First public page load after backend startup or nightly import does not expose users to slow database-backed cache
+  misses for the standard public payloads.
 - The product can measure waitlist conversion, repeat visits, source attribution, and endpoint demand without storing raw
   IP addresses or waitlist contact values in analytics events.
 - Enabled locales pass desktop and mobile QA without clipped text, overlapping UI, inconsistent no-advice framing, or
@@ -466,6 +476,7 @@ The project is ready for a first public production pilot when:
 - [Security and Privacy](security-and-privacy.md)
 - [Agent Access And Risk-Signal Licensing Demand Test Design](superpowers/specs/2026-06-30-agent-access-demand-test-design.md)
 - [Product Analytics And Usage Attribution Design](superpowers/specs/2026-07-01-product-analytics-usage-attribution-design.md)
+- [Public Payload Cache Warmup And Precompute Design](superpowers/specs/2026-07-01-public-payload-cache-warmup-precompute-design.md)
 - [Localization Quality And Language Expansion Design](superpowers/specs/2026-07-01-localization-quality-language-expansion-design.md)
 - [Scheduled Public CoinMarketCap Refresh Design](superpowers/specs/2026-07-01-scheduled-public-cmc-refresh-design.md)
 - [Risk Methodology Research Design](superpowers/specs/2026-07-01-risk-methodology-research-design.md)

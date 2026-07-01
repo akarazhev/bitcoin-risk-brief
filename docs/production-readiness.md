@@ -153,6 +153,11 @@ versioned from `btc_risk_validation`; after a successful import, the collector r
 read rebuilds against the new version. `POST /api/waitlist` must return `Cache-Control: no-store` and must not be cached
 by Cloudflare.
 
+Before active traffic, measure first-load latency for both backend `X-Cache: MISS` and `X-Cache: HIT` responses on the
+public hostname. If the first miss after backend startup or nightly import is user-visible, implement public payload
+cache warmup for the standard endpoint set and consider precomputing expensive payloads such as `/api/risk/levels`.
+Warmup must preserve `X-Cache-Version` invalidation and must not hide stale readiness.
+
 At the Cloudflare edge, respect origin cache headers for the public GET API paths and bypass `/api/waitlist`. If a launch
 snapshot must reflect a just-completed import immediately, purge the public hostname or wait for
 `PUBLIC_CACHE_MAX_AGE_SECONDS`.

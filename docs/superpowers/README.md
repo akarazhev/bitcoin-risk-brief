@@ -34,6 +34,7 @@ Last reviewed: 2026-07-01.
 | `specs/2026-06-26-full-bitcoin-risk-source-parity-design.md` | Superseded | Earlier CoinGecko/source-stitch design is replaced by the canonical CoinMarketCap CSV source. |
 | `specs/2026-06-30-agent-access-demand-test-design.md` | Future-facing | Phase 9 agent-access and risk-signal licensing experiment; not part of the production-pilot gate. |
 | `specs/2026-07-01-product-analytics-usage-attribution-design.md` | Future-facing | Phase 8/9 analytics track for source attribution, repeat-use measurement, and future API client usage. |
+| `specs/2026-07-01-public-payload-cache-warmup-precompute-design.md` | Future-facing | Phase 5/8 performance hardening for first-load cache warmup and expensive payload precompute. |
 | `specs/2026-07-01-localization-quality-language-expansion-design.md` | Future-facing | Phase 8 localization add-on for EN/RU copy polish, ES/DE launch scope, and deferred AR/ZH research. |
 | `specs/2026-07-01-scheduled-public-cmc-refresh-design.md` | Future-facing | Phase 6/7 operational hardening for nightly no-key public CoinMarketCap refresh. |
 | `specs/2026-07-01-risk-methodology-research-design.md` | Future-facing | Phase 10 research track; v1 remains the production metric until evidence supports a versioned v2. |

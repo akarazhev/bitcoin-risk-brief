@@ -185,6 +185,20 @@ Expected headers include `Cache-Control`, `ETag`, `X-Cache`, and `X-Cache-Versio
 curl -sD - -o /tmp/bitcoin-risk-latest.json http://localhost:3001/api/risk/latest
 ```
 
+Current implementation note: the backend public endpoint cache is lazy. The first request for a key after backend
+startup, TTL expiry, or a new `btc_risk_validation` marker returns `X-Cache: MISS` and rebuilds the payload from
+TimescaleDB. If first-load latency is user-visible, warm the standard public payloads before active traffic:
+
+- `/api/readiness`
+- `/api/risk/latest`
+- `/api/risk/history?limit=2000`
+- `/api/risk/levels`
+- `/api/brief/latest`
+
+The expensive first-miss candidate is `/api/risk/levels`, because it reads full OHLCV history and builds risk-level rows
+on demand. See
+[Public Payload Cache Warmup And Precompute Design](superpowers/specs/2026-07-01-public-payload-cache-warmup-precompute-design.md).
+
 Verify conditional revalidation:
 
 ```bash
