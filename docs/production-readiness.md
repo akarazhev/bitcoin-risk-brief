@@ -94,6 +94,8 @@ Before public launch, also complete and record:
 - launch operations and governance posture: privacy/terms/disclaimer copy, post-waitlist handling, dependency/security
   maintenance cadence, credential/account ownership, resource monitoring, data-source terms, accessibility, metadata,
   and incident response notes;
+- release feedback and operational evidence posture: release notes or decision log, first-user feedback review path,
+  support/contact identity, dependency-license review, and launch/backup/restore evidence;
 - documentation hygiene pass across roadmap, data pipeline, security, testing, operations, and deployment docs;
 - after implementation freeze, a private/portfolio presentation pass covering the root README, docs index, sibling
   product-ideas brief, GitHub description/topics, optional screenshot or GIF, and repository hygiene.
@@ -231,6 +233,8 @@ Still required before treating the pilot as publicly launched:
 - Complete or explicitly defer the launch operations and governance checklist: privacy/terms, post-waitlist handling,
   credential ownership, resource monitoring, dependency/security maintenance, data-source terms, accessibility,
   SEO/social metadata, and incident response.
+- Complete or explicitly defer the release feedback and operational evidence checklist: release notes or decision log,
+  first-user feedback path, support/contact identity, dependency-license review, and launch/backup/restore evidence.
 - Complete the documentation and portfolio presentation pass, including the sibling product-ideas brief, if the
   repository will be shown as a private/portfolio project.
 - Capture the launch snapshot and run the first small traffic test.

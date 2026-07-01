@@ -324,6 +324,8 @@ Deliverables:
   channel research justify them.
 - Complete the Launch Operations And Governance checklist: privacy/terms/disclaimer posture, post-waitlist workflow,
   data-source terms and attribution, accessibility pass, SEO/social metadata, and launch incident response notes.
+- Complete the Release Feedback And Operational Evidence checklist: release notes or decision log, first-user feedback
+  review path, support/contact identity, dependency-license review, and launch/backup/restore evidence.
 - Capture the first production snapshot: commit, data date, readiness payload, and public hostname.
 - Confirm caching, bot protection, and edge rate limits are active.
 - Measure first public read latency for both `X-Cache: MISS` and `X-Cache: HIT`; if MISS latency is user-visible, apply
@@ -348,7 +350,7 @@ Progress recorded on 2026-07-01:
 
 Still pending for Phase 8: waitlist production smoke, browser/device pass on the public hostname, localization add-on if
 accepted for pre-traffic scope, documentation and portfolio presentation pass after implementation freeze, launch
-snapshot, and first traffic test.
+snapshot, release/feedback/evidence checklist, and first traffic test.
 
 Acceptance criteria:
 
@@ -367,6 +369,8 @@ Acceptance criteria:
   broken waitlist locale attribution.
 - Privacy, waitlist handling, account ownership, dependency maintenance, accessibility, metadata, data-source terms, and
   incident-response expectations are documented before broad external exposure.
+- Release notes, key product decisions, support/contact path, dependency-license review, first-user feedback review, and
+  launch/backup/restore evidence are documented before broader external exposure.
 
 ### Phase 9: Post-Launch Learning Loop
 

@@ -30,6 +30,8 @@ Last reviewed: 2026-07-01.
   portfolio repository, not an open-source community launch.
 - A launch operations and governance checklist is planned for privacy/terms, waitlist handling, credential ownership,
   resource monitoring, accessibility, metadata, data-source terms, dependency maintenance, and incident response.
+- A release feedback and operational evidence checklist is planned to capture decision memory, first-user feedback,
+  contact handling, dependency-license review, and launch/restore evidence without creating a new product phase.
 
 ## Status
 
@@ -45,6 +47,7 @@ Last reviewed: 2026-07-01.
 | `specs/2026-07-01-public-payload-cache-warmup-precompute-design.md` | Future-facing | Phase 5/8 performance hardening for first-load cache warmup and expensive payload precompute. |
 | `specs/2026-07-01-price-model-input-ohlc-display-design.md` | Future-facing | Phase 8 UI/API polish for showing Model price, daily Low, and daily High in the first metrics strip. |
 | `specs/2026-07-01-launch-operations-governance-checklist-design.md` | Future-facing | Phase 7/8 launch completeness checklist for privacy, waitlist handling, ownership, monitoring, maintenance, accessibility, metadata, and incident response. |
+| `specs/2026-07-01-release-feedback-operational-evidence-design.md` | Future-facing | Phase 8 launch completeness add-on for release notes, decision log, first-user feedback, support contact, dependency-license review, and launch/restore evidence. |
 | `specs/2026-07-01-documentation-portfolio-presentation-design.md` | Future-facing | Phase 8 final documentation and private/portfolio repository presentation pass after implementation freeze. |
 | `specs/2026-07-01-localization-quality-language-expansion-design.md` | Future-facing | Phase 8 localization add-on for EN/RU copy polish, ES/DE launch scope, and deferred AR/ZH research. |
 | `specs/2026-07-01-scheduled-public-cmc-refresh-design.md` | Future-facing | Phase 6/7 operational hardening for nightly no-key public CoinMarketCap refresh. |
