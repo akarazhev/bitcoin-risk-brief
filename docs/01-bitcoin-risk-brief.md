@@ -149,7 +149,8 @@ endpoint, daily collector, production deployment docs, and EN/RU brief payloads.
 ### Confirmed Matches
 
 - Public Bitcoin risk page exists in the React frontend.
-- Latest BTC price, latest risk, and `low` / `neutral` / `high` state are exposed by `/api/risk/latest` and rendered in the hero.
+- Latest BTC model price, latest risk, and `low` / `neutral` / `high` state are exposed by `/api/risk/latest` and
+  rendered in the hero. The model price is HLC3, not a live spot or close-only price.
 - Recent risk change is exposed in `/api/brief/latest` as `delta_risk` and rendered as risk change versus the previous observation.
 - Historical context is covered by `/api/risk/history` and the risk history chart.
 - Risk-level price ladder is covered by `/api/risk/levels` and the risk levels chart.

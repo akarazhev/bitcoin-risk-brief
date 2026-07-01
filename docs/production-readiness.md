@@ -187,7 +187,7 @@ snapshot must reflect a just-completed import immediately, purge the public host
 
 Before public traffic, verify the page on current desktop Chrome, Safari, Firefox, mobile Safari, and mobile Chrome. The
 check should cover loading, degraded readiness, API errors, chart rendering, waitlist states, enabled-locale behavior,
-localized copy fit, and common mobile/desktop viewport widths.
+localized copy fit, first-viewport price model input labels, and common mobile/desktop viewport widths.
 
 The automated frontend smoke matrix and current results are recorded in [Frontend QA](frontend-qa.md). Treat that as the
 minimum automated check; repeat a short manual pass on the production hostname before public launch.

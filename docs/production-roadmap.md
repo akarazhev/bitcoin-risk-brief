@@ -302,6 +302,8 @@ Deliverables:
 - Submit a test waitlist lead and verify it is stored server-side.
 - Check desktop and mobile rendering on the public hostname.
 - Check the launch browser/device matrix and record any accepted limitations.
+- If the first-viewport price input polish is implemented before traffic, show `Model price`, `Low`, and `High` for the
+  latest completed daily candle without implying that HLC3 is a live spot or close-only price.
 - Complete the Phase 8 localization add-on if it is still in scope before active traffic: polish EN/RU copy, prepare the
   frontend for more than two locales, add ES/DE UI copy, and keep AR/ZH deferred until dedicated RTL, platform, and
   channel research justify them.
@@ -335,6 +337,7 @@ Acceptance criteria:
 - Cached public data remains consistent with the latest successful import.
 - First public page load after backend startup or nightly import does not expose users to slow database-backed cache
   misses for the standard public payloads.
+- The first-viewport price input labels the HLC3 value as `Model price` if daily `Low` and `High` are shown alongside it.
 - The product can measure waitlist conversion, repeat visits, source attribution, and endpoint demand without storing raw
   IP addresses or waitlist contact values in analytics events.
 - Enabled locales pass desktop and mobile QA without clipped text, overlapping UI, inconsistent no-advice framing, or

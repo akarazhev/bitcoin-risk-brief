@@ -35,6 +35,10 @@ The model price is:
 HLC3 = (high + low + close) / 3
 ```
 
+When the model price is displayed in the product or API docs, label it as `Model price` or HLC3 rather than a generic
+spot or close price. If daily high and low are displayed alongside it, `High` and `Low` refer to the same completed daily
+candle used to compute HLC3.
+
 ### Trend Deviation
 
 Trend deviation uses a 365-day EMA:

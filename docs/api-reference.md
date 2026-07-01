@@ -84,6 +84,10 @@ Response shape:
 
 Returns the latest stored risk point.
 
+`price_usd` is the HLC3 model price from the latest completed daily candle, not a spot price or close-only value. A
+planned UI/API polish pass may add explicit `model_price_usd`, `low_usd`, and `high_usd` fields while keeping
+`price_usd` as the backwards-compatible HLC3 alias.
+
 Response shape:
 
 ```json

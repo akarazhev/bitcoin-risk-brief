@@ -18,6 +18,8 @@ Last reviewed: 2026-07-01.
   rows after the CSV tail.
 - The public frontend fetches readiness, latest risk, history, levels, brief, and waitlist endpoints. It renders
   readiness/freshness, methodology metadata, no-advice disclaimer, and nearest `0.35`/`0.65` threshold callouts.
+- `price_usd` in the latest risk payload is the HLC3 model price; a planned UI/API polish pass may expose daily `Low`
+  and `High` next to an explicit `Model price` label.
 - Public read endpoints use backend cache headers and validation-versioned `ETag`s. `POST /api/waitlist` is no-store and
   application-rate-limited.
 - Server-kit scripts live under `server-kit/` and include bootstrap, optional `cloudflared` install, deploy, user service
@@ -37,6 +39,7 @@ Last reviewed: 2026-07-01.
 | `specs/2026-06-30-agent-access-demand-test-design.md` | Future-facing | Phase 9 agent-access and risk-signal licensing experiment; not part of the production-pilot gate. |
 | `specs/2026-07-01-product-analytics-usage-attribution-design.md` | Future-facing | Phase 8/9 analytics track for source attribution, repeat-use measurement, and future API client usage. |
 | `specs/2026-07-01-public-payload-cache-warmup-precompute-design.md` | Future-facing | Phase 5/8 performance hardening for first-load cache warmup and expensive payload precompute. |
+| `specs/2026-07-01-price-model-input-ohlc-display-design.md` | Future-facing | Phase 8 UI/API polish for showing Model price, daily Low, and daily High in the first metrics strip. |
 | `specs/2026-07-01-localization-quality-language-expansion-design.md` | Future-facing | Phase 8 localization add-on for EN/RU copy polish, ES/DE launch scope, and deferred AR/ZH research. |
 | `specs/2026-07-01-scheduled-public-cmc-refresh-design.md` | Future-facing | Phase 6/7 operational hardening for nightly no-key public CoinMarketCap refresh. |
 | `specs/2026-07-01-usb-update-install-kit-v2-design.md` | Future-facing | Phase 6/7 operational hardening for reproducible USB preparation, install/update flows, and backup-before-update. |
