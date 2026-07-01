@@ -66,3 +66,8 @@ If a sandbox blocks local port binding or browser launch, rerun in an environmen
 The automated matrix uses Playwright browser engines and device profiles. Before public launch on the production
 hostname, repeat a short manual pass on available physical devices or real branded browsers, especially iOS Safari and
 Android Chrome, and record any accepted limitations here.
+
+If Phase 8 localization expansion is implemented before active traffic, repeat the launch pass for every enabled locale:
+English, Russian, Spanish, and German. Check long localized labels in buttons, badges, chart labels, waitlist states,
+degraded/error states, and mobile layouts. Arabic and Chinese remain disabled until separate RTL, Simplified/Traditional,
+platform, and channel requirements are documented and tested.

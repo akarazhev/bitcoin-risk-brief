@@ -273,6 +273,9 @@ Deliverables:
 - Submit a test waitlist lead and verify it is stored server-side.
 - Check desktop and mobile rendering on the public hostname.
 - Check the launch browser/device matrix and record any accepted limitations.
+- Complete the Phase 8 localization add-on if it is still in scope before active traffic: polish EN/RU copy, prepare the
+  frontend for more than two locales, add ES/DE UI copy, and keep AR/ZH deferred until dedicated RTL, platform, and
+  channel research justify them.
 - Capture the first production snapshot: commit, data date, readiness payload, and public hostname.
 - Confirm caching, bot protection, and edge rate limits are active.
 - Confirm the first-traffic measurement path for visits, repeat-use estimate, source attribution, endpoint usage, and
@@ -290,8 +293,8 @@ Progress recorded on 2026-07-01:
 - Conditional `GET https://bitcoinriskbrief.minihub.app/api/risk/latest` with `If-None-Match` returned 304 with
   `X-Cache: HIT`.
 
-Still pending for Phase 8: waitlist production smoke, browser/device pass on the public hostname, launch snapshot, and
-first traffic test.
+Still pending for Phase 8: waitlist production smoke, browser/device pass on the public hostname, localization add-on if
+accepted for pre-traffic scope, launch snapshot, and first traffic test.
 
 Acceptance criteria:
 
@@ -301,6 +304,8 @@ Acceptance criteria:
 - Cached public data remains consistent with the latest successful import.
 - The product can measure waitlist conversion, repeat visits, source attribution, and endpoint demand without storing raw
   IP addresses or waitlist contact values in analytics events.
+- Enabled locales pass desktop and mobile QA without clipped text, overlapping UI, inconsistent no-advice framing, or
+  broken waitlist locale attribution.
 
 ### Phase 9: Post-Launch Learning Loop
 
@@ -450,5 +455,6 @@ The project is ready for a first public production pilot when:
 - [Security and Privacy](security-and-privacy.md)
 - [Agent Access And Risk-Signal Licensing Demand Test Design](superpowers/specs/2026-06-30-agent-access-demand-test-design.md)
 - [Product Analytics And Usage Attribution Design](superpowers/specs/2026-07-01-product-analytics-usage-attribution-design.md)
+- [Localization Quality And Language Expansion Design](superpowers/specs/2026-07-01-localization-quality-language-expansion-design.md)
 - [Risk Methodology Research Design](superpowers/specs/2026-07-01-risk-methodology-research-design.md)
 - [Distribution Channel Research Design](superpowers/specs/2026-07-01-distribution-channel-research-design.md)

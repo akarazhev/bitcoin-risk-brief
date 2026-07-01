@@ -175,11 +175,15 @@ snapshot must reflect a just-completed import immediately, purge the public host
 ## Browser And Device Gate
 
 Before public traffic, verify the page on current desktop Chrome, Safari, Firefox, mobile Safari, and mobile Chrome. The
-check should cover loading, degraded readiness, API errors, chart rendering, waitlist states, locale behavior, and common
-mobile/desktop viewport widths.
+check should cover loading, degraded readiness, API errors, chart rendering, waitlist states, enabled-locale behavior,
+localized copy fit, and common mobile/desktop viewport widths.
 
 The automated frontend smoke matrix and current results are recorded in [Frontend QA](frontend-qa.md). Treat that as the
 minimum automated check; repeat a short manual pass on the production hostname before public launch.
+
+If the Phase 8 localization add-on is implemented before active traffic, include English, Russian, Spanish, and German in
+the browser/device pass. Arabic and Chinese should remain disabled until their separate right-to-left, Simplified versus
+Traditional, platform, and channel requirements are documented and tested.
 
 ## Remaining External Operations
 

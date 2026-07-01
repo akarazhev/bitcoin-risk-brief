@@ -180,11 +180,17 @@ The check should cover:
 - readiness/freshness badge and degraded-data copy;
 - risk history and risk levels charts rendering non-empty and within their containers;
 - waitlist form validation, success, and rate-limited/error states;
-- locale switching if enabled on the page;
+- locale switching for every enabled locale;
+- localized copy fit for every enabled locale, including buttons, badges, brief panels, chart labels, waitlist states, and
+  degraded/error states;
 - text wrapping, spacing, contrast, and no overlapping UI at target widths.
 
 Automated smoke checks should cover the highest-risk layout and chart failures. Manual QA can cover browser-specific
 visual polish until the project has a broader e2e suite.
+
+If Phase 8 localization expansion is implemented before active traffic, run the launch matrix for English, Russian,
+Spanish, and German. Do not enable Arabic until right-to-left behavior is explicitly tested. Do not enable Chinese until
+the Simplified/Traditional scope and channel strategy are decided.
 
 Current frontend QA results are recorded in [Frontend QA](frontend-qa.md).
 
