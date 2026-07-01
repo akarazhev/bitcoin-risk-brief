@@ -79,6 +79,36 @@ Any candidate data source must have:
 If those conditions are not met, the input should remain a research-only comparison and not enter the production risk
 metric.
 
+## Open Data And Node Strategy
+
+Start Phase 10 with open data and public APIs, not with a self-hosted Bitcoin node or paid data subscription.
+
+The first research pass should:
+
+- collect candidate daily series from free or openly accessible sources;
+- store fetched research data locally so comparisons are reproducible;
+- record the source URL, retrieval date, terms or attribution requirements, and observed API behavior;
+- separate research-only data from the production `coinmarketcap_csv` source;
+- avoid adding candidate data to `/api/readiness` until the source is production-approved.
+
+Initial source notes:
+
+- Alternative.me exposes a public Fear and Greed API at `https://api.alternative.me/fng/` and documents attribution and
+  commercial-use rules on its Fear and Greed page. This source is suitable for context research, not as a default
+  core-score input.
+- Coin Metrics Community API can return some basic BTC daily metrics without credentials, such as `PriceUSD` and
+  `TxCnt`, but realized-cap style metrics such as `CapRealUSD` may require credentials or a paid plan. Treat realized
+  cap, MVRV, realized price, NUPL, and SOPR-style data as source-dependent until access and licensing are confirmed.
+- A Bitcoin full node validates blocks and transactions, but it does not directly provide MVRV, realized cap, NUPL, or
+  SOPR. Those metrics require an indexer, historical price data, and a separate calculation pipeline.
+
+Do not run a Bitcoin node for the first methodology research pass. A node becomes relevant only if the project decides it
+needs an independent production-grade on-chain data source and is ready to operate the required indexer, storage,
+backfills, validation, monitoring, and backups.
+
+For now, a self-hosted node is a non-goal for Phase 10 research. If node-backed research is later justified, document it
+as a separate infrastructure project before implementation.
+
 ## Versioning Rules
 
 Do not silently change `crypto-scout-canonical-v1`.
@@ -101,6 +131,8 @@ version label.
 This phase does not include:
 
 - changing the production metric before launch;
+- requiring a self-hosted Bitcoin node for the first research pass;
+- depending on paid data before open-data candidates have been evaluated;
 - adding many indicators at once;
 - turning the product into a chart catalog;
 - using Fear and Greed as a default core score input;
@@ -110,6 +142,8 @@ This phase does not include:
 ## Deliverables
 
 - A research note defining the accuracy and quality criteria for the BTC risk metric.
+- An open-data source review covering API access, licensing, attribution, history depth, update behavior, and whether a
+  self-hosted node is necessary.
 - A short candidate list covering v1 baseline, Fear and Greed context, and one on-chain valuation-family candidate.
 - A reproducible historical comparison against `crypto-scout-canonical-v1`.
 - A recommendation to keep v1, publish a context-only signal, or design a `crypto-scout-canonical-v2` implementation.
@@ -119,5 +153,7 @@ This phase does not include:
 - The current production methodology remains stable through the public pilot.
 - Any proposed v2 has better evidence than "it might be more accurate."
 - Candidate data sources meet operational and licensing requirements before production use.
+- The first research pass can run without paid data and without a self-hosted Bitcoin node, unless a written source
+  review proves that a node-backed pipeline is necessary.
 - The output remains explainable and consistent with the product's no-financial-advice positioning.
 - If evidence is weak, the decision is to keep v1 and avoid expanding methodology scope.

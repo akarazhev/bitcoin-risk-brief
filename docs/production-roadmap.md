@@ -337,6 +337,10 @@ Deliverables:
 - Treat the Fear and Greed Index as external context or a confirmation signal, not as a default core-score component.
 - Research on-chain data as a possible future `crypto-scout-canonical-v2` input, starting with one durable
   valuation-family candidate instead of a broad indicator basket.
+- Start with open or free data sources and document access, licensing, attribution, history depth, and update behavior
+  before considering paid data or node-backed infrastructure.
+- Treat a self-hosted Bitcoin node as unnecessary for the first research pass because MVRV, realized cap, NUPL, and
+  SOPR-style metrics require an indexer, historical prices, and a separate calculation pipeline beyond raw node data.
 - Require any candidate data source to have historical coverage, licensing clarity, reproducible backfill, stable daily
   updates, documented revision behavior, and operational failure behavior that does not break readiness.
 - If a new methodology wins, design it as a versioned v2 with side-by-side comparison, updated docs, API metadata, and
@@ -348,6 +352,8 @@ Acceptance criteria:
 - Methodology decisions are based on defined quality criteria, not a general desire for a more complex formula.
 - Fear and Greed does not enter the core score unless later evidence overrides the current context-only recommendation.
 - On-chain candidates are evaluated for data quality and operational reliability before any production integration.
+- The first research pass does not require paid data or a self-hosted node unless the source review justifies that
+  infrastructure.
 - If evidence is weak, the product keeps `crypto-scout-canonical-v1` and avoids methodology churn.
 
 ## Working Order
