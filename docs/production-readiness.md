@@ -91,6 +91,9 @@ Before public launch, also complete and record:
 - cache policy for public read endpoints;
 - Cloudflare WAF, bot protection, cache rules, and edge rate limits rendered and applied with
   `scripts/cloudflare_edge_rules.py`, plus dashboard bot protection enabled where required by the Cloudflare plan;
+- launch operations and governance posture: privacy/terms/disclaimer copy, post-waitlist handling, dependency/security
+  maintenance cadence, credential/account ownership, resource monitoring, data-source terms, accessibility, metadata,
+  and incident response notes;
 - documentation hygiene pass across roadmap, data pipeline, security, testing, operations, and deployment docs;
 - after implementation freeze, a private/portfolio presentation pass covering the root README, docs index, sibling
   product-ideas brief, GitHub description/topics, optional screenshot or GIF, and repository hygiene.
@@ -225,6 +228,9 @@ Still required before treating the pilot as publicly launched:
   collector logs containing scheduled/public/API refresh failures.
 - Complete a short browser/device QA pass on the public hostname.
 - Submit a deliberate test waitlist lead and verify it is stored server-side without caching the response.
+- Complete or explicitly defer the launch operations and governance checklist: privacy/terms, post-waitlist handling,
+  credential ownership, resource monitoring, dependency/security maintenance, data-source terms, accessibility,
+  SEO/social metadata, and incident response.
 - Complete the documentation and portfolio presentation pass, including the sibling product-ideas brief, if the
   repository will be shown as a private/portfolio project.
 - Capture the launch snapshot and run the first small traffic test.

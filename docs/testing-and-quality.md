@@ -220,6 +220,14 @@ description/topics, optional screenshot or GIF, and repository hygiene reflect t
 future plans. Do not add open-source community files such as `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, or public issue
 templates unless the repository is intentionally made public.
 
+Before public traffic, also run a launch operations and governance checklist. Confirm that privacy/terms/disclaimer
+copy, post-waitlist handling, dependency/security maintenance cadence, credential ownership, data-source terms,
+SEO/social metadata, accessibility, and incident response notes are current or explicitly accepted as launch
+limitations.
+
+For the accessibility pass, check keyboard navigation, visible focus states, form labels and errors, chart context text,
+color contrast, mobile text fit, and screen-reader labels for language switch, waitlist, readiness, and charts.
+
 ## Frontend Chart Bundle Budget
 
 The frontend lazy-loads ECharts through `frontend/src/Chart.tsx`. The initial app chunk is expected to stay below

@@ -18,6 +18,8 @@ Production-pilot readiness means:
 - the user interface has been checked across the target browsers, screen sizes, and devices;
 - product, operations, security, testing, and data-pipeline docs are current and agree with the implemented system;
 - the deployed stack can be updated, monitored, backed up, restored, and rolled back;
+- launch governance is explicit: privacy/terms posture, waitlist handling, credential ownership, resource monitoring,
+  dependency maintenance, data-source terms, accessibility, and incident response are documented;
 - USB-based updates and fresh installs can be prepared reproducibly without copying local secrets, dependency caches, or
   stale build artifacts;
 - after implementation stabilizes, the private or portfolio repository has a professional README, current docs, and
@@ -85,6 +87,8 @@ Remaining production-pilot gaps:
 - decide whether to accept the current Cloudflare Free-plan subset for first traffic or upgrade/configure additional WAF,
   bot protection, and broader API burst-rate-limit controls;
 - daily backups, off-server copy, restore drill, and monitoring alerts still need to be configured and verified;
+- privacy/terms posture, post-waitlist handling, dependency/security maintenance, resource monitoring, credential
+  ownership, accessibility, metadata, data-source terms, and incident response need a launch completeness pass;
 - a launch snapshot, waitlist test, browser/device check on the public hostname, and first traffic test still need to run;
 - post-launch learning cannot start until real usage and waitlist evidence exist.
 
@@ -280,6 +284,14 @@ Deliverables:
 - Alert when the scheduled public CoinMarketCap refresh fails, when optional API fallback is used after a public-download
   failure, or when `/api/readiness` is stale after the nightly update window.
 - Monitor Cloudflare Tunnel connector health.
+- Document credential/account ownership and recovery paths for GitHub, Cloudflare, domain, production `.env`, backups,
+  server access, and optional CoinMarketCap API credentials.
+- Define a dependency and security maintenance cadence for container images, Python packages, npm packages, GitHub
+  Actions, and vulnerability or secret scans.
+- Track disk usage, database volume growth, backup directory growth, container restart loops, domain ownership, and
+  infrastructure cost/resource limits.
+- Create a short incident response runbook for readiness degradation, data refresh failures, waitlist failures,
+  Cloudflare Tunnel issues, stale cache, backup failures, and disk pressure.
 
 Acceptance criteria:
 
@@ -290,6 +302,7 @@ Acceptance criteria:
 - Scheduled no-key refresh failures are visible in collector logs and alerts, and failed downloads do not rewrite the
   canonical CSV.
 - Operators know how to inspect collector, backend, frontend, and database logs.
+- Operators know who owns production credentials and what to do in the first 15 minutes of common incidents.
 
 ### Phase 8: Launch Checklist And First Traffic Test
 
@@ -309,6 +322,8 @@ Deliverables:
 - Complete the Phase 8 localization add-on if it is still in scope before active traffic: polish EN/RU copy, prepare the
   frontend for more than two locales, add ES/DE UI copy, and keep AR/ZH deferred until dedicated RTL, platform, and
   channel research justify them.
+- Complete the Launch Operations And Governance checklist: privacy/terms/disclaimer posture, post-waitlist workflow,
+  data-source terms and attribution, accessibility pass, SEO/social metadata, and launch incident response notes.
 - Capture the first production snapshot: commit, data date, readiness payload, and public hostname.
 - Confirm caching, bot protection, and edge rate limits are active.
 - Measure first public read latency for both `X-Cache: MISS` and `X-Cache: HIT`; if MISS latency is user-visible, apply
@@ -350,6 +365,8 @@ Acceptance criteria:
   IP addresses or waitlist contact values in analytics events.
 - Enabled locales pass desktop and mobile QA without clipped text, overlapping UI, inconsistent no-advice framing, or
   broken waitlist locale attribution.
+- Privacy, waitlist handling, account ownership, dependency maintenance, accessibility, metadata, data-source terms, and
+  incident-response expectations are documented before broad external exposure.
 
 ### Phase 9: Post-Launch Learning Loop
 
@@ -489,6 +506,7 @@ The project is ready for a first public production pilot when:
 - browser/device QA has been completed for the launch matrix;
 - project documentation has been cleaned up and matches the launch configuration;
 - the private or portfolio repository presentation has been reviewed if the project will be shown to external reviewers;
+- launch operations and governance checklist items are either completed or explicitly accepted as limitations;
 - a rollback path has been verified or rehearsed.
 
 ## Related Docs
@@ -502,6 +520,7 @@ The project is ready for a first public production pilot when:
 - [Agent Access And Risk-Signal Licensing Demand Test Design](superpowers/specs/2026-06-30-agent-access-demand-test-design.md)
 - [Product Analytics And Usage Attribution Design](superpowers/specs/2026-07-01-product-analytics-usage-attribution-design.md)
 - [Public Payload Cache Warmup And Precompute Design](superpowers/specs/2026-07-01-public-payload-cache-warmup-precompute-design.md)
+- [Launch Operations And Governance Checklist Design](superpowers/specs/2026-07-01-launch-operations-governance-checklist-design.md)
 - [Documentation And Portfolio Presentation Design](superpowers/specs/2026-07-01-documentation-portfolio-presentation-design.md)
 - [Localization Quality And Language Expansion Design](superpowers/specs/2026-07-01-localization-quality-language-expansion-design.md)
 - [Scheduled Public CoinMarketCap Refresh Design](superpowers/specs/2026-07-01-scheduled-public-cmc-refresh-design.md)

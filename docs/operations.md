@@ -307,6 +307,37 @@ curl -fsS http://localhost:3001/api/readiness
 
 Take the public app offline before restoring production data. TimescaleDB may print circular foreign-key warnings during backup; treat them as informational only when `scripts/backup.sh` exits with code 0.
 
+## Resource And Ownership Checks
+
+Before active traffic, record the operator and recovery path for:
+
+- GitHub repository access;
+- Cloudflare account, tunnel, zone, and API token;
+- domain registration if a custom domain is used;
+- production `.env` storage;
+- backup storage;
+- server login or physical access;
+- optional CoinMarketCap API credentials.
+
+Operational review should also check disk usage, database volume growth, backup directory growth, container restart
+loops, Cloudflare Tunnel connector health, public hostname availability, and any infrastructure cost or resource limits.
+
+## First-Response Runbook
+
+Create or maintain a short incident note for these cases:
+
+- `/api/readiness` is degraded or non-200;
+- scheduled data refresh fails;
+- CoinMarketCap public download fails;
+- waitlist submission fails;
+- Cloudflare Tunnel is down;
+- public cache appears stale after an import;
+- backup fails;
+- database volume or disk space is close to full.
+
+Each note should name where to look first, which command or dashboard to check, and which action is safe for the operator
+to take without risking data loss.
+
 ## Database Checks
 
 Check latest source/risk coverage:

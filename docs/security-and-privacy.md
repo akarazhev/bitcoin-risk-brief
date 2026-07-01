@@ -46,6 +46,10 @@ Waitlist contacts are stored in PostgreSQL. The frontend does not store submitte
 
 The product currently has no authentication and no user accounts. Waitlist contacts are operational lead data and should be handled as PII.
 
+Before active traffic, decide and document the public privacy posture for waitlist contacts: how long contacts are kept,
+who can access them, how manual outreach works, and how a user can unsubscribe or request deletion. If the project adds
+email or Telegram delivery later, update this section before sending recurring messages.
+
 ## Product Analytics Privacy
 
 Future persisted product analytics should collect only the fields needed to understand demand and abuse patterns. The
@@ -71,6 +75,31 @@ the need, consent basis, retention policy, and operator access controls.
 If raw analytics events are introduced, retain them only briefly, for example 30-90 days, then keep aggregate daily stats
 that do not contain contact values, raw IPs, or full user-agent strings. Future professional API usage tracking should
 identify products or agents through API client records and key identifiers or hashes, not through raw IP addresses.
+
+If a separate privacy policy or terms note is published for the public page, it should summarize these analytics and
+waitlist choices without implying financial advice, investment advice, or trading recommendations.
+
+## Account And Credential Ownership
+
+Do not store production secrets in this repository. Before production or portfolio review, document where access is
+managed for:
+
+- GitHub repository permissions;
+- Cloudflare account, zone, tunnel, and API token;
+- domain registration if a custom domain is used;
+- production `.env` storage;
+- backup storage;
+- server login or physical access;
+- optional CoinMarketCap API key.
+
+The ownership note should identify recovery paths and responsible operators, not secret values.
+
+## Data Source Terms And Attribution
+
+Before a data source becomes production-critical or enters methodology research, record the source URL, retrieval method,
+observed availability limits, licensing or terms notes, attribution requirements, and fallback behavior. This applies to
+CoinMarketCap public CSV use, optional CoinMarketCap API use, and future research sources such as Alternative.me or Coin
+Metrics.
 
 ## Rate Limiting
 
@@ -168,4 +197,7 @@ Before public launch, configure:
 - alerts on `/api/readiness` failures;
 - edge/WAF rate limiting if exposed publicly;
 - bot/spam controls for the waitlist flow;
-- the accepted cache policy for public read endpoints.
+- the accepted cache policy for public read endpoints;
+- privacy/terms/disclaimer posture and waitlist contact handling;
+- production credential ownership and recovery paths;
+- data-source terms and attribution notes.
