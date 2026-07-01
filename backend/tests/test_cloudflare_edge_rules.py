@@ -61,6 +61,44 @@ class CloudflareEdgeRulesPlanTest(unittest.TestCase):
 
         self.assertIn('http.host eq "risk.\\"example\\".com"', expression)
 
+    def test_plan_can_skip_managed_waf_for_free_plan_zones(self) -> None:
+        plan = cloudflare_edge_rules.build_edge_ruleset_plan("risk.example.com", include_managed_waf=False)
+
+        self.assertNotIn("http_request_firewall_managed", plan)
+        self.assertEqual(
+            set(plan),
+            {
+                "http_request_firewall_custom",
+                "http_ratelimit",
+                "http_request_cache_settings",
+            },
+        )
+
+    def test_plan_can_keep_only_waitlist_rate_limit_for_free_plan_zones(self) -> None:
+        plan = cloudflare_edge_rules.build_edge_ruleset_plan("risk.example.com", include_api_rate_limit=False)
+
+        rate_rules = plan["http_ratelimit"]["rules"]
+        self.assertEqual(len(rate_rules), 1)
+        self.assertEqual(rate_rules[0]["ref"], "bitcoin-risk-brief:waitlist-rate-limit")
+        self.assertIn('http.request.uri.path eq "/api/waitlist"', rate_rules[0]["expression"])
+
+    def test_plan_can_use_cloudflare_free_plan_rate_limit_period(self) -> None:
+        plan = cloudflare_edge_rules.build_edge_ruleset_plan("risk.example.com", rate_limit_period_seconds=10)
+
+        rate_rules = plan["http_ratelimit"]["rules"]
+        self.assertEqual(rate_rules[0]["ratelimit"]["period"], 10)
+        self.assertEqual(rate_rules[1]["ratelimit"]["period"], 10)
+
+    def test_plan_can_use_cloudflare_free_plan_mitigation_timeout(self) -> None:
+        plan = cloudflare_edge_rules.build_edge_ruleset_plan(
+            "risk.example.com",
+            rate_limit_mitigation_timeout_seconds=10,
+        )
+
+        rate_rules = plan["http_ratelimit"]["rules"]
+        self.assertEqual(rate_rules[0]["ratelimit"]["mitigation_timeout"], 10)
+        self.assertEqual(rate_rules[1]["ratelimit"]["mitigation_timeout"], 10)
+
     def test_merge_replaces_only_owned_rules_and_preserves_existing_rules(self) -> None:
         desired = cloudflare_edge_rules.build_edge_ruleset_plan("risk.example.com")["http_ratelimit"]
         existing = {
@@ -129,6 +167,119 @@ class CloudflareEdgeRulesPlanTest(unittest.TestCase):
         self.assertEqual(updated_rules[1]["ref"], "bitcoin-risk-brief:waitlist-rate-limit")
         self.assertIn("created http_request_firewall_managed", operations[0])
         self.assertIn("updated http_ratelimit", " ".join(operations))
+
+    def test_apply_plan_can_skip_managed_waf_for_free_plan_zones(self) -> None:
+        class FakeClient:
+            def __init__(self) -> None:
+                self.phases = []
+                self.created = []
+
+            def get_phase_entrypoint(self, zone_id, phase):
+                self.phases.append(phase)
+                return None
+
+            def create_ruleset(self, zone_id, payload):
+                self.created.append((zone_id, payload))
+
+            def update_ruleset(self, zone_id, ruleset_id, rules):
+                raise AssertionError("no existing entrypoints should be updated")
+
+        fake_client = FakeClient()
+
+        operations = cloudflare_edge_rules.apply_edge_plan(
+            "zone-123",
+            "risk.example.com",
+            fake_client,
+            include_managed_waf=False,
+        )
+
+        self.assertNotIn("http_request_firewall_managed", fake_client.phases)
+        self.assertEqual(len(fake_client.created), 3)
+        self.assertEqual(len(operations), 3)
+
+    def test_apply_plan_can_keep_only_waitlist_rate_limit_for_free_plan_zones(self) -> None:
+        class FakeClient:
+            def __init__(self) -> None:
+                self.rate_rules = None
+
+            def get_phase_entrypoint(self, zone_id, phase):
+                return None
+
+            def create_ruleset(self, zone_id, payload):
+                if payload["phase"] == "http_ratelimit":
+                    self.rate_rules = payload["rules"]
+
+            def update_ruleset(self, zone_id, ruleset_id, rules):
+                raise AssertionError("no existing entrypoints should be updated")
+
+        fake_client = FakeClient()
+
+        cloudflare_edge_rules.apply_edge_plan(
+            "zone-123",
+            "risk.example.com",
+            fake_client,
+            include_api_rate_limit=False,
+        )
+
+        self.assertIsNotNone(fake_client.rate_rules)
+        self.assertEqual(len(fake_client.rate_rules), 1)
+        self.assertEqual(fake_client.rate_rules[0]["ref"], "bitcoin-risk-brief:waitlist-rate-limit")
+
+    def test_apply_plan_can_use_cloudflare_free_plan_rate_limit_period(self) -> None:
+        class FakeClient:
+            def __init__(self) -> None:
+                self.rate_rules = None
+
+            def get_phase_entrypoint(self, zone_id, phase):
+                return None
+
+            def create_ruleset(self, zone_id, payload):
+                if payload["phase"] == "http_ratelimit":
+                    self.rate_rules = payload["rules"]
+
+            def update_ruleset(self, zone_id, ruleset_id, rules):
+                raise AssertionError("no existing entrypoints should be updated")
+
+        fake_client = FakeClient()
+
+        cloudflare_edge_rules.apply_edge_plan(
+            "zone-123",
+            "risk.example.com",
+            fake_client,
+            rate_limit_period_seconds=10,
+        )
+
+        self.assertIsNotNone(fake_client.rate_rules)
+        self.assertEqual(fake_client.rate_rules[0]["ratelimit"]["period"], 10)
+        self.assertEqual(fake_client.rate_rules[1]["ratelimit"]["period"], 10)
+
+    def test_apply_plan_can_use_cloudflare_free_plan_mitigation_timeout(self) -> None:
+        class FakeClient:
+            def __init__(self) -> None:
+                self.rate_rules = None
+
+            def get_phase_entrypoint(self, zone_id, phase):
+                return None
+
+            def create_ruleset(self, zone_id, payload):
+                if payload["phase"] == "http_ratelimit":
+                    self.rate_rules = payload["rules"]
+
+            def update_ruleset(self, zone_id, ruleset_id, rules):
+                raise AssertionError("no existing entrypoints should be updated")
+
+        fake_client = FakeClient()
+
+        cloudflare_edge_rules.apply_edge_plan(
+            "zone-123",
+            "risk.example.com",
+            fake_client,
+            rate_limit_mitigation_timeout_seconds=10,
+        )
+
+        self.assertIsNotNone(fake_client.rate_rules)
+        self.assertEqual(fake_client.rate_rules[0]["ratelimit"]["mitigation_timeout"], 10)
+        self.assertEqual(fake_client.rate_rules[1]["ratelimit"]["mitigation_timeout"], 10)
 
 
 if __name__ == "__main__":

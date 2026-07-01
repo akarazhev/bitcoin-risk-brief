@@ -70,10 +70,24 @@ def _waitlist_bot_expression(hostname: str) -> str:
 def build_edge_ruleset_plan(
     hostname: str,
     *,
+    include_managed_waf: bool = True,
+    include_api_rate_limit: bool = True,
+    rate_limit_period_seconds: int = 60,
+    rate_limit_mitigation_timeout_seconds: int | None = None,
     waitlist_requests_per_minute: int = 5,
     api_requests_per_minute: int = 120,
 ) -> dict[str, dict[str, Any]]:
-    return {
+    waitlist_mitigation_timeout = (
+        rate_limit_mitigation_timeout_seconds
+        if rate_limit_mitigation_timeout_seconds is not None
+        else 600
+    )
+    api_mitigation_timeout = (
+        rate_limit_mitigation_timeout_seconds
+        if rate_limit_mitigation_timeout_seconds is not None
+        else 300
+    )
+    plan = {
         "http_request_firewall_managed": {
             "name": "Bitcoin Risk Brief - WAF managed rules",
             "description": "Execute Cloudflare managed WAF rules for the public Bitcoin Risk Brief hostname.",
@@ -126,9 +140,9 @@ def build_edge_ruleset_plan(
                     },
                     "ratelimit": {
                         "characteristics": ["ip.src", "cf.colo.id"],
-                        "period": 60,
+                        "period": rate_limit_period_seconds,
                         "requests_per_period": waitlist_requests_per_minute,
-                        "mitigation_timeout": 600,
+                        "mitigation_timeout": waitlist_mitigation_timeout,
                         "requests_to_origin": True,
                     },
                 },
@@ -147,9 +161,9 @@ def build_edge_ruleset_plan(
                     },
                     "ratelimit": {
                         "characteristics": ["ip.src", "cf.colo.id"],
-                        "period": 60,
+                        "period": rate_limit_period_seconds,
                         "requests_per_period": api_requests_per_minute,
-                        "mitigation_timeout": 300,
+                        "mitigation_timeout": api_mitigation_timeout,
                         "requests_to_origin": True,
                     },
                 },
@@ -184,6 +198,15 @@ def build_edge_ruleset_plan(
             ],
         },
     }
+    if not include_managed_waf:
+        del plan["http_request_firewall_managed"]
+    if not include_api_rate_limit:
+        plan["http_ratelimit"]["rules"] = [
+            rule
+            for rule in plan["http_ratelimit"]["rules"]
+            if rule["ref"] == f"{OWNED_RULE_PREFIX}waitlist-rate-limit"
+        ]
+    return plan
 
 
 def merge_rules(existing_ruleset: dict[str, Any] | None, desired_ruleset: dict[str, Any]) -> list[dict[str, Any]]:
@@ -197,8 +220,21 @@ def merge_rules(existing_ruleset: dict[str, Any] | None, desired_ruleset: dict[s
     return existing_rules + list(desired_ruleset["rules"])
 
 
-def render_edge_plan(hostname: str) -> str:
-    plan = build_edge_ruleset_plan(hostname)
+def render_edge_plan(
+    hostname: str,
+    *,
+    include_managed_waf: bool = True,
+    include_api_rate_limit: bool = True,
+    rate_limit_period_seconds: int = 60,
+    rate_limit_mitigation_timeout_seconds: int | None = None,
+) -> str:
+    plan = build_edge_ruleset_plan(
+        hostname,
+        include_managed_waf=include_managed_waf,
+        include_api_rate_limit=include_api_rate_limit,
+        rate_limit_period_seconds=rate_limit_period_seconds,
+        rate_limit_mitigation_timeout_seconds=rate_limit_mitigation_timeout_seconds,
+    )
     rendered = {
         "hostname": hostname,
         "rulesets": plan,
@@ -262,9 +298,24 @@ class CloudflareApiClient:
         return self.request_json("PUT", f"/zones/{zone_id}/rulesets/{ruleset_id}", {"rules": rules})
 
 
-def apply_edge_plan(zone_id: str, hostname: str, client: CloudflareApiClient) -> list[str]:
+def apply_edge_plan(
+    zone_id: str,
+    hostname: str,
+    client: CloudflareApiClient,
+    *,
+    include_managed_waf: bool = True,
+    include_api_rate_limit: bool = True,
+    rate_limit_period_seconds: int = 60,
+    rate_limit_mitigation_timeout_seconds: int | None = None,
+) -> list[str]:
     operations: list[str] = []
-    for phase, desired_ruleset in build_edge_ruleset_plan(hostname).items():
+    for phase, desired_ruleset in build_edge_ruleset_plan(
+        hostname,
+        include_managed_waf=include_managed_waf,
+        include_api_rate_limit=include_api_rate_limit,
+        rate_limit_period_seconds=rate_limit_period_seconds,
+        rate_limit_mitigation_timeout_seconds=rate_limit_mitigation_timeout_seconds,
+    ).items():
         existing = client.get_phase_entrypoint(zone_id, phase)
         rules = merge_rules(existing, desired_ruleset)
         if existing and existing.get("id"):
@@ -284,10 +335,54 @@ def main(argv: list[str] | None = None) -> int:
 
     render_parser = subparsers.add_parser("render", help="Print the desired Cloudflare edge rules JSON.")
     render_parser.add_argument("--hostname", required=True, help="Public hostname, for example risk.example.com")
+    render_parser.add_argument(
+        "--skip-managed-waf",
+        action="store_true",
+        help="Do not render the Cloudflare Managed Ruleset entrypoint. Use this when the zone plan is not entitled to execute it.",
+    )
+    render_parser.add_argument(
+        "--waitlist-rate-limit-only",
+        action="store_true",
+        help="Render only the waitlist rate-limit rule. Use this when the zone plan allows only one rate-limit rule.",
+    )
+    render_parser.add_argument(
+        "--rate-limit-period",
+        type=int,
+        default=60,
+        help="Cloudflare rate-limit period in seconds. Some plans only allow 10.",
+    )
+    render_parser.add_argument(
+        "--rate-limit-mitigation-timeout",
+        type=int,
+        default=None,
+        help="Cloudflare rate-limit mitigation timeout in seconds. Some plans only allow 10.",
+    )
 
     apply_parser = subparsers.add_parser("apply", help="Apply the desired rules through the Cloudflare Rulesets API.")
     apply_parser.add_argument("--hostname", required=True, help="Public hostname, for example risk.example.com")
     apply_parser.add_argument("--zone-id", required=True, help="Cloudflare zone ID")
+    apply_parser.add_argument(
+        "--skip-managed-waf",
+        action="store_true",
+        help="Do not apply the Cloudflare Managed Ruleset entrypoint. Use this when the zone plan is not entitled to execute it.",
+    )
+    apply_parser.add_argument(
+        "--waitlist-rate-limit-only",
+        action="store_true",
+        help="Apply only the waitlist rate-limit rule. Use this when the zone plan allows only one rate-limit rule.",
+    )
+    apply_parser.add_argument(
+        "--rate-limit-period",
+        type=int,
+        default=60,
+        help="Cloudflare rate-limit period in seconds. Some plans only allow 10.",
+    )
+    apply_parser.add_argument(
+        "--rate-limit-mitigation-timeout",
+        type=int,
+        default=None,
+        help="Cloudflare rate-limit mitigation timeout in seconds. Some plans only allow 10.",
+    )
     apply_parser.add_argument(
         "--api-token",
         default=os.getenv("CLOUDFLARE_API_TOKEN"),
@@ -296,7 +391,15 @@ def main(argv: list[str] | None = None) -> int:
 
     args = parser.parse_args(argv)
     if args.command == "render":
-        print(render_edge_plan(args.hostname))
+        print(
+            render_edge_plan(
+                args.hostname,
+                include_managed_waf=not args.skip_managed_waf,
+                include_api_rate_limit=not args.waitlist_rate_limit_only,
+                rate_limit_period_seconds=args.rate_limit_period,
+                rate_limit_mitigation_timeout_seconds=args.rate_limit_mitigation_timeout,
+            )
+        )
         return 0
 
     if not args.api_token:
@@ -304,7 +407,15 @@ def main(argv: list[str] | None = None) -> int:
         return 2
 
     client = CloudflareApiClient(args.api_token)
-    for operation in apply_edge_plan(args.zone_id, args.hostname, client):
+    for operation in apply_edge_plan(
+        args.zone_id,
+        args.hostname,
+        client,
+        include_managed_waf=not args.skip_managed_waf,
+        include_api_rate_limit=not args.waitlist_rate_limit_only,
+        rate_limit_period_seconds=args.rate_limit_period,
+        rate_limit_mitigation_timeout_seconds=args.rate_limit_mitigation_timeout,
+    ):
         print(operation)
     return 0
 
