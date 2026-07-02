@@ -345,6 +345,11 @@ restore or re-import from the last known-good CSV or backup, recompute risk and 
 and capture a correction note. During the free pilot, temporary downtime is preferable to knowingly serving a wrong risk
 value.
 
+For production imports, keep sanitized import provenance outside the repository. At minimum, record the source snapshot
+or staged source path, retrieval method, UTC import time, source `sha256`, source row count, covered date range, expected
+tail date, canonical CSV `sha256` after import, validation/readiness output, and cache evidence. Do not include secrets,
+waitlist contacts, raw analytics, or local `.env` values in provenance artifacts.
+
 ## Database Checks
 
 Check latest source/risk coverage:

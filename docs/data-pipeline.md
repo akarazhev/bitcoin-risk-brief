@@ -132,6 +132,28 @@ The public/downloaded CSV intake:
 The API delta refresh remains available for environments that have an API key, but the documented production-pilot path
 is valid with only the public/manual CSV workflows.
 
+## Import Provenance And Source Archive
+
+Production-pilot imports should keep sanitized import evidence outside the repository. Until an automated provenance
+feature exists, the operator should record this manually for production imports:
+
+- source type and retrieval method;
+- source URL or operator download page;
+- UTC retrieval/import timestamp;
+- staged source path;
+- source file `sha256`;
+- source file row count;
+- covered start and end date;
+- expected tail date;
+- canonical CSV `sha256` after import;
+- validation row count and covered end;
+- readiness payload after import;
+- cache headers for a standard public endpoint after import.
+
+Do not store `.env` values, API keys, Cloudflare tokens, waitlist contacts, raw analytics, browser profiles, or other PII
+in provenance artifacts. These artifacts support launch evidence, restore drills, bad-data correction notes, and future
+methodology research; they are not a public audit product.
+
 ## Delta Validation
 
 Remote deltas, public downloads, and downloaded CSV imports must exactly match the intended date range.

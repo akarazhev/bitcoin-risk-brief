@@ -34,6 +34,8 @@ Last reviewed: 2026-07-02.
   contact handling, dependency-license review, and launch/restore evidence without creating a new product phase.
 - A data correction and service-target policy is planned for bad CSV/import/risk incidents, correction notes, cache
   safety, freshness, RPO/RTO, and pilot downtime boundaries.
+- Import provenance and source archive evidence is planned for production data imports: source snapshot, `sha256`,
+  retrieval method, row count, covered range, validation/readiness output, and cache evidence.
 - Deferred Phase 9 gates are planned for email/Telegram outreach, paid beta or license experiments, account recovery,
   synthetic journey monitoring, and public trust artifacts.
 
@@ -53,6 +55,7 @@ Last reviewed: 2026-07-02.
 | `specs/2026-07-01-launch-operations-governance-checklist-design.md` | Future-facing | Phase 7/8 launch completeness checklist for privacy, waitlist handling, ownership, monitoring, maintenance, accessibility, metadata, and incident response. |
 | `specs/2026-07-01-release-feedback-operational-evidence-design.md` | Future-facing | Phase 8 launch completeness add-on for release notes, decision log, first-user feedback, support contact, dependency-license review, and launch/restore evidence. |
 | `specs/2026-07-02-data-correction-service-targets-design.md` | Future-facing | Phase 7/8 operational readiness gate for bad-data correction flow, correction notes, cache safety, freshness, RPO/RTO, and pilot downtime boundaries. |
+| `specs/2026-07-02-import-provenance-source-archive-design.md` | Future-facing | Phase 7/8 operational readiness gate for source snapshots, import manifests, hashes, retrieval metadata, validation/readiness output, and cache evidence. |
 | `specs/2026-07-01-email-paid-beta-trust-gates-design.md` | Future-facing | Phase 9 readiness gates before recurring outreach, first payments, license experiments, account recovery reliance, synthetic monitoring, or broader trust claims. |
 | `specs/2026-07-01-documentation-portfolio-presentation-design.md` | Future-facing | Phase 8 final documentation and private/portfolio repository presentation pass after implementation freeze. |
 | `specs/2026-07-01-localization-quality-language-expansion-design.md` | Future-facing | Phase 8 localization add-on for EN/RU copy polish, ES/DE launch scope, and deferred AR/ZH research. |

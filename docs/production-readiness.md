@@ -98,6 +98,8 @@ Before public launch, also complete and record:
   support/contact identity, dependency-license review, and launch/backup/restore evidence;
 - data correction and service-target posture: bad CSV/import/risk correction flow, correction-note rules, cache
   correction safety, freshness target, RPO/RTO boundaries, and pilot downtime tolerance;
+- import provenance and source archive posture: source snapshot, import manifest, `sha256`, retrieval metadata, row
+  count, covered range, expected tail, validation/readiness output, cache evidence, and storage outside the repository;
 - documentation hygiene pass across roadmap, data pipeline, security, testing, operations, and deployment docs;
 - after implementation freeze, a private/portfolio presentation pass covering the root README, docs index, sibling
   product-ideas brief, GitHub description/topics, optional screenshot or GIF, and repository hygiene.
@@ -239,6 +241,9 @@ Still required before treating the pilot as publicly launched:
   first-user feedback path, support/contact identity, dependency-license review, and launch/backup/restore evidence.
 - Complete or explicitly defer the data correction and service-target checklist: bad-data correction flow, correction
   note rules, cache correction safety, freshness target, RPO/RTO boundaries, and pilot downtime tolerance.
+- Complete or explicitly defer the import provenance and source archive checklist: source snapshot, import manifest,
+  `sha256`, retrieval metadata, row count, covered range, expected tail, validation/readiness output, cache evidence, and
+  storage outside the repository.
 - Complete the documentation and portfolio presentation pass, including the sibling product-ideas brief, if the
   repository will be shown as a private/portfolio project.
 - Capture the launch snapshot and run the first small traffic test.

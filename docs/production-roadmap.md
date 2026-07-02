@@ -294,6 +294,8 @@ Deliverables:
   Cloudflare Tunnel issues, stale cache, backup failures, and disk pressure.
 - Define a data correction and service-target policy for bad CSV/import/risk incidents, correction notes, cache safety,
   freshness, RPO/RTO, and pilot downtime boundaries.
+- Define an import provenance and source archive policy for production data imports: source snapshot, `sha256`,
+  retrieval method, row count, covered range, expected tail, validation/readiness output, and cache evidence.
 
 Acceptance criteria:
 
@@ -307,6 +309,8 @@ Acceptance criteria:
 - Operators know who owns production credentials and what to do in the first 15 minutes of common incidents.
 - Operators know how to classify and correct a published bad-data or wrong-risk incident without silently serving a
   known-wrong risk value.
+- Operators can identify which source file or download produced a production validation version and where its sanitized
+  evidence is stored.
 
 ### Phase 8: Launch Checklist And First Traffic Test
 
@@ -332,6 +336,9 @@ Deliverables:
   review path, support/contact identity, dependency-license review, and launch/backup/restore evidence.
 - Complete or explicitly defer the Data Correction And Service Targets checklist: bad-data correction flow, correction
   note rules, cache correction safety, freshness target, RPO/RTO boundaries, and pilot downtime tolerance.
+- Complete or explicitly defer the Import Provenance And Source Archive checklist: source snapshot, import manifest,
+  `sha256`, retrieval metadata, row count, covered range, expected tail, validation/readiness output, cache evidence,
+  and storage outside the repository.
 - Capture the first production snapshot: commit, data date, readiness payload, and public hostname.
 - Confirm caching, bot protection, and edge rate limits are active.
 - Measure first public read latency for both `X-Cache: MISS` and `X-Cache: HIT`; if MISS latency is user-visible, apply
@@ -356,7 +363,8 @@ Progress recorded on 2026-07-01:
 
 Still pending for Phase 8: waitlist production smoke, browser/device pass on the public hostname, localization add-on if
 accepted for pre-traffic scope, documentation and portfolio presentation pass after implementation freeze, launch
-snapshot, release/feedback/evidence checklist, data-correction/service-target checklist, and first traffic test.
+snapshot, release/feedback/evidence checklist, data-correction/service-target checklist, import-provenance/source-archive
+checklist, and first traffic test.
 
 Acceptance criteria:
 
@@ -379,6 +387,8 @@ Acceptance criteria:
   launch/backup/restore evidence are documented before broader external exposure.
 - Bad-data correction flow, correction-note rules, cache safety, freshness target, RPO/RTO boundaries, and pilot downtime
   tolerance are documented before broader external exposure.
+- Production import evidence links source snapshots, hashes, retrieval metadata, validation/readiness output, and cache
+  evidence without storing secrets or PII in the repository.
 
 ### Phase 9: Post-Launch Learning Loop
 
