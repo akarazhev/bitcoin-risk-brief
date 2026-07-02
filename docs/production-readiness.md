@@ -31,6 +31,20 @@ Additional public smoke evidence recorded on 2026-07-02 for `https://bitcoinrisk
 - The Cloudflare Free-plan limitation remains accepted for this pilot snapshot: the public edge is still using the
   Free-plan-compatible subset instead of managed WAF execution and broader API burst-rate-limit controls.
 
+Deployment path decision status recorded on 2026-07-02:
+
+- Selected deployment path: decision-needed. The local repository and public smoke evidence do not prove which project
+  directory is active on the production host, so the next production update must not assume either path until the
+  operator confirms it on the server.
+- Acceptable direct Git path: `/opt/bitcoin-risk-brief`. If confirmed, the direct Git workflow is the deployment source
+  of truth for the next update and USB kit v2 is not required for that update.
+- Acceptable USB path: `/srv/projects/bitcoin-risk-brief`. If confirmed, the USB-based local-server deployment is the
+  deployment source of truth for the next update, and USB Update And Install Kit V2 must be prepared or explicitly
+  replaced by recorded one-time manual verification before promotion.
+- Production project directory: unknown until the operator confirms one active directory on the production host.
+- Production `.env` location and owner: unknown until the operator confirms the matching `.env` path and filesystem
+  owner for the active project directory.
+
 ## Release Gates
 
 Run these before every deploy:
