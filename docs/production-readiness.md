@@ -33,17 +33,18 @@ Additional public smoke evidence recorded on 2026-07-02 for `https://bitcoinrisk
 
 Deployment path decision status recorded on 2026-07-02:
 
-- Selected deployment path: decision-needed. The local repository and public smoke evidence do not prove which project
-  directory is active on the production host, so the next production update must not assume either path until the
-  operator confirms it on the server.
-- Acceptable direct Git path: `/opt/bitcoin-risk-brief`. If confirmed, the direct Git workflow is the deployment source
-  of truth for the next update and USB kit v2 is not required for that update.
-- Acceptable USB path: `/srv/projects/bitcoin-risk-brief`. If confirmed, the USB-based local-server deployment is the
-  deployment source of truth for the next update, and USB Update And Install Kit V2 must be prepared or explicitly
-  replaced by recorded one-time manual verification before promotion.
-- Production project directory: unknown until the operator confirms one active directory on the production host.
-- Production `.env` location and owner: unknown until the operator confirms the matching `.env` path and filesystem
-  owner for the active project directory.
+- Selected deployment path: USB-based local-server deployment under `/srv/projects/bitcoin-risk-brief`, confirmed by
+  the operator on 2026-07-02. The direct Git workflow under `/opt/bitcoin-risk-brief` is not the active production
+  update path for the next update.
+- Production project directory: `/srv/projects/bitcoin-risk-brief`.
+- USB Update And Install Kit V2 is required before the next production update unless the operator records equivalent
+  one-time manual verification before promotion.
+- Production `.env` location: `/srv/projects/bitcoin-risk-brief/.env`; filesystem owner still needs production-host
+  confirmation.
+- Production `COINMARKETCAP_API_KEY`: empty. Data refresh must use the no-key public CoinMarketCap CSV path or manual
+  downloaded CSV intake until the scheduled public-download-first collector behavior is implemented and verified.
+- Task 3 remains required before the production pilot depends on unattended no-key freshness, because production is
+  running without the optional CoinMarketCap API refresh path.
 
 ## Release Gates
 
