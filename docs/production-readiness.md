@@ -20,6 +20,17 @@ This snapshot confirms the public hostname, readiness path, and public-read cach
 remaining launch checks: waitlist production smoke, browser/device QA on the public hostname, backup/restore setup,
 alerts, and the first traffic test.
 
+Additional public smoke evidence recorded on 2026-07-02 for `https://bitcoinriskbrief.minihub.app`:
+
+- `GET /api/health` returned 200 with `{"status":"ok"}`.
+- `GET /api/readiness` returned 200 with `status: ready`, `source: coinmarketcap_csv`, `latest_date: 2026-06-30`,
+  `covered_end: 2026-06-30`, `data_age_days: 2`, `max_age_days: 2`, and `row_count: 5832`.
+- `GET /api/risk/latest` returned 200 for timestamp `2026-06-30T00:00:00+00:00` with `Cache-Control: public,
+  max-age=60, stale-while-revalidate=300`, `ETag: "a860789d405dbf015592328b"`, `X-Cache: MISS`, and
+  `X-Cache-Version: validation:2026-07-02T01:00:05.718106+00:00:2026-06-30T00:00:00+00:00:5832:true`.
+- The Cloudflare Free-plan limitation remains accepted for this pilot snapshot: the public edge is still using the
+  Free-plan-compatible subset instead of managed WAF execution and broader API burst-rate-limit controls.
+
 ## Release Gates
 
 Run these before every deploy:
