@@ -292,6 +292,8 @@ Deliverables:
   infrastructure cost/resource limits.
 - Create a short incident response runbook for readiness degradation, data refresh failures, waitlist failures,
   Cloudflare Tunnel issues, stale cache, backup failures, and disk pressure.
+- Define a data correction and service-target policy for bad CSV/import/risk incidents, correction notes, cache safety,
+  freshness, RPO/RTO, and pilot downtime boundaries.
 
 Acceptance criteria:
 
@@ -303,6 +305,8 @@ Acceptance criteria:
   canonical CSV.
 - Operators know how to inspect collector, backend, frontend, and database logs.
 - Operators know who owns production credentials and what to do in the first 15 minutes of common incidents.
+- Operators know how to classify and correct a published bad-data or wrong-risk incident without silently serving a
+  known-wrong risk value.
 
 ### Phase 8: Launch Checklist And First Traffic Test
 
@@ -326,6 +330,8 @@ Deliverables:
   data-source terms and attribution, accessibility pass, SEO/social metadata, and launch incident response notes.
 - Complete the Release Feedback And Operational Evidence checklist: release notes or decision log, first-user feedback
   review path, support/contact identity, dependency-license review, and launch/backup/restore evidence.
+- Complete or explicitly defer the Data Correction And Service Targets checklist: bad-data correction flow, correction
+  note rules, cache correction safety, freshness target, RPO/RTO boundaries, and pilot downtime tolerance.
 - Capture the first production snapshot: commit, data date, readiness payload, and public hostname.
 - Confirm caching, bot protection, and edge rate limits are active.
 - Measure first public read latency for both `X-Cache: MISS` and `X-Cache: HIT`; if MISS latency is user-visible, apply
@@ -350,7 +356,7 @@ Progress recorded on 2026-07-01:
 
 Still pending for Phase 8: waitlist production smoke, browser/device pass on the public hostname, localization add-on if
 accepted for pre-traffic scope, documentation and portfolio presentation pass after implementation freeze, launch
-snapshot, release/feedback/evidence checklist, and first traffic test.
+snapshot, release/feedback/evidence checklist, data-correction/service-target checklist, and first traffic test.
 
 Acceptance criteria:
 
@@ -371,6 +377,8 @@ Acceptance criteria:
   incident-response expectations are documented before broad external exposure.
 - Release notes, key product decisions, support/contact path, dependency-license review, first-user feedback review, and
   launch/backup/restore evidence are documented before broader external exposure.
+- Bad-data correction flow, correction-note rules, cache safety, freshness target, RPO/RTO boundaries, and pilot downtime
+  tolerance are documented before broader external exposure.
 
 ### Phase 9: Post-Launch Learning Loop
 

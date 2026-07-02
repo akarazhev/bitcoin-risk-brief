@@ -329,6 +329,7 @@ Create or maintain a short incident note for these cases:
 - `/api/readiness` is degraded or non-200;
 - scheduled data refresh fails;
 - CoinMarketCap public download fails;
+- source CSV, imported OHLCV rows, risk rows, or latest brief snapshot may be wrong after publication;
 - waitlist submission fails;
 - Cloudflare Tunnel is down;
 - public cache appears stale after an import;
@@ -337,6 +338,12 @@ Create or maintain a short incident note for these cases:
 
 Each note should name where to look first, which command or dashboard to check, and which action is safe for the operator
 to take without risking data loss.
+
+For a suspected published bad-data incident, prefer a conservative correction flow: record the observed public value and
+data date, inspect readiness and validation metadata, stop further automated imports if they could overwrite evidence,
+restore or re-import from the last known-good CSV or backup, recompute risk and brief snapshots, verify cache headers,
+and capture a correction note. During the free pilot, temporary downtime is preferable to knowingly serving a wrong risk
+value.
 
 ## Database Checks
 
