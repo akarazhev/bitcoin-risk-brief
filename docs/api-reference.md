@@ -22,6 +22,18 @@ Errors use FastAPI's default JSON shape:
 { "detail": "..." }
 ```
 
+## Compatibility Notes
+
+The current API is a production-pilot public interface, not a paid external API contract. Still, public endpoint shapes
+should remain backwards-compatible where practical:
+
+- prefer additive fields over changing existing field meanings;
+- keep compatibility aliases such as `price_usd` when clearer fields are added;
+- keep methodology, freshness, snapshot, and readiness metadata visible where relevant;
+- document new fields, cache semantics, and error changes here before relying on them externally;
+- use a deliberate versioning or deprecation path before breaking future API clients, agents, widgets, or paid
+  integrations.
+
 ## Public Read Caching
 
 The public read endpoints `/api/readiness`, `/api/risk/latest`, `/api/risk/history`, `/api/risk/levels`, and

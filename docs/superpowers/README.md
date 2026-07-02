@@ -38,6 +38,8 @@ Last reviewed: 2026-07-02.
   retrieval method, row count, covered range, validation/readiness output, and cache evidence.
 - Deferred Phase 9 gates are planned for email/Telegram outreach, paid beta or license experiments, account recovery,
   synthetic journey monitoring, and public trust artifacts.
+- A deferred API/DB change-management gate is planned for future migrations, API client work, paid access, widgets,
+  agent integrations, and methodology-version changes.
 
 ## Status
 
@@ -57,6 +59,7 @@ Last reviewed: 2026-07-02.
 | `specs/2026-07-02-data-correction-service-targets-design.md` | Future-facing | Phase 7/8 operational readiness gate for bad-data correction flow, correction notes, cache safety, freshness, RPO/RTO, and pilot downtime boundaries. |
 | `specs/2026-07-02-import-provenance-source-archive-design.md` | Future-facing | Phase 7/8 operational readiness gate for source snapshots, import manifests, hashes, retrieval metadata, validation/readiness output, and cache evidence. |
 | `specs/2026-07-01-email-paid-beta-trust-gates-design.md` | Future-facing | Phase 9 readiness gates before recurring outreach, first payments, license experiments, account recovery reliance, synthetic monitoring, or broader trust claims. |
+| `specs/2026-07-02-api-db-change-management-design.md` | Future-facing | Deferred Phase 9/change-readiness gate for API compatibility, DB migrations, rollback, contract tests, and future external client safety. |
 | `specs/2026-07-01-documentation-portfolio-presentation-design.md` | Future-facing | Phase 8 final documentation and private/portfolio repository presentation pass after implementation freeze. |
 | `specs/2026-07-01-localization-quality-language-expansion-design.md` | Future-facing | Phase 8 localization add-on for EN/RU copy polish, ES/DE launch scope, and deferred AR/ZH research. |
 | `specs/2026-07-01-scheduled-public-cmc-refresh-design.md` | Future-facing | Phase 6/7 operational hardening for nightly no-key public CoinMarketCap refresh. |

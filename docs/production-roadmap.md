@@ -423,6 +423,9 @@ Deliverables:
   support/contact path, usage limits, and separation from anonymous analytics.
 - Before broader professional exposure, review account recovery paths, synthetic journey monitoring needs, and a small
   trust artifact covering methodology version, data source, freshness expectation, and accepted limitations.
+- Before adding analytics tables, API keys, paid API access, widgets, agent-specific contracts, or methodology-v2
+  behavior, complete the API/DB change-management gate: classify additive/risky/breaking changes, preserve endpoint
+  compatibility where practical, document migrations, run focused contract tests, and define rollback.
 
 Acceptance criteria:
 
@@ -436,6 +439,8 @@ Acceptance criteria:
 - The next scope is a small validation step, not a general crypto dashboard.
 - Recurring notifications, paid beta access, paid risk-signal licenses, and broader trust claims are gated by explicit
   readiness checks rather than added opportunistically.
+- Future API clients, agents, paid integrations, analytics schema, and methodology-version changes are protected by
+  explicit API compatibility, migration, backup, verification, and rollback rules.
 
 ### Phase 10: Risk Methodology Research
 
@@ -460,6 +465,8 @@ Deliverables:
   updates, documented revision behavior, and operational failure behavior that does not break readiness.
 - If a new methodology wins, design it as a versioned v2 with side-by-side comparison, updated docs, API metadata, and
   interpretation limits.
+- If methodology v2 changes endpoint fields, cached payload assumptions, or database schema, apply the API/DB
+  change-management gate before production exposure.
 
 Acceptance criteria:
 

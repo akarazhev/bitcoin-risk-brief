@@ -26,6 +26,11 @@ Apply schema to an existing database:
 ./scripts/manage.sh migrate
 ```
 
+For future schema changes beyond the current idempotent initial migration, use the API/DB change-management gate before
+production deployment: add a new migration file, take a fresh backup, test migration on a fresh and existing database,
+record rollback expectations, run smoke checks, and update API/security/operations docs when endpoint contracts,
+retention, analytics, API client identity, or PII behavior changes.
+
 Import the canonical CSV without network access:
 
 ```bash
