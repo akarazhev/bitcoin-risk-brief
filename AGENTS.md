@@ -17,6 +17,22 @@ Use `cp .env.example .env` before local container work. Key commands:
 - `npm test --prefix frontend`: run Vitest frontend tests.
 - `npm run build --prefix frontend`: type-check and build the frontend.
 
+## Agent Workflow
+
+For non-trivial agent-assisted work, use the applicable Superpowers skills before taking implementation action. User
+instructions and this `AGENTS.md` file take precedence over Superpowers guidance when they conflict.
+
+- Use `/plan` before implementation when scope is ambiguous, multi-step, or likely to affect several modules.
+- Use `/goal` for longer-running implementation work, with a concrete outcome and verification criteria.
+- For new behavior, apply the relevant planning and test-driven-development workflow; for bugs, start with systematic
+  debugging and a reproducible failure; for review feedback, verify the finding before changing code.
+- Add or update focused tests for behavior changes, then run the matching local verification command and any related
+  build check.
+- Use `/review` before finalizing substantial diffs or PR-ready work, address confirmed findings, and rerun the relevant
+  checks.
+- For documentation-only changes, verify the edited files with a targeted read or diff and state that runtime tests were
+  not run.
+
 ## Coding Style & Naming Conventions
 
 Python targets Python 3.13 in CI. Use four-space indentation, type hints where useful, `snake_case` for functions/modules, and `PascalCase` for Pydantic models and classes. Keep backend API routes under `/api/*` and prefer small pure helpers for risk logic. TypeScript uses ES modules, React function components, two-space indentation, single quotes, `PascalCase` components, and `camelCase` functions/state.

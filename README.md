@@ -66,6 +66,25 @@ Open: `http://localhost:3001`
 ./scripts/manage.sh test-python # backend and collector unit tests
 ```
 
+## Development Workflow
+
+Use `AGENTS.md` as the agent-facing source for repository rules. For human-driven work with Codex, use this sequence:
+
+1. Define the change in concrete terms: expected behavior, affected area, constraints, and verification commands.
+2. For ambiguous or multi-step work, ask Codex to use `/plan` before implementation.
+3. For longer implementation sessions, set a `/goal` with clear completion criteria.
+4. Expect Codex to apply relevant Superpowers skills before implementation, such as planning, test-driven development,
+   systematic debugging, verification, or code-review workflows.
+5. Review the diff while work is in progress, especially if multiple files or services are touched. Avoid running
+   parallel Codex threads against the same files.
+6. Before accepting the work, require the relevant checks:
+   - Python/backend/collector changes: `./scripts/manage.sh test-python`
+   - Frontend behavior or build changes: `npm test --prefix frontend` and `npm run build --prefix frontend`
+   - Compose or operational changes: `./scripts/manage.sh validate`
+   - Documentation-only changes: targeted diff/read review is enough; runtime tests are not required.
+7. Use `/review` before finalizing substantial diffs or PR-ready work, then address confirmed findings and rerun the
+   relevant checks.
+
 ## Documentation
 
 - [Documentation Index](docs/README.md)
