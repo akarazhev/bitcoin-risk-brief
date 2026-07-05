@@ -25,6 +25,22 @@ def _serialize_row(row: asyncpg.Record) -> dict[str, Any]:
     }
 
 
+def _optional_float(row: asyncpg.Record, key: str) -> float | None:
+    try:
+        value = row[key]
+    except (KeyError, IndexError):
+        return None
+    return float(value) if value is not None else None
+
+
+def _serialize_latest_risk_row(row: asyncpg.Record) -> dict[str, Any]:
+    payload = _serialize_row(row)
+    payload["model_price_usd"] = payload["price_usd"]
+    payload["low_usd"] = _optional_float(row, "low_usd")
+    payload["high_usd"] = _optional_float(row, "high_usd")
+    return payload
+
+
 def _serialize_ohlcv_row(row: asyncpg.Record) -> dict[str, Any]:
     timestamp = row["timestamp"]
     return {
@@ -43,13 +59,17 @@ def _serialize_ohlcv_row(row: asyncpg.Record) -> dict[str, Any]:
 async def fetch_latest_risk(pool: asyncpg.Pool) -> dict[str, Any] | None:
     row = await pool.fetchrow(
         """
-        SELECT *
-        FROM btc_risk_daily
-        ORDER BY timestamp DESC
+        SELECT
+          r.*,
+          o.low_usd,
+          o.high_usd
+        FROM btc_risk_daily r
+        LEFT JOIN btc_ohlcv_daily o ON o.timestamp = r.timestamp
+        ORDER BY r.timestamp DESC
         LIMIT 1
         """
     )
-    return _serialize_row(row) if row else None
+    return _serialize_latest_risk_row(row) if row else None
 
 
 async def fetch_previous_risk(pool: asyncpg.Pool) -> dict[str, Any] | None:

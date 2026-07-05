@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 
 sys.modules.setdefault("asyncpg", types.SimpleNamespace(Record=dict, Pool=object))
 
-from app.repository import fetch_ohlcv_history, fetch_public_data_version
+from app.repository import fetch_latest_risk, fetch_ohlcv_history, fetch_public_data_version
 
 
 class FakePool:
@@ -43,6 +43,39 @@ class FakeVersionPool:
         return self.row
 
 
+class FakeLatestRiskPool:
+    def __init__(self, row) -> None:
+        self.row = row
+        self.query = ""
+        self.params = ()
+
+    async def fetchrow(self, query: str, *params):
+        self.query = query
+        self.params = params
+        return self.row
+
+
+def latest_risk_row(**overrides):
+    row = {
+        "timestamp": datetime(2026, 6, 26, tzinfo=timezone.utc),
+        "price_hlc3": 100_000.0,
+        "risk": 0.7,
+        "score": 1.0,
+        "risk_state": "high",
+        "trend_dev": 0.2,
+        "vol_regime": 0.1,
+        "turnover": None,
+        "z_trend_dev": 1.1,
+        "z_vol_regime": 0.8,
+        "z_turnover": None,
+        "turnover_enabled": False,
+        "low_usd": 96_500.0,
+        "high_usd": 104_250.0,
+    }
+    row.update(overrides)
+    return row
+
+
 class OhlcvHistoryRepositoryTest(unittest.IsolatedAsyncioTestCase):
     async def test_fetch_ohlcv_history_defaults_to_full_history(self) -> None:
         pool = FakePool()
@@ -52,6 +85,33 @@ class OhlcvHistoryRepositoryTest(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(len(rows), 1)
         self.assertNotIn("LIMIT", pool.query.upper())
         self.assertEqual(pool.params, ())
+
+
+class LatestRiskRepositoryTest(unittest.IsolatedAsyncioTestCase):
+    async def test_fetch_latest_risk_pairs_matching_ohlcv_by_timestamp(self) -> None:
+        pool = FakeLatestRiskPool(latest_risk_row())
+
+        latest = await fetch_latest_risk(pool)
+
+        self.assertIsNotNone(latest)
+        self.assertEqual(latest["price_usd"], 100_000.0)
+        self.assertEqual(latest.get("model_price_usd"), 100_000.0)
+        self.assertEqual(latest.get("low_usd"), 96_500.0)
+        self.assertEqual(latest.get("high_usd"), 104_250.0)
+        self.assertIn("LEFT JOIN btc_ohlcv_daily", pool.query)
+        self.assertIn("o.timestamp = r.timestamp", pool.query)
+        self.assertEqual(pool.params, ())
+
+    async def test_fetch_latest_risk_returns_null_ohlcv_values_when_match_is_missing(self) -> None:
+        pool = FakeLatestRiskPool(latest_risk_row(low_usd=None, high_usd=None))
+
+        latest = await fetch_latest_risk(pool)
+
+        self.assertIsNotNone(latest)
+        self.assertEqual(latest["price_usd"], 100_000.0)
+        self.assertEqual(latest.get("model_price_usd"), 100_000.0)
+        self.assertIsNone(latest.get("low_usd"))
+        self.assertIsNone(latest.get("high_usd"))
 
 
 class PublicDataVersionRepositoryTest(unittest.IsolatedAsyncioTestCase):
