@@ -1,9 +1,23 @@
 from __future__ import annotations
 
+from types import SimpleNamespace
 import unittest
 
 from app import main
-from app.public_cache import PublicCacheWarmupResult
+from app.public_cache import (
+    PublicCacheWarmupResult,
+    PublicEndpointCache,
+    warm_public_endpoint_cache,
+)
+
+
+class FakeRequest:
+    method = "GET"
+    headers: dict[str, str] = {}
+
+    def __init__(self, path: str, query: str = "") -> None:
+        self.url = SimpleNamespace(path=path, query=query)
+        self.client = None
 
 
 class MainPatchMixin:
@@ -41,6 +55,149 @@ class StandardPublicWarmupTargetTest(MainPatchMixin, unittest.IsolatedAsyncioTes
 
         self.assertEqual(result, PublicCacheWarmupResult((), ()))
         self.assertIn("public_cache_warmup_skipped reason=no_validation", "\n".join(logs.output))
+
+
+class WarmedEndpointResponseTest(MainPatchMixin, unittest.IsolatedAsyncioTestCase):
+    async def test_warmed_endpoint_returns_hit_without_rebuilding(self) -> None:
+        cache = PublicEndpointCache(ttl_seconds=60, clock=lambda: 100.0)
+        self.patch_main("public_read_cache", cache)
+        self.patch_main("get_pool", lambda: object())
+
+        async def data_version(_pool):
+            return "validation:ready"
+
+        self.patch_main("fetch_public_data_version", data_version)
+        calls = 0
+
+        async def producer():
+            nonlocal calls
+            calls += 1
+            return {"data": {"risk": 0.42}}, 200
+
+        await warm_public_endpoint_cache(
+            cache,
+            "validation:ready",
+            [main.PublicCacheWarmupTarget("GET /api/risk/latest", producer)],
+        )
+
+        response = await main._cached_public_json_response(FakeRequest("/api/risk/latest"), producer)
+
+        self.assertEqual(response.headers["x-cache"], "HIT")
+        self.assertEqual(response.headers["x-cache-version"], "validation:ready")
+        self.assertEqual(calls, 1)
+
+
+class WaitlistNoStoreRegressionTest(MainPatchMixin, unittest.IsolatedAsyncioTestCase):
+    async def test_waitlist_handler_remains_no_store(self) -> None:
+        async def fake_upsert(_pool, *, contact: str, locale: str, source: str):
+            return {"contact_type": "email", "locale": locale, "created": True}
+
+        self.patch_main("get_pool", lambda: object())
+        self.patch_main("upsert_waitlist_lead", fake_upsert)
+
+        response = await main.waitlist_join(
+            main.WaitlistRequest(contact="user@example.com", locale="en", source="landing")
+        )
+
+        self.assertEqual(response.headers["cache-control"], "no-store")
+        self.assertEqual(response.headers["pragma"], "no-cache")
+
+    async def test_waitlist_rate_limit_response_remains_no_store(self) -> None:
+        class DenyLimiter:
+            def allow(self, _key: str, *, now: float) -> bool:
+                return False
+
+        self.patch_main("waitlist_rate_limiter", DenyLimiter())
+        request = SimpleNamespace(
+            method="POST",
+            url=SimpleNamespace(path="/api/waitlist"),
+            headers={},
+            client=None,
+        )
+
+        async def call_next(_request):
+            raise AssertionError("rate-limited request should not reach handler")
+
+        response = await main.waitlist_rate_limit_middleware(request, call_next)
+
+        self.assertEqual(response.headers["cache-control"], "no-store")
+        self.assertEqual(response.headers["pragma"], "no-cache")
+
+
+class PublicPayloadSchemaRegressionTest(MainPatchMixin, unittest.IsolatedAsyncioTestCase):
+    async def test_risk_history_payload_shape_is_unchanged(self) -> None:
+        async def fake_history(_pool, *, start_date, end_date, limit):
+            self.assertIsNone(start_date)
+            self.assertIsNone(end_date)
+            self.assertEqual(limit, 2000)
+            return [
+                {"timestamp": "2026-06-24T00:00:00+00:00", "risk": 0.31, "risk_state": "low"},
+                {"timestamp": "2026-06-25T00:00:00+00:00", "risk": 0.32, "risk_state": "low"},
+            ]
+
+        self.patch_main("get_pool", lambda: object())
+        self.patch_main("fetch_risk_history", fake_history)
+
+        payload, status = await main._risk_history_producer(limit=2000)()
+
+        self.assertEqual(status, 200)
+        self.assertEqual(set(payload.keys()), {"data", "meta"})
+        self.assertEqual(payload["meta"], {"returned_points": 2})
+        self.assertEqual(payload["data"][0]["timestamp"], "2026-06-24T00:00:00+00:00")
+
+    async def test_risk_levels_payload_shape_is_unchanged(self) -> None:
+        latest = {
+            "timestamp": "2026-06-25T00:00:00+00:00",
+            "risk": 0.3025,
+            "turnover_enabled": True,
+        }
+        source_rows = [{"date": "2026-06-24"}, {"date": "2026-06-25"}]
+
+        async def fake_latest(_pool):
+            return latest
+
+        async def fake_source_rows(_pool):
+            return source_rows
+
+        def fake_levels(_rows, _validation):
+            return {
+                "risk_level_rows": [
+                    {"risk": 0.0, "price": 10000.123},
+                    {"risk": 0.025, "price": 11000.456},
+                ],
+                "evaluation_date": SimpleNamespace(isoformat=lambda: "2026-06-25"),
+                "current_price": 60100.0,
+                "current_risk": 0.3025,
+                "turnover_enabled": True,
+            }
+
+        self.patch_main("get_pool", lambda: object())
+        self.patch_main("fetch_latest_risk", fake_latest)
+        self.patch_main("fetch_ohlcv_history", fake_source_rows)
+        self.patch_main("build_risk_levels", fake_levels)
+
+        payload, status = await main._produce_risk_levels_payload()
+
+        self.assertEqual(status, 200)
+        self.assertEqual(
+            payload["data"],
+            [{"risk": 0.0, "price_usd": 10000.12}, {"risk": 0.025, "price_usd": 11000.46}],
+        )
+        self.assertEqual(
+            set(payload["meta"].keys()),
+            {
+                "base",
+                "methodology_version",
+                "evaluation_date",
+                "current_price",
+                "current_risk",
+                "turnover_enabled",
+                "risk_step",
+                "source_row_count",
+            },
+        )
+        self.assertEqual(payload["meta"]["base"], latest)
+        self.assertEqual(payload["meta"]["source_row_count"], 2)
 
 
 if __name__ == "__main__":
