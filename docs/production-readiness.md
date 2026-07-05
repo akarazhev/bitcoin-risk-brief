@@ -205,8 +205,8 @@ Browser and device QA status recorded on 2026-07-05:
 
 Launch governance and release evidence status recorded on 2026-07-05:
 
-- Launch commit: not selected. Task 10 launch snapshot was not run. Current candidate commit is
-  `1c3debc374b127f2f2a95aa8f13c66542ba1af39` (`docs: record public frontend QA`).
+- Launch snapshot commit: `f42f266542981483a87964fa8726a5513eb339d6`. This is a snapshot target only, not a
+  production-ready or launch-ready declaration because current readiness is degraded.
 - Methodology version: `crypto-scout-canonical-v1`.
 - Selected data refresh path: scheduled public-download-first CoinMarketCap CSV refresh with manual
   `download-cmc-csv` or `import-cmc-csv` fallback. The optional official CoinMarketCap API path is used only when
@@ -234,6 +234,49 @@ Launch governance and release evidence status recorded on 2026-07-05:
   readiness payload, cache headers, selected refresh path, deployment path, backup/restore evidence, waitlist smoke,
   browser QA, known limitations, and any related import provenance manifest. Store private artifacts, raw contacts,
   secrets, account details, and private storage paths outside this repository.
+
+Task 10 launch snapshot recorded on 2026-07-05 at 11:37 UTC for `https://bitcoinriskbrief.minihub.app`:
+
+- Repository state: `git status --short --branch` returned `## main...origin/main`, and `git rev-parse HEAD` returned
+  `f42f266542981483a87964fa8726a5513eb339d6`. No commit or push was performed for this snapshot.
+- Public health: `GET /api/health` returned HTTP 200 with `status: ok`.
+- Public readiness: `GET /api/readiness` returned HTTP 503 with `status: degraded`. All readiness checks were true
+  except `data_fresh: false`; the payload reported `latest_date: 2026-06-30`, `covered_end: 2026-06-30`,
+  `data_age_days: 4`, `max_age_days: 2`, `source: coinmarketcap_csv`, `row_count: 5832`, and
+  `methodology_version: crypto-scout-canonical-v1`.
+- Latest BTC data and risk: `GET /api/risk/latest` returned HTTP 200 for timestamp `2026-06-30T00:00:00+00:00` with
+  `risk_state: low` and risk approximately `0.2860`. The latest BTC data date remains `2026-06-30`, so production data
+  freshness blocks launch.
+- Cache headers: public readiness and latest-risk responses included `Cache-Control: public, max-age=60,
+  stale-while-revalidate=300`, `ETag`, `X-Cache`, and `X-Cache-Version`. The readiness response used
+  `ETag: "e794a17b08b6404888453563"`, `X-Cache: MISS`,
+  `X-Cache-Version: validation:2026-07-04T01:00:05.639122+00:00:2026-06-30T00:00:00+00:00:5832:true`, and
+  `cf-cache-status: STALE`. The latest-risk response used `ETag: "0b452ec072778d840d5ed64d"`, `X-Cache: MISS`,
+  `X-Cache-Version: validation:2026-07-05T01:00:05.626717+00:00:2026-06-30T00:00:00+00:00:5832:true`, and
+  `cf-cache-status: UPDATING`.
+- Waitlist smoke status: blocked/not collected. No operator-controlled test contact was available, no public waitlist
+  submission was sent, and server-side storage was not verified.
+- Browser QA status: browser-capable public-hostname QA passed with accepted limitations. The public page rendered in
+  Playwright desktop Chromium, mobile Chromium, and mobile WebKit profiles, but it visibly showed stale data and no
+  physical-device/native branded browser pass is recorded.
+- Selected deployment path: USB-based local-server deployment under `/srv/projects/bitcoin-risk-brief`; USB Update And
+  Install Kit V2 or equivalent one-time manual verification remains required before the next production update, and the
+  production `.env` owner still needs host confirmation.
+- Selected data refresh path: scheduled public-download-first CoinMarketCap CSV refresh, with manual
+  `download-cmc-csv` and `import-cmc-csv` fallbacks. The current public readiness result proves this path has not kept
+  production fresh through the accepted freshness window and needs operator action before launch.
+- Backup/restore evidence status: blocked pending operator evidence. No real production backup, off-server copy, restore
+  drill, or backup freshness monitor is recorded.
+- Monitoring status: blocked/accepted limitation. Public endpoints exist, but no external monitor dashboard, alert
+  delivery, collector failure alert, backup freshness alert, or Cloudflare Tunnel health alert evidence is recorded.
+- Import provenance status: blocked pending operator evidence. No sanitized production import evidence packet is recorded
+  outside the repository.
+- Accepted limitations/blockers: Cloudflare remains on the documented Free-plan-compatible subset; waitlist smoke,
+  backup/off-server/restore, monitoring, production import provenance, physical/native browser QA, support/contact
+  identity, dependency-license review, and focused accessibility/SEO metadata evidence remain incomplete. The launch
+  blocker for this snapshot is data freshness: readiness is HTTP 503 with `data_fresh: false`. Do not run or mark the
+  first traffic test complete until readiness is HTTP 200 and the other required launch limitations are explicitly
+  resolved or accepted.
 
 ## Release Gates
 

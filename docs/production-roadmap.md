@@ -36,6 +36,8 @@ Already implemented:
 - TimescaleDB storage and migration script.
 - Canonical BTC CSV import and CoinMarketCap API delta refresh when an API key is configured.
 - Validated operator-downloaded CoinMarketCap historical CSV import without a paid API key.
+- Scheduled public-download-first CoinMarketCap CSV refresh in the collector, with optional API fallback only when an API
+  key is configured and manual CSV intake as the operator fallback.
 - Server-side waitlist storage with validation and rate limiting.
 - Public read endpoint caching for readiness, latest risk, history, levels, and brief responses, with validation-versioned
   refresh after successful imports.
@@ -48,7 +50,8 @@ Already implemented:
 
 ## Current Roadmap Status
 
-Verified on 2026-07-01 from repository files, recent commit history, and public hostname smoke checks.
+Verified on 2026-07-05 from repository files, current commit `f42f266542981483a87964fa8726a5513eb339d6`, public
+hostname checks, and the launch snapshot in [Production Readiness](production-readiness.md).
 
 | Phase | Status | Repository evidence |
 | --- | --- | --- |
@@ -57,19 +60,25 @@ Verified on 2026-07-01 from repository files, recent commit history, and public 
 | Phase 3: CI And Quality Gates | Complete | `1b162a5`, `.github/workflows/ci.yml`, `docs/testing-and-quality.md` |
 | Phase 4: Frontend Production Quality | Complete | `22793fb`, `frontend/e2e/frontend-quality.spec.ts`, `frontend/src/Chart.tsx`, `docs/frontend-qa.md` |
 | Phase 5: Performance, Caching, And Abuse Protection | Complete in repository; Free-plan edge subset applied | `3c66df9`, `5bb179d`, `backend/app/public_cache.py`, `backend/app/main.py`, `scripts/cloudflare_edge_rules.py`, `backend/tests/test_cloudflare_edge_rules.py` |
-| Phase 6: Production Environment And Deployment | In progress | `bitcoinriskbrief.minihub.app` public `/api/health`, `/api/readiness`, `/api/risk/latest`, and conditional `ETag` checks passed on 2026-07-01 |
-| Phase 7: Backups, Restore, And Monitoring | Pending | Requires production backup schedule, off-server copy, restore drill, and alerts |
-| Phase 8: Launch Checklist And First Traffic Test | Pending; public API smoke partially complete | Requires waitlist smoke, browser/device pass on the public hostname, launch snapshot, and first traffic test |
+| Phase 6: Production Environment And Deployment | Blocked by stale production data; deployment path recorded with accepted limitations | 2026-07-05 public `/api/health` returned 200, but `/api/readiness` returned HTTP 503 with `data_fresh: false`, `latest_date: 2026-06-30`, and `max_age_days: 2`; selected path is USB deployment under `/srv/projects/bitcoin-risk-brief` |
+| Phase 7: Backups, Restore, And Monitoring | Blocked pending operator action | Real production backup, off-server copy, restore drill, monitoring dashboard/alert delivery, backup freshness alert, collector failure alert, and import provenance evidence are not recorded |
+| Phase 8: Launch Checklist And First Traffic Test | Blocked; snapshot captured, first traffic test not run | 2026-07-05 launch snapshot recorded health 200, latest-risk 200, readiness 503/degraded, waitlist smoke blocked, browser-capable QA passed with limitations, and first traffic remains pending |
 | Phase 9: Post-Launch Learning Loop | Pending | Starts after launch traffic creates usage evidence, including optional agent-access demand testing |
 | Phase 10: Risk Methodology Research | Pending | Starts only after launch evidence justifies method work; current production metric remains `crypto-scout-canonical-v1` |
 | Phase 11: Distribution Channel Research | Pending | Evaluates PWA, Telegram Mini App, browser extension, and other channel packaging after launch evidence |
 
 Current production-pilot progress after Phase 1-5:
 
-- public hostname `bitcoinriskbrief.minihub.app` is connected through Cloudflare and returns 200 for `/api/health`,
-  `/api/readiness`, and `/api/risk/latest`;
-- public read caching is observable through `Cache-Control`, validation-versioned `ETag`, `X-Cache: HIT`, and a 304
-  conditional response for `/api/risk/latest`;
+- public hostname `bitcoinriskbrief.minihub.app` is connected through Cloudflare and returned 200 for `/api/health` and
+  `/api/risk/latest` on 2026-07-05;
+- public `/api/readiness` returned HTTP 503 on 2026-07-05 with `status: degraded`, `data_fresh: false`,
+  `latest_date: 2026-06-30`, `data_age_days: 4`, and `max_age_days: 2`; this blocks launch until fresh data is restored
+  or the freshness policy is intentionally changed and documented;
+- public read caching is observable through `Cache-Control`, validation-versioned `ETag`, `X-Cache`, and
+  `X-Cache-Version`; the 2026-07-05 launch snapshot saw latest-risk `cf-cache-status: UPDATING` and readiness
+  `cf-cache-status: STALE`;
+- browser-capable public-hostname QA passed on 2026-07-05 with accepted limitations, but the page visibly showed stale
+  data and a physical-device/native branded browser pass is still pending;
 - Cloudflare Rulesets API apply succeeded for the custom waitlist bot challenge, one waitlist rate-limit rule, waitlist
   cache bypass, and public-read origin-cache rules;
 - the active Cloudflare plan did not entitle the zone to execute the managed WAF ruleset, more than one rate-limit rule,
@@ -78,10 +87,11 @@ Current production-pilot progress after Phase 1-5:
 
 Remaining production-pilot gaps:
 
+- restore production data freshness so public `/api/readiness` returns HTTP 200 before launch or first traffic;
 - confirm the production host runbook, `.env`, service path, and data-refresh workflow are the documented source of truth;
 - make USB kit preparation reproducible from the workstation and connect update promotion to a backup-before-update gate;
-- implement and verify scheduled public CoinMarketCap refresh so the production pilot can update nightly without a
-  `COINMARKETCAP_API_KEY`;
+- verify on the production host that scheduled public CoinMarketCap refresh updates through the last completed UTC day
+  without a `COINMARKETCAP_API_KEY`;
 - measure first-load latency on cache misses and add public payload cache warmup or precomputed expensive payloads if the
   first real user would otherwise pay the database/build cost after startup or nightly import;
 - decide whether to accept the current Cloudflare Free-plan subset for first traffic or upgrade/configure additional WAF,
@@ -89,7 +99,9 @@ Remaining production-pilot gaps:
 - daily backups, off-server copy, restore drill, and monitoring alerts still need to be configured and verified;
 - privacy/terms posture, post-waitlist handling, dependency/security maintenance, resource monitoring, credential
   ownership, accessibility, metadata, data-source terms, and incident response need a launch completeness pass;
-- a launch snapshot, waitlist test, browser/device check on the public hostname, and first traffic test still need to run;
+- waitlist test, full browser/device launch matrix, documentation and portfolio presentation pass, cache-miss latency
+  measurement, and first traffic test still need to run; the launch snapshot has been captured but is blocked by stale
+  data;
 - post-launch learning cannot start until real usage and waitlist evidence exist.
 
 ## Roadmap Phases
@@ -229,8 +241,11 @@ Acceptance criteria:
 
 ### Phase 6: Production Environment And Deployment
 
-Status: In progress. Public hostname smoke checks passed on 2026-07-01 for `bitcoinriskbrief.minihub.app`. The remaining
-work is to confirm the production host runbook, environment, service path, and refresh workflow as documented operations.
+Status: Blocked by stale production data pending operator action. Public hostname smoke checks passed earlier, and
+`GET /api/health` plus `GET /api/risk/latest` still returned 200 on 2026-07-05, but `GET /api/readiness` returned HTTP
+503 with `data_fresh: false`, `latest_date: 2026-06-30`, `data_age_days: 4`, and `max_age_days: 2`. The selected
+deployment path is USB-based deployment under `/srv/projects/bitcoin-risk-brief`, with accepted limitations around USB
+Update And Install Kit V2/manual verification and production `.env` owner confirmation.
 
 Goal: run the full stack on the intended production-pilot host.
 
@@ -267,7 +282,9 @@ Acceptance criteria:
 
 ### Phase 7: Backups, Restore, And Monitoring
 
-Status: Pending.
+Status: Blocked pending operator action. The runbooks and policies are documented, but no real production backup,
+off-server copy, restore drill, external monitor/alert delivery, backup freshness alert, collector failure alert, or
+Cloudflare Tunnel health alert evidence is recorded.
 
 Goal: make production operations recoverable.
 
@@ -314,7 +331,9 @@ Acceptance criteria:
 
 ### Phase 8: Launch Checklist And First Traffic Test
 
-Status: Pending; public API smoke checks are partially complete.
+Status: Blocked; launch snapshot captured and first traffic test not run. The 2026-07-05 snapshot recorded public health
+200 and latest-risk 200, but readiness was HTTP 503/degraded because data freshness failed. Browser-capable public QA
+passed with accepted limitations, waitlist smoke remains blocked/not collected, and first traffic must remain pending.
 
 Goal: launch deliberately and measure product demand.
 
@@ -361,10 +380,20 @@ Progress recorded on 2026-07-01:
 - Conditional `GET https://bitcoinriskbrief.minihub.app/api/risk/latest` with `If-None-Match` returned 304 with
   `X-Cache: HIT`.
 
-Still pending for Phase 8: waitlist production smoke, browser/device pass on the public hostname, localization add-on if
-accepted for pre-traffic scope, documentation and portfolio presentation pass after implementation freeze, launch
-snapshot, release/feedback/evidence checklist, data-correction/service-target checklist, import-provenance/source-archive
-checklist, and first traffic test.
+Launch snapshot recorded on 2026-07-05:
+
+- `GET https://bitcoinriskbrief.minihub.app/api/health` returned 200 with `status: ok`.
+- `GET https://bitcoinriskbrief.minihub.app/api/readiness` returned HTTP 503 with `status: degraded`, `data_fresh:
+  false`, `latest_date: 2026-06-30`, `data_age_days: 4`, and `max_age_days: 2`.
+- `GET https://bitcoinriskbrief.minihub.app/api/risk/latest` returned 200 for `2026-06-30T00:00:00+00:00` with a low
+  risk state and expected public cache headers.
+- Browser-capable public-hostname QA passed with accepted limitations, but the public page visibly showed stale data.
+
+Still pending for Phase 8: restore data freshness, waitlist production smoke, full browser/device launch matrix,
+localization add-on if accepted for pre-traffic scope, documentation and portfolio presentation pass after implementation
+freeze, release/feedback/evidence checklist, data-correction/service-target evidence, import-provenance/source-archive
+evidence, cache-miss latency measurement, and first traffic test. Do not mark the first traffic test complete until
+readiness is HTTP 200 and the traffic window actually runs.
 
 Acceptance criteria:
 
