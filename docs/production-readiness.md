@@ -321,6 +321,10 @@ Task 4 local public-cache warmup command implementation recorded on 2026-07-05:
 - Local implementation and documentation are complete, but production benefit still requires deploying this change to
   `/srv/projects/bitcoin-risk-brief` and rerunning the production import/readiness flow. The current production data
   freshness blocker remains separate until public readiness returns HTTP 200.
+- Task 5 local verification was run on 2026-07-05 from commit `5517f49fd0540ce96b304cf80fcd0c707076f48b`: focused
+  public-cache tests passed, all backend and collector Python tests passed, Python sources compiled, and compose
+  configuration validation returned `compose config ok`. This is local implementation evidence only; production latency
+  benefit remains pending deploy, fresh data, and post-deploy measurement.
 
 ## Release Gates
 
