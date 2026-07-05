@@ -329,20 +329,233 @@ loops, Cloudflare Tunnel connector health, public hostname availability, and any
 
 ## First-Response Runbook
 
-Create or maintain a short incident note for these cases:
+Run commands from the production project directory unless the step names a public URL or Cloudflare dashboard. The current
+pilot production directory is `/srv/projects/bitcoin-risk-brief`; the current public hostname is
+`https://bitcoinriskbrief.minihub.app`.
 
-- `/api/readiness` is degraded or non-200;
-- scheduled data refresh fails;
-- CoinMarketCap public download fails;
-- source CSV, imported OHLCV rows, risk rows, or latest brief snapshot may be wrong after publication;
-- waitlist submission fails;
-- Cloudflare Tunnel is down;
-- public cache appears stale after an import;
-- backup fails;
-- database volume or disk space is close to full.
+If the runbook says to take public traffic down, disable only the public ingress first: stop the Cloudflare Tunnel
+connector or disable the public hostname route in the Cloudflare Zero Trust dashboard. Do not expose `FRONTEND_PORT`
+directly to the internet as a workaround.
 
-Each note should name where to look first, which command or dashboard to check, and which action is safe for the operator
-to take without risking data loss.
+### `/api/readiness` degraded or non-200
+
+- Where to look first: public readiness JSON, local readiness JSON, container state, backend logs, and validation
+  metadata.
+- Check:
+
+```bash
+PUBLIC_BASE_URL=https://bitcoinriskbrief.minihub.app
+curl -sD - -o /tmp/bitcoin-risk-readiness-public.json "${PUBLIC_BASE_URL}/api/readiness"
+curl -fsS http://127.0.0.1:3001/api/readiness -o /tmp/bitcoin-risk-readiness-local.json
+podman-compose -f podman-compose.yml ps
+podman-compose -f podman-compose.yml logs --tail=200 backend
+podman-compose -f podman-compose.yml exec timescaledb psql -U postgres -d bitcoin_risk_brief -t -A -c "SELECT validation_json->>'source', validation_json->'validation'->>'source_strategy', covered_end, row_count, passed FROM btc_risk_validation WHERE validation_key='latest';"
+```
+
+- First safe action: if the only failed readiness flag is stale data, run the scheduled refresh fallback and recheck
+  readiness:
+
+```bash
+EXPECTED_END_DATE="$(date -u -d 'yesterday' +%F)"
+./scripts/manage.sh download-cmc-csv "${EXPECTED_END_DATE}"
+curl -fsS http://127.0.0.1:3001/api/readiness
+curl -fsS "${PUBLIC_BASE_URL}/api/readiness"
+```
+
+- Pause promotion or take public traffic down: pause every deploy or traffic promotion while readiness is non-200. Take
+  public traffic down if public readiness stays non-200 after the safe refresh path, if validation metadata is missing or
+  failed, or if the public page could be serving stale or wrong risk data.
+
+### Scheduled data refresh failure
+
+- Where to look first: `data-collector` logs after the configured UTC schedule, the canonical CSV tail, and readiness.
+- Check:
+
+```bash
+podman-compose -f podman-compose.yml logs --tail=300 data-collector
+tail -n 5 collector/btc-csv/btc_usd_daily.csv
+curl -fsS http://127.0.0.1:3001/api/readiness
+```
+
+- First safe action: run the same no-key public refresh target manually. This path validates before replacing the
+  canonical CSV:
+
+```bash
+EXPECTED_END_DATE="$(date -u -d 'yesterday' +%F)"
+./scripts/manage.sh download-cmc-csv "${EXPECTED_END_DATE}"
+curl -fsS http://127.0.0.1:3001/api/readiness
+```
+
+- Pause promotion or take public traffic down: pause promotion if the scheduled run did not complete before launch
+  checks. Take public traffic down if readiness becomes stale beyond `DATA_FRESHNESS_MAX_AGE_DAYS`, if collector logs
+  show repeated `scheduled_refresh_failed` events, or if the refresh failure may have left public data inconsistent.
+
+### Public CoinMarketCap download failure
+
+- Where to look first: manual `download-cmc-csv` output, `data-collector` logs, and the staged incoming CSV directory.
+- Check:
+
+```bash
+EXPECTED_END_DATE="$(date -u -d 'yesterday' +%F)"
+./scripts/manage.sh download-cmc-csv "${EXPECTED_END_DATE}"
+podman-compose -f podman-compose.yml logs --tail=300 data-collector
+find collector/btc-csv/incoming -maxdepth 1 -type f -print
+tail -n 5 collector/btc-csv/btc_usd_daily.csv
+```
+
+- First safe action: do not hand-edit `collector/btc-csv/btc_usd_daily.csv`. Retry once after confirming the expected
+  tail date. If the public endpoint is blocked or incomplete, stage an operator-downloaded CoinMarketCap CSV and run:
+
+```bash
+EXPECTED_END_DATE="$(date -u -d 'yesterday' +%F)"
+./scripts/manage.sh import-cmc-csv collector/btc-csv/incoming/bitcoin-historical-data.csv "${EXPECTED_END_DATE}"
+curl -fsS http://127.0.0.1:3001/api/readiness
+```
+
+- Pause promotion or take public traffic down: pause promotion until the public download, manual CSV import, or optional
+  API fallback completes and readiness is 200. Take public traffic down if the current public data is outside the
+  accepted freshness window or the source range cannot be verified.
+
+### Waitlist submission failure
+
+- Where to look first: public waitlist response headers, backend access logs, backend error logs, Cloudflare security
+  events for `POST /api/waitlist`, and `waitlist_leads` aggregate counts without copying contact values.
+- Check:
+
+```bash
+PUBLIC_BASE_URL=https://bitcoinriskbrief.minihub.app
+WAITLIST_TEST_CONTACT="<operator-controlled-test-contact>"
+curl -sD - -o /tmp/bitcoin-risk-waitlist.json \
+  -H 'Content-Type: application/json' \
+  -X POST "${PUBLIC_BASE_URL}/api/waitlist" \
+  --data "{\"contact\":\"${WAITLIST_TEST_CONTACT}\",\"locale\":\"en\",\"source\":\"ops_smoke\"}"
+podman-compose -f podman-compose.yml logs --tail=200 backend
+podman-compose -f podman-compose.yml exec timescaledb psql -U postgres -d bitcoin_risk_brief -t -A -c "SELECT count(*), max(created_at) FROM waitlist_leads WHERE source='ops_smoke';"
+```
+
+Also check Cloudflare dashboard: Security Events filtered to hostname `bitcoinriskbrief.minihub.app` and path
+`/api/waitlist`.
+
+- First safe action: if the backend returns validation, rate-limit, or database errors, fix the backend or database cause
+  before changing edge controls. If Cloudflare is challenging legitimate submissions, pause waitlist promotion and adjust
+  only the waitlist-specific rule or bot mode after confirming normal page loads still work.
+- Pause promotion or take public traffic down: pause promotion of the waitlist whenever submissions do not return a
+  successful or documented duplicate/upsert response with `Cache-Control: no-store`. Take public traffic down if waitlist
+  failures coincide with backend instability, database write failures, or an abuse burst that the current edge rules do
+  not contain.
+
+### Cloudflare Tunnel down
+
+- Where to look first: public health, local health, Cloudflare Zero Trust tunnel connector status, and the active
+  `cloudflared` service logs.
+- Check:
+
+```bash
+PUBLIC_BASE_URL=https://bitcoinriskbrief.minihub.app
+curl -sD - -o /tmp/bitcoin-risk-health-public.json "${PUBLIC_BASE_URL}/api/health"
+curl -fsS http://127.0.0.1:3001/api/health
+sudo systemctl status cloudflared --no-pager
+sudo journalctl -u cloudflared -n 100 --no-pager
+```
+
+For a compose-managed connector, use:
+
+```bash
+podman-compose -f podman-compose.yml -f podman-compose.cloudflare.yml ps cloudflared
+podman-compose -f podman-compose.yml -f podman-compose.cloudflare.yml logs --tail=100 cloudflared
+```
+
+Also check Cloudflare dashboard: Zero Trust > Networks > Tunnels > the tunnel serving
+`bitcoinriskbrief.minihub.app`.
+
+- First safe action: if local health is 200 and only the tunnel is down, restart the connector:
+
+```bash
+sudo systemctl restart cloudflared
+sudo systemctl status cloudflared --no-pager
+```
+
+For a compose-managed connector:
+
+```bash
+podman-compose -f podman-compose.yml -f podman-compose.cloudflare.yml restart cloudflared
+podman-compose -f podman-compose.yml -f podman-compose.cloudflare.yml logs --tail=100 cloudflared
+```
+
+- Pause promotion or take public traffic down: pause promotion until public `/api/health` and `/api/readiness` pass
+  through Cloudflare. If the connector flaps or cannot be restored quickly, keep the public hostname disabled instead of
+  exposing the local frontend port.
+
+### Public cache stale after import or correction
+
+- Where to look first: readiness coverage, latest risk cache headers, backend cache version, and Cloudflare cache
+  behavior for the public read endpoint.
+- Check:
+
+```bash
+PUBLIC_BASE_URL=https://bitcoinriskbrief.minihub.app
+curl -sD - -o /tmp/bitcoin-risk-readiness.json "${PUBLIC_BASE_URL}/api/readiness"
+curl -sD - -o /tmp/bitcoin-risk-latest.json "${PUBLIC_BASE_URL}/api/risk/latest"
+curl -sD - -o /tmp/bitcoin-risk-levels.json "${PUBLIC_BASE_URL}/api/risk/levels"
+```
+
+Expected public read headers include `Cache-Control`, `ETag`, `X-Cache`, and `X-Cache-Version`; the latest timestamp
+should match readiness `covered_end`.
+
+- First safe action: wait for `PUBLIC_CACHE_MAX_AGE_SECONDS` or purge the single public hostname/API cache in Cloudflare
+  if an immediate launch snapshot is required. Do not rerun imports solely to clear a stale edge cache.
+- Pause promotion or take public traffic down: pause promotion if public `covered_end`, latest risk timestamp, or
+  `X-Cache-Version` still points to the old validation marker after the cache window or a targeted purge. Take public
+  traffic down if stale cache could show known-wrong data after a correction.
+
+### Backup failure
+
+- Where to look first: backup command output, backup directory contents, checksum file, TimescaleDB container state, and
+  disk usage.
+- Check:
+
+```bash
+./scripts/backup.sh --dry-run
+BACKUP_LOG="/tmp/bitcoin-risk-backup-$(date -u +%Y%m%dT%H%M%SZ).log"
+./scripts/backup.sh | tee "${BACKUP_LOG}"
+tail -n 50 "${BACKUP_LOG}"
+podman-compose -f podman-compose.yml ps timescaledb
+df -h . ./data ./backups
+```
+
+- First safe action: if a backup directory was created, verify `SHA256SUMS` before trusting it:
+
+```bash
+BACKUP_PATH="<backup-directory-from-backup-log>"
+test -s "${BACKUP_PATH}/SHA256SUMS"
+(cd "${BACKUP_PATH}" && sha256sum -c SHA256SUMS)
+```
+
+If the failure is disk pressure, copy the latest verified backup off-server before pruning old timestamped backup
+directories. Do not delete `./data/timescaledb`.
+
+- Pause promotion or take public traffic down: pause migrations, deploys, bulk imports, and public launch until a fresh
+  verified backup exists and has an off-server copy. Take public traffic down before any production restore or data
+  repair from backup.
+
+### Disk or database volume pressure
+
+- Where to look first: host filesystem usage, `./data/timescaledb`, `./backups`, container restarts, and database size.
+- Check:
+
+```bash
+df -h . ./data ./data/timescaledb ./backups
+du -sh ./data/timescaledb ./backups collector/btc-csv
+podman-compose -f podman-compose.yml ps
+podman-compose -f podman-compose.yml exec timescaledb psql -U postgres -d bitcoin_risk_brief -t -A -c "SELECT pg_size_pretty(pg_database_size('bitcoin_risk_brief'));"
+```
+
+- First safe action: stop nonessential growth first. Pause manual imports and backups that are not needed for immediate
+  recovery, copy verified backups off-server, and prune only old timestamped backup directories after checksum and
+  off-server copy are confirmed. Never remove TimescaleDB files or canonical CSV files by hand.
+- Pause promotion or take public traffic down: pause promotion when the project filesystem or database volume is above
+  80% usage until capacity is confirmed. Take public traffic down if disk usage is above 90%, writes are failing, the
+  database container is restarting, or readiness is non-200 due to storage pressure.
 
 For a suspected published bad-data incident, prefer a conservative correction flow: record the observed public value and
 data date, inspect readiness and validation metadata, stop further automated imports if they could overwrite evidence,

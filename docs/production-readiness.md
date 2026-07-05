@@ -115,6 +115,27 @@ curl -fsS http://127.0.0.1:3001/api/readiness
   result, off-server copy confirmation, restore target type, and readiness result. Do not record `.env` values,
   secrets, waitlist contacts, raw dump or CSV contents, or private off-server paths.
 
+Monitoring and first-response status recorded on 2026-07-05:
+
+- Overall monitoring status: blocked/accepted limitation for first traffic. The first-response runbook is documented in
+  [Operations](operations.md), and previous public smoke checks prove the public health/readiness paths exist, but this
+  agent session has no access to the production host, Cloudflare dashboard, or an external monitoring provider. No
+  monitor dashboard, alert delivery, backup freshness monitor, collector log alert, or Cloudflare Tunnel health alert
+  evidence was provided. Do not mark monitoring configured until an operator records redacted evidence.
+
+| Monitor area | Current status | Required operator action |
+| --- | --- | --- |
+| Public `/api/health` | Blocked/accepted limitation. Endpoint exists and has previous smoke evidence, but no external uptime monitor evidence is recorded. | Configure an HTTP monitor for `https://bitcoinriskbrief.minihub.app/api/health`, alert on non-200, timeout, or TLS failure, and record the provider/dashboard name plus alert channel without account details. |
+| Public `/api/readiness` | Blocked/accepted limitation. Endpoint exists and has previous smoke evidence, but no external readiness alert evidence is recorded. | Configure an HTTP monitor for `https://bitcoinriskbrief.minihub.app/api/readiness`, alert on non-200, and route the alert to the `/api/readiness` first-response entry in `docs/operations.md`. |
+| Stale readiness after nightly update window | Blocked/accepted limitation. No scheduled stale-data monitor evidence is recorded. | After the default 01:00 UTC collector window plus operator-defined grace period, check `/api/readiness`; alert if `status` is not `ready`, `latest_date`/`covered_end` is older than the last completed UTC day, or `data_age_days` exceeds `DATA_FRESHNESS_MAX_AGE_DAYS`. |
+| Collector refresh failure | Blocked/accepted limitation. The scheduled public-download-first path is documented, but no production log alert evidence is recorded. | Configure production log/container alerts for `scheduled_refresh_failed`, `public_cmc_download_failed`, API fallback failure, and repeated `data-collector` restarts; record the alert source and latest passing scheduled run. |
+| Backup freshness | Blocked by Task 4 and accepted only as a documented limitation until the operator acts. No real production backup, off-server copy, restore drill, or backup freshness monitor evidence is recorded here. | Schedule `./scripts/backup.sh`, copy verified backups off-server, alert when no checksum-verified backup and off-server copy exists inside the chosen freshness window, and record redacted evidence from the production host. |
+| Cloudflare Tunnel health | Partially configured. The public hostname and Tunnel path have previous smoke evidence, but no Cloudflare connector health alert evidence is recorded. | In Cloudflare Zero Trust, enable or document Tunnel connector health notifications for the connector serving `bitcoinriskbrief.minihub.app`; also record whether production uses host-service `cloudflared` or compose-managed `cloudflared` and where operators check status. |
+
+- Until the actions above are complete, public traffic should be a controlled operator-watched pilot only. Pause broader
+  promotion when any required monitor is missing and no operator is actively watching the matching command/dashboard from
+  the first-response runbook.
+
 ## Release Gates
 
 Run these before every deploy:
