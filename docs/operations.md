@@ -432,9 +432,53 @@ Each backup directory contains:
 
 Backups should be copied off the server. Keeping the only backup under `./backups` protects against accidental database edits, but not against disk failure.
 
-For USB-based production updates, run a fresh backup before deploying the new project snapshot and copy the new backup
-off the server before promotion. The planned USB Update And Install Kit V2 keeps backup artifacts out of the workstation
-project snapshot while making the backup gate explicit in the server update flow.
+## USB Kit Packaging And Updates
+
+Prepare the USB kit on the workstation from the repository checkout:
+
+```bash
+bash server-kit/prepare-usb-kit.sh /Volumes/USB
+```
+
+The command creates `/Volumes/USB/bitcoin-risk-brief-server-kit` and replaces only that kit directory when rerun. The
+expected kit contents are deployment docs, ordered server scripts including
+`scripts/07-update-bitcoin-risk-brief-from-usb.sh`, a filtered `project/bitcoin-risk-brief/` snapshot, `manifest.txt`,
+and `SHA256SUMS`.
+
+The USB kit must not contain local `.env`, `.git`, backups, database volumes, dependency caches, build output, browser
+artifacts, container images, or an offline package mirror. The workstation project snapshot keeps backup artifacts out of
+the kit.
+
+Fresh install on the server remains an ordered script flow from the mounted kit:
+
+```bash
+cd /mnt/deploy-usb/bitcoin-risk-brief-server-kit
+bash scripts/01-bootstrap-host.sh
+bash scripts/02-install-cloudflared-from-usb.sh
+bash scripts/03-deploy-bitcoin-risk-brief.sh
+sudoedit /srv/projects/bitcoin-risk-brief/.env
+bash scripts/04-enable-bitcoin-risk-service.sh
+bash scripts/05-health-check.sh
+```
+
+For an existing production deployment, use the update wrapper:
+
+```bash
+cd /mnt/deploy-usb/bitcoin-risk-brief-server-kit
+bash scripts/07-update-bitcoin-risk-brief-from-usb.sh
+```
+
+After Cloudflare Tunnel is configured, include the public readiness URL:
+
+```bash
+PUBLIC_URL=https://bitcoinriskbrief.minihub.app bash scripts/07-update-bitcoin-risk-brief-from-usb.sh
+```
+
+The update wrapper requires the existing `/srv/projects/bitcoin-risk-brief/.env`, runs a backup from the current deployed
+project before copying new code, verifies the backup checksums, copies the verified backup to the USB default
+`backups-from-server/` or an operator-provided `BACKUP_COPY_DEST`, verifies the copied backup, deploys the project
+snapshot, restarts the service, and runs local health/readiness plus optional public readiness checks. The production
+`.env` is preserved and is not copied from the USB.
 
 ## Restore Notes
 

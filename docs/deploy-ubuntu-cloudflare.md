@@ -306,7 +306,7 @@ public download fails without a successful API fallback.
 
 ## Update Procedure
 
-The direct Git workflow is:
+Keep the direct Git workflow separate from the USB/local-server workflow. The direct Git workflow is:
 
 ```bash
 cd /opt/bitcoin-risk-brief
@@ -321,11 +321,51 @@ curl -fsS https://risk.example.com/api/readiness
 
 Run `./scripts/backup.sh` before updates that include migrations.
 
-For local-server deployments through USB, the planned USB Update And Install Kit V2 should replace manual copying. The
-USB should contain only the filtered project snapshot, server-kit scripts, docs, manifest, and checksums. It should not
-contain local `.env`, `.git`, backups, dependency caches, build output, or container images. Before applying an update
-from USB, create a fresh backup from the currently deployed project and copy it off the server. The server-kit deploy
-script defaults to `/srv/projects/bitcoin-risk-brief`.
+For local-server deployments through USB, prepare the v2 kit on the workstation:
+
+```bash
+cd /path/to/bitcoin-risk-brief
+bash server-kit/prepare-usb-kit.sh /Volumes/USB
+```
+
+The command creates `/Volumes/USB/bitcoin-risk-brief-server-kit` with deployment docs, server-kit scripts, a filtered
+project snapshot, `manifest.txt`, and `SHA256SUMS`. It replaces only that kit directory when rerun. The USB kit should
+not contain local `.env`, `.git`, backups, dependency caches, build output, browser artifacts, container images, or an
+offline package mirror.
+
+Fresh install from the mounted USB kit uses the ordered server scripts:
+
+```bash
+cd /mnt/deploy-usb/bitcoin-risk-brief-server-kit
+bash scripts/01-bootstrap-host.sh
+bash scripts/02-install-cloudflared-from-usb.sh
+bash scripts/03-deploy-bitcoin-risk-brief.sh
+sudoedit /srv/projects/bitcoin-risk-brief/.env
+bash scripts/04-enable-bitcoin-risk-service.sh
+bash scripts/05-health-check.sh
+```
+
+Existing production deployments should use the update wrapper:
+
+```bash
+cd /mnt/deploy-usb/bitcoin-risk-brief-server-kit
+bash scripts/07-update-bitcoin-risk-brief-from-usb.sh
+```
+
+For the public readiness check after Cloudflare Tunnel is configured:
+
+```bash
+PUBLIC_URL=https://bitcoinriskbrief.minihub.app bash scripts/07-update-bitcoin-risk-brief-from-usb.sh
+```
+
+The update wrapper requires the existing `/srv/projects/bitcoin-risk-brief/.env`, runs `./scripts/backup.sh` before
+copying new code, verifies the backup, copies the verified backup to the USB default `backups-from-server/` or an
+operator-provided `BACKUP_COPY_DEST`, verifies the copied backup, deploys the USB project snapshot, recreates/restarts
+the user service, and runs local health/readiness plus optional public readiness checks. The existing production `.env`
+is preserved; the USB kit does not provide production secrets.
+
+Automatic live restore is not part of the USB kit. Restore remains a separate operator action from a verified backup and
+only after taking the app offline or using a staging/empty restore target.
 
 ## Rollback
 

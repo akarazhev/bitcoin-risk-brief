@@ -5,7 +5,7 @@ documentation source. For current behavior, use the core docs in `docs/README.md
 
 Unchecked boxes inside files marked completed, historical, or superseded are original plan tracking, not current TODOs.
 
-Last reviewed: 2026-07-02.
+Last reviewed: 2026-07-05.
 
 ## Current Implementation Summary
 
@@ -23,9 +23,9 @@ Last reviewed: 2026-07-02.
 - Public read endpoints use backend cache headers and validation-versioned `ETag`s. `POST /api/waitlist` is no-store and
   application-rate-limited.
 - Server-kit scripts live under `server-kit/` and include bootstrap, optional `cloudflared` install, deploy, user service
-  enablement, health check, and debug helpers.
-- USB kit v2 is planned as a reproducible workstation-side packaging flow plus a server-side backup-before-update gate;
-  it is not a full offline deployment artifact.
+  enablement, health check, debug helpers, and a USB update wrapper.
+- USB kit v2 has local workstation packaging and a server-side backup-before-update gate in the repository; it is not a
+  full offline deployment artifact and does not package secrets, container images, or package mirrors.
 - A final documentation and portfolio presentation pass is planned after implementation freeze; it is for a private or
   portfolio repository, not an open-source community launch.
 - A launch operations and governance checklist is planned for privacy/terms, waitlist handling, credential ownership,
@@ -63,7 +63,7 @@ Last reviewed: 2026-07-02.
 | `specs/2026-07-01-documentation-portfolio-presentation-design.md` | Future-facing | Phase 8 final documentation and private/portfolio repository presentation pass after implementation freeze. |
 | `specs/2026-07-01-localization-quality-language-expansion-design.md` | Future-facing | Phase 8 localization add-on for EN/RU copy polish, ES/DE launch scope, and deferred AR/ZH research. |
 | `specs/2026-07-01-scheduled-public-cmc-refresh-design.md` | Future-facing | Phase 6/7 operational hardening for nightly no-key public CoinMarketCap refresh. |
-| `specs/2026-07-01-usb-update-install-kit-v2-design.md` | Future-facing | Phase 6/7 operational hardening for reproducible USB preparation, install/update flows, and backup-before-update. |
+| `specs/2026-07-01-usb-update-install-kit-v2-design.md` | Implemented locally, production use pending | Phase 6/7 operational hardening for reproducible USB preparation, install/update flows, and backup-before-update. Production benefit still requires preparing a real USB kit and running the flow on the production host. |
 | `specs/2026-07-01-risk-methodology-research-design.md` | Future-facing | Phase 10 research track; v1 remains the production metric until evidence supports a versioned v2. |
 | `specs/2026-07-01-distribution-channel-research-design.md` | Future-facing | Phase 11 distribution track; evaluates PWA, Telegram Mini App, browser extensions, and conditional platform wrappers. |
 | `specs/2026-06-30-usb-server-kit-design.md` | Completed in repository | Templates and scripts exist under `server-kit/`; USB copy remains an operator action. |

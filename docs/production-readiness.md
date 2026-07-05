@@ -37,8 +37,8 @@ Deployment path decision status recorded on 2026-07-02:
   the operator on 2026-07-02. The direct Git workflow under `/opt/bitcoin-risk-brief` is not the active production
   update path for the next update.
 - Production project directory: `/srv/projects/bitcoin-risk-brief`.
-- USB Update And Install Kit V2 is required before the next production update unless the operator records equivalent
-  one-time manual verification before promotion.
+- USB Update And Install Kit V2 is implemented locally, but production benefit remains pending until a real USB package
+  is prepared and the backup-gated update wrapper is run on the production host.
 - Production `.env` location: `/srv/projects/bitcoin-risk-brief/.env`; filesystem owner still needs production-host
   confirmation.
 - Production `COINMARKETCAP_API_KEY`: empty. Data refresh should use the scheduled public-download-first collector path
@@ -260,8 +260,8 @@ Task 10 launch snapshot recorded on 2026-07-05 at 11:37 UTC for `https://bitcoin
   Playwright desktop Chromium, mobile Chromium, and mobile WebKit profiles, but it visibly showed stale data and no
   physical-device/native branded browser pass is recorded.
 - Selected deployment path: USB-based local-server deployment under `/srv/projects/bitcoin-risk-brief`; USB Update And
-  Install Kit V2 or equivalent one-time manual verification remains required before the next production update, and the
-  production `.env` owner still needs host confirmation.
+  Install Kit V2 exists locally, but a real USB package and backup-gated production-host update are still pending, and
+  the production `.env` owner still needs host confirmation.
 - Selected data refresh path: scheduled public-download-first CoinMarketCap CSV refresh, with manual
   `download-cmc-csv` and `import-cmc-csv` fallbacks. The current public readiness result proves this path has not kept
   production fresh through the accepted freshness window and needs operator action before launch.
@@ -277,6 +277,25 @@ Task 10 launch snapshot recorded on 2026-07-05 at 11:37 UTC for `https://bitcoin
   blocker for this snapshot is data freshness: readiness is HTTP 503 with `data_fresh: false`. Do not run or mark the
   first traffic test complete until readiness is HTTP 200 and the other required launch limitations are explicitly
   resolved or accepted.
+
+USB Update And Install Kit V2 local implementation status recorded on 2026-07-05:
+
+- Local repository support is implemented for workstation packaging with
+  `bash server-kit/prepare-usb-kit.sh /Volumes/USB`. The package creates
+  `/Volumes/USB/bitcoin-risk-brief-server-kit` with deployment docs, ordered server scripts including
+  `scripts/07-update-bitcoin-risk-brief-from-usb.sh`, a filtered project snapshot, `manifest.txt`, and `SHA256SUMS`.
+- The local package contract excludes production secrets and local state: `.env`, `.git`, backups, database volumes,
+  dependency caches, build output, browser artifacts, container images, and offline package mirrors are not part of the
+  USB kit.
+- The server update wrapper requires the existing `/srv/projects/bitcoin-risk-brief/.env`, runs
+  `./scripts/backup.sh` before copying new code, verifies the backup, copies the verified backup to the USB default
+  `backups-from-server/` or an operator-provided `BACKUP_COPY_DEST`, verifies the copy, deploys the USB project
+  snapshot, restarts the service, and runs local health/readiness plus optional public readiness checks.
+- Production `.env` is preserved by the deploy/update flow and is not sourced from the USB kit.
+- Production benefit remains pending. This repository state does not prove a production update: a real USB package still
+  has to be prepared from the workstation, moved to the production host, and run there with redacted evidence from the
+  backup, off-server/USB backup copy, health checks, readiness checks, and public readiness checks when Cloudflare Tunnel
+  is configured.
 
 Task 11 cache latency measurement recorded on 2026-07-05 from 12:15 to 12:17 UTC for
 `https://bitcoinriskbrief.minihub.app`:
@@ -393,7 +412,8 @@ Before public launch, also complete and record:
 - selected BTC data refresh path: automatic public CSV download, manual downloaded CSV intake, or optional CoinMarketCap API refresh;
 - selected deployment path: direct Git workflow or USB-based local-server deployment. If USB deployment is used, verify
   the kit contains a filtered project snapshot, server-kit scripts, docs, manifest, and checksums, and does not contain
-  local `.env`, `.git`, backups, dependency caches, build output, or container images;
+  local `.env`, `.git`, backups, dependency caches, build output, browser artifacts, container images, or offline
+  package mirrors;
 - cache policy for public read endpoints;
 - Cloudflare WAF, bot protection, cache rules, and edge rate limits rendered and applied with
   `scripts/cloudflare_edge_rules.py`, plus dashboard bot protection enabled where required by the Cloudflare plan;
@@ -528,8 +548,8 @@ Completed or partially completed as of 2026-07-01:
 Still required before treating the pilot as publicly launched:
 
 - Confirm the production host runbook, `.env`, service path, and selected data-refresh workflow.
-- If the production host is updated through USB, replace manual copying with the planned USB Update And Install Kit V2 or
-  record the manual verification evidence until that script exists.
+- If the production host is updated through USB, prepare a real USB Update And Install Kit V2 package and run the
+  backup-gated update wrapper; do not treat local implementation as proof of production update completion.
 - Decide whether to accept the current Cloudflare Free-plan subset for first traffic or upgrade/configure additional WAF,
   bot protection, and broader API burst-rate-limit controls.
 - Configure scheduled `./scripts/backup.sh` runs and copy backups off the server.

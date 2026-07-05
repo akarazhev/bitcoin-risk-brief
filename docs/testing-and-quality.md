@@ -85,6 +85,10 @@ Server-kit tests cover:
 
 - rootless systemd service script safety checks;
 - debug script evidence collection and secret masking.
+- USB kit packaging behavior, including required docs/scripts, filtered project snapshot contents, excluded local state,
+  executable server scripts, manifest contents, and checksums.
+- The USB update wrapper contract: backup before deploy, backup checksum verification, off-server/USB backup copy,
+  existing production `.env` preservation, service restart, and health/readiness checks.
 
 Frontend tests cover:
 
@@ -127,15 +131,22 @@ Required status checks:
   `npm run smoke --prefix frontend`.
 - `compose-validation`: runs `docker compose -f podman-compose.yml config >/dev/null`.
 
-`server-kit/tests` is not part of the current CI workflow. Run it locally after changing `server-kit/` scripts:
+`server-kit/tests` is not part of the current CI workflow. Run it locally after changing `server-kit/` scripts or USB
+packaging docs:
 
 ```bash
 python3 -m unittest discover -s server-kit/tests -v
 ```
 
-If the planned USB Update And Install Kit V2 packaging script is implemented, add focused tests for the staged USB
-contents: required docs and scripts are present, `.env` and `.git` are excluded, backups and dependency caches are
-excluded, scripts are executable, and the manifest plus checksums are written.
+Also run shell syntax checks for the workstation wrapper and update script:
+
+```bash
+bash -n server-kit/prepare-usb-kit.sh server-kit/scripts/07-update-bitcoin-risk-brief-from-usb.sh
+```
+
+For packaging changes, run a local smoke package to a temporary directory and verify `manifest.txt`, `SHA256SUMS`, and no
+staged `.env`, secret `.env.*` files, or `.git` inside `project/bitcoin-risk-brief/`. The non-secret templates
+`.env.example` and `.env.production.example` are expected project files.
 
 Branch protection expectations for `main`:
 

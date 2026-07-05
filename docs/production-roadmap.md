@@ -46,12 +46,15 @@ Already implemented:
 - Containerized local stack and Ubuntu plus Cloudflare Tunnel deployment docs.
 - Server-run USB kit scripts for host bootstrap, optional `cloudflared` install, project deploy, service enablement,
   health checks, and debug reports.
+- USB kit v2 workstation packaging and server-side update wrapper are implemented locally, including filtered snapshot
+  packaging, manifest/checksums, backup-before-update, off-server/USB backup copy, `.env` preservation, service restart,
+  and health/readiness checks.
 - Production readiness, operations, security, testing, architecture, and data-pipeline documentation.
 
 ## Current Roadmap Status
 
-Verified on 2026-07-05 from repository files, current commit `f42f266542981483a87964fa8726a5513eb339d6`, public
-hostname checks, and the launch snapshot in [Production Readiness](production-readiness.md).
+Verified on 2026-07-05 from repository files through commit `25cabdce4af474e2cfa5a0c12990cdd1a5ab40bc`, public hostname
+checks, and the launch snapshot in [Production Readiness](production-readiness.md).
 
 | Phase | Status | Repository evidence |
 | --- | --- | --- |
@@ -60,7 +63,7 @@ hostname checks, and the launch snapshot in [Production Readiness](production-re
 | Phase 3: CI And Quality Gates | Complete | `1b162a5`, `.github/workflows/ci.yml`, `docs/testing-and-quality.md` |
 | Phase 4: Frontend Production Quality | Complete | `22793fb`, `frontend/e2e/frontend-quality.spec.ts`, `frontend/src/Chart.tsx`, `docs/frontend-qa.md` |
 | Phase 5: Performance, Caching, And Abuse Protection | Complete in repository; Free-plan edge subset applied | `3c66df9`, `5bb179d`, `backend/app/public_cache.py`, `backend/app/main.py`, `scripts/cloudflare_edge_rules.py`, `backend/tests/test_cloudflare_edge_rules.py` |
-| Phase 6: Production Environment And Deployment | Blocked by stale production data; deployment path recorded with accepted limitations | 2026-07-05 public `/api/health` returned 200, but `/api/readiness` returned HTTP 503 with `data_fresh: false`, `latest_date: 2026-06-30`, and `max_age_days: 2`; selected path is USB deployment under `/srv/projects/bitcoin-risk-brief` |
+| Phase 6: Production Environment And Deployment | Blocked by stale production data; USB kit v2 implemented locally, production use pending | 2026-07-05 public `/api/health` returned 200, but `/api/readiness` returned HTTP 503 with `data_fresh: false`, `latest_date: 2026-06-30`, and `max_age_days: 2`; selected path is USB deployment under `/srv/projects/bitcoin-risk-brief`; local repository now has workstation packaging and backup-gated USB update scripts |
 | Phase 7: Backups, Restore, And Monitoring | Blocked pending operator action | Real production backup, off-server copy, restore drill, monitoring dashboard/alert delivery, backup freshness alert, collector failure alert, and import provenance evidence are not recorded |
 | Phase 8: Launch Checklist And First Traffic Test | Blocked; snapshot captured, first traffic test not run | 2026-07-05 launch snapshot recorded health 200, latest-risk 200, readiness 503/degraded, waitlist smoke blocked, browser-capable QA passed with limitations, and first traffic remains pending |
 | Phase 9: Post-Launch Learning Loop | Pending | Starts after launch traffic creates usage evidence, including optional agent-access demand testing |
@@ -89,7 +92,7 @@ Remaining production-pilot gaps:
 
 - restore production data freshness so public `/api/readiness` returns HTTP 200 before launch or first traffic;
 - confirm the production host runbook, `.env`, service path, and data-refresh workflow are the documented source of truth;
-- make USB kit preparation reproducible from the workstation and connect update promotion to a backup-before-update gate;
+- prepare a real USB kit from the workstation and run the backup-gated update flow on the production host;
 - verify on the production host that scheduled public CoinMarketCap refresh updates through the last completed UTC day
   without a `COINMARKETCAP_API_KEY`;
 - measure first-load latency on cache misses and add public payload cache warmup or precomputed expensive payloads if the
@@ -241,11 +244,13 @@ Acceptance criteria:
 
 ### Phase 6: Production Environment And Deployment
 
-Status: Blocked by stale production data pending operator action. Public hostname smoke checks passed earlier, and
+Status: Blocked by stale production data pending operator action. USB kit v2 is implemented locally, but production
+benefit remains pending until a real USB package is prepared and the update flow is run on the production host. Public
+hostname smoke checks passed earlier, and
 `GET /api/health` plus `GET /api/risk/latest` still returned 200 on 2026-07-05, but `GET /api/readiness` returned HTTP
 503 with `data_fresh: false`, `latest_date: 2026-06-30`, `data_age_days: 4`, and `max_age_days: 2`. The selected
-deployment path is USB-based deployment under `/srv/projects/bitcoin-risk-brief`, with accepted limitations around USB
-Update And Install Kit V2/manual verification and production `.env` owner confirmation.
+deployment path is USB-based deployment under `/srv/projects/bitcoin-risk-brief`, with accepted limitations around
+production `.env` owner confirmation.
 
 Goal: run the full stack on the intended production-pilot host.
 
@@ -260,7 +265,7 @@ Deliverables:
   local USB deployment under `/srv/projects/bitcoin-risk-brief`.
 - If using the local USB deployment path, prepare the deployment USB from a reproducible kit that contains only the
   filtered project snapshot, scripts, docs, manifest, and checksums. Do not include local `.env`, `.git`, backups,
-  dependency caches, build output, or container images.
+  dependency caches, build output, browser artifacts, container images, or offline package mirrors.
 - Run `validate`, `start`, `migrate`, and one live `run-now`.
 - Configure Cloudflare Tunnel for the public hostname.
 - Keep the frontend bound to localhost when Cloudflare Tunnel is the only ingress.

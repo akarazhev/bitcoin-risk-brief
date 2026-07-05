@@ -565,9 +565,21 @@ Example structure:
     frontend/
 ```
 
-### Option A: Deploy Source and Build on the Server
+### Bitcoin Risk Brief USB Kit
 
-Prepare the project on the workstation, copy it to the USB drive, connect the USB drive to the server, and find the device:
+Prepare the v2 project kit on the workstation:
+
+```bash
+cd /path/to/bitcoin-risk-brief
+bash server-kit/prepare-usb-kit.sh /Volumes/USB
+```
+
+The command creates `/Volumes/USB/bitcoin-risk-brief-server-kit` with deployment docs, ordered server scripts, a filtered
+`project/bitcoin-risk-brief/` snapshot, `manifest.txt`, and `SHA256SUMS`. It replaces only that kit directory when rerun.
+The kit must not contain local `.env`, `.git`, backups, dependency caches, build output, browser artifacts, container
+images, or an offline package mirror.
+
+Connect the USB drive to the server and find the device:
 
 ```bash
 lsblk -f
@@ -580,59 +592,38 @@ sudo mkdir -p /mnt/deploy-usb
 sudo mount /dev/sdX1 /mnt/deploy-usb
 ```
 
-Copy the project:
+For a fresh install:
 
 ```bash
-sudo rsync -a --delete /mnt/deploy-usb/bitcoin-risk-brief/ /srv/projects/bitcoin-risk-brief/
-sudo chown -R apps:apps /srv/projects/bitcoin-risk-brief
-sudo chmod 750 /srv/projects/bitcoin-risk-brief
-sudo chmod 600 /srv/projects/bitcoin-risk-brief/.env
+cd /mnt/deploy-usb/bitcoin-risk-brief-server-kit
+bash scripts/01-bootstrap-host.sh
+bash scripts/02-install-cloudflared-from-usb.sh
+bash scripts/03-deploy-bitcoin-risk-brief.sh
+sudoedit /srv/projects/bitcoin-risk-brief/.env
+bash scripts/04-enable-bitcoin-risk-service.sh
+bash scripts/05-health-check.sh
 ```
 
-Start:
+For an existing deployment, run the backup-gated update wrapper:
 
 ```bash
-sudo -iu apps bash -lc 'cd /srv/projects/bitcoin-risk-brief && podman-compose up -d --build --remove-orphans'
-sudo -iu apps podman ps
+cd /mnt/deploy-usb/bitcoin-risk-brief-server-kit
+bash scripts/07-update-bitcoin-risk-brief-from-usb.sh
 ```
 
-Check the local endpoint:
+For the public readiness check after Cloudflare Tunnel is configured:
 
 ```bash
-curl -fsS http://127.0.0.1:3001/api/health
+PUBLIC_URL=https://bitcoinriskbrief.minihub.app bash scripts/07-update-bitcoin-risk-brief-from-usb.sh
 ```
 
-### Option B: Deploy Prebuilt Container Images
+The update wrapper requires the existing `/srv/projects/bitcoin-risk-brief/.env`, runs a backup before copying new code,
+verifies the backup, copies the verified backup to the USB default `backups-from-server/` or an operator-provided
+`BACKUP_COPY_DEST`, verifies the copied backup, deploys the project snapshot, restarts the service, and runs
+health/readiness checks. The existing production `.env` is preserved.
 
-If you do not want to build on the server, build the image on a trusted machine:
-
-```bash
-podman build -t localhost/myproject:2026-06-30 .
-podman save -o myproject-2026-06-30.tar localhost/myproject:2026-06-30
-```
-
-Copy the `.tar` file to the USB drive, then load it on the server:
-
-```bash
-sudo -iu apps podman load -i /mnt/deploy-usb/myproject-2026-06-30.tar
-```
-
-In the compose file, use a local image tag and do not rely on pulling from a registry:
-
-```yaml
-services:
-  app:
-    image: localhost/myproject:2026-06-30
-    pull_policy: never
-    ports:
-      - "127.0.0.1:3001:3000"
-```
-
-After an update:
-
-```bash
-sudo -iu apps bash -lc 'cd /srv/projects/myproject && podman-compose up -d --remove-orphans'
-```
+Automatic live restore is not part of the kit. Restore only from a verified backup and only after taking the app offline
+or using a staging/empty restore target.
 
 ## 17. Autostart Podman Compose Projects
 
