@@ -176,6 +176,19 @@ curl -sD - -o /tmp/bitcoin-risk-latest-public.json "${PUBLIC_BASE_URL}/api/risk/
   known-good restore or re-import, risk/brief recomputation, origin and edge cache verification, correction notes, and
   internal freshness/RPO/RTO/downtime boundaries. These are internal pilot targets, not public SLA commitments.
 
+Production waitlist smoke status recorded on 2026-07-05:
+
+- Public endpoint for the smoke: `POST https://bitcoinriskbrief.minihub.app/api/waitlist`.
+- Waitlist submission was not performed from this agent environment because no operator-controlled test contact value or
+  other private contact handoff was available. Using a placeholder would not satisfy the Task 7 contact constraint.
+- HTTP saved/upsert status: blocked/not collected because no waitlist submission was sent.
+- Cache header result: blocked/not collected. `Cache-Control: no-store` and optional `Pragma: no-cache` still need
+  verification on a successful or duplicate/upsert waitlist response.
+- Server-side storage verification: blocked from this workstation. `/srv/projects/bitcoin-risk-brief` is not present and
+  no safe production database access was available, so `waitlist_leads` was not queried.
+- Contact value is intentionally omitted from this document and must also be omitted from logs summaries, final reports,
+  screenshots, and commit messages.
+
 ## Release Gates
 
 Run these before every deploy:
