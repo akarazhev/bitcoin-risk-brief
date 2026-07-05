@@ -278,6 +278,35 @@ Task 10 launch snapshot recorded on 2026-07-05 at 11:37 UTC for `https://bitcoin
   first traffic test complete until readiness is HTTP 200 and the other required launch limitations are explicitly
   resolved or accepted.
 
+Task 11 cache latency measurement recorded on 2026-07-05 from 12:15 to 12:17 UTC for
+`https://bitcoinriskbrief.minihub.app`:
+
+- Measurement context: production readiness was degraded during this pass. `GET /api/readiness` returned HTTP 503 with
+  `status: degraded`, `data_fresh: false`, `latest_date: 2026-06-30`, `covered_end: 2026-06-30`, `data_age_days: 4`,
+  `max_age_days: 2`, `source: coinmarketcap_csv`, and `row_count: 5832`. This measurement is useful for cache-latency
+  evidence, but it does not close the launch blocker and must be repeated after production data freshness is restored.
+- Commands used `curl -sS -D - -o /tmp/... -w 'time_total=%{time_total}\n'` against the public hostname. Initial sandbox
+  DNS resolution failed, so the public curl checks were rerun with network access for the measurement.
+
+| Endpoint | HTTP | X-Cache | X-Cache-Version | Cache-Control | First observed `time_total` | Repeat behavior |
+| --- | --- | --- | --- | --- | --- | --- |
+| `/api/readiness` | 503 | `MISS` | `validation:2026-07-04T01:00:05.639122+00:00:2026-06-30T00:00:00+00:00:5832:true` | `public, max-age=60, stale-while-revalidate=300` | `0.579072s` | Repeats stayed `X-Cache: MISS` with Cloudflare `STALE`; observed `0.223646s` to `0.293653s`. |
+| `/api/risk/latest` | 200 | `MISS` | `validation:2026-07-05T01:00:05.626717+00:00:2026-06-30T00:00:00+00:00:5832:true` | `public, max-age=60, stale-while-revalidate=300` | `15.720018s` | Repeats were fast through Cloudflare (`HIT` or `UPDATING`) at `0.156413s` to `0.182181s`, but the public response still exposed cached origin `X-Cache: MISS`. |
+| `/api/risk/history?limit=2000` | 200 | `MISS` | `validation:2026-07-05T01:00:05.626717+00:00:2026-06-30T00:00:00+00:00:5832:true` | `public, max-age=60, stale-while-revalidate=300` | `0.502109s` | Repeats stayed under `0.37s` through Cloudflare (`HIT` or `UPDATING`), with cached origin `X-Cache: MISS`. |
+| `/api/risk/levels` | 200 | `MISS` | `validation:2026-07-05T01:00:05.626717+00:00:2026-06-30T00:00:00+00:00:5832:true` | `public, max-age=60, stale-while-revalidate=300` | `16.289584s` | Repeats were fast through Cloudflare (`HIT` or `UPDATING`) at `0.155345s` to `0.184155s`, but the public response still exposed cached origin `X-Cache: MISS`. |
+| `/api/brief/latest` | 200 | `MISS` | `validation:2026-07-05T01:00:05.626717+00:00:2026-06-30T00:00:00+00:00:5832:true` | `public, max-age=60, stale-while-revalidate=300` | `0.291438s` | Repeats were fast through Cloudflare (`HIT` or `UPDATING`) at `0.159051s` to `0.170369s`, with cached origin `X-Cache: MISS`. |
+
+- Backend `X-Cache: HIT` behavior was not directly observable from the public Cloudflare path in this pass. Repeated
+  requests showed fast Cloudflare edge behavior, but the response header continued to expose the cached origin
+  `X-Cache: MISS` value.
+- Slow MISS/revalidation was observed for `/api/risk/levels` and `/api/risk/latest`. `/api/risk/levels` is one of the
+  documented expensive first-miss candidates, so a separate implementation plan should be created for local public cache
+  warmup before active traffic. Do not implement warmup inside this Task 11 documentation-only measurement.
+- Cache warmup remains a pre-traffic recommendation: warm `/api/readiness`, `/api/risk/latest`,
+  `/api/risk/history?limit=2000`, `/api/risk/levels`, and `/api/brief/latest` after backend startup and after successful
+  import/validation-version changes. Warmup must not hide stale readiness, and it must preserve `X-Cache-Version`
+  invalidation.
+
 ## Release Gates
 
 Run these before every deploy:
