@@ -203,6 +203,38 @@ Browser and device QA status recorded on 2026-07-05:
   blocked/limited by degraded data freshness shown on the public page (`2026-06-30`, `4 days old`) and by the missing
   physical device/native branded browser pass. No production waitlist submission was sent as part of this Task 8 pass.
 
+Launch governance and release evidence status recorded on 2026-07-05:
+
+- Launch commit: not selected. Task 10 launch snapshot was not run. Current candidate commit is
+  `1c3debc374b127f2f2a95aa8f13c66542ba1af39` (`docs: record public frontend QA`).
+- Methodology version: `crypto-scout-canonical-v1`.
+- Selected data refresh path: scheduled public-download-first CoinMarketCap CSV refresh with manual
+  `download-cmc-csv` or `import-cmc-csv` fallback. The optional official CoinMarketCap API path is used only when
+  `COINMARKETCAP_API_KEY` is configured.
+- Known accepted limitations for the current candidate: no standalone privacy/terms page is recorded; waitlist lead
+  owner, review cadence, deletion/unsubscribe contact path, and support/contact identity are pending operator decisions;
+  production backup/off-server copy/restore evidence is missing; monitoring evidence is missing; production import
+  provenance evidence is missing; waitlist smoke was not run; public page data was observed stale during Task 8; full
+  native-device/browser QA, focused accessibility, and SEO/social metadata evidence are not complete; Cloudflare remains
+  on the documented Free-plan-compatible subset.
+- Governance evidence process: keep privacy/terms/disclaimer posture, waitlist handling, credential/account ownership,
+  data-source terms review, dependency/security maintenance, accessibility, and metadata status in
+  [Security and Privacy](security-and-privacy.md) and [Operations](operations.md). Unknown operator-owned facts must be
+  recorded as pending decisions, not guessed.
+- First-user feedback review path: after the first controlled traffic window, summarize waitlist conversion,
+  repeat-use signals, direct questions, methodology confusion, and requests for alerts, daily briefs, API access,
+  agents, embeddings, widgets, or commercial reuse into this document or [Production Roadmap](production-roadmap.md).
+  Do not copy raw waitlist contacts into feedback notes.
+- Support/contact identity status: pending operator decision. One operator-owned contact path is required before
+  broader sharing, but no public support portal, paid SLA, or guaranteed response time is implied for the first pilot.
+- Dependency-license review status: pending lightweight review. Before broader portfolio sharing or commercial claims,
+  review production Python and npm dependency licenses for obvious conflicts and record the repository posture. Do not
+  claim open-source status unless a license is intentionally chosen.
+- Release evidence packet process: the final launch snapshot should reference the launch commit, public hostname,
+  readiness payload, cache headers, selected refresh path, deployment path, backup/restore evidence, waitlist smoke,
+  browser QA, known limitations, and any related import provenance manifest. Store private artifacts, raw contacts,
+  secrets, account details, and private storage paths outside this repository.
+
 ## Release Gates
 
 Run these before every deploy:

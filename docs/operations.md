@@ -527,6 +527,33 @@ Before active traffic, record the operator and recovery path for:
 Operational review should also check disk usage, database volume growth, backup directory growth, container restart
 loops, Cloudflare Tunnel connector health, public hostname availability, and any infrastructure cost or resource limits.
 
+## Launch Governance Operating Notes
+
+Recorded on 2026-07-05 for the current production-pilot candidate:
+
+- Waitlist lead owner and cadence: pending operator decision. Before active traffic, name one owner or owning role in an
+  operator-controlled record and choose a review cadence. A weekly manual review is sufficient for the first controlled
+  traffic test unless demand requires a faster cadence.
+- Deletion and unsubscribe path: pending operator decision. Use one operator-owned contact path for deletion,
+  unsubscribe, product questions, bug reports, and professional/API/license interest. Keep the actual address or handle
+  out of this repository unless the operator intentionally makes it public.
+- Manual waitlist handling: review aggregate lead counts and source/locale values without copying contact values into
+  general notes. Raw waitlist contacts should stay in the production database or another controlled operational system.
+- Credential/account ownership: track ownership and recovery for the categories in the resource checklist above, but do
+  not store secrets, account exports, personal account details, or private recovery paths in Git.
+- Dependency and security maintenance cadence: run a monthly manual review until automation is intentionally enabled.
+  Cover base images, Python dependencies, frontend npm dependencies, GitHub Actions versions, security advisories,
+  vulnerability scan results if available, and secret-scan output. Record only the date, scope, outcome, and required
+  follow-up.
+- Data-source terms review: record the CoinMarketCap public CSV and optional API terms review outcome before broader
+  launch. For future methodology sources, record terms and attribution before the source becomes production-critical.
+- Accessibility and metadata pass: browser-capable public-hostname QA is recorded, but a focused accessibility pass and
+  SEO/social metadata review still need operator evidence. Treat missing evidence as a launch limitation, not as a
+  pass.
+- Feedback review path: after the first controlled traffic window, summarize waitlist conversion, repeat-use signals,
+  direct questions, and requests for alerts, API access, agents, widgets, embeddings, or licensing into the production
+  readiness or roadmap notes. Do not copy raw contacts into feedback summaries.
+
 ## First-Response Runbook
 
 Run commands from the production project directory unless the step names a public URL or Cloudflare dashboard. The current
