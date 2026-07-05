@@ -41,10 +41,9 @@ Deployment path decision status recorded on 2026-07-02:
   one-time manual verification before promotion.
 - Production `.env` location: `/srv/projects/bitcoin-risk-brief/.env`; filesystem owner still needs production-host
   confirmation.
-- Production `COINMARKETCAP_API_KEY`: empty. Data refresh must use the no-key public CoinMarketCap CSV path or manual
-  downloaded CSV intake until the scheduled public-download-first collector behavior is implemented and verified.
-- Task 3 remains required before the production pilot depends on unattended no-key freshness, because production is
-  running without the optional CoinMarketCap API refresh path.
+- Production `COINMARKETCAP_API_KEY`: empty. Data refresh should use the scheduled public-download-first collector path
+  after this change is deployed to `/srv/projects/bitcoin-risk-brief`; `download-cmc-csv` and manual downloaded CSV
+  intake remain operator fallbacks.
 
 ## Release Gates
 
@@ -62,8 +61,8 @@ podman-compose -f podman-compose.yml build backend data-collector frontend
 python3 scripts/cloudflare_edge_rules.py render --hostname risk.example.com > /tmp/bitcoin-risk-cloudflare-edge.json
 ```
 
-If the production refresh path is no-key CoinMarketCap public data instead of the optional API key path, run this before
-the final readiness check:
+If a one-off production refresh is needed before the scheduled collector has run, use the no-key public CoinMarketCap
+path before the final readiness check:
 
 ```bash
 EXPECTED_END_DATE="$(date -u -d 'yesterday' +%F)"
@@ -166,11 +165,11 @@ A non-200 readiness response should block deploy promotion and should alert in p
 ## Data Pipeline Guarantees
 
 - `collector/btc-csv/btc_usd_daily.csv` is the canonical source.
-- When the optional API path is configured, scheduled collector runs fetch only missing completed UTC days from
-  CoinMarketCap.
-- Before active traffic, the production scheduler should be hardened and verified to use public CoinMarketCap download
-  first when `COINMARKETCAP_API_KEY` is empty. Until that is implemented, operators must run
-  `./scripts/manage.sh download-cmc-csv` manually when the canonical CSV is stale.
+- Scheduled collector runs target the last completed UTC day. If the CSV is stale, they use public CoinMarketCap
+  download first and fall back to the optional official API delta refresh only when `COINMARKETCAP_API_KEY` is
+  configured.
+- If the CSV already covers the scheduled target date, the collector imports and recomputes from the existing CSV
+  without downloading.
 - The production-pilot path supports automatic public CoinMarketCap downloads and validated imports from
   operator-downloaded CoinMarketCap historical CSVs.
 - Remote deltas, public downloads, and downloaded CSV imports must exactly match the expected contiguous daily range.
@@ -253,8 +252,8 @@ Still required before treating the pilot as publicly launched:
 - Decide whether to accept the current Cloudflare Free-plan subset for first traffic or upgrade/configure additional WAF,
   bot protection, and broader API burst-rate-limit controls.
 - Configure scheduled `./scripts/backup.sh` runs and copy backups off the server.
-- Implement and verify scheduled public-download-first refresh if the production pilot will run without a
-  `COINMARKETCAP_API_KEY`.
+- Deploy and verify scheduled public-download-first refresh on the production host because the production pilot runs
+  without a `COINMARKETCAP_API_KEY`.
 - Put request logging, backup health, and operational review in place.
 - Configure alerts on `/api/readiness` returning non-200, readiness becoming stale after the nightly update window, or
   collector logs containing scheduled/public/API refresh failures.

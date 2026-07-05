@@ -65,20 +65,20 @@ rewriting the canonical CSV. Use the manual workflow below or the optional offic
 
 ## Scheduled Public CoinMarketCap Refresh
 
-The desired production-pilot scheduler is public-download-first: once per day after the UTC day closes, the
-`data-collector` should try the same public CoinMarketCap download path automatically, then import the validated
-canonical CSV, recompute risk, write validation and brief data, and leave `/api/readiness` fresh.
+The production-pilot scheduler is public-download-first: once per day after the UTC day closes, the `data-collector`
+targets the last completed UTC day. If the canonical CSV is stale, it tries the same public CoinMarketCap download path
+automatically, then imports the validated canonical CSV, recomputes risk, writes validation and brief data, and leaves
+`/api/readiness` fresh.
 
-Current implementation note: the long-running scheduled collector still uses the `run-now` refresh behavior. With an
-empty `COINMARKETCAP_API_KEY`, it imports the existing CSV and recomputes risk, but it does not yet automatically invoke
-the public download path.
+If the canonical CSV already covers the target date, the scheduled run imports and recomputes from the existing CSV
+without downloading. If the public download fails and `COINMARKETCAP_API_KEY` is configured, the collector falls back to
+the optional official API delta refresh. If no API key is configured, the scheduled run fails visibly in collector logs
+and preserves `collector/btc-csv/btc_usd_daily.csv`.
 
-Until the scheduled public-download-first behavior is implemented and verified, operators should run
-`./scripts/manage.sh download-cmc-csv` after the last completed UTC day when the canonical CSV is stale. Manual
-`import-cmc-csv` remains the fallback if the public endpoint automation is unavailable.
-
-When implemented, scheduled no-key refresh failures should be visible in collector logs and readiness alerts. A failed
-public download must not rewrite `collector/btc-csv/btc_usd_daily.csv`.
+Operators can still run `./scripts/manage.sh download-cmc-csv` for a one-off public refresh, and manual
+`import-cmc-csv` remains the fallback if public endpoint automation and any configured API fallback are unavailable.
+Scheduled no-key refresh failures should alert through collector logs and stale readiness after the nightly update
+window.
 
 ## Manual Downloaded CoinMarketCap CSV Refresh
 
@@ -380,9 +380,14 @@ Inspect `/api/readiness` and check which flag failed. Common causes:
 - validation source is not `coinmarketcap_csv`;
 - latest risk timestamp does not match validation coverage end.
 
-### Collector skips remote refresh
+### Collector skips official API refresh
 
-If `COINMARKETCAP_API_KEY` is empty, this is expected. The collector still imports the existing CSV and recomputes risk.
+For `./scripts/manage.sh run-now`, an empty `COINMARKETCAP_API_KEY` means the official API refresh is skipped; the
+collector still imports the existing CSV and recomputes risk.
+
+For scheduled runs, an empty API key should not skip public no-key refresh when the CSV is stale. Inspect
+`data-collector` logs for `public_cmc_download_started`, `public_cmc_download_success`, `public_cmc_download_failed`,
+or `scheduled_refresh_failed`.
 
 ### Downloaded CSV import fails
 

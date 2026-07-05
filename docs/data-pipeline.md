@@ -72,13 +72,17 @@ The long-running `data-collector` service schedules a refresh/import flow once p
 - `SCHEDULE_CRON_HOUR`, default `1`
 - `SCHEDULE_CRON_MINUTE`, default `0`
 
-Current implementation note: the scheduled path uses the same remote-refresh behavior as `run-now`. It fetches missing
-completed UTC days only when `COINMARKETCAP_API_KEY` is configured. If no key is present, it imports the existing
-canonical CSV and recomputes risk without network refresh.
+Each scheduled run targets the last completed UTC day. If the canonical CSV already covers that target, the collector
+imports the existing CSV, recomputes risk, writes validation and brief data, and removes stale derived rows.
 
-Planned production-pilot hardening: scheduled runs should use public CoinMarketCap download first when no API key is
-configured, then optional official API fallback when a key exists, and manual downloaded CSV import as the operator
-fallback. See
+If the CSV is stale, the scheduled path uses public CoinMarketCap download first. A successful public download is staged
+under `collector/btc-csv/incoming/`, validated as a contiguous range, merged into the canonical CSV, imported into
+TimescaleDB, and used for risk recomputation. If the public download fails and `COINMARKETCAP_API_KEY` is configured,
+the scheduled run falls back to the optional official API delta refresh. With no API key, the public-download failure is
+visible in collector logs and the canonical CSV remains unchanged.
+
+Manual `import-cmc-csv` remains the operator fallback when public automation and any configured API fallback are
+unavailable. See
 [Scheduled Public CoinMarketCap Refresh Design](superpowers/specs/2026-07-01-scheduled-public-cmc-refresh-design.md).
 
 ## Optional CoinMarketCap API Delta Fetch
@@ -99,8 +103,9 @@ Runtime parameters:
 
 Transient HTTP/request errors are retried with exponential backoff. Permanent HTTP errors fail fast.
 
-The API path is an optional convenience path. Production-pilot operation must not depend on a paid CoinMarketCap account
-being available.
+The API path is an optional convenience path. `run-now` uses it when a key is configured, and scheduled runs use it only
+as fallback after public download failure when a key is configured. Production-pilot operation must not depend on a paid
+CoinMarketCap account being available.
 
 ## Public And Downloaded CSV Intake
 

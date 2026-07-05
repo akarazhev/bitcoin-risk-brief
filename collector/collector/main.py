@@ -8,9 +8,9 @@ from datetime import date, datetime
 from pathlib import Path
 from typing import Any
 
-from app.risk_sources import build_csv_risk_dataset
+from app.risk_sources import build_csv_risk_dataset, load_btc_usd_daily_csv
 from collector.config import settings
-from collector.csv_refresh import refresh_csv_from_coinmarketcap
+from collector.csv_refresh import last_completed_utc_day, refresh_csv_from_coinmarketcap
 from collector.downloaded_csv import import_coinmarketcap_downloaded_csv
 from collector.public_cmc_download import download_public_coinmarketcap_csv
 
@@ -20,7 +20,7 @@ BTC_CSV_PATH = Path(__file__).resolve().parents[1] / "btc-csv" / "btc_usd_daily.
 CMC_INCOMING_DIR = BTC_CSV_PATH.parent / "incoming"
 
 
-async def import_csv_once(pool: Any, *, refresh_remote: bool) -> None:
+async def import_csv_once(pool: Any, *, refresh_remote: bool, now: datetime | None = None) -> None:
     from collector.db_writer import (
         delete_rows_after_csv_end,
         write_brief,
@@ -37,6 +37,7 @@ async def import_csv_once(pool: Any, *, refresh_remote: bool) -> None:
             base_url=settings.coinmarketcap_base_url,
             bitcoin_id=settings.coinmarketcap_bitcoin_id,
             convert=settings.coinmarketcap_convert,
+            now=now,
         )
 
     dataset = build_csv_risk_dataset(BTC_CSV_PATH)
@@ -111,6 +112,54 @@ async def download_public_cmc_csv_once(pool: Any, *, expected_end_date: date | N
     )
 
 
+async def scheduled_refresh_once(pool: Any, *, now: datetime | None = None) -> None:
+    target_end_date = last_completed_utc_day(now)
+    existing_rows = load_btc_usd_daily_csv(BTC_CSV_PATH)
+    csv_tail = existing_rows[-1]["date"]
+
+    if csv_tail >= target_end_date:
+        logger.info(
+            "already_current: BTC CSV covers scheduled target %s with tail %s",
+            target_end_date.isoformat(),
+            csv_tail.isoformat(),
+        )
+        await import_csv_once(pool, refresh_remote=False)
+        return
+
+    logger.info(
+        "public_cmc_download_started: scheduled target %s, CSV tail %s",
+        target_end_date.isoformat(),
+        csv_tail.isoformat(),
+    )
+    try:
+        await download_public_cmc_csv_once(pool, expected_end_date=target_end_date)
+    except Exception:
+        logger.exception(
+            "public_cmc_download_failed: scheduled target %s; csv_not_rewritten",
+            target_end_date.isoformat(),
+        )
+        if settings.coinmarketcap_api_key.strip():
+            logger.info("api_fallback_started: scheduled target %s", target_end_date.isoformat())
+            try:
+                await import_csv_once(pool, refresh_remote=True, now=now)
+            except Exception:
+                logger.exception(
+                    "scheduled_refresh_failed: API fallback failed for scheduled target %s",
+                    target_end_date.isoformat(),
+                )
+                raise
+            logger.info("api_fallback_success: scheduled target %s", target_end_date.isoformat())
+            return
+
+        logger.error(
+            "scheduled_refresh_failed: no API fallback configured for scheduled target %s",
+            target_end_date.isoformat(),
+        )
+        raise
+
+    logger.info("public_cmc_download_success: scheduled target %s", target_end_date.isoformat())
+
+
 async def main(
     *,
     run_now: bool = False,
@@ -140,10 +189,9 @@ async def main(
 
         scheduler = AsyncIOScheduler(timezone="UTC")
         scheduler.add_job(
-            import_csv_once,
+            scheduled_refresh_once,
             "cron",
             args=[pool],
-            kwargs={"refresh_remote": True},
             hour=settings.schedule_cron_hour,
             minute=settings.schedule_cron_minute,
             id="btc_risk_collection",

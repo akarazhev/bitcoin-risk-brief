@@ -103,7 +103,10 @@ Use `AGENTS.md` as the agent-facing source for repository rules. For human-drive
 
 The canonical source is `collector/btc-csv/btc_usd_daily.csv`. The collector treats this file as durable local source of truth. Operators can refresh it without a paid API account by running `./scripts/manage.sh download-cmc-csv`, which fetches missing Bitcoin rows from CoinMarketCap's public historical-data endpoint, stages a CSV under `collector/btc-csv/incoming/`, validates it, and imports it. If that public endpoint is unavailable, operators can still stage a CSV downloaded from the CoinMarketCap page and run `./scripts/manage.sh import-cmc-csv`.
 
-If `COINMARKETCAP_API_KEY` is configured, scheduled collector runs can also fetch missing completed UTC days from the official CoinMarketCap OHLCV Historical endpoint. If the key is empty, remote API refresh is skipped and the current CSV is still imported and used for risk recomputation.
+Scheduled collector runs target the last completed UTC day. With an empty `COINMARKETCAP_API_KEY`, a stale canonical
+CSV is refreshed through the public CoinMarketCap download path first; if the CSV is already current, the collector
+imports the existing CSV and recomputes risk. The optional official API refresh is used only when an API key is
+configured, and manual `import-cmc-csv` remains the operator fallback when public automation is unavailable.
 
 ## API Overview
 
