@@ -189,6 +189,20 @@ Production waitlist smoke status recorded on 2026-07-05:
 - Contact value is intentionally omitted from this document and must also be omitted from logs summaries, final reports,
   screenshots, and commit messages.
 
+Browser and device QA status recorded on 2026-07-05:
+
+- Automated frontend checks completed: `npm test --prefix frontend` passed 2 files / 17 tests;
+  `npm run build --prefix frontend` passed; `npm run smoke --prefix frontend` was first blocked in the sandbox by
+  `listen EPERM: operation not permitted 127.0.0.1:4173`, then passed 15 Playwright checks when rerun outside the
+  sandbox.
+- Public-hostname browser-capable QA was performed against `https://bitcoinriskbrief.minihub.app/` with Playwright
+  desktop Chromium, mobile Chromium Pixel 5, and mobile WebKit iPhone 13 profiles. The page loaded, latest risk was
+  visible, readiness/freshness was visible, both chart canvases were non-empty, the waitlist form was visible, EN/RU
+  switching worked, and mobile checks found no horizontal overflow or obvious text overlap in saved screenshots.
+- Launch-gate result: browser-capable public-hostname rendering passes with limitations, but broader launch remains
+  blocked/limited by degraded data freshness shown on the public page (`2026-06-30`, `4 days old`) and by the missing
+  physical device/native branded browser pass. No production waitlist submission was sent as part of this Task 8 pass.
+
 ## Release Gates
 
 Run these before every deploy:

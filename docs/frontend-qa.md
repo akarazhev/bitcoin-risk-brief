@@ -44,6 +44,51 @@ Last local `npm run build --prefix frontend` output:
 `frontend/vite.config.ts` sets `chunkSizeWarningLimit` to `650` kB so this accepted lazy chart chunk does not produce an
 ambiguous build warning. The initial app chunk remains well below the default 500 kB threshold.
 
+## Public Hostname QA
+
+Task 8 browser QA recorded on 2026-07-05 for `https://bitcoinriskbrief.minihub.app`.
+
+### Automated Checks
+
+| Check | Result |
+| --- | --- |
+| `npm test --prefix frontend` | Passed: 2 test files, 17 tests. |
+| `npm run build --prefix frontend` | Passed. Output kept `index` at 210.53 kB minified / 67.43 kB gzip and lazy `Chart` at 557.61 kB minified / 188.87 kB gzip. |
+| `npm run smoke --prefix frontend` | First sandboxed attempt was blocked by `listen EPERM: operation not permitted 127.0.0.1:4173`; rerun outside the sandbox passed 15 Playwright checks. |
+
+### Public Hostname Browser-Capable QA
+
+Playwright was able to launch outside the sandbox after the first sandboxed browser launch failed with
+`MachPortRendezvousServer... Permission denied`. The live public hostname was checked with:
+
+| Profile | Result |
+| --- | --- |
+| Desktop Chromium, 1440 x 1000 | Passed |
+| Mobile Chromium, Pixel 5 profile | Passed |
+| Mobile WebKit, iPhone 13 profile | Passed |
+
+Observed live page evidence:
+
+- Page loaded at `https://bitcoinriskbrief.minihub.app/`.
+- Latest risk was visible as `Current risk 29% Low`.
+- Readiness/freshness was visible as degraded: updated `2026-06-30`, latest date `2026-06-30`, covered end
+  `2026-06-30`, and data age `4 days old`.
+- Risk history and risk levels charts each rendered two non-empty canvases. The mobile chart canvases were at least
+  324 CSS px wide and 360 CSS px tall.
+- Waitlist form was visible with the contact input and join button. No production waitlist submission was sent in this
+  Task 8 pass.
+- EN/RU locale switching worked; Russian risk and waitlist copy became visible after toggling.
+- Programmatic mobile overflow checks reported `0` horizontal overflow and no off-viewport visible elements. Saved
+  desktop and mobile screenshots showed no obvious text overlap.
+
+Accepted limitations:
+
+- This was browser-capable QA using Playwright profiles, not a physical iOS Safari, Android Chrome, or native branded
+  desktop browser pass. Real device/native browser QA remains pending operator execution before treating the launch
+  matrix as fully covered.
+- The public page was visually checkable, but readiness was degraded because the latest visible data was four days old.
+  This QA pass does not clear the separate production data-freshness gate.
+
 ## Reproducing Locally
 
 Install Playwright browsers once:
