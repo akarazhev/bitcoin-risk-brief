@@ -3,10 +3,12 @@ from __future__ import annotations
 import unittest
 
 from app.public_cache import (
+    PublicCacheWarmupTarget,
     PublicEndpointCache,
     build_cache_headers,
     etag_matches,
     no_store_headers,
+    warm_public_endpoint_cache,
 )
 
 
@@ -74,6 +76,85 @@ class PublicEndpointCacheTest(unittest.IsolatedAsyncioTestCase):
 
         self.assertFalse(hit)
         self.assertEqual(entry.content["data"]["risk"], 0.43)
+
+
+class PublicEndpointCacheWarmupTest(unittest.IsolatedAsyncioTestCase):
+    async def test_warmup_populates_standard_cache_keys(self) -> None:
+        cache = PublicEndpointCache(ttl_seconds=60, clock=lambda: 100.0)
+        calls: list[str] = []
+
+        def make_producer(name: str):
+            async def producer():
+                calls.append(name)
+                return {"data": {"name": name}}, 200
+
+            return producer
+
+        targets = [
+            PublicCacheWarmupTarget("GET /api/readiness", make_producer("readiness")),
+            PublicCacheWarmupTarget("GET /api/risk/latest", make_producer("latest")),
+            PublicCacheWarmupTarget("GET /api/risk/history?limit=2000", make_producer("history")),
+            PublicCacheWarmupTarget("GET /api/risk/levels", make_producer("levels")),
+            PublicCacheWarmupTarget("GET /api/brief/latest", make_producer("brief")),
+        ]
+
+        result = await warm_public_endpoint_cache(cache, "version-a", targets)
+
+        self.assertEqual(
+            result.warmed_keys,
+            tuple(target.key for target in targets),
+        )
+        self.assertEqual(result.failed_keys, ())
+        self.assertEqual(calls, ["readiness", "latest", "history", "levels", "brief"])
+
+        async def rebuild_should_not_run():
+            raise AssertionError("warm cache entry was rebuilt")
+
+        for target in targets:
+            _entry, hit = await cache.get_or_build(target.key, "version-a", rebuild_should_not_run)
+            self.assertTrue(hit)
+
+    async def test_warmup_validation_version_change_invalidates_warmed_payload(self) -> None:
+        cache = PublicEndpointCache(ttl_seconds=60, clock=lambda: 100.0)
+        calls = 0
+
+        async def producer():
+            nonlocal calls
+            calls += 1
+            return {"data": {"risk": calls}}, 200
+
+        await warm_public_endpoint_cache(
+            cache,
+            "validation:old",
+            [PublicCacheWarmupTarget("GET /api/risk/latest", producer)],
+        )
+        entry, hit = await cache.get_or_build("GET /api/risk/latest", "validation:new", producer)
+
+        self.assertFalse(hit)
+        self.assertEqual(entry.content["data"]["risk"], 2)
+
+    async def test_warmup_logs_failure_and_keeps_warming_other_keys(self) -> None:
+        cache = PublicEndpointCache(ttl_seconds=60, clock=lambda: 100.0)
+
+        async def missing_data():
+            raise RuntimeError("Risk data has not been collected yet")
+
+        async def good_payload():
+            return {"data": {"ok": True}}, 200
+
+        with self.assertLogs("app.public_cache", level="WARNING") as logs:
+            result = await warm_public_endpoint_cache(
+                cache,
+                "version-a",
+                [
+                    PublicCacheWarmupTarget("GET /api/risk/latest", missing_data),
+                    PublicCacheWarmupTarget("GET /api/brief/latest", good_payload),
+                ],
+            )
+
+        self.assertEqual(result.warmed_keys, ("GET /api/brief/latest",))
+        self.assertEqual(result.failed_keys, ("GET /api/risk/latest",))
+        self.assertIn("public_cache_warmup_failed key=GET /api/risk/latest", "\n".join(logs.output))
 
 
 class CacheHeaderTest(unittest.TestCase):

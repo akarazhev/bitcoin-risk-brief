@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import logging
 import time
 from dataclasses import dataclass
 from typing import Any, Awaitable, Callable
@@ -17,6 +18,18 @@ class CachedEndpointPayload:
     data_version: str
     etag: str
     expires_at: float
+
+
+@dataclass(frozen=True)
+class PublicCacheWarmupTarget:
+    key: str
+    producer: PayloadProducer
+
+
+@dataclass(frozen=True)
+class PublicCacheWarmupResult:
+    warmed_keys: tuple[str, ...]
+    failed_keys: tuple[str, ...]
 
 
 class PublicEndpointCache:
@@ -59,6 +72,34 @@ class PublicEndpointCache:
         ]
         for key in expired_keys:
             del self._entries[key]
+
+
+async def warm_public_endpoint_cache(
+    cache: PublicEndpointCache,
+    data_version: str,
+    targets: list[PublicCacheWarmupTarget] | tuple[PublicCacheWarmupTarget, ...],
+    *,
+    logger: logging.Logger | None = None,
+) -> PublicCacheWarmupResult:
+    active_logger = logger or logging.getLogger(__name__)
+    warmed_keys: list[str] = []
+    failed_keys: list[str] = []
+
+    for target in targets:
+        try:
+            await cache.get_or_build(target.key, data_version, target.producer)
+        except Exception as exc:
+            failed_keys.append(target.key)
+            active_logger.warning(
+                "public_cache_warmup_failed key=%s error=%s",
+                target.key,
+                exc,
+                exc_info=True,
+            )
+            continue
+        warmed_keys.append(target.key)
+
+    return PublicCacheWarmupResult(tuple(warmed_keys), tuple(failed_keys))
 
 
 def _build_etag(key: str, data_version: str, content: Any) -> str:
