@@ -307,6 +307,21 @@ Task 11 cache latency measurement recorded on 2026-07-05 from 12:15 to 12:17 UTC
   import/validation-version changes. Warmup must not hide stale readiness, and it must preserve `X-Cache-Version`
   invalidation.
 
+Task 4 local public-cache warmup command implementation recorded on 2026-07-05:
+
+- Startup warmup is implemented in the backend after the database pool is ready. It warms the standard public read keys
+  only when validation exists and readiness is HTTP 200; missing validation, readiness probe failures, and degraded
+  readiness are logged and skipped so stale production data is not hidden.
+- The operator command is `PUBLIC_BASE_URL=http://127.0.0.1:3001 ./scripts/manage.sh warm-public-cache`. It calls normal
+  public GET routes for `/api/readiness`, `/api/risk/latest`, `/api/risk/history?limit=2000`, `/api/risk/levels`, and
+  `/api/brief/latest` against a local/private origin. It uses `curl -fsS`, so readiness 503 or any later non-success
+  response fails the command. No public admin endpoint is added.
+- `POST /api/waitlist` remains outside the public read cache contract and must continue to return `Cache-Control:
+  no-store`.
+- Local implementation and documentation are complete, but production benefit still requires deploying this change to
+  `/srv/projects/bitcoin-risk-brief` and rerunning the production import/readiness flow. The current production data
+  freshness blocker remains separate until public readiness returns HTTP 200.
+
 ## Release Gates
 
 Run these before every deploy:
@@ -451,13 +466,13 @@ Before public traffic, verify the implemented cache policy for public read endpo
 
 These endpoints should return `Cache-Control`, `ETag`, `X-Cache`, and `X-Cache-Version`. Backend cache invalidation is
 versioned from `btc_risk_validation`; after a successful import, the collector rewrites validation and the next backend
-read rebuilds against the new version. `POST /api/waitlist` must return `Cache-Control: no-store` and must not be cached
-by Cloudflare.
+read rebuilds against the new version unless startup or operator warmup has already rebuilt the standard key.
+`POST /api/waitlist` must return `Cache-Control: no-store` and must not be cached by Cloudflare.
 
 Before active traffic, measure first-load latency for both backend `X-Cache: MISS` and `X-Cache: HIT` responses on the
-public hostname. If the first miss after backend startup or nightly import is user-visible, implement public payload
-cache warmup for the standard endpoint set and consider precomputing expensive payloads such as `/api/risk/levels`.
-Warmup must preserve `X-Cache-Version` invalidation and must not hide stale readiness.
+public hostname. Use startup warmup and the local-origin `warm-public-cache` operator command for the standard endpoint
+set before active traffic, and consider precomputing expensive payloads such as `/api/risk/levels` if warmup is still
+not enough. Warmup must preserve `X-Cache-Version` invalidation and must not hide stale readiness.
 
 At the Cloudflare edge, respect origin cache headers for the public GET API paths and bypass `/api/waitlist`. If a launch
 snapshot must reflect a just-completed import immediately, purge the public hostname or wait for

@@ -296,15 +296,45 @@ Expected headers include `Cache-Control`, `ETag`, `X-Cache`, and `X-Cache-Versio
 curl -sD - -o /tmp/bitcoin-risk-latest.json http://localhost:3001/api/risk/latest
 ```
 
-Current implementation note: the backend public endpoint cache is lazy. The first request for a key after backend
-startup, TTL expiry, or a new `btc_risk_validation` marker returns `X-Cache: MISS` and rebuilds the payload from
-TimescaleDB. If first-load latency is user-visible, warm the standard public payloads before active traffic:
+The backend warms standard public payloads during startup after the database pool is ready and readiness is healthy. If
+validation data is missing, readiness cannot be probed, or readiness returns a non-200 status, startup warmup is skipped
+and logged so degraded or stale data is not hidden.
+
+Warm the same standard public payloads after manual or scheduled imports before active traffic:
 
 - `/api/readiness`
 - `/api/risk/latest`
 - `/api/risk/history?limit=2000`
 - `/api/risk/levels`
 - `/api/brief/latest`
+
+For the normal local production import flow:
+
+```bash
+./scripts/manage.sh run-now
+PUBLIC_BASE_URL=http://127.0.0.1:3001 ./scripts/manage.sh warm-public-cache
+```
+
+For the automatic public CoinMarketCap CSV flow:
+
+```bash
+./scripts/manage.sh download-cmc-csv "${EXPECTED_END_DATE}"
+PUBLIC_BASE_URL=http://127.0.0.1:3001 ./scripts/manage.sh warm-public-cache
+```
+
+For an operator-downloaded CSV flow:
+
+```bash
+./scripts/manage.sh import-cmc-csv collector/btc-csv/incoming/bitcoin-historical-data.csv "${EXPECTED_END_DATE}"
+PUBLIC_BASE_URL=http://127.0.0.1:3001 ./scripts/manage.sh warm-public-cache
+```
+
+`warm-public-cache` uses normal public GET endpoints against `PUBLIC_BASE_URL`, which should point to a local or private
+origin such as `http://127.0.0.1:3001`. It does not add or call a public admin endpoint. The readiness request runs
+first with `curl -f`, so readiness must be HTTP 200 before the command warms the remaining payloads. Production
+stale/degraded readiness remains a blocker until the production data issue is fixed. Each warmup request uses
+`curl -fsS`, so any non-success response fails the command instead of silently accepting a partial warmup. This command
+only benefits production after the warmup implementation is deployed there.
 
 The expensive first-miss candidate is `/api/risk/levels`, because it reads full OHLCV history and builds risk-level rows
 on demand. See
@@ -321,8 +351,9 @@ The second command should print `304`.
 
 After `backfill`, `run-now`, `download-cmc-csv`, or `import-cmc-csv`, the collector writes a new
 `btc_risk_validation` marker. The backend derives `X-Cache-Version` from that marker, so the next public read misses the
-old in-process cache and rebuilds from the database. If Cloudflare cache is enabled, purge the hostname or wait for
-`PUBLIC_CACHE_MAX_AGE_SECONDS` before using cached public data for a launch snapshot.
+old in-process cache and rebuilds from the database unless startup or operator warmup has already rebuilt the standard
+key. If Cloudflare cache is enabled, purge the hostname or wait for `PUBLIC_CACHE_MAX_AGE_SECONDS` before using cached
+public data for a launch snapshot.
 
 `POST /api/waitlist` must remain uncached. Confirm it returns `Cache-Control: no-store` during launch checks.
 

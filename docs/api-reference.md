@@ -52,6 +52,9 @@ Clients may send `If-None-Match` with the last `ETag`; unchanged responses retur
 controlled by `PUBLIC_CACHE_TTL_SECONDS` and defaults to 300 seconds. The cache key includes the full request path and
 query string, so filtered history requests are cached separately.
 
+The backend may warm these same cache keys during startup or via an operator command, but the response body shape and
+cache headers are the same as a normal request.
+
 ## GET /api/health
 
 Basic process health check.

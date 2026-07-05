@@ -52,11 +52,14 @@ case "${1:-help}" in
     ${COMPOSE} -f "${COMPOSE_FILE}" run --rm data-collector \
       python -m collector.main --import-cmc-csv "/app/${input_path}" "${extra_args[@]}"
     ;;
+  warm-public-cache)
+    ./scripts/warm-public-cache.sh
+    ;;
   test-python)
     PYTHONPATH=backend:collector python3 -m unittest discover -s backend/tests -v
     PYTHONPATH=backend:collector python3 -m unittest discover -s collector/tests -v
     ;;
   help|*)
-    echo "Usage: $0 {validate|migrate|start|stop|logs [service]|backfill|run-now|download-cmc-csv [expected-end-date]|import-cmc-csv <path> [expected-end-date]|test-python}"
+    echo "Usage: $0 {validate|migrate|start|stop|logs [service]|backfill|run-now|download-cmc-csv [expected-end-date]|import-cmc-csv <path> [expected-end-date]|warm-public-cache|test-python}"
     ;;
 esac
