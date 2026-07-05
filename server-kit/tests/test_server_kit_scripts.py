@@ -43,6 +43,49 @@ class ServerKitScriptTests(unittest.TestCase):
         self.assertIn("podman-compose config", script)
         self.assertIn("mask_secret_stream", script)
 
+    def test_update_script_requires_backup_before_deploy(self) -> None:
+        script = (ROOT / "scripts" / "07-update-bitcoin-risk-brief-from-usb.sh").read_text()
+
+        backup_index = script.index("./scripts/backup.sh")
+        deploy_index = script.index("03-deploy-bitcoin-risk-brief.sh")
+        self.assertLess(backup_index, deploy_index)
+        self.assertIn("Backup complete:", script)
+        self.assertIn("sha256sum -c SHA256SUMS", script)
+        self.assertIn("BACKUP_COPY_DEST", script)
+
+    def test_update_script_preserves_existing_env_and_runs_health_checks(self) -> None:
+        script = (ROOT / "scripts" / "07-update-bitcoin-risk-brief-from-usb.sh").read_text()
+
+        self.assertIn('test -f "${PROJECT_DEST}/.env"', script)
+        self.assertIn("03-deploy-bitcoin-risk-brief.sh", script)
+        self.assertIn("04-enable-bitcoin-risk-service.sh", script)
+        self.assertIn("05-health-check.sh", script)
+        self.assertNotIn("rm -f \"${PROJECT_DEST}/.env\"", script)
+
+    def test_update_script_restarts_service_before_health_checks(self) -> None:
+        script = (ROOT / "scripts" / "07-update-bitcoin-risk-brief-from-usb.sh").read_text()
+
+        enable_index = script.index("04-enable-bitcoin-risk-service.sh")
+        restart_index = script.find('restart "${SERVICE_NAME}.service"')
+        health_index = script.index("05-health-check.sh")
+        self.assertNotEqual(restart_index, -1)
+        self.assertLess(enable_index, restart_index)
+        self.assertLess(restart_index, health_index)
+
+    def test_update_script_validates_canonical_project_dest_before_backup(self) -> None:
+        script = (ROOT / "scripts" / "07-update-bitcoin-risk-brief-from-usb.sh").read_text()
+
+        realpath_index = script.find('project_dest_real="$(as_root realpath "${PROJECT_DEST}")"')
+        validation_index = script.find('case "${project_dest_real}" in')
+        export_index = script.find('PROJECT_DEST="${project_dest_real}"')
+        backup_index = script.index("./scripts/backup.sh")
+        self.assertNotEqual(realpath_index, -1)
+        self.assertNotEqual(validation_index, -1)
+        self.assertNotEqual(export_index, -1)
+        self.assertLess(realpath_index, validation_index)
+        self.assertLess(validation_index, export_index)
+        self.assertLess(export_index, backup_index)
+
 
 if __name__ == "__main__":
     unittest.main()
