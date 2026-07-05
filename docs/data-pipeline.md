@@ -140,24 +140,31 @@ is valid with only the public/manual CSV workflows.
 ## Import Provenance And Source Archive
 
 Production-pilot imports should keep sanitized import evidence outside the repository. Until an automated provenance
-feature exists, the operator should record this manually for production imports:
+feature exists, the operator should create a small evidence packet for each production import. Store the packet in an
+operator-controlled archive or off-server backup location, not under the project checkout, Git history, dependency
+caches, browser profiles, or ad hoc workstation downloads.
 
-- source type and retrieval method;
-- source URL or operator download page;
-- UTC retrieval/import timestamp;
-- staged source path;
-- source file `sha256`;
-- source file row count;
-- covered start and end date;
-- expected tail date;
-- canonical CSV `sha256` after import;
-- validation row count and covered end;
+The evidence packet should include:
+
+- manifest id and UTC import timestamp;
+- operator or automation identity;
+- git commit and command used;
+- source type: `automatic_public_cmc`, `manual_cmc_csv`, `optional_cmc_api`, `restore`, or `correction`;
+- source URL, download page, backup path, or other retrieval method;
+- local staged source path and archived source snapshot path when practical;
+- source file `sha256`, byte size, row count, and covered start/end dates;
+- expected tail date requested by the import;
+- canonical CSV path and `sha256` after import;
+- validation row count, covered end, source strategy, and methodology version;
 - readiness payload after import;
-- cache headers for a standard public endpoint after import.
+- latest risk date/value and latest brief timestamp when available;
+- `Cache-Control`, `ETag`, `X-Cache`, and `X-Cache-Version` for a standard public endpoint after import;
+- collector log summary and related launch, restore, or correction note path if any.
 
-Do not store `.env` values, API keys, Cloudflare tokens, waitlist contacts, raw analytics, browser profiles, or other PII
-in provenance artifacts. These artifacts support launch evidence, restore drills, bad-data correction notes, and future
-methodology research; they are not a public audit product.
+Do not store `.env` values, API keys, Cloudflare tokens, waitlist contacts, raw analytics, browser profiles, private
+account exports, or other PII in provenance artifacts. Manifests may include local file paths or operator names, so
+review and redact them before external sharing. These artifacts support launch evidence, restore drills, bad-data
+correction notes, and future methodology research; they are not a public audit product.
 
 ## Delta Validation
 

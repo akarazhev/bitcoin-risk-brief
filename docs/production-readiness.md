@@ -136,6 +136,46 @@ Monitoring and first-response status recorded on 2026-07-05:
   promotion when any required monitor is missing and no operator is actively watching the matching command/dashboard from
   the first-response runbook.
 
+Import provenance and bad-data correction status recorded on 2026-07-05:
+
+- Task 6 status: blocked pending operator evidence for the real production import evidence packet. The operator
+  procedure and bad-data correction policy are documented in [Operations](operations.md), and the data-pipeline
+  provenance contract is documented in [Data Pipeline](data-pipeline.md).
+- Real sample import evidence packet: not present in this repository and not created from this agent environment. This
+  session has no access to the production host at `/srv/projects/bitcoin-risk-brief`, no mounted outside-repository
+  provenance archive, and no Cloudflare/production host evidence source. A workstation-local or repository-local sample
+  would not prove production import provenance, so it should not be recorded as completion evidence.
+- Current accepted limitation: first traffic can only proceed as an operator-watched pilot if this missing evidence is
+  explicitly accepted. Do not mark provenance complete until a sanitized packet for a real production import exists
+  outside the repository and references readiness and cache evidence.
+- Exact operator actions needed on the production host:
+
+```bash
+cd /srv/projects/bitcoin-risk-brief
+git status --short --branch
+git rev-parse HEAD
+export PUBLIC_BASE_URL=https://bitcoinriskbrief.minihub.app
+export IMPORT_ARCHIVE_ROOT="<outside-repository-import-evidence-root>"
+test -n "${IMPORT_ARCHIVE_ROOT}"
+case "${IMPORT_ARCHIVE_ROOT}" in
+  /srv/projects/bitcoin-risk-brief|/srv/projects/bitcoin-risk-brief/*) exit 2 ;;
+esac
+EXPECTED_END_DATE="$(date -u -d 'yesterday' +%F)"
+./scripts/manage.sh download-cmc-csv "${EXPECTED_END_DATE}"
+curl -fsS http://127.0.0.1:3001/api/readiness
+curl -sD - -o /tmp/bitcoin-risk-latest-public.json "${PUBLIC_BASE_URL}/api/risk/latest"
+```
+
+- After the import command above, follow the `Production Import Provenance` procedure in [Operations](operations.md):
+  copy the source snapshot and canonical CSV under the per-import archive directory, calculate `sha256` and
+  row/date-range evidence, save origin readiness and public cache headers, create `manifest.json`, link any
+  launch/restore/correction note, and inspect the packet for forbidden data.
+- Sensitive data rule for the evidence packet: do not include `.env` values, API keys, Cloudflare tokens, waitlist
+  contacts, raw analytics, browser profiles, private account exports, or other PII.
+- Bad-data correction posture: documented for the pilot with low/medium/high classification, observe/inspect/freeze,
+  known-good restore or re-import, risk/brief recomputation, origin and edge cache verification, correction notes, and
+  internal freshness/RPO/RTO/downtime boundaries. These are internal pilot targets, not public SLA commitments.
+
 ## Release Gates
 
 Run these before every deploy:
@@ -355,11 +395,11 @@ Still required before treating the pilot as publicly launched:
   SEO/social metadata, and incident response.
 - Complete or explicitly defer the release feedback and operational evidence checklist: release notes or decision log,
   first-user feedback path, support/contact identity, dependency-license review, and launch/backup/restore evidence.
-- Complete or explicitly defer the data correction and service-target checklist: bad-data correction flow, correction
-  note rules, cache correction safety, freshness target, RPO/RTO boundaries, and pilot downtime tolerance.
-- Complete or explicitly defer the import provenance and source archive checklist: source snapshot, import manifest,
-  `sha256`, retrieval metadata, row count, covered range, expected tail, validation/readiness output, cache evidence, and
-  storage outside the repository.
+- Keep the documented bad-data correction and service-target policy current as real restore/import evidence arrives;
+  pilot freshness, RPO/RTO, correction, and downtime targets remain internal targets, not public SLA promises.
+- Capture a real production import evidence packet outside the repository: source snapshot, import manifest, `sha256`,
+  retrieval metadata, row count, covered range, expected tail, validation/readiness output, cache evidence, and any
+  related launch, restore, or correction note.
 - Complete the documentation and portfolio presentation pass, including the sibling product-ideas brief, if the
   repository will be shown as a private/portfolio project.
 - Capture the launch snapshot and run the first small traffic test.

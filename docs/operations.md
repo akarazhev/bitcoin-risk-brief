@@ -129,6 +129,112 @@ Open the app:
 http://localhost:3001
 ```
 
+## Production Import Provenance
+
+Capture a sanitized evidence packet for every production import, including scheduled imports, one-off public
+CoinMarketCap downloads, manual downloaded CSV imports, restores, and corrections. Store the packet outside the
+repository and outside the production project checkout. A mounted off-server evidence directory or an operator-controlled
+archive is acceptable; `./backups`, `collector/btc-csv/incoming/`, workstation downloads, and Git history are not the
+long-term provenance archive.
+
+Before or immediately after an import, create an archive directory:
+
+```bash
+cd /srv/projects/bitcoin-risk-brief
+IMPORT_ARCHIVE_ROOT="<outside-repository-import-evidence-root>"
+IMPORT_ID="$(date -u +%Y%m%dT%H%M%SZ)-btc-csv"
+case "${IMPORT_ARCHIVE_ROOT}" in
+  ""|/srv/projects/bitcoin-risk-brief|/srv/projects/bitcoin-risk-brief/*)
+    echo "IMPORT_ARCHIVE_ROOT must be outside the project checkout" >&2
+    exit 2
+    ;;
+esac
+ARCHIVE_DIR="${IMPORT_ARCHIVE_ROOT%/}/${IMPORT_ID}"
+install -d -m 700 "${ARCHIVE_DIR}"
+```
+
+Preserve the exact source input when practical:
+
+```bash
+SOURCE_PATH="<staged-source-csv-or-known-good-csv>"
+test -s "${SOURCE_PATH}"
+cp "${SOURCE_PATH}" "${ARCHIVE_DIR}/source.csv"
+sha256sum "${ARCHIVE_DIR}/source.csv" > "${ARCHIVE_DIR}/source.sha256"
+wc -c "${ARCHIVE_DIR}/source.csv" > "${ARCHIVE_DIR}/source.bytes"
+```
+
+After the import completes and readiness is healthy, preserve the canonical output and public evidence:
+
+```bash
+PUBLIC_BASE_URL=https://bitcoinriskbrief.minihub.app
+CANONICAL_CSV=collector/btc-csv/btc_usd_daily.csv
+cp "${CANONICAL_CSV}" "${ARCHIVE_DIR}/canonical-after.csv"
+sha256sum "${ARCHIVE_DIR}/canonical-after.csv" > "${ARCHIVE_DIR}/canonical-after.sha256"
+python3 - <<'PY' > "${ARCHIVE_DIR}/canonical-range.json"
+import csv
+import json
+from pathlib import Path
+
+rows = list(csv.DictReader(Path("collector/btc-csv/btc_usd_daily.csv").open(newline=""), delimiter=";"))
+dates = [row["timeOpen"][:10] for row in rows]
+print(json.dumps({"row_count": len(rows), "covered_start": dates[0], "covered_end": dates[-1]}, indent=2))
+PY
+git rev-parse HEAD > "${ARCHIVE_DIR}/git-commit.txt"
+curl -fsS http://127.0.0.1:3001/api/readiness -o "${ARCHIVE_DIR}/readiness-origin.json"
+curl -sD "${ARCHIVE_DIR}/risk-latest-public.headers" \
+  -o "${ARCHIVE_DIR}/risk-latest-public.json" \
+  "${PUBLIC_BASE_URL}/api/risk/latest"
+podman-compose -f podman-compose.yml logs --tail=300 data-collector > "${ARCHIVE_DIR}/collector-log-tail.txt"
+```
+
+Create a manifest in the same directory. Use real values, not placeholders, before treating it as evidence:
+
+```json
+{
+  "manifest_id": "<YYYYMMDDTHHMMSSZ-btc-csv>",
+  "import_timestamp_utc": "<YYYY-MM-DDTHH:MM:SSZ>",
+  "operator_or_automation": "<operator-name-or-scheduler>",
+  "git_commit": "<commit-sha>",
+  "command_used": "<exact import command>",
+  "source_type": "<automatic_public_cmc|manual_cmc_csv|optional_cmc_api|restore|correction>",
+  "source_retrieval_method": "<retrieval method>",
+  "source_url_or_page": "<source URL, download page, backup path, or retrieval note>",
+  "staged_source_path": "<staged source path>",
+  "archived_source_snapshot": "source.csv",
+  "source_sha256": "<sha256>",
+  "source_byte_size": "<bytes>",
+  "source_row_count": "<rows>",
+  "covered_start": "<YYYY-MM-DD>",
+  "covered_end": "<YYYY-MM-DD>",
+  "expected_tail_date": "<YYYY-MM-DD>",
+  "canonical_csv_path_after_import": "collector/btc-csv/btc_usd_daily.csv",
+  "canonical_csv_sha256_after_import": "<sha256>",
+  "validation_row_count": "<rows>",
+  "validation_covered_end": "<YYYY-MM-DD>",
+  "validation_source_strategy": "<source strategy>",
+  "methodology_version": "crypto-scout-canonical-v1",
+  "readiness_status_after_import": "<ready|degraded>",
+  "latest_risk_date": "<YYYY-MM-DD>",
+  "latest_risk_value": "<risk value>",
+  "latest_brief_timestamp": "<timestamp-or-null>",
+  "evidence_files": {
+    "readiness_origin": "readiness-origin.json",
+    "risk_latest_public_headers": "risk-latest-public.headers",
+    "risk_latest_public_payload": "risk-latest-public.json",
+    "collector_log_summary": "collector-log-tail.txt"
+  },
+  "related_launch_note": null,
+  "related_restore_note": null,
+  "related_correction_note": null,
+  "accepted_limitations": []
+}
+```
+
+The manifest, readiness payload, cache evidence, restore notes, launch notes, and correction notes should reference the
+same `manifest_id`. Correction notes should also name the affected source hash or explicitly say that provenance is
+missing. Do not copy `.env` values, API keys, Cloudflare tokens, waitlist contacts, raw analytics, browser profiles,
+private account exports, or other PII into the archive.
+
 ## Service Logs
 
 Follow all logs:
@@ -311,6 +417,100 @@ curl -fsS http://localhost:3001/api/readiness
 ```
 
 Take the public app offline before restoring production data. TimescaleDB may print circular foreign-key warnings during backup; treat them as informational only when `scripts/backup.sh` exits with code 0.
+
+## Bad-Data Correction Policy
+
+This policy is an internal production-pilot operating procedure, not a public SLA. It applies when a wrong source row,
+bad manual import, stale cache, methodology defect, corrupted database row, or incorrect brief may have reached the
+public product.
+
+Classify the issue before changing data:
+
+- **Low:** cosmetic copy, chart label, or portfolio text issue that does not change risk value, data date, freshness, or
+  readiness.
+- **Medium:** stale data, delayed import, missing latest completed UTC day, cache inconsistency, or incorrect brief text
+  while the canonical historical BTC data remains valid.
+- **High:** wrong source data, bad manual import, wrong methodology output, corrupted DB rows, incorrect latest risk
+  value, or a misleading public risk state.
+
+High severity pauses active promotion and requires a correction note. Medium severity needs an operator note and a fix
+before broader traffic resumes. Low severity can wait for the next normal release if no trust claim is wrong.
+
+For a suspected published bad-data incident:
+
+1. Record the first observed UTC time, public URL, affected endpoint, displayed data date, displayed risk value if any,
+   current commit, and who observed it.
+2. Inspect readiness, validation metadata, collector logs, latest public payload, and the CSV tail:
+
+```bash
+PUBLIC_BASE_URL=https://bitcoinriskbrief.minihub.app
+curl -sD - -o /tmp/bitcoin-risk-readiness-public.json "${PUBLIC_BASE_URL}/api/readiness"
+curl -sD - -o /tmp/bitcoin-risk-latest-public.json "${PUBLIC_BASE_URL}/api/risk/latest"
+curl -fsS http://127.0.0.1:3001/api/readiness -o /tmp/bitcoin-risk-readiness-origin.json
+podman-compose -f podman-compose.yml logs --tail=300 data-collector
+podman-compose -f podman-compose.yml exec timescaledb psql -U postgres -d bitcoin_risk_brief -t -A -c "SELECT validation_json->>'source', validation_json->'validation'->>'source_strategy', covered_end, row_count, passed FROM btc_risk_validation WHERE validation_key='latest';"
+tail -n 10 collector/btc-csv/btc_usd_daily.csv
+```
+
+3. Stop or defer automated imports if they could overwrite evidence or make the source harder to inspect:
+
+```bash
+podman-compose -f podman-compose.yml stop data-collector
+```
+
+4. Identify the last known-good source from the import provenance archive, latest off-server backup, previous canonical
+   CSV, staged manual CSV, or a fresh trusted operator-downloaded CoinMarketCap CSV.
+5. Restore or re-import the known-good CSV. Prefer re-importing a known-good CSV when the database is otherwise healthy;
+   use the restore procedure only when database state is corrupted or re-import cannot confidently repair the product:
+
+```bash
+EXPECTED_END_DATE="<known-good-covered-end>"
+./scripts/manage.sh import-cmc-csv collector/btc-csv/incoming/bitcoin-historical-data.csv "${EXPECTED_END_DATE}"
+```
+
+6. Recompute risk and the latest brief through the import command or, after copying a known-good canonical CSV from a
+   backup, by running:
+
+```bash
+./scripts/manage.sh run-now
+```
+
+7. Verify origin data, public edge behavior, cache version, latest brief, and history tail:
+
+```bash
+curl -fsS http://127.0.0.1:3001/api/readiness
+curl -sD - -o /tmp/bitcoin-risk-latest-origin.json http://127.0.0.1:3001/api/risk/latest
+curl -sD - -o /tmp/bitcoin-risk-brief-origin.json http://127.0.0.1:3001/api/brief/latest
+curl -sD - -o /tmp/bitcoin-risk-latest-public.json "${PUBLIC_BASE_URL}/api/risk/latest"
+curl -sD - -o /tmp/bitcoin-risk-levels-public.json "${PUBLIC_BASE_URL}/api/risk/levels"
+```
+
+Expected public read headers include `Cache-Control`, `ETag`, `X-Cache`, and `X-Cache-Version`, and the latest risk
+timestamp should match readiness `covered_end`. If stale edge responses can show a known-wrong value, purge the
+Cloudflare hostname/API cache or disable public ingress until corrected payloads are visible.
+
+8. Capture a correction note outside the repository, and add a redacted summary to production readiness when it affects
+   launch status. Include cause if known, affected window, affected endpoints, source/manifest id, bad and corrected
+   data dates, whether the risk value changed, verification commands, cache evidence, downtime if any, and whether a
+   public or portfolio note is required. If provenance is missing, say so explicitly. Do not blame a vendor without
+   evidence and do not imply an audit.
+9. Restart the scheduled collector only after the corrected state and evidence are captured:
+
+```bash
+podman-compose -f podman-compose.yml start data-collector
+```
+
+Internal pilot service targets:
+
+- **Freshness:** production should normally cover the last completed UTC day within `DATA_FRESHNESS_MAX_AGE_DAYS`,
+  currently `2` unless explicitly changed.
+- **Correction target:** high-severity bad-data issues should be investigated the same operator day and either corrected
+  or marked as an accepted limitation before additional promotion.
+- **RPO boundary:** recover to the latest verified off-server backup or known-good canonical CSV/source snapshot.
+- **RTO boundary:** no public guarantee for the free pilot. Define a realistic target from restore-drill evidence before
+  paid or professional usage.
+- **Downtime boundary:** temporary downtime is acceptable while fixing data integrity. Serving a known-wrong risk value
+  is worse than being temporarily unavailable.
 
 ## Resource And Ownership Checks
 
@@ -557,16 +757,9 @@ podman-compose -f podman-compose.yml exec timescaledb psql -U postgres -d bitcoi
   80% usage until capacity is confirmed. Take public traffic down if disk usage is above 90%, writes are failing, the
   database container is restarting, or readiness is non-200 due to storage pressure.
 
-For a suspected published bad-data incident, prefer a conservative correction flow: record the observed public value and
-data date, inspect readiness and validation metadata, stop further automated imports if they could overwrite evidence,
-restore or re-import from the last known-good CSV or backup, recompute risk and brief snapshots, verify cache headers,
-and capture a correction note. During the free pilot, temporary downtime is preferable to knowingly serving a wrong risk
-value.
-
-For production imports, keep sanitized import provenance outside the repository. At minimum, record the source snapshot
-or staged source path, retrieval method, UTC import time, source `sha256`, source row count, covered date range, expected
-tail date, canonical CSV `sha256` after import, validation/readiness output, and cache evidence. Do not include secrets,
-waitlist contacts, raw analytics, or local `.env` values in provenance artifacts.
+For suspected published bad-data incidents, use the bad-data correction policy above. For production imports, use the
+production import provenance procedure above. Do not rely on raw logs, cache state, or memory as a substitute for a
+source manifest and sanitized evidence packet.
 
 ## Database Checks
 
