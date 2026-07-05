@@ -45,6 +45,76 @@ Deployment path decision status recorded on 2026-07-02:
   after this change is deployed to `/srv/projects/bitcoin-risk-brief`; `download-cmc-csv` and manual downloaded CSV
   intake remain operator fallbacks.
 
+Backup, off-server copy, and restore drill status recorded on 2026-07-05:
+
+- Real production backup was not run from this agent environment. The current workspace is a macOS workstation checkout;
+  `/srv/projects/bitcoin-risk-brief` is not present here, and no production host, confirmed off-server storage target, or
+  staging restore target is mounted or reachable from this session.
+- Task 4 remains blocked pending operator action. Do not mark backup/off-server/restore complete until the operator
+  records redacted evidence from the production host and a staging or intentionally empty restore target.
+- On the production host, run:
+
+```bash
+set -euo pipefail
+cd /srv/projects/bitcoin-risk-brief
+git status --short --branch
+BACKUP_LOG="/tmp/bitcoin-risk-backup-$(date -u +%Y%m%dT%H%M%SZ).log"
+./scripts/backup.sh | tee "${BACKUP_LOG}"
+BACKUP_PATH="$(awk '/^Backup complete:/ {print $3}' "${BACKUP_LOG}" | tail -n 1)"
+test -n "${BACKUP_PATH}"
+test -s "${BACKUP_PATH}"/postgres_*.dump
+test -s "${BACKUP_PATH}"/btc_usd_daily_*.csv
+test -s "${BACKUP_PATH}/manifest.txt"
+test -s "${BACKUP_PATH}/SHA256SUMS"
+(cd "${BACKUP_PATH}" && sha256sum -c SHA256SUMS)
+```
+
+- Copy the verified backup to the confirmed off-server storage. Set `OFFSERVER_BACKUP_ROOT` to the mounted off-server
+  backup directory before running:
+
+```bash
+set -euo pipefail
+BACKUP_PATH="<backup-directory-from-production-backup-step>"
+OFFSERVER_BACKUP_ROOT="<mounted-off-server-backup-directory>"
+case "${OFFSERVER_BACKUP_ROOT}" in
+  ""|/srv/projects/bitcoin-risk-brief|/srv/projects/bitcoin-risk-brief/*)
+    echo "OFFSERVER_BACKUP_ROOT must be outside the production project directory" >&2
+    exit 2
+    ;;
+esac
+install -d -m 700 "${OFFSERVER_BACKUP_ROOT}"
+cp -a "${BACKUP_PATH}" "${OFFSERVER_BACKUP_ROOT}/"
+OFFSERVER_BACKUP_PATH="${OFFSERVER_BACKUP_ROOT%/}/$(basename "${BACKUP_PATH}")"
+test -s "${OFFSERVER_BACKUP_PATH}/SHA256SUMS"
+(cd "${OFFSERVER_BACKUP_PATH}" && sha256sum -c SHA256SUMS)
+```
+
+- On a staging project checkout or intentionally empty restore target, run the restore drill with the copied backup:
+
+```bash
+set -euo pipefail
+STAGING_PROJECT_DIR="<staging-or-empty-project-directory>"
+RESTORE_BACKUP_PATH="<copied-backup-directory-on-staging>"
+cd "${STAGING_PROJECT_DIR}"
+test -s "${RESTORE_BACKUP_PATH}/SHA256SUMS"
+(cd "${RESTORE_BACKUP_PATH}" && sha256sum -c SHA256SUMS)
+./scripts/manage.sh start
+podman-compose -f podman-compose.yml exec -T timescaledb pg_restore \
+  --clean \
+  --if-exists \
+  --no-owner \
+  --no-privileges \
+  -U postgres \
+  -d bitcoin_risk_brief < "${RESTORE_BACKUP_PATH}"/postgres_*.dump
+cp "${RESTORE_BACKUP_PATH}"/btc_usd_daily_*.csv collector/btc-csv/btc_usd_daily.csv
+./scripts/manage.sh run-now
+curl -fsS http://127.0.0.1:3001/api/readiness
+```
+
+- Record only redacted evidence: command date, production commit, backup artifact categories, checksum verification
+  result, off-server copy confirmation, restore target type, and readiness result. Do not record `.env` values,
+  secrets, waitlist contacts, raw dump or CSV contents, or private off-server paths.
+
 ## Release Gates
 
 Run these before every deploy:
