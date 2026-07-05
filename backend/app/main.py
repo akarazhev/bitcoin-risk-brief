@@ -25,10 +25,13 @@ from app.repository import (
     upsert_waitlist_lead,
 )
 from app.public_cache import (
+    PublicCacheWarmupResult,
+    PublicCacheWarmupTarget,
     PublicEndpointCache,
     build_cache_headers,
     etag_matches,
     no_store_headers,
+    warm_public_endpoint_cache,
 )
 from app.rate_limit import FixedWindowRateLimiter
 from app.readiness import build_readiness_payload
@@ -41,6 +44,10 @@ from app.waitlist import InvalidWaitlistContact
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
     await connect()
+    try:
+        await warm_public_read_cache_on_startup()
+    except Exception:
+        logger.exception("public_cache_warmup_failed phase=startup")
     try:
         yield
     finally:
@@ -108,6 +115,120 @@ async def _cached_public_json_response(
     return JSONResponse(status_code=entry.status_code, content=entry.content, headers=headers)
 
 
+async def _produce_readiness_payload() -> tuple[dict[str, Any], int]:
+    pool = get_pool()
+    latest = await fetch_latest_risk(pool)
+    validation = await fetch_latest_validation(pool)
+    return build_readiness_payload(
+        latest,
+        validation,
+        max_age_days=settings.data_freshness_max_age_days,
+    )
+
+
+async def _produce_risk_latest_payload() -> tuple[dict[str, Any], int]:
+    latest = await fetch_latest_risk(get_pool())
+    if latest is None:
+        raise HTTPException(status_code=404, detail="Risk data has not been collected yet")
+    return {"data": latest}, 200
+
+
+def _risk_history_producer(
+    *,
+    start_date: date | None = None,
+    end_date: date | None = None,
+    limit: int = 2000,
+) -> Callable[[], Awaitable[tuple[dict[str, Any], int]]]:
+    async def producer() -> tuple[dict[str, Any], int]:
+        rows = await fetch_risk_history(get_pool(), start_date=start_date, end_date=end_date, limit=limit)
+        return {"data": rows, "meta": {"returned_points": len(rows)}}, 200
+
+    return producer
+
+
+async def _produce_risk_levels_payload() -> tuple[dict[str, Any], int]:
+    pool = get_pool()
+    latest = await fetch_latest_risk(pool)
+    source_rows = await fetch_ohlcv_history(pool)
+    if latest is None or len(source_rows) < 2:
+        raise HTTPException(status_code=404, detail="Risk source data has not been collected yet")
+
+    turnover_enabled = bool(latest["turnover_enabled"])
+    levels = build_risk_levels(source_rows, {"turnover_enabled": turnover_enabled})
+    return {
+        "data": [
+            {"risk": row["risk"], "price_usd": round(row["price"], 2)}
+            for row in levels["risk_level_rows"]
+        ],
+        "meta": {
+            "base": latest,
+            "methodology_version": METHODOLOGY_VERSION,
+            "evaluation_date": levels["evaluation_date"].isoformat(),
+            "current_price": levels["current_price"],
+            "current_risk": levels["current_risk"],
+            "turnover_enabled": levels["turnover_enabled"],
+            "risk_step": 0.025,
+            "source_row_count": len(source_rows),
+        },
+    }, 200
+
+
+async def _produce_brief_latest_payload() -> tuple[dict[str, Any], int]:
+    pool = get_pool()
+    persisted = await fetch_latest_brief(pool)
+    if persisted is not None:
+        return {"data": persisted}, 200
+    latest = await fetch_latest_risk(pool)
+    if latest is None:
+        raise HTTPException(status_code=404, detail="Brief data has not been collected yet")
+    previous = await fetch_previous_risk(pool)
+    return {"data": build_brief(latest, previous)}, 200
+
+
+def _standard_public_cache_warmup_targets() -> tuple[PublicCacheWarmupTarget, ...]:
+    return (
+        PublicCacheWarmupTarget("GET /api/readiness", _produce_readiness_payload),
+        PublicCacheWarmupTarget("GET /api/risk/latest", _produce_risk_latest_payload),
+        PublicCacheWarmupTarget("GET /api/risk/history?limit=2000", _risk_history_producer(limit=2000)),
+        PublicCacheWarmupTarget("GET /api/risk/levels", _produce_risk_levels_payload),
+        PublicCacheWarmupTarget("GET /api/brief/latest", _produce_brief_latest_payload),
+    )
+
+
+async def warm_public_read_cache_on_startup() -> PublicCacheWarmupResult:
+    data_version = await fetch_public_data_version(get_pool())
+    if data_version == "validation:empty":
+        logger.info("public_cache_warmup_skipped reason=no_validation")
+        return PublicCacheWarmupResult((), ())
+
+    try:
+        readiness_payload, readiness_status = await _produce_readiness_payload()
+    except Exception:
+        logger.exception("public_cache_warmup_skipped reason=readiness_probe_failed")
+        return PublicCacheWarmupResult((), ())
+
+    if readiness_status != 200:
+        logger.warning(
+            "public_cache_warmup_skipped reason=readiness_not_ready status=%d payload_status=%s",
+            readiness_status,
+            readiness_payload.get("status"),
+        )
+        return PublicCacheWarmupResult((), ())
+
+    result = await warm_public_endpoint_cache(
+        public_read_cache,
+        data_version,
+        _standard_public_cache_warmup_targets(),
+        logger=logger,
+    )
+    logger.info(
+        "public_cache_warmup_complete warmed=%d failed=%d",
+        len(result.warmed_keys),
+        len(result.failed_keys),
+    )
+    return result
+
+
 @app.middleware("http")
 async def waitlist_rate_limit_middleware(request, call_next):
     if request.method == "POST" and request.url.path == "/api/waitlist":
@@ -158,28 +279,12 @@ async def health() -> dict[str, str]:
 
 @app.get("/api/readiness")
 async def readiness(request: Request) -> Response:
-    async def producer() -> tuple[dict[str, Any], int]:
-        pool = get_pool()
-        latest = await fetch_latest_risk(pool)
-        validation = await fetch_latest_validation(pool)
-        return build_readiness_payload(
-            latest,
-            validation,
-            max_age_days=settings.data_freshness_max_age_days,
-        )
-
-    return await _cached_public_json_response(request, producer)
+    return await _cached_public_json_response(request, _produce_readiness_payload)
 
 
 @app.get("/api/risk/latest")
 async def risk_latest(request: Request) -> Response:
-    async def producer() -> tuple[dict[str, Any], int]:
-        latest = await fetch_latest_risk(get_pool())
-        if latest is None:
-            raise HTTPException(status_code=404, detail="Risk data has not been collected yet")
-        return {"data": latest}, 200
-
-    return await _cached_public_json_response(request, producer)
+    return await _cached_public_json_response(request, _produce_risk_latest_payload)
 
 
 @app.get("/api/risk/history")
@@ -192,58 +297,20 @@ async def risk_history(
     if start_date and end_date and start_date > end_date:
         raise HTTPException(status_code=400, detail="start_date must be earlier than end_date")
 
-    async def producer() -> tuple[dict[str, Any], int]:
-        rows = await fetch_risk_history(get_pool(), start_date=start_date, end_date=end_date, limit=limit)
-        return {"data": rows, "meta": {"returned_points": len(rows)}}, 200
-
-    return await _cached_public_json_response(request, producer)
+    return await _cached_public_json_response(
+        request,
+        _risk_history_producer(start_date=start_date, end_date=end_date, limit=limit),
+    )
 
 
 @app.get("/api/risk/levels")
 async def risk_levels(request: Request) -> Response:
-    async def producer() -> tuple[dict[str, Any], int]:
-        pool = get_pool()
-        latest = await fetch_latest_risk(pool)
-        source_rows = await fetch_ohlcv_history(pool)
-        if latest is None or len(source_rows) < 2:
-            raise HTTPException(status_code=404, detail="Risk source data has not been collected yet")
-
-        turnover_enabled = bool(latest["turnover_enabled"])
-        levels = build_risk_levels(source_rows, {"turnover_enabled": turnover_enabled})
-        return {
-            "data": [
-                {"risk": row["risk"], "price_usd": round(row["price"], 2)}
-                for row in levels["risk_level_rows"]
-            ],
-            "meta": {
-                "base": latest,
-                "methodology_version": METHODOLOGY_VERSION,
-                "evaluation_date": levels["evaluation_date"].isoformat(),
-                "current_price": levels["current_price"],
-                "current_risk": levels["current_risk"],
-                "turnover_enabled": levels["turnover_enabled"],
-                "risk_step": 0.025,
-                "source_row_count": len(source_rows),
-            },
-        }, 200
-
-    return await _cached_public_json_response(request, producer)
+    return await _cached_public_json_response(request, _produce_risk_levels_payload)
 
 
 @app.get("/api/brief/latest")
 async def brief_latest(request: Request) -> Response:
-    async def producer() -> tuple[dict[str, Any], int]:
-        pool = get_pool()
-        persisted = await fetch_latest_brief(pool)
-        if persisted is not None:
-            return {"data": persisted}, 200
-        latest = await fetch_latest_risk(pool)
-        if latest is None:
-            raise HTTPException(status_code=404, detail="Brief data has not been collected yet")
-        previous = await fetch_previous_risk(pool)
-        return {"data": build_brief(latest, previous)}, 200
-
-    return await _cached_public_json_response(request, producer)
+    return await _cached_public_json_response(request, _produce_brief_latest_payload)
 
 
 @app.post("/api/waitlist", status_code=201)
