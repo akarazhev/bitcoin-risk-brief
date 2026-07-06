@@ -61,8 +61,8 @@ Backend tests cover:
 - repository full-history behavior;
 - readiness payload rules;
 - public read cache headers, ETags, and no-store waitlist headers;
-- public payload cache warmup behavior if implemented, including warmed cache-key reuse, validation-version invalidation,
-  and no-store waitlist isolation;
+- public payload cache warmup behavior, including warmed cache-key reuse, validation-version invalidation, and no-store
+  waitlist isolation;
 - security headers;
 - waitlist validation and upsert behavior;
 - fixed-window rate limiter behavior;

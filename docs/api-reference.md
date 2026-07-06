@@ -53,7 +53,9 @@ controlled by `PUBLIC_CACHE_TTL_SECONDS` and defaults to 300 seconds. The cache 
 query string, so filtered history requests are cached separately.
 
 The backend may warm these same cache keys during startup or via an operator command, but the response body shape and
-cache headers are the same as a normal request.
+cache headers are the same as a normal request. Operator warmup should target a local or private origin, for example
+`PUBLIC_BASE_URL=http://127.0.0.1:3001 ./scripts/manage.sh warm-public-cache`. The command calls normal public GET
+routes, starts with readiness, fails on non-success responses, and does not add a public admin endpoint.
 
 ## GET /api/health
 
@@ -217,8 +219,8 @@ Response shape:
 
 Stores or updates a waitlist lead.
 
-`POST /api/waitlist` is never cacheable. Responses include `Cache-Control: no-store` and `Pragma: no-cache`, including
-validation and rate-limit responses.
+`POST /api/waitlist` is never cacheable and is not part of public cache warmup. Responses include
+`Cache-Control: no-store` and `Pragma: no-cache`, including validation and rate-limit responses.
 
 Request:
 

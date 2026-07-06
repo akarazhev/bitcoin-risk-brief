@@ -78,7 +78,7 @@ WAITLIST_RATE_LIMIT_PER_HOUR=20
 ```
 
 Set `COINMARKETCAP_API_KEY` only when using the optional API refresh path. Without a paid API account, leave it empty and
-refresh the canonical BTC CSV through the documented downloaded CSV workflow.
+refresh the canonical BTC CSV through the documented automatic public or manual downloaded CSV workflow.
 
 Generate a database password on the server:
 
@@ -295,9 +295,9 @@ Minimum checks:
 - Public uptime check: `https://risk.example.com/api/health`.
 - Production gate check: `https://risk.example.com/api/readiness`.
 - Daily collector logs after the configured UTC schedule.
-- Scheduled public CoinMarketCap refresh status when running without `COINMARKETCAP_API_KEY`; until the
-  public-download-first scheduler is implemented, run `./scripts/manage.sh download-cmc-csv` manually when the CSV is
-  stale.
+- Scheduled public CoinMarketCap refresh status when running without `COINMARKETCAP_API_KEY`; if the scheduled
+  public-download-first path fails or has not yet been verified on the production host, run
+  `./scripts/manage.sh download-cmc-csv` manually when the CSV is stale.
 - Backup log freshness and backup file age.
 - Cloudflare Tunnel connector health in the Cloudflare dashboard.
 
@@ -330,8 +330,8 @@ bash server-kit/prepare-usb-kit.sh /Volumes/USB
 
 The command creates `/Volumes/USB/bitcoin-risk-brief-server-kit` with deployment docs, server-kit scripts, a filtered
 project snapshot, `manifest.txt`, and `SHA256SUMS`. It replaces only that kit directory when rerun. The USB kit should
-not contain local `.env`, `.git`, backups, dependency caches, build output, browser artifacts, container images, or an
-offline package mirror.
+not contain local `.env`, other secrets, `.git`, backups, database volumes, dependency caches, build output, browser
+artifacts, container images, or an offline package mirror.
 
 Fresh install from the mounted USB kit uses the ordered server scripts:
 
