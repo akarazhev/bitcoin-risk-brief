@@ -42,8 +42,25 @@ Deployment path decision status recorded on 2026-07-02:
 - Production `.env` location: `/srv/projects/bitcoin-risk-brief/.env`; filesystem owner still needs production-host
   confirmation.
 - Production `COINMARKETCAP_API_KEY`: empty. Data refresh should use the scheduled public-download-first collector path
-  after this change is deployed to `/srv/projects/bitcoin-risk-brief`; `download-cmc-csv` and manual downloaded CSV
-  intake remain operator fallbacks.
+  after the local refresh implementation is deployed to `/srv/projects/bitcoin-risk-brief`; `download-cmc-csv` and
+  manual downloaded CSV intake remain operator fallbacks.
+
+Local implementation reconciliation recorded on 2026-07-06:
+
+- Local repository tags exist for `cache-warmup-local-complete-2026-07-05`,
+  `usb-kit-v2-local-complete-2026-07-05`, and `price-model-ohlc-local-complete-2026-07-06`. These tags are local
+  implementation evidence only and do not prove the production host has been updated.
+- Public cache warmup is implemented locally through backend startup warmup and
+  `PUBLIC_BASE_URL=http://127.0.0.1:3001 ./scripts/manage.sh warm-public-cache`. Production benefit requires deploying
+  the change, restoring healthy readiness, running warmup against the local/private origin, and measuring the public
+  hostname after deployment.
+- First-viewport model-price/OHLC polish is implemented locally: the latest risk payload/display can expose explicit
+  `model_price_usd`, nullable `low_usd`, and nullable `high_usd` for the latest completed daily candle. Production
+  visibility requires deployment and browser verification on the public hostname.
+- USB Update And Install Kit V2 is implemented locally, but a real USB package and backup-gated production-host update
+  remain pending.
+- Public launch remains blocked by production data freshness until public `/api/readiness` returns HTTP 200 again, and by
+  the remaining operator-owned launch gates unless they are explicitly completed or accepted.
 
 Backup, off-server copy, and restore drill status recorded on 2026-07-05:
 
@@ -318,10 +335,10 @@ Task 11 cache latency measurement recorded on 2026-07-05 from 12:15 to 12:17 UTC
 - Backend `X-Cache: HIT` behavior was not directly observable from the public Cloudflare path in this pass. Repeated
   requests showed fast Cloudflare edge behavior, but the response header continued to expose the cached origin
   `X-Cache: MISS` value.
-- Slow MISS/revalidation was observed for `/api/risk/levels` and `/api/risk/latest`. `/api/risk/levels` is one of the
-  documented expensive first-miss candidates, so a separate implementation plan should be created for local public cache
-  warmup before active traffic. Do not implement warmup inside this Task 11 documentation-only measurement.
-- Cache warmup remains a pre-traffic recommendation: warm `/api/readiness`, `/api/risk/latest`,
+- Slow MISS/revalidation was observed for `/api/risk/levels` and `/api/risk/latest`. Local public cache warmup has since
+  been implemented, so the remaining work is deployment, healthy-readiness execution, and post-deploy measurement. Do not
+  treat this Task 11 documentation-only measurement as proof that production warmup is active.
+- Cache warmup remains a pre-traffic production operation: warm `/api/readiness`, `/api/risk/latest`,
   `/api/risk/history?limit=2000`, `/api/risk/levels`, and `/api/brief/latest` after backend startup and after successful
   import/validation-version changes. Warmup must not hide stale readiness, and it must preserve `X-Cache-Version`
   invalidation.
