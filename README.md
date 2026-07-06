@@ -4,20 +4,35 @@ Bitcoin Risk Brief is a standalone EN/RU mini-product for validating demand arou
 
 ## Current Status
 
-The product now has a live production-pilot hostname at `https://bitcoinriskbrief.minihub.app`. As of 2026-07-01,
-public GET smoke checks through Cloudflare pass for health, readiness, latest risk, and conditional `ETag`
-revalidation. The local stack has also been verified with containerized `run-now`, readiness checks, security headers,
-full Python tests, frontend tests, frontend build, compose validation, and API smoke checks.
+Bitcoin Risk Brief is locally implementation-complete for the current pre-traffic hardening items: scheduled public
+CoinMarketCap CSV refresh, public payload cache warmup, USB Update And Install Kit V2, and first-viewport
+model-price/OHLC display polish. These are local repository states, not proof that production has been updated.
+
+The public pilot hostname exists at `https://bitcoinriskbrief.minihub.app` and has historical smoke-test evidence.
+However, the latest documented public snapshot on 2026-07-05 showed public `/api/readiness` returning HTTP 503 because
+production BTC data was stale (`latest_date: 2026-06-30`, `data_age_days: 4`, `max_age_days: 2`). Do not treat the
+project as publicly launched until public `/api/readiness` returns HTTP 200 again and the remaining production
+operations gates are completed or explicitly accepted.
+
+Production deployment is unavailable from this workspace. Local changes made after the current production snapshot still
+require operator deployment or update verification on the selected production path under
+`/srv/projects/bitcoin-risk-brief`, or an explicitly chosen replacement path.
 
 External production tasks still required before treating the pilot as publicly launched:
 
-- Confirm the production host runbook, `.env`, and data-refresh workflow are the documented source of truth.
-- Configure scheduled backups for TimescaleDB data and the canonical BTC CSV, copy them off-server, and run a restore drill.
-- Configure alerts on `/api/readiness` and collector failures.
-- Complete a short browser/device pass on the public hostname.
-- Run a deliberate waitlist smoke test and first traffic test.
-- Decide whether the current Cloudflare Free-plan edge subset is enough for launch or whether to upgrade for managed WAF
-  and broader API burst-rate-limit entitlement.
+- Restore fresh production data and verify public `/api/readiness` returns HTTP 200.
+- Deploy and verify the scheduled public CoinMarketCap refresh and public cache warmup on the production host.
+- Prepare a real USB kit v2 package and run the backup-gated production update wrapper, or verify the selected deployment
+  path another way.
+- Configure scheduled backups for TimescaleDB data and the canonical BTC CSV, copy them off-server, and run a restore
+  drill.
+- Configure alerts on `/api/readiness`, stale data after the nightly update window, and collector failures.
+- Run a deliberate waitlist smoke test and verify server-side storage with no cached response.
+- Capture production import provenance outside the repository.
+- Complete browser/device and focused accessibility checks on the public hostname.
+- Decide whether the current Cloudflare Free-plan edge subset is enough for first traffic or whether to upgrade for
+  managed WAF and broader API burst-rate-limit entitlement.
+- Run the first traffic test only after freshness and accepted launch gates allow it.
 
 ## Product Surface
 
@@ -25,6 +40,8 @@ External production tasks still required before treating the pilot as publicly l
 - Stable states: `low`, `neutral`, `high`.
 - Historical risk chart.
 - Risk-level price ladder at `0.025` risk increments.
+- Latest completed daily candle context: `Model price` is the HLC3 value; `Low` and `High` are daily candle values when
+  the matching OHLCV row exists. These fields are not live spot-price ticks or close-only pricing.
 - Daily brief payload in English and Russian.
 - Waitlist form for email or Telegram handles.
 - Readiness endpoint for deployment probes and alerts.
@@ -63,8 +80,19 @@ Open: `http://localhost:3001`
 ./scripts/manage.sh run-now     # refresh BTC CSV from CMC if configured, then import
 ./scripts/manage.sh download-cmc-csv 2026-06-28
 ./scripts/manage.sh import-cmc-csv collector/btc-csv/incoming/bitcoin-historical-data.csv 2026-06-28
+PUBLIC_BASE_URL=http://127.0.0.1:3001 ./scripts/manage.sh warm-public-cache
 ./scripts/manage.sh test-python # backend and collector unit tests
 ```
+
+## Operational Notes
+
+- `warm-public-cache` warms the standard public read payloads through normal GET routes against a local or private
+  origin after readiness is healthy. Production latency benefit still requires deployment, fresh readiness, and
+  post-deploy operator execution.
+- USB Update And Install Kit V2 packages a filtered project snapshot and update wrapper for the selected local-server
+  deployment path. It does not include production secrets, container images, dependency caches, backups, or a full
+  offline package mirror. Production benefit still requires preparing a real USB package and running the backup-gated
+  update on the production host.
 
 ## Development Workflow
 
