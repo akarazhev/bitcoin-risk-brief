@@ -4,6 +4,9 @@ const latestRisk = {
   data: {
     timestamp: '2026-06-26T00:00:00Z',
     price_usd: 100000,
+    model_price_usd: 100000,
+    low_usd: 96500,
+    high_usd: 104250,
     risk: 0.7,
     score: 0.7,
     risk_state: 'high',
@@ -154,6 +157,12 @@ test('renders desktop and mobile layouts with non-empty chart canvases', async (
 
   await expect(page.getByRole('heading', { name: 'Bitcoin Risk Brief' })).toBeVisible()
   await expect(page.getByText('Readiness ready')).toBeVisible()
+  const currentState = page.locator('.metrics-strip')
+  await expect(currentState.getByText('Model price')).toBeVisible()
+  await expect(currentState.getByText('Low')).toBeVisible()
+  await expect(currentState.getByText('High')).toBeVisible()
+  await expect(currentState.getByText('$96,500')).toBeVisible()
+  await expect(currentState.getByText('$104,250')).toBeVisible()
   await expect(page.getByText('Low / Neutral near $82,000')).toBeVisible()
   await expect(page.getByText('Neutral / High near $118,000')).toBeVisible()
   await expectNoHorizontalOverflow(page)
