@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import '@testing-library/jest-dom'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
@@ -78,10 +78,17 @@ function setCompactViewport(matches: boolean) {
   })
 }
 
+async function findPriceMetric(title = 'BTC price model input') {
+  const titleElement = await screen.findByText(title)
+  const metric = titleElement.closest('.price-metric')
+  expect(metric).not.toBeNull()
+  return within(metric as HTMLElement)
+}
+
 beforeEach(() => {
   chartMocks.resize.mockClear()
   apiMocks.fetchLatestRisk.mockReset()
-  apiMocks.fetchLatestRisk.mockResolvedValue({ data: { timestamp: '2026-06-26T00:00:00Z', price_usd: 100000, risk: 0.7, score: 1, risk_state: 'high', trend_dev: 1, vol_regime: 0.1, turnover: null, z_trend_dev: 1, z_vol_regime: 1, z_turnover: null, turnover_enabled: false } })
+  apiMocks.fetchLatestRisk.mockResolvedValue({ data: { timestamp: '2026-06-26T00:00:00Z', price_usd: 100000, model_price_usd: 100000, low_usd: 96500, high_usd: 104250, risk: 0.7, score: 1, risk_state: 'high', trend_dev: 1, vol_regime: 0.1, turnover: null, z_trend_dev: 1, z_vol_regime: 1, z_turnover: null, turnover_enabled: false } })
   apiMocks.fetchRiskHistory.mockReset()
   apiMocks.fetchRiskHistory.mockResolvedValue({ data: [
     { timestamp: '2026-06-24T00:00:00Z', price_usd: 98000, risk: 0.52, score: 0.52, risk_state: 'neutral', trend_dev: 1, vol_regime: 0.1, turnover: null, z_trend_dev: 1, z_vol_regime: 1, z_turnover: null, turnover_enabled: false },
@@ -242,6 +249,77 @@ test('labels risk delta as a contextual risk change metric', async () => {
   expect(await screen.findByText('Risk change')).toBeInTheDocument()
   expect(screen.getByText('vs previous observation')).toBeInTheDocument()
   expect(screen.queryByText('Delta')).not.toBeInTheDocument()
+})
+
+test('renders model price, low, and high when latest risk includes OHLC fields', async () => {
+  render(<App />)
+
+  const priceMetric = await findPriceMetric()
+
+  expect(priceMetric.getByText('Model price')).toBeInTheDocument()
+  expect(priceMetric.getByText('Low')).toBeInTheDocument()
+  expect(priceMetric.getByText('High')).toBeInTheDocument()
+  expect(priceMetric.getByText('$100,000')).toBeInTheDocument()
+  expect(priceMetric.getByText('$96,500')).toBeInTheDocument()
+  expect(priceMetric.getByText('$104,250')).toBeInTheDocument()
+})
+
+test('hides low and high labels when the matching OHLCV values are missing', async () => {
+  apiMocks.fetchLatestRisk.mockResolvedValueOnce({
+    data: {
+      timestamp: '2026-06-26T00:00:00Z',
+      price_usd: 100000,
+      model_price_usd: 100000,
+      low_usd: null,
+      high_usd: null,
+      risk: 0.7,
+      score: 1,
+      risk_state: 'high',
+      trend_dev: 1,
+      vol_regime: 0.1,
+      turnover: null,
+      z_trend_dev: 1,
+      z_vol_regime: 1,
+      z_turnover: null,
+      turnover_enabled: false,
+    },
+  })
+
+  render(<App />)
+
+  const priceMetric = await findPriceMetric()
+
+  expect(priceMetric.getByText('Model price')).toBeInTheDocument()
+  expect(priceMetric.getByText('$100,000')).toBeInTheDocument()
+  expect(priceMetric.queryByText('Low')).not.toBeInTheDocument()
+  expect(priceMetric.queryByText('High')).not.toBeInTheDocument()
+})
+
+test('preserves English and Russian labels for the price input group', async () => {
+  render(<App />)
+
+  let priceMetric = await findPriceMetric()
+
+  expect(priceMetric.getByText('Model price')).toBeInTheDocument()
+  expect(priceMetric.getByText('Low')).toBeInTheDocument()
+  expect(priceMetric.getByText('High')).toBeInTheDocument()
+
+  fireEvent.click(screen.getByRole('button', { name: /ru/i }))
+
+  priceMetric = await findPriceMetric('Цена BTC в модели')
+
+  expect(priceMetric.getByText('Цена модели')).toBeInTheDocument()
+  expect(priceMetric.getByText('Мин.')).toBeInTheDocument()
+  expect(priceMetric.getByText('Макс.')).toBeInTheDocument()
+})
+
+test('defines a stable responsive grid for the price input group', () => {
+  const css = readFileSync(resolve(process.cwd(), 'src/App.css'), 'utf8')
+
+  expect(css).toContain('.price-input-grid')
+  expect(css).toContain('grid-template-columns: repeat(3, minmax(0, 1fr))')
+  expect(css).toContain('@media (max-width: 560px)')
+  expect(css).toContain('.price-input-grid')
 })
 
 test('places the waitlist call to action before the charts', async () => {

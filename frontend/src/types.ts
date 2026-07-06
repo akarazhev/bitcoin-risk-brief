@@ -3,6 +3,9 @@ export type RiskState = 'low' | 'neutral' | 'high'
 export interface RiskPoint {
   timestamp: string
   price_usd: number
+  model_price_usd?: number | null
+  low_usd?: number | null
+  high_usd?: number | null
   risk: number
   score: number
   risk_state: RiskState

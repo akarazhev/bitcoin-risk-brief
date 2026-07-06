@@ -41,10 +41,20 @@ h1 { margin: 0; font-size: clamp(3rem, 9vw, 7rem); line-height: 0.9; letter-spac
 .risk-dial em { font-style: normal; font-weight: 800; font-size: 1.2rem; }
 
 .metrics-strip { max-width: 1180px; margin: 0 auto 28px; display: grid; grid-template-columns: repeat(3, 1fr); border: 1px solid #2c3037; border-radius: 8px; overflow: hidden; background: #111316; }
-.metrics-strip div { padding: 18px; display: grid; gap: 6px; border-right: 1px solid #2c3037; }
-.metrics-strip div:last-child { border-right: 0; }
+.metrics-strip > div { padding: 18px; display: grid; gap: 6px; border-right: 1px solid #2c3037; }
+.metrics-strip > div:last-child { border-right: 0; }
 .metrics-strip strong { font-size: 1.45rem; }
 .metrics-strip em { color: #8d948f; font-size: 0.78rem; font-style: normal; }
+.price-metric { min-width: 0; }
+.price-input-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  align-items: start;
+}
+.price-input-grid.model-only { grid-template-columns: minmax(0, 1fr); }
+.price-input-value { min-width: 0; display: grid; gap: 4px; }
+.price-input-value strong { overflow-wrap: anywhere; }
 .freshness-metric { align-content: start; }
 .readiness-badge { display: inline-flex; width: fit-content; align-items: center; gap: 6px; margin: 2px 0; border-radius: 999px; padding: 5px 9px; font-size: 0.78rem; font-weight: 800; }
 .readiness-badge.ready { border: 1px solid rgba(91, 214, 135, 0.36); background: rgba(91, 214, 135, 0.12); color: #77dea0; }
@@ -105,8 +115,8 @@ h1 { margin: 0; font-size: clamp(3rem, 9vw, 7rem); line-height: 0.9; letter-spac
   .top-actions { gap: 8px; }
   .hero, .brief-grid, .charts, .waitlist { grid-template-columns: 1fr; }
   .metrics-strip { grid-template-columns: 1fr; }
-  .metrics-strip div { border-right: 0; border-bottom: 1px solid #2c3037; }
-  .metrics-strip div:last-child { border-bottom: 0; }
+  .metrics-strip > div { border-right: 0; border-bottom: 1px solid #2c3037; }
+  .metrics-strip > div:last-child { border-bottom: 0; }
   .risk-dial { min-height: auto; }
   .risk-dial strong { font-size: 4.2rem; }
   .lead-form { flex-direction: column; }
@@ -126,5 +136,11 @@ h1 { margin: 0; font-size: clamp(3rem, 9vw, 7rem); line-height: 0.9; letter-spac
   .risk-dial strong { font-size: 3.6rem; }
   .brief-panel, .chart-panel, .waitlist, .empty-state, .trust-panel { padding: 18px; }
   .metrics-strip strong { font-size: 1.25rem; overflow-wrap: anywhere; }
+  .price-input-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .price-input-grid.with-range .price-input-value:first-child {
+    grid-column: 1 / -1;
+  }
   .chart-placeholder, .chart-empty { min-height: 300px; }
 }

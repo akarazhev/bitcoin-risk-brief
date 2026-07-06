@@ -18,6 +18,9 @@ const copy = {
     updated: 'Updated',
     currentRisk: 'Current risk',
     price: 'BTC price model input',
+    modelPrice: 'Model price',
+    low: 'Low',
+    high: 'High',
     riskChange: 'Risk change',
     riskChangeContext: 'vs previous observation',
     riskZones: ['Low / Neutral', 'Neutral / High'],
@@ -64,6 +67,9 @@ const copy = {
     updated: 'Обновлено',
     currentRisk: 'Текущий риск',
     price: 'Цена BTC в модели',
+    modelPrice: 'Цена модели',
+    low: 'Мин.',
+    high: 'Макс.',
     riskChange: 'Изменение риска',
     riskChangeContext: 'к прошлому наблюдению',
     riskZones: ['Низкий / Нейтральный', 'Нейтральный / Высокий'],
@@ -278,6 +284,8 @@ export default function App() {
   const ready = readiness.status === 'ready'
   const validationOk = validationPassed(readiness)
   const methodologyVersion = readiness.data.methodology_version ?? 'unknown'
+  const modelPriceUsd = latest.model_price_usd ?? latest.price_usd
+  const hasDailyRange = typeof latest.low_usd === 'number' && typeof latest.high_usd === 'number'
 
   return (
     <main className="shell">
@@ -303,7 +311,27 @@ export default function App() {
       </section>
 
       <section className="metrics-strip" aria-label="Current state">
-        <div><span>{t.price}</span><strong>{formatUsd(latest.price_usd)}</strong></div>
+        <div className="price-metric">
+          <span>{t.price}</span>
+          <div className={`price-input-grid ${hasDailyRange ? 'with-range' : 'model-only'}`}>
+            <div className="price-input-value">
+              <em>{t.modelPrice}</em>
+              <strong>{formatUsd(modelPriceUsd)}</strong>
+            </div>
+            {hasDailyRange && (
+              <>
+                <div className="price-input-value">
+                  <em>{t.low}</em>
+                  <strong>{formatUsd(latest.low_usd as number)}</strong>
+                </div>
+                <div className="price-input-value">
+                  <em>{t.high}</em>
+                  <strong>{formatUsd(latest.high_usd as number)}</strong>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
         <div className="freshness-metric">
           <span>{t.updated}</span>
           <strong>{latest.timestamp.slice(0, 10)}</strong>
