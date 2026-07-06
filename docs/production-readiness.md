@@ -561,6 +561,9 @@ Completed or partially completed as of 2026-07-01:
   Cloudflare.
 - Cloudflare edge cache settings and the waitlist-specific rate-limit/custom challenge subset were applied with
   `scripts/cloudflare_edge_rules.py`.
+- The tracked repository documentation and portfolio presentation pass is locally complete as of 2026-07-06. This is a
+  docs-only repository status and does not prove production deploy, public freshness, backup/restore, monitoring,
+  waitlist, import provenance, browser/device/accessibility, or first-traffic readiness.
 
 Still required before treating the pilot as publicly launched:
 
@@ -587,8 +590,8 @@ Still required before treating the pilot as publicly launched:
 - Capture a real production import evidence packet outside the repository: source snapshot, import manifest, `sha256`,
   retrieval metadata, row count, covered range, expected tail, validation/readiness output, cache evidence, and any
   related launch, restore, or correction note.
-- Complete the documentation and portfolio presentation pass, including the sibling product-ideas brief, if the
-  repository will be shown as a private/portfolio project.
+- Update external portfolio surfaces such as GitHub description/topics or the sibling product-ideas brief only by
+  separate request; they were not changed by the tracked repository docs pass.
 - Capture the launch snapshot and run the first small traffic test.
 
 ## Related Docs

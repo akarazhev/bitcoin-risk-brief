@@ -110,9 +110,11 @@ Remaining production-pilot gaps:
 - daily backups, off-server copy, restore drill, and monitoring alerts still need to be configured and verified;
 - privacy/terms posture, post-waitlist handling, dependency/security maintenance, resource monitoring, credential
   ownership, accessibility, metadata, data-source terms, and incident response need a launch completeness pass;
-- waitlist test, full browser/device launch matrix, documentation and portfolio presentation pass, cache-miss latency
-  measurement, and first traffic test still need to run; the launch snapshot has been captured but is blocked by stale
-  data;
+- waitlist test, full browser/device launch matrix, cache-miss latency measurement, and first traffic test still need to
+  run; the launch snapshot has been captured but is blocked by stale data;
+- tracked repository documentation and portfolio presentation work is locally complete as of 2026-07-06, but this does
+  not close production deploy, public freshness, backup/restore, monitoring, waitlist, import provenance,
+  browser/device/accessibility, GitHub settings, or sibling product-ideas evidence;
 - post-launch learning cannot start until real usage and waitlist evidence exist.
 
 ## Roadmap Phases
@@ -408,9 +410,10 @@ Launch snapshot recorded on 2026-07-05:
 
 Still pending for Phase 8: restore data freshness, waitlist production smoke, full browser/device launch matrix,
 production verification of model-price/OHLC display and cache warmup, localization add-on if accepted for pre-traffic
-scope, remaining documentation and portfolio presentation items, release/feedback/evidence checklist,
-data-correction/service-target evidence, import-provenance/source-archive evidence, post-deploy cache-miss latency
-measurement, and first traffic test. Do not mark the first traffic test complete until readiness is HTTP 200 and the
+scope, release/feedback/evidence checklist, data-correction/service-target evidence, import-provenance/source-archive
+evidence, external GitHub settings or sibling product-ideas updates if separately requested, post-deploy cache-miss
+latency measurement, and first traffic test. The tracked repository documentation and portfolio presentation pass is
+locally complete as of 2026-07-06. Do not mark the first traffic test complete until readiness is HTTP 200 and the
 traffic window actually runs.
 
 Acceptance criteria:
