@@ -99,9 +99,10 @@ Response shape:
 
 Returns the latest stored risk point.
 
-`price_usd` is the HLC3 model price from the latest completed daily candle, not a spot price or close-only value. A
-planned UI/API polish pass may add explicit `model_price_usd`, `low_usd`, and `high_usd` fields while keeping
-`price_usd` as the backwards-compatible HLC3 alias.
+`price_usd` is the HLC3 model price from the latest completed daily candle, not a spot price or close-only value.
+`model_price_usd` is the explicit name for the same value. `low_usd` and `high_usd` come from the `btc_ohlcv_daily`
+row whose `timestamp` matches the latest risk row. If that OHLCV row is missing, `low_usd` and `high_usd` are `null`;
+clients should hide those sub-values rather than showing zeroes or stale values.
 
 Response shape:
 
@@ -110,6 +111,9 @@ Response shape:
   "data": {
     "timestamp": "2026-06-25T00:00:00+00:00",
     "price_usd": 60100.0,
+    "model_price_usd": 60100.0,
+    "low_usd": 58800.0,
+    "high_usd": 61584.0,
     "risk": 0.3025,
     "score": -0.82,
     "risk_state": "low",
@@ -147,7 +151,9 @@ Response shape:
 }
 ```
 
-Actual rows include the full `RiskPoint` fields shown in `/api/risk/latest`.
+Actual rows include the historical risk fields: `timestamp`, `price_usd`, `risk`, `score`, `risk_state`,
+component values, z-scores, and `turnover_enabled`. Latest-only `model_price_usd`, `low_usd`, and `high_usd`
+are not part of `/api/risk/history`.
 
 ## GET /api/risk/levels
 

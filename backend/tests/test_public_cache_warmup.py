@@ -125,6 +125,38 @@ class WaitlistNoStoreRegressionTest(MainPatchMixin, unittest.IsolatedAsyncioTest
 
 
 class PublicPayloadSchemaRegressionTest(MainPatchMixin, unittest.IsolatedAsyncioTestCase):
+    async def test_risk_latest_payload_includes_model_price_and_daily_range(self) -> None:
+        latest = {
+            "timestamp": "2026-06-26T00:00:00+00:00",
+            "price_usd": 100000.0,
+            "model_price_usd": 100000.0,
+            "low_usd": 96500.0,
+            "high_usd": 104250.0,
+            "risk": 0.7,
+            "score": 1.0,
+            "risk_state": "high",
+            "trend_dev": 0.2,
+            "vol_regime": 0.1,
+            "turnover": None,
+            "z_trend_dev": 1.1,
+            "z_vol_regime": 0.8,
+            "z_turnover": None,
+            "turnover_enabled": False,
+        }
+
+        async def fake_latest(_pool):
+            return latest
+
+        self.patch_main("get_pool", lambda: object())
+        self.patch_main("fetch_latest_risk", fake_latest)
+
+        payload, status = await main._produce_risk_latest_payload()
+
+        self.assertEqual(status, 200)
+        self.assertEqual(payload["data"]["price_usd"], payload["data"]["model_price_usd"])
+        self.assertEqual(payload["data"]["low_usd"], 96500.0)
+        self.assertEqual(payload["data"]["high_usd"], 104250.0)
+
     async def test_risk_history_payload_shape_is_unchanged(self) -> None:
         async def fake_history(_pool, *, start_date, end_date, limit):
             self.assertIsNone(start_date)
