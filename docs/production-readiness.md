@@ -87,14 +87,30 @@ Post-deploy production verification evidence recorded on 2026-07-07 for `https:/
 - This note intentionally records only redacted operational evidence. It does not include secrets, raw waitlist contacts,
   private account details, or private paths beyond the already documented production project path.
 
-Backup, off-server copy, and restore drill status recorded on 2026-07-05:
+Backup, off-server copy, and restore drill status recorded on 2026-07-07:
 
-- Real production backup was not run from this agent environment. The current workspace is a macOS workstation checkout;
-  `/srv/projects/bitcoin-risk-brief` is not present here, and no production host, confirmed off-server storage target, or
-  staging restore target is mounted or reachable from this session.
-- Task 4 remains blocked pending operator action. Do not mark backup/off-server/restore complete until the operator
-  records redacted evidence from the production host and a staging or intentionally empty restore target.
-- On the production host, run:
+- USB backup found: yes, on mounted USB backup storage for timestamp basename `20260707T111928Z`. The backup copy was
+  mounted outside the current USB kit directory, whose own `manifest.txt` and `SHA256SUMS` were present.
+- Production commit HEAD: direct live checkout proof was not available from this workstation session because
+  `/srv/projects/bitcoin-risk-brief` is absent here. The deploy-source evidence available for this pass is local
+  `git rev-parse HEAD` and USB kit `manifest.txt`, both recording commit
+  `285cbf5547a5a3b106a09085e0d2506175db00f6`.
+- USB kit checksum verification passed with `sha256sum --quiet -c SHA256SUMS` from the mounted USB kit directory.
+- Latest backup timestamp basename: `20260707T111928Z`.
+- Artifact categories verified non-empty: PostgreSQL custom-format dump, canonical BTC CSV copy, backup manifest, and
+  backup `SHA256SUMS`.
+- Backup checksum verification passed with `sha256sum -c SHA256SUMS` from the mounted USB backup copy directory for the
+  PostgreSQL dump, BTC CSV, and backup manifest.
+- Off-server copy status: verified on USB for timestamp basename `20260707T111928Z`; backup and off-server copy evidence
+  are no longer missing for this gate.
+- Local production backup counterpart: not checked here. `/srv/projects/bitcoin-risk-brief/backups/20260707T111928Z`
+  could not be inspected because `/srv` is absent in this session; this does not block the off-server copy status because
+  the mounted USB copy passed checksum verification.
+- Restore drill status: blocked pending an explicit staging project or intentionally empty restore target. No such target
+  was found in the checked local, temp, `/opt`, or USB paths, and no restore was attempted against live production.
+- This note intentionally records only redacted operational evidence. It does not include secrets, raw dump contents, raw
+  CSV contents, waitlist contacts, credentials, `.env` values, or private account details.
+- For future backup and restore evidence, use the production-host procedure below.
 
 ```bash
 set -euo pipefail
@@ -171,7 +187,7 @@ Monitoring and first-response status recorded on 2026-07-05:
 | Public `/api/readiness` | Blocked/accepted limitation. Endpoint exists and has previous smoke evidence, but no external readiness alert evidence is recorded. | Configure an HTTP monitor for `https://bitcoinriskbrief.minihub.app/api/readiness`, alert on non-200, and route the alert to the `/api/readiness` first-response entry in `docs/operations.md`. |
 | Stale readiness after nightly update window | Blocked/accepted limitation. No scheduled stale-data monitor evidence is recorded. | After the default 01:00 UTC collector window plus operator-defined grace period, check `/api/readiness`; alert if `status` is not `ready`, `latest_date`/`covered_end` is older than the last completed UTC day, or `data_age_days` exceeds `DATA_FRESHNESS_MAX_AGE_DAYS`. |
 | Collector refresh failure | Blocked/accepted limitation. The scheduled public-download-first path is documented, but no production log alert evidence is recorded. | Configure production log/container alerts for `scheduled_refresh_failed`, `public_cmc_download_failed`, API fallback failure, and repeated `data-collector` restarts; record the alert source and latest passing scheduled run. |
-| Backup freshness | Blocked by Task 4 and accepted only as a documented limitation until the operator acts. No real production backup, off-server copy, restore drill, or backup freshness monitor evidence is recorded here. | Schedule `./scripts/backup.sh`, copy verified backups off-server, alert when no checksum-verified backup and off-server copy exists inside the chosen freshness window, and record redacted evidence from the production host. |
+| Backup freshness | Partially blocked. One checksum-verified off-server USB backup copy is recorded for 2026-07-07, but no restore drill or recurring backup freshness monitor evidence is recorded here. | Schedule `./scripts/backup.sh`, copy verified backups off-server, alert when no checksum-verified backup and off-server copy exists inside the chosen freshness window, run a restore drill only on staging or an intentionally empty restore target, and record redacted evidence from the production host. |
 | Cloudflare Tunnel health | Partially configured. The public hostname and Tunnel path have previous smoke evidence, but no Cloudflare connector health alert evidence is recorded. | In Cloudflare Zero Trust, enable or document Tunnel connector health notifications for the connector serving `bitcoinriskbrief.minihub.app`; also record whether production uses host-service `cloudflared` or compose-managed `cloudflared` and where operators check status. |
 
 - Until the actions above are complete, public traffic should be a controlled operator-watched pilot only. Pause broader
@@ -256,10 +272,11 @@ Launch governance and release evidence status recorded on 2026-07-05:
   `COINMARKETCAP_API_KEY` is configured.
 - Known accepted limitations for that snapshot candidate: no standalone privacy/terms page is recorded; waitlist lead
   owner, review cadence, deletion/unsubscribe contact path, and support/contact identity are pending operator decisions;
-  production backup/off-server copy/restore evidence is missing; monitoring evidence is missing; production import
-  provenance evidence is missing; waitlist smoke was not run; public page data was observed stale during Task 8; full
-  native-device/browser QA, focused accessibility, and SEO/social metadata evidence are not complete; Cloudflare remains
-  on the documented Free-plan-compatible subset.
+  production backup/off-server copy/restore evidence was missing at that time; monitoring evidence is missing; production
+  import provenance evidence is missing; waitlist smoke was not run; public page data was observed stale during Task 8;
+  full native-device/browser QA, focused accessibility, and SEO/social metadata evidence are not complete; Cloudflare
+  remains on the documented Free-plan-compatible subset. The 2026-07-07 evidence above supersedes the missing
+  backup/off-server copy portion while restore drill remains pending.
 - Governance evidence process: keep privacy/terms/disclaimer posture, waitlist handling, credential/account ownership,
   data-source terms review, dependency/security maintenance, accessibility, and metadata status in
   [Security and Privacy](security-and-privacy.md) and [Operations](operations.md). Unknown operator-owned facts must be
@@ -274,9 +291,9 @@ Launch governance and release evidence status recorded on 2026-07-05:
   review production Python and npm dependency licenses for obvious conflicts and record the repository posture. Do not
   claim open-source status unless a license is intentionally chosen.
 - Release evidence packet process: the final launch snapshot should reference the launch commit, public hostname,
-  readiness payload, cache headers, selected refresh path, deployment path, backup/restore evidence, waitlist smoke,
-  browser QA, known limitations, and any related import provenance manifest. Store private artifacts, raw contacts,
-  secrets, account details, and private storage paths outside this repository.
+  readiness payload, cache headers, selected refresh path, deployment path, backup/off-server and restore-drill evidence,
+  waitlist smoke, browser QA, known limitations, and any related import provenance manifest. Store private artifacts, raw
+  contacts, secrets, account details, and private storage paths outside this repository.
 
 Task 10 launch snapshot recorded on 2026-07-05 at 11:37 UTC for `https://bitcoinriskbrief.minihub.app`:
 
@@ -309,18 +326,21 @@ Task 10 launch snapshot recorded on 2026-07-05 at 11:37 UTC for `https://bitcoin
 - Selected data refresh path: scheduled public-download-first CoinMarketCap CSV refresh, with manual
   `download-cmc-csv` and `import-cmc-csv` fallbacks. The public readiness result in this snapshot proved this path had not
   kept production fresh through the accepted freshness window and needed operator action before launch.
-- Backup/restore evidence status: blocked pending operator evidence. No real production backup, off-server copy, restore
-  drill, or backup freshness monitor is recorded.
+- Backup/restore evidence status for this historical snapshot: blocked pending operator evidence. At that time, no real
+  production backup, off-server copy, restore drill, or backup freshness monitor was recorded. The 2026-07-07 evidence
+  above supersedes the backup/off-server copy portion, while restore drill and backup freshness monitor evidence remain
+  open.
 - Monitoring status: blocked/accepted limitation. Public endpoints exist, but no external monitor dashboard, alert
   delivery, collector failure alert, backup freshness alert, or Cloudflare Tunnel health alert evidence is recorded.
 - Import provenance status: blocked pending operator evidence. No sanitized production import evidence packet is recorded
   outside the repository.
-- Accepted limitations/blockers: Cloudflare remains on the documented Free-plan-compatible subset; waitlist smoke,
-  backup/off-server/restore, monitoring, production import provenance, physical/native browser QA, support/contact
-  identity, dependency-license review, and focused accessibility/SEO metadata evidence remain incomplete. The launch
-  blocker for this snapshot was data freshness: readiness was HTTP 503 with `data_fresh: false`. The 2026-07-07
-  post-deploy evidence above closes that readiness condition, but the first traffic test should still not be marked
-  complete until the other required launch limitations are explicitly resolved or accepted and the traffic window runs.
+- Accepted limitations/blockers for this historical snapshot: Cloudflare remained on the documented Free-plan-compatible
+  subset; waitlist smoke, backup/off-server/restore, monitoring, production import provenance, physical/native browser
+  QA, support/contact identity, dependency-license review, and focused accessibility/SEO metadata evidence were
+  incomplete. The launch blocker for this snapshot was data freshness: readiness was HTTP 503 with `data_fresh: false`.
+  The 2026-07-07 post-deploy evidence above closes that readiness condition and the backup/off-server copy portion, but
+  the first traffic test should still not be marked complete until the other required launch limitations, including the
+  restore drill, are explicitly resolved or accepted and the traffic window runs.
 
 USB Update And Install Kit V2 local implementation status recorded on 2026-07-05:
 
@@ -337,8 +357,9 @@ USB Update And Install Kit V2 local implementation status recorded on 2026-07-05
   snapshot, restarts the service, and runs local health/readiness plus optional public readiness checks.
 - Production `.env` is preserved by the deploy/update flow and is not sourced from the USB kit.
 - Production benefit is now verified for the operator-run USB deploy path by the 2026-07-07 post-deploy evidence above:
-  USB deploy verification passed, public readiness returned HTTP 200, and public frontend smoke passed. Backup/off-server
-  copy and restore-drill evidence are still tracked separately under the backup/restore gate.
+  USB deploy verification passed, public readiness returned HTTP 200, public frontend smoke passed, and one off-server
+  USB backup copy passed checksum verification. Restore-drill evidence remains tracked separately under the
+  backup/restore gate.
 
 Task 11 cache latency measurement recorded on 2026-07-05 from 12:15 to 12:17 UTC for
 `https://bitcoinriskbrief.minihub.app`:
@@ -468,7 +489,7 @@ Before public launch, also complete and record:
   maintenance cadence, credential/account ownership, resource monitoring, data-source terms, accessibility, metadata,
   and incident response notes;
 - release feedback and operational evidence posture: release notes or decision log, first-user feedback review path,
-  support/contact identity, dependency-license review, and launch/backup/restore evidence;
+  support/contact identity, dependency-license review, launch evidence, and restore-drill evidence;
 - data correction and service-target posture: bad CSV/import/risk correction flow, correction-note rules, cache
   correction safety, freshness target, RPO/RTO boundaries, and pilot downtime tolerance;
 - import provenance and source archive posture: source snapshot, import manifest, `sha256`, retrieval metadata, row
@@ -596,8 +617,8 @@ Completed or partially completed as of 2026-07-01:
   browser/device/accessibility, or first-traffic readiness.
 - Post-deploy evidence recorded on 2026-07-07 verifies the operator-run USB deploy, closes the public data freshness
   blocker, confirms public `/api/readiness` HTTP 200 with latest public data date `2026-07-06`, verifies latest
-  risk/model-price/OHLC display on desktop and mobile Playwright smoke, and records fast repeated Cloudflare HIT behavior
-  after warmup.
+  risk/model-price/OHLC display on desktop and mobile Playwright smoke, records fast repeated Cloudflare HIT behavior
+  after warmup, and records one checksum-verified off-server USB backup copy.
 
 Still required before treating the pilot as publicly launched:
 
@@ -606,7 +627,8 @@ Still required before treating the pilot as publicly launched:
   checks, and backup-gated mode when a fresh pre-update database dump is required.
 - Decide whether to accept the current Cloudflare Free-plan subset for first traffic or upgrade/configure additional WAF,
   bot protection, and broader API burst-rate-limit controls.
-- Configure scheduled `./scripts/backup.sh` runs and copy backups off the server.
+- Configure scheduled `./scripts/backup.sh` runs, recurring off-server backup copies, and backup freshness monitoring; one
+  USB off-server backup copy was verified on 2026-07-07.
 - Continue verifying the scheduled public-download-first refresh on the production host because the production pilot runs
   without a `COINMARKETCAP_API_KEY`; the 2026-07-07 snapshot proves current freshness, not future scheduled runs.
 - Put request logging, backup health, and operational review in place.
@@ -619,7 +641,8 @@ Still required before treating the pilot as publicly launched:
   credential ownership, resource monitoring, dependency/security maintenance, data-source terms, accessibility,
   SEO/social metadata, and incident response.
 - Complete or explicitly defer the release feedback and operational evidence checklist: release notes or decision log,
-  first-user feedback path, support/contact identity, dependency-license review, and launch/backup/restore evidence.
+  first-user feedback path, support/contact identity, dependency-license review, launch evidence, and restore-drill
+  evidence.
 - Keep the documented bad-data correction and service-target policy current as real restore/import evidence arrives;
   pilot freshness, RPO/RTO, correction, and downtime targets remain internal targets, not public SLA promises.
 - Capture a real production import evidence packet outside the repository: source snapshot, import manifest, `sha256`,
