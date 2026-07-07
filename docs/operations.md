@@ -423,8 +423,8 @@ Production defaults can be controlled from the environment:
 BACKUP_DIR=./backups BACKUP_RETENTION_DAYS=30 ./scripts/backup.sh
 ```
 
-The PostgreSQL dump runs non-interactively through direct `podman exec` against the running `timescaledb` container, so
-backup does not depend on `podman-compose exec`. The main controls are `BACKUP_DUMP_TIMEOUT_SECONDS=300`,
+The PostgreSQL dump runs non-interactively through direct `podman exec` against the running `timescaledb` container. The
+main controls are `BACKUP_DUMP_TIMEOUT_SECONDS=300`,
 `BACKUP_PODMAN_PS_TIMEOUT_SECONDS=20`, `BACKUP_DUMP_CONNECT_TIMEOUT_SECONDS=10`, and
 `BACKUP_DUMP_LOCK_WAIT_TIMEOUT=30s`; increase the dump timeout only after checking Podman health, database locks, and
 disk pressure.
