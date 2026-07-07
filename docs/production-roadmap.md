@@ -42,10 +42,11 @@ Already implemented:
 - Public read endpoint caching for readiness, latest risk, history, levels, and brief responses, with validation-versioned
   refresh after successful imports.
 - Local startup and operator public-cache warmup for the standard public read payloads, tagged
-  `cache-warmup-local-complete-2026-07-05`; production latency benefit still requires deploy, healthy readiness, and
-  post-deploy measurement.
+  `cache-warmup-local-complete-2026-07-05`; post-deploy public smoke on 2026-07-07 recorded fast repeated Cloudflare
+  HIT behavior after warmup.
 - Latest risk payload and first-viewport display polish for explicit `model_price_usd`, nullable `low_usd`, and nullable
-  `high_usd`, tagged `price-model-ohlc-local-complete-2026-07-06`; production visibility still requires deploy.
+  `high_usd`, tagged `price-model-ohlc-local-complete-2026-07-06`; production visibility is verified in the 2026-07-07
+  public smoke evidence.
 - No-store waitlist responses, backend request logging, and repo-managed Cloudflare WAF, waitlist bot-challenge,
   cache-rule, and edge rate-limit settings for the production pilot.
 - Containerized local stack and Ubuntu plus Cloudflare Tunnel deployment docs.
@@ -53,15 +54,15 @@ Already implemented:
   health checks, and debug reports.
 - USB kit v2 workstation packaging and server-side update wrapper are implemented locally, including filtered snapshot
   packaging, manifest/checksums, backup-before-update, off-server/USB backup copy, `.env` preservation, service restart,
-  and health/readiness checks. Local evidence is tagged `usb-kit-v2-local-complete-2026-07-05`; production benefit still
-  requires a real USB package and production-host execution.
+  and health/readiness checks. Local evidence is tagged `usb-kit-v2-local-complete-2026-07-05`; production USB deploy
+  verification passed according to the 2026-07-07 post-deploy evidence.
 - Production readiness, operations, security, testing, architecture, and data-pipeline documentation.
 
 ## Current Roadmap Status
 
-Verified on 2026-07-06 from repository files, local implementation tags, public hostname checks, and the launch snapshot
-in [Production Readiness](production-readiness.md). Local tags are implementation evidence only; they do not prove the
-production host has been updated.
+Verified on 2026-07-07 from repository files, local implementation tags, public hostname checks, and the post-deploy
+evidence in [Production Readiness](production-readiness.md). Local tags remain implementation evidence only; production
+status depends on the recorded operator/public-host evidence.
 
 | Phase | Status | Repository evidence |
 | --- | --- | --- |
@@ -69,10 +70,10 @@ production host has been updated.
 | Phase 2: Data Source Resilience And Documentation Hygiene | Complete | `9fe25cd`, `7f7b8c4`, `collector/collector/main.py`, `collector/tests/test_downloaded_csv_import.py`, `collector/tests/test_public_cmc_download.py` |
 | Phase 3: CI And Quality Gates | Complete | `1b162a5`, `.github/workflows/ci.yml`, `docs/testing-and-quality.md` |
 | Phase 4: Frontend Production Quality | Complete | `22793fb`, `frontend/e2e/frontend-quality.spec.ts`, `frontend/src/Chart.tsx`, `docs/frontend-qa.md` |
-| Phase 5: Performance, Caching, And Abuse Protection | Complete in repository; production freshness and post-deploy warmup measurement still external | `3c66df9`, `5bb179d`, `cache-warmup-local-complete-2026-07-05`, `backend/app/public_cache.py`, `backend/app/main.py`, `scripts/cloudflare_edge_rules.py`, `backend/tests/test_cloudflare_edge_rules.py` |
-| Phase 6: Production Environment And Deployment | Blocked by stale production data; USB kit v2 implemented locally, production use pending | 2026-07-05 public `/api/health` returned 200, but `/api/readiness` returned HTTP 503 with `data_fresh: false`, `latest_date: 2026-06-30`, and `max_age_days: 2`; selected path is USB deployment under `/srv/projects/bitcoin-risk-brief`; local repository has workstation packaging, a one-command USB deploy entrypoint, and explicit backup-gated USB update mode |
+| Phase 5: Performance, Caching, And Abuse Protection | Complete in repository; post-deploy Cloudflare HIT/fast repeat behavior verified for public smoke | `3c66df9`, `5bb179d`, `cache-warmup-local-complete-2026-07-05`, 2026-07-07 repeated public cache requests about `0.14s` to `0.22s` with Cloudflare `cf-cache-status: HIT`, `backend/app/public_cache.py`, `backend/app/main.py`, `scripts/cloudflare_edge_rules.py`, `backend/tests/test_cloudflare_edge_rules.py` |
+| Phase 6: Production Environment And Deployment | Verified for USB deploy and public freshness; closed as stale-data blocker | 2026-07-07 USB deploy verification passed; public `/api/readiness` returned HTTP 200 with `data_fresh: true`, `latest_date: 2026-07-06`, `covered_end: 2026-07-06`, and `data_age_days: 1`; selected path is USB deployment under `/srv/projects/bitcoin-risk-brief` |
 | Phase 7: Backups, Restore, And Monitoring | Blocked pending operator action | Real production backup, off-server copy, restore drill, monitoring dashboard/alert delivery, backup freshness alert, collector failure alert, and import provenance evidence are not recorded |
-| Phase 8: Launch Checklist And First Traffic Test | Blocked; snapshot captured, first traffic test not run | 2026-07-05 launch snapshot recorded health 200, latest-risk 200, readiness 503/degraded, waitlist smoke blocked, browser-capable QA passed with limitations, `price-model-ohlc-local-complete-2026-07-06` is local-only evidence, and first traffic remains pending |
+| Phase 8: Launch Checklist And First Traffic Test | Blocked by remaining operator evidence gates; freshness blocker closed, first traffic test not run | 2026-07-07 post-deploy snapshot recorded readiness 200/fresh, latest-risk 200, public desktop/mobile Playwright smoke passed, model-price/OHLC display verified, and fast repeated Cloudflare HIT behavior after warmup; waitlist smoke, backup/restore, monitoring, import provenance, broader launch-matrix/accessibility/governance evidence, and first traffic remain pending |
 | Phase 9: Post-Launch Learning Loop | Pending | Starts after launch traffic creates usage evidence, including optional agent-access demand testing |
 | Phase 10: Risk Methodology Research | Pending | Starts only after launch evidence justifies method work; current production metric remains `crypto-scout-canonical-v1` |
 | Phase 11: Distribution Channel Research | Pending | Evaluates PWA, Telegram Mini App, browser extension, and other channel packaging after launch evidence |
@@ -80,15 +81,16 @@ production host has been updated.
 Current production-pilot progress after Phase 1-5:
 
 - public hostname `bitcoinriskbrief.minihub.app` is connected through Cloudflare and returned 200 for `/api/health` and
-  `/api/risk/latest` on 2026-07-05;
-- public `/api/readiness` returned HTTP 503 on 2026-07-05 with `status: degraded`, `data_fresh: false`,
-  `latest_date: 2026-06-30`, `data_age_days: 4`, and `max_age_days: 2`; this blocks launch until fresh data is restored
-  or the freshness policy is intentionally changed and documented;
+  `/api/risk/latest` on 2026-07-05, and post-deploy public checks returned fresh readiness on 2026-07-07;
+- public `/api/readiness` returned HTTP 200 on 2026-07-07 with `data_fresh: true`, `latest_date: 2026-07-06`,
+  `covered_end: 2026-07-06`, and `data_age_days: 1`; the prior stale-data launch blocker is closed;
 - public read caching is observable through `Cache-Control`, validation-versioned `ETag`, `X-Cache`, and
-  `X-Cache-Version`; the 2026-07-05 launch snapshot saw latest-risk `cf-cache-status: UPDATING` and readiness
-  `cf-cache-status: STALE`;
-- browser-capable public-hostname QA passed on 2026-07-05 with accepted limitations, but the page visibly showed stale
-  data and a physical-device/native branded browser pass is still pending;
+  `X-Cache-Version`; post-deploy repeated public cache requests after warmup were fast with Cloudflare
+  `cf-cache-status: HIT`, while the cached origin `X-Cache` header may still show `MISS`;
+- browser-capable public-hostname QA passed on 2026-07-07 with Playwright desktop/mobile smoke, fresh data, visible
+  Current risk `28%`, `Low`, latest date `2026-07-06`, Model price `$63,289`, Low `$61,276`, High `$64,598`, and no
+  mobile horizontal overflow at a 390px viewport; physical-device/native branded browser evidence is still pending if
+  required by the launch matrix;
 - Cloudflare Rulesets API apply succeeded for the custom waitlist bot challenge, one waitlist rate-limit rule, waitlist
   cache bypass, and public-read origin-cache rules;
 - the active Cloudflare plan did not entitle the zone to execute the managed WAF ruleset, more than one rate-limit rule,
@@ -97,13 +99,11 @@ Current production-pilot progress after Phase 1-5:
 
 Remaining production-pilot gaps:
 
-- restore production data freshness so public `/api/readiness` returns HTTP 200 before launch or first traffic;
-- confirm the production host runbook, `.env`, service path, and data-refresh workflow are the documented source of truth;
-- prepare a real USB kit from the workstation and run the one-command USB deploy flow on the production host, using the
-  explicit backup-gated mode when a fresh pre-update database dump is required;
-- verify on the production host that scheduled public CoinMarketCap refresh updates through the last completed UTC day
-  without a `COINMARKETCAP_API_KEY`;
-- deploy and verify public payload cache warmup on the production host, then repeat cache-miss latency measurement; add
+- keep the production host runbook, `.env`, service path, and data-refresh workflow aligned with the verified USB deploy
+  path;
+- keep scheduled public CoinMarketCap refresh verification current on the production host without a
+  `COINMARKETCAP_API_KEY`; the 2026-07-07 snapshot proves current freshness, not future scheduled runs;
+- continue cache-miss/edge-hit latency measurement for any endpoint not covered by the 2026-07-07 post-deploy smoke; add
   precomputed expensive payloads only if the first real user would still pay visible database/build cost after startup or
   nightly import;
 - decide whether to accept the current Cloudflare Free-plan subset for first traffic or upgrade/configure additional WAF,
@@ -111,11 +111,11 @@ Remaining production-pilot gaps:
 - daily backups, off-server copy, restore drill, and monitoring alerts still need to be configured and verified;
 - privacy/terms posture, post-waitlist handling, dependency/security maintenance, resource monitoring, credential
   ownership, accessibility, metadata, data-source terms, and incident response need a launch completeness pass;
-- waitlist test, full browser/device launch matrix, cache-miss latency measurement, and first traffic test still need to
-  run; the launch snapshot has been captured but is blocked by stale data;
+- waitlist test, full browser/device launch matrix, remaining cache-miss latency measurement, and first traffic test still
+  need to run; the stale-data blocker is closed, but broader launch gates remain;
 - tracked repository documentation and portfolio presentation work is locally complete as of 2026-07-06, but this does
-  not close production deploy, public freshness, backup/restore, monitoring, waitlist, import provenance,
-  browser/device/accessibility, GitHub settings, or sibling product-ideas evidence;
+  not close backup/restore, monitoring, waitlist, import provenance, browser/device/accessibility, GitHub settings, or
+  sibling product-ideas evidence;
 - post-launch learning cannot start until real usage and waitlist evidence exist.
 
 ## Roadmap Phases
@@ -217,12 +217,12 @@ Acceptance criteria:
 
 ### Phase 5: Performance, Caching, And Abuse Protection
 
-Status: Complete in repository and partially applied at the public edge; production freshness and post-deploy warmup
-measurement remain external gates. Verified by commits `3c66df9` and `5bb179d`, local tag
-`cache-warmup-local-complete-2026-07-05`, `backend/app/public_cache.py`, `backend/app/main.py`,
-`scripts/cloudflare_edge_rules.py`, and `backend/tests/test_cloudflare_edge_rules.py`. On 2026-07-01,
-`bitcoinriskbrief.minihub.app` returned 200 for public GET smoke checks and 304 for conditional `/api/risk/latest`
-revalidation with `X-Cache: HIT`.
+Status: Complete in repository and partially applied at the public edge; post-deploy public smoke on 2026-07-07 verified
+Cloudflare HIT/fast repeat behavior after warmup, while broader endpoint MISS measurement remains an external launch gate.
+Verified by commits `3c66df9` and `5bb179d`, local tag `cache-warmup-local-complete-2026-07-05`,
+`backend/app/public_cache.py`, `backend/app/main.py`, `scripts/cloudflare_edge_rules.py`, and
+`backend/tests/test_cloudflare_edge_rules.py`. On 2026-07-01, `bitcoinriskbrief.minihub.app` returned 200 for public GET
+smoke checks and 304 for conditional `/api/risk/latest` revalidation with `X-Cache: HIT`.
 
 The active Cloudflare plan is using the Free-plan-compatible subset: custom waitlist bot challenge, one waitlist
 rate-limit rule with `period=10` and `mitigation_timeout=10`, waitlist cache bypass, and origin-header-respecting cache
@@ -258,13 +258,12 @@ Acceptance criteria:
 
 ### Phase 6: Production Environment And Deployment
 
-Status: Blocked by stale production data pending operator action. USB kit v2 is implemented locally, but production
-benefit remains pending until a real USB package is prepared and the update flow is run on the production host. Public
-hostname smoke checks passed earlier, and
-`GET /api/health` plus `GET /api/risk/latest` still returned 200 on 2026-07-05, but `GET /api/readiness` returned HTTP
-503 with `data_fresh: false`, `latest_date: 2026-06-30`, `data_age_days: 4`, and `max_age_days: 2`. The selected
-deployment path is USB-based deployment under `/srv/projects/bitcoin-risk-brief`, with accepted limitations around
-production `.env` owner confirmation.
+Status: Verified for the USB deploy path and current public freshness as of the 2026-07-07 post-deploy evidence. USB
+deploy verification passed, `GET /api/readiness` returned HTTP 200 with `data_fresh: true`, `latest_date: 2026-07-06`,
+`covered_end: 2026-07-06`, and `data_age_days: 1`, and `GET /api/risk/latest` returned HTTP 200 for
+`2026-07-06T00:00:00+00:00`. The selected deployment path is USB-based deployment under
+`/srv/projects/bitcoin-risk-brief`. Keep future update evidence current, and keep production `.env` ownership and
+scheduled-refresh operation aligned with the runbook.
 
 Goal: run the full stack on the intended production-pilot host.
 
@@ -350,10 +349,12 @@ Acceptance criteria:
 
 ### Phase 8: Launch Checklist And First Traffic Test
 
-Status: Blocked; launch snapshot captured and first traffic test not run. The 2026-07-05 snapshot recorded public health
-200 and latest-risk 200, but readiness was HTTP 503/degraded because data freshness failed. Browser-capable public QA
-passed with accepted limitations, waitlist smoke remains blocked/not collected, first-viewport model-price/OHLC polish is
-implemented locally under `price-model-ohlc-local-complete-2026-07-06`, and first traffic must remain pending.
+Status: Blocked by remaining operator evidence gates; freshness blocker closed and first traffic test not run. The
+2026-07-07 post-deploy snapshot recorded public readiness 200/fresh, latest-risk 200, desktop/mobile Playwright public
+smoke passed, first-viewport model-price/OHLC display verified, mobile overflow passed, and repeated public cache
+requests after warmup were fast through Cloudflare HIT. Waitlist smoke remains blocked/not collected, backup/restore,
+monitoring, import provenance, broader browser/device/accessibility/governance evidence remain incomplete, and first
+traffic must remain pending until those gates are completed or explicitly accepted.
 
 Goal: launch deliberately and measure product demand.
 
@@ -409,13 +410,28 @@ Launch snapshot recorded on 2026-07-05:
   risk state and expected public cache headers.
 - Browser-capable public-hostname QA passed with accepted limitations, but the public page visibly showed stale data.
 
-Still pending for Phase 8: restore data freshness, waitlist production smoke, full browser/device launch matrix,
-production verification of model-price/OHLC display and cache warmup, localization add-on if accepted for pre-traffic
-scope, release/feedback/evidence checklist, data-correction/service-target evidence, import-provenance/source-archive
-evidence, external GitHub settings or sibling product-ideas updates if separately requested, post-deploy cache-miss
-latency measurement, and first traffic test. The tracked repository documentation and portfolio presentation pass is
-locally complete as of 2026-07-06. Do not mark the first traffic test complete until readiness is HTTP 200 and the
-traffic window actually runs.
+Post-deploy snapshot recorded on 2026-07-07:
+
+- USB deploy verification passed.
+- `GET https://bitcoinriskbrief.minihub.app/api/readiness` returned HTTP 200 with `data_fresh: true`,
+  `latest_date: 2026-07-06`, `covered_end: 2026-07-06`, and `data_age_days: 1`.
+- `GET https://bitcoinriskbrief.minihub.app/api/risk/latest` returned HTTP 200 for
+  `2026-07-06T00:00:00+00:00` with `risk_state: low`, `price_usd: 63289.47099956666`,
+  `model_price_usd: 63289.47099956666`, `low_usd: 61275.826328`, and `high_usd: 64597.5707661`.
+- Public Playwright smoke passed on desktop and mobile: Current risk `28%`, `Low`, latest date `2026-07-06`, Model
+  price `$63,289`, Low `$61,276`, and High `$64,598`.
+- Mobile overflow passed with viewport width `390` and scroll width `390`.
+- Repeated public cache requests after warmup were about `0.14s` to `0.22s` with Cloudflare `cf-cache-status: HIT` and
+  `age` around `33` to `35`. App-level `X-Cache` may still show `MISS` from a cached origin response, so that header
+  alone is not a public-latency blocker.
+
+Still pending for Phase 8: waitlist production smoke, full browser/device launch matrix, localization add-on if accepted
+for pre-traffic scope, release/feedback/evidence checklist, data-correction/service-target evidence,
+import-provenance/source-archive evidence, external GitHub settings or sibling product-ideas updates if separately
+requested, any remaining endpoint cache-miss latency measurement not covered by the post-deploy smoke, and first traffic
+test. The tracked repository documentation and portfolio presentation pass is locally complete as of 2026-07-06. Do not
+mark the first traffic test complete until the required launch gates are completed or explicitly accepted and the traffic
+window actually runs.
 
 Acceptance criteria:
 
