@@ -11,9 +11,6 @@ Creates a timestamped backup containing:
   - checksum file and manifest.
 
 Environment variables:
-  COMPOSE                  Compose command. Default: podman-compose
-  COMPOSE_FILE             Compose file. Default: podman-compose.yml
-  BACKUP_DUMP_METHOD       Dump runner: podman or compose. Default: podman
   PODMAN                   Podman command. Default: podman
   POSTGRES_CONTAINER       Explicit TimescaleDB container id/name. Default: auto-detect
   BACKUP_DIR               Backup output directory. Default: ./backups
@@ -44,9 +41,6 @@ elif [[ -n "${1:-}" ]]; then
   exit 2
 fi
 
-COMPOSE="${COMPOSE:-podman-compose}"
-COMPOSE_FILE="${COMPOSE_FILE:-podman-compose.yml}"
-BACKUP_DUMP_METHOD="${BACKUP_DUMP_METHOD:-podman}"
 PODMAN="${PODMAN:-podman}"
 POSTGRES_CONTAINER="${POSTGRES_CONTAINER:-}"
 BACKUP_DIR="${BACKUP_DIR:-./backups}"
@@ -83,13 +77,6 @@ if ! [[ "${BACKUP_DUMP_CONNECT_TIMEOUT_SECONDS}" =~ ^[1-9][0-9]*$ ]]; then
   echo "BACKUP_DUMP_CONNECT_TIMEOUT_SECONDS must be a positive integer" >&2
   exit 2
 fi
-case "${BACKUP_DUMP_METHOD}" in
-  podman|compose) ;;
-  *)
-    echo "BACKUP_DUMP_METHOD must be podman or compose" >&2
-    exit 2
-    ;;
-esac
 
 case "${BACKUP_DIR}" in
   ""|"/"|".")
@@ -167,7 +154,7 @@ find_timescaledb_container() {
   printf '%s\n' "${container_id}"
 }
 
-create_postgres_dump_with_podman() {
+create_postgres_dump() {
   local container_id
   container_id="$(find_timescaledb_container)" || return $?
 
@@ -177,32 +164,10 @@ create_postgres_dump_with_podman() {
     _ "${BACKUP_DUMP_CONNECT_TIMEOUT_SECONDS}" "${BACKUP_DUMP_LOCK_WAIT_TIMEOUT}" "${POSTGRES_USER}" "${POSTGRES_DB}"
 }
 
-create_postgres_dump_with_compose() {
-  timeout_command "${BACKUP_DUMP_TIMEOUT_SECONDS}s" \
-    "${COMPOSE}" -f "${COMPOSE_FILE}" exec -T timescaledb \
-    sh -c 'PGCONNECT_TIMEOUT="$1" PGPASSWORD="${POSTGRES_PASSWORD:-}" exec pg_dump --no-password --lock-wait-timeout="$2" -Fc --no-owner --no-privileges -h 127.0.0.1 -U "$3" -d "$4"' \
-    _ "${BACKUP_DUMP_CONNECT_TIMEOUT_SECONDS}" "${BACKUP_DUMP_LOCK_WAIT_TIMEOUT}" "${POSTGRES_USER}" "${POSTGRES_DB}"
-}
-
-create_postgres_dump() {
-  case "${BACKUP_DUMP_METHOD}" in
-    podman)
-      create_postgres_dump_with_podman
-      ;;
-    compose)
-      create_postgres_dump_with_compose
-      ;;
-  esac
-}
-
 if [[ "${DRY_RUN}" == "true" ]]; then
   echo "Would create backup directory: ${TARGET_DIR}"
-  if [[ "${BACKUP_DUMP_METHOD}" == "podman" ]]; then
-    echo "Would create a custom-format dump of ${POSTGRES_DB} using ${PODMAN} exec against the running timescaledb container"
-    echo "Would fail container discovery after ${BACKUP_PODMAN_PS_TIMEOUT_SECONDS}s"
-  else
-    echo "Would create a custom-format dump of ${POSTGRES_DB} from service timescaledb using ${COMPOSE} -f ${COMPOSE_FILE}"
-  fi
+  echo "Would create a custom-format dump of ${POSTGRES_DB} using ${PODMAN} exec against the running timescaledb container"
+  echo "Would fail container discovery after ${BACKUP_PODMAN_PS_TIMEOUT_SECONDS}s"
   echo "Would fail the dump after ${BACKUP_DUMP_TIMEOUT_SECONDS}s, connect timeout ${BACKUP_DUMP_CONNECT_TIMEOUT_SECONDS}s, lock wait ${BACKUP_DUMP_LOCK_WAIT_TIMEOUT}"
   echo "Would copy ${CSV_SOURCE} to ${CSV_FILE}"
   echo "Would prune timestamped backups older than ${BACKUP_RETENTION_DAYS} days under ${BACKUP_DIR}"
@@ -235,11 +200,9 @@ cp "${CSV_SOURCE}" "${CSV_FILE}"
 
 {
   echo "created_at_utc=${TIMESTAMP}"
-  echo "backup_dump_method=${BACKUP_DUMP_METHOD}"
+  echo "backup_dump_method=podman"
   echo "podman=${PODMAN}"
   echo "postgres_container=${POSTGRES_CONTAINER:-auto}"
-  echo "compose=${COMPOSE}"
-  echo "compose_file=${COMPOSE_FILE}"
   echo "postgres_user=${POSTGRES_USER}"
   echo "postgres_db=${POSTGRES_DB}"
   echo "csv_source=${CSV_SOURCE}"

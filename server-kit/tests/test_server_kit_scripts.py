@@ -135,6 +135,13 @@ class ServerKitScriptTests(unittest.TestCase):
         self.assertIn('export XDG_RUNTIME_DIR="/run/user/${current_uid}"', script)
         self.assertIn('export DBUS_SESSION_BUS_ADDRESS="unix:path=${XDG_RUNTIME_DIR}/bus"', script)
 
+    def test_backup_script_has_no_compose_dump_fallback(self) -> None:
+        script = (REPO_ROOT / "scripts" / "backup.sh").read_text()
+
+        self.assertNotIn("BACKUP_DUMP_METHOD", script)
+        self.assertNotIn("create_postgres_dump_with_compose", script)
+        self.assertNotIn('"${COMPOSE}" -f "${COMPOSE_FILE}" exec -T timescaledb', script)
+
     def test_backup_dump_prefers_direct_podman_exec_with_bounded_waits(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             tmp_path = Path(tmp)

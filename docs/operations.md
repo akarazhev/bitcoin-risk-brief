@@ -427,7 +427,7 @@ The PostgreSQL dump runs non-interactively through direct `podman exec` against 
 backup does not depend on `podman-compose exec`. The main controls are `BACKUP_DUMP_TIMEOUT_SECONDS=300`,
 `BACKUP_PODMAN_PS_TIMEOUT_SECONDS=20`, `BACKUP_DUMP_CONNECT_TIMEOUT_SECONDS=10`, and
 `BACKUP_DUMP_LOCK_WAIT_TIMEOUT=30s`; increase the dump timeout only after checking Podman health, database locks, and
-disk pressure. Set `BACKUP_DUMP_METHOD=compose` only when you intentionally want the legacy compose-based dump path.
+disk pressure.
 
 Each backup directory contains:
 
