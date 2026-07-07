@@ -11,7 +11,14 @@ from pathlib import Path
 
 KIT_NAME = "bitcoin-risk-brief-server-kit"
 PROJECT_NAME = "bitcoin-risk-brief"
-COPIED_CATEGORIES = ("server-kit-readme", "server-scripts", "deployment-docs", "project-snapshot")
+COPIED_CATEGORIES = (
+    "server-kit-readme",
+    "server-entrypoints",
+    "server-scripts",
+    "deployment-docs",
+    "project-snapshot",
+)
+SERVER_ENTRYPOINTS = ("deploy-from-usb.sh",)
 DOCS_TO_COPY = (
     "docs/server-msi-cubi5-ubuntu-26.04.md",
     "docs/deploy-ubuntu-cloudflare.md",
@@ -119,6 +126,13 @@ def copy_server_readme(source_root: Path, kit_dir: Path) -> None:
     copy_file(source_root / "server-kit" / "README-RUN-ON-SERVER.md", kit_dir / "README-RUN-ON-SERVER.md")
 
 
+def copy_server_entrypoints(source_root: Path, kit_dir: Path) -> None:
+    for entrypoint in SERVER_ENTRYPOINTS:
+        destination = kit_dir / entrypoint
+        copy_file(source_root / "server-kit" / entrypoint, destination)
+        destination.chmod(destination.stat().st_mode | 0o755)
+
+
 def server_scripts_to_copy(source_root: Path) -> tuple[str, ...]:
     optional_scripts = tuple(
         script_name
@@ -176,6 +190,7 @@ def write_manifest(source_root: Path, kit_dir: Path, script_names: tuple[str, ..
         f"kit_path={kit_dir.resolve()}",
         f"project_snapshot=project/{PROJECT_NAME}",
         f"copied_categories={','.join(COPIED_CATEGORIES)}",
+        f"entrypoints={','.join(SERVER_ENTRYPOINTS)}",
         f"docs={','.join(DOCS_TO_COPY)}",
         f"scripts={','.join(scripts)}",
     )
@@ -214,6 +229,7 @@ def build_kit(target_dir: Path, source_root: Path) -> Path:
     kit_dir.mkdir(parents=True)
 
     copy_server_readme(source_root, kit_dir)
+    copy_server_entrypoints(source_root, kit_dir)
     copy_docs(source_root, kit_dir)
     copy_server_scripts(source_root, kit_dir, script_names)
     copy_project_snapshot(source_root, project_dir)

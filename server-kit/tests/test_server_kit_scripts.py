@@ -6,6 +6,31 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class ServerKitScriptTests(unittest.TestCase):
+    def test_deploy_from_usb_defaults_to_deploy_without_backup_gate(self) -> None:
+        script = (ROOT / "deploy-from-usb.sh").read_text()
+
+        deploy_index = script.index('bash "${script_dir}/scripts/03-deploy-bitcoin-risk-brief.sh"')
+        enable_index = script.index('bash "${script_dir}/scripts/04-enable-bitcoin-risk-service.sh"')
+        restart_index = script.index('restart "${SERVICE_NAME}.service"')
+        health_index = script.index('bash "${script_dir}/scripts/05-health-check.sh"')
+
+        self.assertIn("--with-backup", script)
+        self.assertIn("WITH_BACKUP=false", script)
+        self.assertNotIn("./scripts/backup.sh", script)
+        self.assertLess(deploy_index, enable_index)
+        self.assertLess(enable_index, restart_index)
+        self.assertLess(restart_index, health_index)
+
+    def test_deploy_from_usb_verifies_kit_checksums_before_default_deploy(self) -> None:
+        script = (ROOT / "deploy-from-usb.sh").read_text()
+
+        checksum_index = script.index("sha256sum -c SHA256SUMS")
+        deploy_index = script.index("03-deploy-bitcoin-risk-brief.sh")
+        backup_index = script.index("07-update-bitcoin-risk-brief-from-usb.sh")
+
+        self.assertLess(checksum_index, deploy_index)
+        self.assertLess(checksum_index, backup_index)
+
     def test_service_script_checks_project_directory_with_privileged_helper(self) -> None:
         script = (ROOT / "scripts" / "04-enable-bitcoin-risk-service.sh").read_text()
 

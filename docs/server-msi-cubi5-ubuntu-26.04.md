@@ -574,10 +574,10 @@ cd /path/to/bitcoin-risk-brief
 bash server-kit/prepare-usb-kit.sh /Volumes/USB
 ```
 
-The command creates `/Volumes/USB/bitcoin-risk-brief-server-kit` with deployment docs, ordered server scripts, a filtered
-`project/bitcoin-risk-brief/` snapshot, `manifest.txt`, and `SHA256SUMS`. It replaces only that kit directory when rerun.
-The kit must not contain local `.env`, `.git`, backups, dependency caches, build output, browser artifacts, container
-images, or an offline package mirror.
+The command creates `/Volumes/USB/bitcoin-risk-brief-server-kit` with deployment docs, a top-level
+`deploy-from-usb.sh` entrypoint, ordered server scripts, a filtered `project/bitcoin-risk-brief/` snapshot,
+`manifest.txt`, and `SHA256SUMS`. It replaces only that kit directory when rerun. The kit must not contain local `.env`,
+`.git`, backups, dependency caches, build output, browser artifacts, container images, or an offline package mirror.
 
 Connect the USB drive to the server and find the device:
 
@@ -604,23 +604,31 @@ bash scripts/04-enable-bitcoin-risk-service.sh
 bash scripts/05-health-check.sh
 ```
 
-For an existing deployment, run the backup-gated update wrapper:
+For an existing deployment, run the top-level deploy entrypoint:
 
 ```bash
 cd /mnt/deploy-usb/bitcoin-risk-brief-server-kit
-bash scripts/07-update-bitcoin-risk-brief-from-usb.sh
+bash deploy-from-usb.sh
 ```
 
 For the public readiness check after Cloudflare Tunnel is configured:
 
 ```bash
-PUBLIC_URL=https://bitcoinriskbrief.minihub.app bash scripts/07-update-bitcoin-risk-brief-from-usb.sh
+bash deploy-from-usb.sh https://bitcoinriskbrief.minihub.app
 ```
 
-The update wrapper requires the existing `/srv/projects/bitcoin-risk-brief/.env`, runs a backup before copying new code,
-verifies the backup, copies the verified backup to the USB default `backups-from-server/` or an operator-provided
-`BACKUP_COPY_DEST`, verifies the copied backup, deploys the project snapshot, restarts the service, and runs
-health/readiness checks. The existing production `.env` is preserved.
+The default path verifies `SHA256SUMS`, deploys the project snapshot, preserves the existing production `.env` and
+database volume, restarts the service, and runs health/readiness checks. It does not run `pg_dump`.
+
+For the stricter backup-gated path, run:
+
+```bash
+bash deploy-from-usb.sh --with-backup https://bitcoinriskbrief.minihub.app
+```
+
+That mode runs a backup before copying new code, verifies the backup, copies the verified backup to the USB default
+`backups-from-server/` or an operator-provided `BACKUP_COPY_DEST`, verifies the copied backup, then deploys and checks
+the service.
 
 Automatic live restore is not part of the kit. Restore only from a verified backup and only after taking the app offline
 or using a staging/empty restore target.

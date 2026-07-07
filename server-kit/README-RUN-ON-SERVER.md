@@ -17,6 +17,7 @@ directory, not the USB mount itself.
 The kit contains:
 
 - deployment docs;
+- `deploy-from-usb.sh` as the default one-command deploy entrypoint;
 - ordered server scripts;
 - a filtered `project/bitcoin-risk-brief/` snapshot;
 - `manifest.txt` with source revision and copied file categories;
@@ -28,13 +29,15 @@ images, or an offline package mirror.
 ## Contents
 
 - `docs/server-msi-cubi5-ubuntu-26.04.md` - full server setup guide.
+- `deploy-from-usb.sh` - default server entrypoint for checksum verification, deploy, restart, and health checks.
 - `project/bitcoin-risk-brief/` - project copy without `.env`, `.git`, container data, dependencies, build output, and backups.
 - `scripts/` - ordered scripts for finishing setup.
-- `manifest.txt` - package timestamp, source commit, source path, kit path, copied docs, copied scripts, and project snapshot path.
+- `manifest.txt` - package timestamp, source commit, source path, kit path, entrypoints, copied docs, copied scripts, and project snapshot path.
 - `SHA256SUMS` - checksums for every regular file in the kit.
 
 Expected script list:
 
+- `deploy-from-usb.sh`
 - `scripts/01-bootstrap-host.sh`
 - `scripts/02-install-cloudflared-from-usb.sh`
 - `scripts/03-deploy-bitcoin-risk-brief.sh`
@@ -110,26 +113,32 @@ ALLOW_DOWNLOAD=true bash scripts/02-install-cloudflared-from-usb.sh
 
 ## Update Existing Deployment
 
-Use the update wrapper instead of rerunning the raw deploy script:
+Use the top-level deploy script for the normal no-database-backup path:
 
 ```bash
 cd /mnt/deploy-usb/bitcoin-risk-brief-server-kit
-bash scripts/07-update-bitcoin-risk-brief-from-usb.sh
+bash deploy-from-usb.sh
 ```
 
 For a public readiness check after Cloudflare Tunnel is configured:
 
 ```bash
-PUBLIC_URL=https://bitcoinriskbrief.minihub.app bash scripts/07-update-bitcoin-risk-brief-from-usb.sh
+bash deploy-from-usb.sh https://bitcoinriskbrief.minihub.app
 ```
 
-The update wrapper requires an existing `/srv/projects/bitcoin-risk-brief/.env`, runs `./scripts/backup.sh` from the
-currently deployed project before copying new code, verifies the backup checksums, copies the verified backup to
-`BACKUP_COPY_DEST` or the USB kit default `backups-from-server/`, verifies that copied backup, deploys the USB project
-snapshot, recreates/restarts the user service, and runs local health/readiness plus optional public readiness checks.
+The default path verifies `SHA256SUMS`, deploys the USB project snapshot, preserves the existing production `.env` and
+database volume, recreates/restarts the user service, and runs local health/readiness plus optional public readiness
+checks. It does not run `pg_dump`.
 
-`03-deploy-bitcoin-risk-brief.sh` preserves the existing production `.env`; the update wrapper refuses to continue if
-that file is missing.
+For the stricter backup-gated path, run:
+
+```bash
+bash deploy-from-usb.sh --with-backup https://bitcoinriskbrief.minihub.app
+```
+
+That mode runs the existing backup wrapper before copying new code, verifies the backup checksums, copies the verified
+backup to `BACKUP_COPY_DEST` or the USB kit default `backups-from-server/`, verifies that copied backup, then deploys and
+checks the service.
 
 ## Diagnostics
 

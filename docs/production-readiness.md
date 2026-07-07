@@ -38,7 +38,7 @@ Deployment path decision status recorded on 2026-07-02:
   update path for the next update.
 - Production project directory: `/srv/projects/bitcoin-risk-brief`.
 - USB Update And Install Kit V2 is implemented locally, but production benefit remains pending until a real USB package
-  is prepared and the backup-gated update wrapper is run on the production host.
+  is prepared and the one-command USB deploy entrypoint is run on the production host.
 - Production `.env` location: `/srv/projects/bitcoin-risk-brief/.env`; filesystem owner still needs production-host
   confirmation.
 - Production `COINMARKETCAP_API_KEY`: empty. Data refresh should use the scheduled public-download-first collector path
@@ -57,8 +57,8 @@ Local implementation reconciliation recorded on 2026-07-06:
 - First-viewport model-price/OHLC polish is implemented locally: the latest risk payload/display can expose explicit
   `model_price_usd`, nullable `low_usd`, and nullable `high_usd` for the latest completed daily candle. Production
   visibility requires deployment and browser verification on the public hostname.
-- USB Update And Install Kit V2 is implemented locally, but a real USB package and backup-gated production-host update
-  remain pending.
+- USB Update And Install Kit V2 is implemented locally, but a real USB package and production-host USB deploy remain
+  pending.
 - Public launch remains blocked by production data freshness until public `/api/readiness` returns HTTP 200 again, and by
   the remaining operator-owned launch gates unless they are explicitly completed or accepted.
 
@@ -277,8 +277,9 @@ Task 10 launch snapshot recorded on 2026-07-05 at 11:37 UTC for `https://bitcoin
   Playwright desktop Chromium, mobile Chromium, and mobile WebKit profiles, but it visibly showed stale data and no
   physical-device/native branded browser pass is recorded.
 - Selected deployment path: USB-based local-server deployment under `/srv/projects/bitcoin-risk-brief`; USB Update And
-  Install Kit V2 exists locally, but a real USB package and backup-gated production-host update are still pending, and
-  the production `.env` owner still needs host confirmation.
+  Install Kit V2 exists locally with a default one-command deploy entrypoint and explicit backup-gated mode, but a real
+  USB package and production-host deploy are still pending, and the production `.env` owner still needs host
+  confirmation.
 - Selected data refresh path: scheduled public-download-first CoinMarketCap CSV refresh, with manual
   `download-cmc-csv` and `import-cmc-csv` fallbacks. The current public readiness result proves this path has not kept
   production fresh through the accepted freshness window and needs operator action before launch.
@@ -569,7 +570,8 @@ Still required before treating the pilot as publicly launched:
 
 - Confirm the production host runbook, `.env`, service path, and selected data-refresh workflow.
 - If the production host is updated through USB, prepare a real USB Update And Install Kit V2 package and run the
-  backup-gated update wrapper; do not treat local implementation as proof of production update completion.
+  one-command USB deploy entrypoint, using the explicit backup-gated mode when a fresh pre-update database dump is
+  required; do not treat local implementation as proof of production update completion.
 - Decide whether to accept the current Cloudflare Free-plan subset for first traffic or upgrade/configure additional WAF,
   bot protection, and broader API burst-rate-limit controls.
 - Configure scheduled `./scripts/backup.sh` runs and copy backups off the server.

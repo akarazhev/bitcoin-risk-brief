@@ -138,10 +138,10 @@ packaging docs:
 python3 -m unittest discover -s server-kit/tests -v
 ```
 
-Also run shell syntax checks for the workstation wrapper and update script:
+Also run shell syntax checks for the workstation wrapper, top-level deploy entrypoint, and update script:
 
 ```bash
-bash -n server-kit/prepare-usb-kit.sh server-kit/scripts/07-update-bitcoin-risk-brief-from-usb.sh
+bash -n server-kit/prepare-usb-kit.sh server-kit/deploy-from-usb.sh server-kit/scripts/07-update-bitcoin-risk-brief-from-usb.sh
 ```
 
 For packaging changes, run a local smoke package to a temporary directory and verify `manifest.txt`, `SHA256SUMS`, and no

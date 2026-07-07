@@ -70,7 +70,7 @@ production host has been updated.
 | Phase 3: CI And Quality Gates | Complete | `1b162a5`, `.github/workflows/ci.yml`, `docs/testing-and-quality.md` |
 | Phase 4: Frontend Production Quality | Complete | `22793fb`, `frontend/e2e/frontend-quality.spec.ts`, `frontend/src/Chart.tsx`, `docs/frontend-qa.md` |
 | Phase 5: Performance, Caching, And Abuse Protection | Complete in repository; production freshness and post-deploy warmup measurement still external | `3c66df9`, `5bb179d`, `cache-warmup-local-complete-2026-07-05`, `backend/app/public_cache.py`, `backend/app/main.py`, `scripts/cloudflare_edge_rules.py`, `backend/tests/test_cloudflare_edge_rules.py` |
-| Phase 6: Production Environment And Deployment | Blocked by stale production data; USB kit v2 implemented locally, production use pending | 2026-07-05 public `/api/health` returned 200, but `/api/readiness` returned HTTP 503 with `data_fresh: false`, `latest_date: 2026-06-30`, and `max_age_days: 2`; selected path is USB deployment under `/srv/projects/bitcoin-risk-brief`; local repository has `usb-kit-v2-local-complete-2026-07-05`, workstation packaging, and backup-gated USB update scripts |
+| Phase 6: Production Environment And Deployment | Blocked by stale production data; USB kit v2 implemented locally, production use pending | 2026-07-05 public `/api/health` returned 200, but `/api/readiness` returned HTTP 503 with `data_fresh: false`, `latest_date: 2026-06-30`, and `max_age_days: 2`; selected path is USB deployment under `/srv/projects/bitcoin-risk-brief`; local repository has workstation packaging, a one-command USB deploy entrypoint, and explicit backup-gated USB update mode |
 | Phase 7: Backups, Restore, And Monitoring | Blocked pending operator action | Real production backup, off-server copy, restore drill, monitoring dashboard/alert delivery, backup freshness alert, collector failure alert, and import provenance evidence are not recorded |
 | Phase 8: Launch Checklist And First Traffic Test | Blocked; snapshot captured, first traffic test not run | 2026-07-05 launch snapshot recorded health 200, latest-risk 200, readiness 503/degraded, waitlist smoke blocked, browser-capable QA passed with limitations, `price-model-ohlc-local-complete-2026-07-06` is local-only evidence, and first traffic remains pending |
 | Phase 9: Post-Launch Learning Loop | Pending | Starts after launch traffic creates usage evidence, including optional agent-access demand testing |
@@ -99,7 +99,8 @@ Remaining production-pilot gaps:
 
 - restore production data freshness so public `/api/readiness` returns HTTP 200 before launch or first traffic;
 - confirm the production host runbook, `.env`, service path, and data-refresh workflow are the documented source of truth;
-- prepare a real USB kit from the workstation and run the backup-gated update flow on the production host;
+- prepare a real USB kit from the workstation and run the one-command USB deploy flow on the production host, using the
+  explicit backup-gated mode when a fresh pre-update database dump is required;
 - verify on the production host that scheduled public CoinMarketCap refresh updates through the last completed UTC day
   without a `COINMARKETCAP_API_KEY`;
 - deploy and verify public payload cache warmup on the production host, then repeat cache-miss latency measurement; add

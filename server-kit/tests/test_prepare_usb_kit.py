@@ -57,6 +57,8 @@ class PrepareUsbKitTests(unittest.TestCase):
             "# design\n",
         )
         write_file(self.source / "server-kit" / "README-RUN-ON-SERVER.md", "# run\n")
+        write_file(self.source / "server-kit" / "deploy-from-usb.sh", "#!/usr/bin/env bash\necho deploy\n")
+        make_executable(self.source / "server-kit" / "deploy-from-usb.sh")
         for name in (
             "01-bootstrap-host.sh",
             "02-install-cloudflared-from-usb.sh",
@@ -170,6 +172,9 @@ class PrepareUsbKitTests(unittest.TestCase):
         kit = self.target / KIT_NAME
 
         self.assertTrue((kit / "README-RUN-ON-SERVER.md").is_file())
+        deploy_script = kit / "deploy-from-usb.sh"
+        self.assertTrue(deploy_script.is_file())
+        self.assertTrue(os.access(deploy_script, os.X_OK))
         self.assertTrue((kit / "docs" / "operations.md").is_file())
         self.assertTrue((kit / "docs" / "production-readiness.md").is_file())
         update_script = kit / "scripts" / "07-update-bitcoin-risk-brief-from-usb.sh"
@@ -180,12 +185,14 @@ class PrepareUsbKitTests(unittest.TestCase):
         self.assertIn(f"source_commit={self.commit}", manifest)
         self.assertIn(f"source_path={self.source.resolve()}", manifest)
         self.assertIn(f"kit_path={kit.resolve()}", manifest)
-        self.assertIn("copied_categories=server-kit-readme,server-scripts,deployment-docs,project-snapshot", manifest)
+        self.assertIn("copied_categories=server-kit-readme,server-entrypoints,server-scripts,deployment-docs,project-snapshot", manifest)
         self.assertIn("project_snapshot=project/bitcoin-risk-brief", manifest)
+        self.assertIn("entrypoints=deploy-from-usb.sh", manifest)
 
         checksums = (kit / "SHA256SUMS").read_text()
         self.assertIn("manifest.txt", checksums)
         self.assertIn("README-RUN-ON-SERVER.md", checksums)
+        self.assertIn("deploy-from-usb.sh", checksums)
         verify = subprocess.run(
             ["shasum", "-a", "256", "-c", "SHA256SUMS"],
             cwd=kit,
