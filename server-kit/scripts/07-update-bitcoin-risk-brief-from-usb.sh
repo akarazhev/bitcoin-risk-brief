@@ -146,7 +146,7 @@ verify_checksums_as_root "${backup_path}"
 
 log "Copying verified backup to ${BACKUP_COPY_DEST}"
 as_root mkdir -p "${BACKUP_COPY_DEST}"
-as_root rsync -a "${backup_path}" "${BACKUP_COPY_DEST}/"
+as_root rsync -a --no-owner --no-group --no-perms "${backup_path}" "${BACKUP_COPY_DEST}/"
 backup_copy_path="${BACKUP_COPY_DEST%/}/$(basename "${backup_path}")"
 
 log "Verifying copied backup checksums"

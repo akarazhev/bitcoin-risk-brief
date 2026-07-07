@@ -124,6 +124,11 @@ class ServerKitScriptTests(unittest.TestCase):
             script,
         )
 
+    def test_update_script_copies_backup_to_usb_without_posix_ownership(self) -> None:
+        script = (ROOT / "scripts" / "07-update-bitcoin-risk-brief-from-usb.sh").read_text()
+
+        self.assertIn("rsync -a --no-owner --no-group --no-perms", script)
+
     def test_backup_script_sets_rootless_podman_runtime_defaults(self) -> None:
         script = (REPO_ROOT / "scripts" / "backup.sh").read_text()
 
