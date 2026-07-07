@@ -75,7 +75,7 @@ class ServerKitScriptTests(unittest.TestCase):
     def test_update_script_requires_backup_before_deploy(self) -> None:
         script = (ROOT / "scripts" / "07-update-bitcoin-risk-brief-from-usb.sh").read_text()
 
-        backup_index = script.index("./scripts/backup.sh")
+        backup_index = script.index('"${PROJECT_SRC}/scripts/backup.sh"')
         deploy_index = script.index("03-deploy-bitcoin-risk-brief.sh")
         self.assertLess(backup_index, deploy_index)
         self.assertIn("Backup complete:", script)
@@ -107,7 +107,7 @@ class ServerKitScriptTests(unittest.TestCase):
         realpath_index = script.find('project_dest_real="$(as_root realpath "${PROJECT_DEST}")"')
         validation_index = script.find('case "${project_dest_real}" in')
         export_index = script.find('PROJECT_DEST="${project_dest_real}"')
-        backup_index = script.index("./scripts/backup.sh")
+        backup_index = script.index('"${PROJECT_SRC}/scripts/backup.sh"')
         self.assertNotEqual(realpath_index, -1)
         self.assertNotEqual(validation_index, -1)
         self.assertNotEqual(export_index, -1)
@@ -115,32 +115,54 @@ class ServerKitScriptTests(unittest.TestCase):
         self.assertLess(validation_index, export_index)
         self.assertLess(export_index, backup_index)
 
-    def test_backup_dump_runs_non_interactively_with_bounded_waits(self) -> None:
+    def test_update_script_runs_backup_from_usb_snapshot_with_deployed_project_cwd(self) -> None:
+        script = (ROOT / "scripts" / "07-update-bitcoin-risk-brief-from-usb.sh").read_text()
+
+        self.assertIn('if [[ ! -f "${PROJECT_SRC}/scripts/backup.sh" ]]; then', script)
+        self.assertIn(
+            'run_as_app bash -c \'cd "$1" && bash "$2"\' _ "${PROJECT_DEST}" "${PROJECT_SRC}/scripts/backup.sh"',
+            script,
+        )
+
+    def test_backup_script_sets_rootless_podman_runtime_defaults(self) -> None:
+        script = (REPO_ROOT / "scripts" / "backup.sh").read_text()
+
+        self.assertIn('export XDG_RUNTIME_DIR="/run/user/${current_uid}"', script)
+        self.assertIn('export DBUS_SESSION_BUS_ADDRESS="unix:path=${XDG_RUNTIME_DIR}/bus"', script)
+
+    def test_backup_dump_prefers_direct_podman_exec_with_bounded_waits(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             tmp_path = Path(tmp)
             csv_source = tmp_path / "btc_usd_daily.csv"
             csv_source.write_text("date,close\n2026-07-07,100000\n")
             backup_dir = tmp_path / "backups"
-            fake_compose = tmp_path / "podman-compose"
+            fake_podman = tmp_path / "podman"
             fake_timeout = tmp_path / "timeout"
-            compose_log = tmp_path / "compose-args.txt"
+            podman_log = tmp_path / "podman-args.txt"
             timeout_log = tmp_path / "timeout-args.txt"
 
-            fake_compose.write_text(
+            fake_podman.write_text(
                 "#!/usr/bin/env bash\n"
                 "set -euo pipefail\n"
-                "printf '%s\\n' \"$@\" > \"${FAKE_COMPOSE_LOG}\"\n"
-                "printf 'fake-postgres-dump\\n'\n"
+                "printf '%s\\n' \"$@\" >> \"${FAKE_PODMAN_LOG}\"\n"
+                "if [[ \"${1:-}\" == \"ps\" ]]; then\n"
+                "  printf 'abc123\\tbitcoin-risk-brief_timescaledb_1\\tdocker.io/timescale/timescaledb:2.17.2-pg16\\n'\n"
+                "elif [[ \"${1:-}\" == \"exec\" ]]; then\n"
+                "  printf 'fake-postgres-dump\\n'\n"
+                "else\n"
+                "  echo \"unexpected podman args: $*\" >&2\n"
+                "  exit 2\n"
+                "fi\n"
             )
             fake_timeout.write_text(
                 "#!/usr/bin/env bash\n"
                 "set -euo pipefail\n"
-                "printf '%s\\n' \"$@\" > \"${FAKE_TIMEOUT_LOG}\"\n"
+                "printf '%s\\n' \"$@\" >> \"${FAKE_TIMEOUT_LOG}\"\n"
                 "duration=\"$1\"\n"
                 "shift\n"
                 "exec \"$@\"\n"
             )
-            fake_compose.chmod(0o755)
+            fake_podman.chmod(0o755)
             fake_timeout.chmod(0o755)
 
             env = os.environ.copy()
@@ -150,9 +172,9 @@ class ServerKitScriptTests(unittest.TestCase):
                     "BACKUP_DUMP_CONNECT_TIMEOUT_SECONDS": "5",
                     "BACKUP_DUMP_LOCK_WAIT_TIMEOUT": "12s",
                     "BACKUP_DUMP_TIMEOUT_SECONDS": "7",
-                    "COMPOSE": str(fake_compose),
+                    "BACKUP_PODMAN_PS_TIMEOUT_SECONDS": "3",
                     "CSV_SOURCE": str(csv_source),
-                    "FAKE_COMPOSE_LOG": str(compose_log),
+                    "FAKE_PODMAN_LOG": str(podman_log),
                     "FAKE_TIMEOUT_LOG": str(timeout_log),
                     "PATH": f"{tmp_path}{os.pathsep}{env.get('PATH', '')}",
                 }
@@ -169,14 +191,21 @@ class ServerKitScriptTests(unittest.TestCase):
 
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertTrue(timeout_log.exists(), "backup.sh did not run the dump through timeout")
-            self.assertEqual(timeout_log.read_text().splitlines()[0], "7s")
-            compose_args = compose_log.read_text()
-            self.assertIn("exec\n-T\ntimescaledb\nsh\n-c\n", compose_args)
-            self.assertIn('PGCONNECT_TIMEOUT="$1"', compose_args)
-            self.assertIn('PGPASSWORD="${POSTGRES_PASSWORD:-}"', compose_args)
-            self.assertIn("pg_dump --no-password", compose_args)
-            self.assertIn('--lock-wait-timeout="$2"', compose_args)
-            self.assertIn("-h 127.0.0.1", compose_args)
+            timeout_lines = timeout_log.read_text().splitlines()
+            self.assertIn("3s", timeout_lines)
+            self.assertIn("7s", timeout_lines)
+            podman_args = podman_log.read_text()
+            self.assertIn("ps\n--format\n", podman_args)
+            self.assertIn("exec\nabc123\nsh\n-c\n", podman_args)
+            self.assertIn('PGCONNECT_TIMEOUT="$1"', podman_args)
+            self.assertIn('PGPASSWORD="${POSTGRES_PASSWORD:-}"', podman_args)
+            self.assertIn("pg_dump --no-password", podman_args)
+            self.assertIn('--lock-wait-timeout="$2"', podman_args)
+            self.assertIn("-h 127.0.0.1", podman_args)
+            backup_dirs = [path for path in backup_dir.iterdir() if path.is_dir()]
+            self.assertEqual(len(backup_dirs), 1)
+            manifest = (backup_dirs[0] / "manifest.txt").read_text()
+            self.assertIn("backup_dump_method=podman", manifest)
 
 
 if __name__ == "__main__":

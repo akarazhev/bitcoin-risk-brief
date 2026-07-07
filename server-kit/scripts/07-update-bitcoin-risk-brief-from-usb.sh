@@ -96,12 +96,16 @@ if [[ ! -f "${PROJECT_SRC}/podman-compose.yml" ]]; then
   echo "Project source does not look like bitcoin-risk-brief: ${PROJECT_SRC}" >&2
   exit 1
 fi
+if [[ ! -f "${PROJECT_SRC}/scripts/backup.sh" ]]; then
+  echo "Project source backup script not found: ${PROJECT_SRC}/scripts/backup.sh" >&2
+  exit 1
+fi
 
 timestamp="$(date -u +%Y%m%dT%H%M%SZ)"
 backup_log="/tmp/bitcoin-risk-update-backup-${timestamp}.log"
 
 log "Creating backup before deploying update"
-run_as_app bash -c 'cd "$1" && ./scripts/backup.sh' _ "${PROJECT_DEST}" | tee "${backup_log}"
+run_as_app bash -c 'cd "$1" && bash "$2"' _ "${PROJECT_DEST}" "${PROJECT_SRC}/scripts/backup.sh" | tee "${backup_log}"
 
 backup_path_from_log="$(awk '/^Backup complete:/ {print $3}' "${backup_log}" | tail -n 1)"
 if [[ -z "${backup_path_from_log}" ]]; then
