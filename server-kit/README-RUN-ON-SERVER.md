@@ -140,6 +140,11 @@ That mode runs the existing backup wrapper before copying new code, verifies the
 backup to `BACKUP_COPY_DEST` or the USB kit default `backups-from-server/`, verifies that copied backup, then deploys and
 checks the service.
 
+The PostgreSQL dump is non-interactive and bounded by `BACKUP_DUMP_TIMEOUT_SECONDS` from the command environment,
+defaulting to 300 seconds. If the backup step fails with a dump timeout, inspect `podman-compose ps/logs`, database
+locks, and disk pressure; for a legitimately slow host, rerun with a larger value, for example
+`BACKUP_DUMP_TIMEOUT_SECONDS=900 bash deploy-from-usb.sh --with-backup https://bitcoinriskbrief.minihub.app`.
+
 ## Diagnostics
 
 If `04-enable-bitcoin-risk-service.sh` or `05-health-check.sh` fails, collect a report:

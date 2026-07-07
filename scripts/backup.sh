@@ -15,6 +15,12 @@ Environment variables:
   COMPOSE_FILE             Compose file. Default: podman-compose.yml
   BACKUP_DIR               Backup output directory. Default: ./backups
   BACKUP_RETENTION_DAYS    Retention window for timestamped backup dirs. Default: 30
+  BACKUP_DUMP_TIMEOUT_SECONDS
+                           Hard timeout for pg_dump. Default: 300
+  BACKUP_DUMP_CONNECT_TIMEOUT_SECONDS
+                           PostgreSQL connection timeout for pg_dump. Default: 10
+  BACKUP_DUMP_LOCK_WAIT_TIMEOUT
+                           Maximum pg_dump table-lock wait. Default: 30s
   POSTGRES_USER            PostgreSQL user. Default: postgres
   POSTGRES_DB              PostgreSQL database. Default: bitcoin_risk_brief
   CSV_SOURCE               Canonical CSV path. Default: collector/btc-csv/btc_usd_daily.csv
@@ -37,12 +43,23 @@ COMPOSE="${COMPOSE:-podman-compose}"
 COMPOSE_FILE="${COMPOSE_FILE:-podman-compose.yml}"
 BACKUP_DIR="${BACKUP_DIR:-./backups}"
 BACKUP_RETENTION_DAYS="${BACKUP_RETENTION_DAYS:-30}"
+BACKUP_DUMP_TIMEOUT_SECONDS="${BACKUP_DUMP_TIMEOUT_SECONDS:-300}"
+BACKUP_DUMP_CONNECT_TIMEOUT_SECONDS="${BACKUP_DUMP_CONNECT_TIMEOUT_SECONDS:-10}"
+BACKUP_DUMP_LOCK_WAIT_TIMEOUT="${BACKUP_DUMP_LOCK_WAIT_TIMEOUT:-30s}"
 POSTGRES_USER="${POSTGRES_USER:-postgres}"
 POSTGRES_DB="${POSTGRES_DB:-bitcoin_risk_brief}"
 CSV_SOURCE="${CSV_SOURCE:-collector/btc-csv/btc_usd_daily.csv}"
 
 if ! [[ "${BACKUP_RETENTION_DAYS}" =~ ^[0-9]+$ ]]; then
   echo "BACKUP_RETENTION_DAYS must be a non-negative integer" >&2
+  exit 2
+fi
+if ! [[ "${BACKUP_DUMP_TIMEOUT_SECONDS}" =~ ^[1-9][0-9]*$ ]]; then
+  echo "BACKUP_DUMP_TIMEOUT_SECONDS must be a positive integer" >&2
+  exit 2
+fi
+if ! [[ "${BACKUP_DUMP_CONNECT_TIMEOUT_SECONDS}" =~ ^[1-9][0-9]*$ ]]; then
+  echo "BACKUP_DUMP_CONNECT_TIMEOUT_SECONDS must be a positive integer" >&2
   exit 2
 fi
 
@@ -76,9 +93,29 @@ checksum_command() {
   fi
 }
 
+timeout_command() {
+  if command -v timeout >/dev/null 2>&1; then
+    timeout "$@"
+  elif command -v gtimeout >/dev/null 2>&1; then
+    gtimeout "$@"
+  else
+    echo "Warning: timeout/gtimeout not found; PostgreSQL dump hard timeout is disabled" >&2
+    shift
+    "$@"
+  fi
+}
+
+create_postgres_dump() {
+  timeout_command "${BACKUP_DUMP_TIMEOUT_SECONDS}s" \
+    "${COMPOSE}" -f "${COMPOSE_FILE}" exec -T timescaledb \
+    sh -c 'PGCONNECT_TIMEOUT="$1" PGPASSWORD="${POSTGRES_PASSWORD:-}" exec pg_dump --no-password --lock-wait-timeout="$2" -Fc --no-owner --no-privileges -h 127.0.0.1 -U "$3" -d "$4"' \
+    _ "${BACKUP_DUMP_CONNECT_TIMEOUT_SECONDS}" "${BACKUP_DUMP_LOCK_WAIT_TIMEOUT}" "${POSTGRES_USER}" "${POSTGRES_DB}"
+}
+
 if [[ "${DRY_RUN}" == "true" ]]; then
   echo "Would create backup directory: ${TARGET_DIR}"
   echo "Would create a custom-format dump of ${POSTGRES_DB} from service timescaledb using ${COMPOSE} -f ${COMPOSE_FILE}"
+  echo "Would fail the dump after ${BACKUP_DUMP_TIMEOUT_SECONDS}s, connect timeout ${BACKUP_DUMP_CONNECT_TIMEOUT_SECONDS}s, lock wait ${BACKUP_DUMP_LOCK_WAIT_TIMEOUT}"
   echo "Would copy ${CSV_SOURCE} to ${CSV_FILE}"
   echo "Would prune timestamped backups older than ${BACKUP_RETENTION_DAYS} days under ${BACKUP_DIR}"
   exit 0
@@ -89,7 +126,21 @@ mkdir -p "${TARGET_DIR}"
 chmod 700 "${BACKUP_DIR}" "${TARGET_DIR}" 2>/dev/null || true
 
 echo "Creating PostgreSQL custom-format dump: ${DUMP_FILE}"
-${COMPOSE} -f "${COMPOSE_FILE}" exec -T timescaledb pg_dump -Fc --no-owner --no-privileges -U "${POSTGRES_USER}" -d "${POSTGRES_DB}" > "${DUMP_FILE}"
+set +e
+create_postgres_dump > "${DUMP_FILE}"
+dump_status=$?
+set -e
+if [[ "${dump_status}" -ne 0 ]]; then
+  rm -f "${DUMP_FILE}"
+  if [[ "${dump_status}" -eq 124 ]]; then
+    echo "PostgreSQL dump timed out after ${BACKUP_DUMP_TIMEOUT_SECONDS}s." >&2
+    echo "Check podman-compose ps/logs, database locks, and disk pressure, then retry or increase BACKUP_DUMP_TIMEOUT_SECONDS." >&2
+  else
+    echo "PostgreSQL dump failed with exit code ${dump_status}." >&2
+    echo "The dump runs non-interactively with --no-password; verify the timescaledb container has POSTGRES_PASSWORD and is healthy." >&2
+  fi
+  exit "${dump_status}"
+fi
 
 echo "Copying canonical CSV: ${CSV_FILE}"
 cp "${CSV_SOURCE}" "${CSV_FILE}"

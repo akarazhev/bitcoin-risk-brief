@@ -423,6 +423,11 @@ Production defaults can be controlled from the environment:
 BACKUP_DIR=./backups BACKUP_RETENTION_DAYS=30 ./scripts/backup.sh
 ```
 
+The PostgreSQL dump runs non-interactively and fails instead of waiting forever for a password prompt, a stuck container
+exec, or a long table-lock wait. The main controls are `BACKUP_DUMP_TIMEOUT_SECONDS=300`,
+`BACKUP_DUMP_CONNECT_TIMEOUT_SECONDS=10`, and `BACKUP_DUMP_LOCK_WAIT_TIMEOUT=30s`; increase the first value only after
+checking `podman-compose ps/logs`, database locks, and disk pressure.
+
 Each backup directory contains:
 
 - compressed PostgreSQL custom-format `pg_dump` output;

@@ -1,8 +1,12 @@
+import os
 from pathlib import Path
+import subprocess
+import tempfile
 import unittest
 
 
 ROOT = Path(__file__).resolve().parents[1]
+REPO_ROOT = ROOT.parent
 
 
 class ServerKitScriptTests(unittest.TestCase):
@@ -110,6 +114,69 @@ class ServerKitScriptTests(unittest.TestCase):
         self.assertLess(realpath_index, validation_index)
         self.assertLess(validation_index, export_index)
         self.assertLess(export_index, backup_index)
+
+    def test_backup_dump_runs_non_interactively_with_bounded_waits(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            csv_source = tmp_path / "btc_usd_daily.csv"
+            csv_source.write_text("date,close\n2026-07-07,100000\n")
+            backup_dir = tmp_path / "backups"
+            fake_compose = tmp_path / "podman-compose"
+            fake_timeout = tmp_path / "timeout"
+            compose_log = tmp_path / "compose-args.txt"
+            timeout_log = tmp_path / "timeout-args.txt"
+
+            fake_compose.write_text(
+                "#!/usr/bin/env bash\n"
+                "set -euo pipefail\n"
+                "printf '%s\\n' \"$@\" > \"${FAKE_COMPOSE_LOG}\"\n"
+                "printf 'fake-postgres-dump\\n'\n"
+            )
+            fake_timeout.write_text(
+                "#!/usr/bin/env bash\n"
+                "set -euo pipefail\n"
+                "printf '%s\\n' \"$@\" > \"${FAKE_TIMEOUT_LOG}\"\n"
+                "duration=\"$1\"\n"
+                "shift\n"
+                "exec \"$@\"\n"
+            )
+            fake_compose.chmod(0o755)
+            fake_timeout.chmod(0o755)
+
+            env = os.environ.copy()
+            env.update(
+                {
+                    "BACKUP_DIR": str(backup_dir),
+                    "BACKUP_DUMP_CONNECT_TIMEOUT_SECONDS": "5",
+                    "BACKUP_DUMP_LOCK_WAIT_TIMEOUT": "12s",
+                    "BACKUP_DUMP_TIMEOUT_SECONDS": "7",
+                    "COMPOSE": str(fake_compose),
+                    "CSV_SOURCE": str(csv_source),
+                    "FAKE_COMPOSE_LOG": str(compose_log),
+                    "FAKE_TIMEOUT_LOG": str(timeout_log),
+                    "PATH": f"{tmp_path}{os.pathsep}{env.get('PATH', '')}",
+                }
+            )
+
+            result = subprocess.run(
+                ["bash", str(REPO_ROOT / "scripts" / "backup.sh")],
+                cwd=REPO_ROOT,
+                env=env,
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertTrue(timeout_log.exists(), "backup.sh did not run the dump through timeout")
+            self.assertEqual(timeout_log.read_text().splitlines()[0], "7s")
+            compose_args = compose_log.read_text()
+            self.assertIn("exec\n-T\ntimescaledb\nsh\n-c\n", compose_args)
+            self.assertIn('PGCONNECT_TIMEOUT="$1"', compose_args)
+            self.assertIn('PGPASSWORD="${POSTGRES_PASSWORD:-}"', compose_args)
+            self.assertIn("pg_dump --no-password", compose_args)
+            self.assertIn('--lock-wait-timeout="$2"', compose_args)
+            self.assertIn("-h 127.0.0.1", compose_args)
 
 
 if __name__ == "__main__":
