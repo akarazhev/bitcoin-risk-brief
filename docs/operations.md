@@ -495,7 +495,9 @@ copied backup, then deploys and checks the service.
 
 ## Restore Notes
 
-Restore only into a staging copy or an intentionally empty production database:
+Restore only into a staging copy or an intentionally empty restore target that is not serving live production traffic.
+On the current single-server production setup, defer restore drills until a separate target exists; do not run a restore
+drill against the live production database:
 
 ```bash
 podman-compose -f podman-compose.yml exec -T timescaledb pg_restore --clean --if-exists --no-owner --no-privileges -U postgres -d bitcoin_risk_brief < backups/<timestamp>/postgres_<timestamp>.dump

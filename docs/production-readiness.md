@@ -173,6 +173,39 @@ curl -fsS http://127.0.0.1:3001/api/readiness
   result, off-server copy confirmation, restore target type, and readiness result. Do not record `.env` values,
   secrets, waitlist contacts, raw dump or CSV contents, or private off-server paths.
 
+Monitoring, alerts, and single-server restore evidence pass recorded on 2026-07-08:
+
+- Production topology constraint: there is currently one server, and that server is production. No staging project,
+  intentionally empty restore target, or separate restore host is available or planned for this pass.
+- Restore drill status: accepted limitation/deferred until a separate restore target exists. A live production database
+  restore drill is prohibited and was not attempted.
+- This pass was read-only against public endpoints and repository documentation. No deploy, refresh/import, warmup,
+  commit, push, or tag was performed.
+- Public endpoint checks from this session at 2026-07-08 08:08 UTC:
+  - `GET https://bitcoinriskbrief.minihub.app/api/health` returned HTTP 200 with `{"status":"ok"}`.
+  - `GET https://bitcoinriskbrief.minihub.app/api/readiness` returned HTTP 200 with `status: ready`,
+    `data_fresh: true`, `latest_date: 2026-07-07`, `covered_end: 2026-07-07`, `data_age_days: 1`,
+    `max_age_days: 2`, `row_count: 5839`, and methodology `crypto-scout-canonical-v1`.
+  - `GET https://bitcoinriskbrief.minihub.app/api/risk/latest` returned HTTP 200 for timestamp
+    `2026-07-07T00:00:00+00:00` with `risk_state: low`, risk approximately `0.2648`, and
+    `model_price_usd: 63392.986942233336`.
+- Monitoring evidence status: partially verified. Public health/readiness/risk endpoints are reachable and current
+  public readiness is healthy, and one checksum-verified off-server USB backup copy is recorded for 2026-07-07. This
+  session has no production host, external monitoring provider, Cloudflare dashboard, or alert delivery access, so
+  provider/dashboard evidence and delivery evidence remain blocked pending operator setup or handoff.
+
+| Evidence area | 2026-07-08 status | Exact remaining operator action |
+| --- | --- | --- |
+| External uptime/readiness monitor dashboard/evidence | Blocked pending operator setup/evidence. Public endpoints are reachable, but no monitor provider/dashboard proof was available in this session. | Configure or show HTTP monitors for `/api/health` and `/api/readiness`; record provider/dashboard name, sanitized check names, latest check time, and expected status rules without account details. |
+| Stale-data alert or readiness HTTP 503 alert | Blocked pending operator setup/evidence. No alert rule or delivery proof was available. | Alert when `/api/readiness` returns non-200, when `status` is not `ready`, or after the nightly collector window plus grace period when `latest_date`/`covered_end` is older than the last completed UTC day or `data_age_days` exceeds `DATA_FRESHNESS_MAX_AGE_DAYS`. |
+| Collector failure/container log alert | Blocked pending operator setup/evidence. Code and runbooks name the relevant log events, but no production log alert evidence was available. | Configure alerts for `scheduled_refresh_failed`, `public_cmc_download_failed`, API fallback failure, and repeated `data-collector` restarts; record the alert source and latest passing scheduled run. |
+| Backup freshness/off-server copy monitor | Partially verified. One checksum-verified USB off-server backup copy is recorded for timestamp `20260707T111928Z`, but no recurring backup freshness monitor or alert evidence was available. | Schedule backups and off-server copies, alert when no checksum-verified backup plus off-server copy exists inside the chosen freshness window, and record sanitized evidence from the production host. |
+| Cloudflare Tunnel connector health notification | Blocked pending operator setup/evidence. Public endpoints prove the tunnel path is currently serving, but no Cloudflare connector health notification evidence was available. | In Cloudflare Zero Trust, enable or document tunnel connector health notifications for the connector serving `bitcoinriskbrief.minihub.app`; record whether production uses host-service `cloudflared` or compose-managed `cloudflared`. |
+| Alert delivery channel | Blocked pending operator setup/evidence. No email, chat, pager, or other delivery-channel proof was available. | Choose the pilot alert channel, send a test alert from the monitoring provider, and record the channel type, test time, and success result without addresses, handles, tokens, or private contacts. |
+
+- Until the blocked items above have operator evidence, monitoring/alerts are not configured for launch evidence
+  purposes. Broader traffic remains limited to an operator-watched pilot using the first-response runbook.
+
 Monitoring and first-response status recorded on 2026-07-05:
 
 - Overall monitoring status: blocked/accepted limitation for first traffic. The first-response runbook is documented in
