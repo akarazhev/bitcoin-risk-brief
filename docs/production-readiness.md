@@ -284,6 +284,22 @@ Production waitlist smoke status recorded on 2026-07-08:
 - Contact value is intentionally omitted from this document, and no raw contact or other PII is recorded in the evidence
   note.
 
+Production waitlist Cloudflare 403 diagnostic recorded on 2026-07-08:
+
+- Scope/safety: root-cause diagnostic only. No real contact was used, and both diagnostic requests used only the invalid
+  non-PII payload `contact: "not-a-contact"`, locale `en`, and source label `ops-diag-20260708091951`.
+- Default curl User-Agent result: `POST https://bitcoinriskbrief.minihub.app/api/waitlist` returned HTTP 403 with
+  `Content-Type: text/html; charset=UTF-8` and `cf-mitigated: challenge`. The response was a Cloudflare challenge
+  artifact and did not include origin `Cache-Control: no-store` or `Pragma: no-cache` headers.
+- Browser-like User-Agent result: the same invalid payload with a `Mozilla/` User-Agent returned HTTP 422 JSON from the
+  origin with `Cache-Control: no-store`, `Pragma: no-cache`, and `cf-cache-status: DYNAMIC`.
+- Cloudflare dashboard/API evidence: unavailable from this workstation because Cloudflare API credentials were not
+  present; no Security Events details were recorded.
+- Root-cause conclusion: the previous waitlist smoke method was blocked by the repo-managed waitlist bot challenge
+  because the default curl User-Agent is non-browser-like and lacks `Mozilla/`.
+- Waitlist success smoke remains pending until an operator-approved valid contact submission reaches origin and the
+  aggregate `waitlist_leads` storage check by source/contact type/locale passes.
+
 Production waitlist smoke status recorded on 2026-07-05:
 
 - Public endpoint for the smoke: `POST https://bitcoinriskbrief.minihub.app/api/waitlist`.

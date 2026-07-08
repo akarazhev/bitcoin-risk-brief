@@ -739,12 +739,16 @@ curl -fsS http://127.0.0.1:3001/api/readiness
   events for `POST /api/waitlist`, and `waitlist_leads` aggregate counts without copying contact values.
 - Check:
 
+Use a real browser for the user-path smoke when possible. If using curl through Cloudflare, include a browser-like
+User-Agent; default curl is expected to match the repo-managed waitlist bot challenge and can return Cloudflare 403.
+
 ```bash
 PUBLIC_BASE_URL=https://bitcoinriskbrief.minihub.app
 WAITLIST_TEST_CONTACT="<operator-controlled-test-contact>"
 SMOKE_SOURCE="ops-smoke-$(date -u +%Y%m%d%H%M%S)"
 curl -sD - -o /tmp/bitcoin-risk-waitlist.json \
   -H 'Content-Type: application/json' \
+  -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36' \
   -X POST "${PUBLIC_BASE_URL}/api/waitlist" \
   --data "{\"contact\":\"${WAITLIST_TEST_CONTACT}\",\"locale\":\"en\",\"source\":\"${SMOKE_SOURCE}\"}"
 podman-compose -f podman-compose.yml logs --tail=200 backend
