@@ -742,12 +742,13 @@ curl -fsS http://127.0.0.1:3001/api/readiness
 ```bash
 PUBLIC_BASE_URL=https://bitcoinriskbrief.minihub.app
 WAITLIST_TEST_CONTACT="<operator-controlled-test-contact>"
+SMOKE_SOURCE="ops-smoke-$(date -u +%Y%m%d%H%M%S)"
 curl -sD - -o /tmp/bitcoin-risk-waitlist.json \
   -H 'Content-Type: application/json' \
   -X POST "${PUBLIC_BASE_URL}/api/waitlist" \
-  --data "{\"contact\":\"${WAITLIST_TEST_CONTACT}\",\"locale\":\"en\",\"source\":\"ops_smoke\"}"
+  --data "{\"contact\":\"${WAITLIST_TEST_CONTACT}\",\"locale\":\"en\",\"source\":\"${SMOKE_SOURCE}\"}"
 podman-compose -f podman-compose.yml logs --tail=200 backend
-podman-compose -f podman-compose.yml exec timescaledb psql -U postgres -d bitcoin_risk_brief -t -A -c "SELECT count(*), max(created_at) FROM waitlist_leads WHERE source='ops_smoke';"
+podman-compose -f podman-compose.yml exec timescaledb psql -U postgres -d bitcoin_risk_brief -t -A -c "SELECT count(*), max(created_at) FROM waitlist_leads WHERE source='${SMOKE_SOURCE}' AND contact_type='email' AND locale='en';"
 ```
 
 Also check Cloudflare dashboard: Security Events filtered to hostname `bitcoinriskbrief.minihub.app` and path

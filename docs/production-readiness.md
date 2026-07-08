@@ -267,6 +267,23 @@ curl -sD - -o /tmp/bitcoin-risk-latest-public.json "${PUBLIC_BASE_URL}/api/risk/
   known-good restore or re-import, risk/brief recomputation, origin and edge cache verification, correction notes, and
   internal freshness/RPO/RTO/downtime boundaries. These are internal pilot targets, not public SLA commitments.
 
+Production waitlist smoke status recorded on 2026-07-08:
+
+- Public endpoint tested: `POST https://bitcoinriskbrief.minihub.app/api/waitlist`.
+- Source label used: `ops-smoke-20260708085956`.
+- HTTP saved/upsert status: failed. The single authorized production smoke request reached Cloudflare and returned
+  HTTP 403, so the API did not return the expected 201 saved/upsert response.
+- Cache header result: failed for this Cloudflare 403 artifact. The response did not include `Cache-Control: no-store`
+  or `Pragma: no-cache`; the origin waitlist no-store contract remains unchanged and still needs verification after a
+  successful or duplicate/upsert response.
+- Response shape result: failed. The saved response artifact was HTML from Cloudflare rather than the expected JSON
+  envelope with `data.contact_type`, `data.locale`, and `data.created`.
+- Server-side storage verification: blocked from this workstation. `/srv/projects/bitcoin-risk-brief` is not present and
+  no safe production database access was available, so the aggregate `waitlist_leads` query by source/contact type/locale
+  was not run.
+- Contact value is intentionally omitted from this document, and no raw contact or other PII is recorded in the evidence
+  note.
+
 Production waitlist smoke status recorded on 2026-07-05:
 
 - Public endpoint for the smoke: `POST https://bitcoinriskbrief.minihub.app/api/waitlist`.
@@ -669,7 +686,9 @@ Still required before treating the pilot as publicly launched:
   collector logs containing scheduled/public/API refresh failures.
 - Complete any browser/device launch-matrix coverage not represented by the 2026-07-07 Playwright desktop/mobile smoke,
   including physical-device/native branded browser evidence if required for the launch gate.
-- Submit a deliberate test waitlist lead and verify it is stored server-side without caching the response.
+- Adjust the Cloudflare/waitlist rule or allowlist a controlled smoke path, then retry the deliberate waitlist smoke and
+  verify a successful or duplicate/upsert response with no-store headers.
+- After a successful waitlist POST, verify the server-side `waitlist_leads` aggregate by source/contact type/locale.
 - Complete or explicitly defer the launch operations and governance checklist: privacy/terms, post-waitlist handling,
   credential ownership, resource monitoring, dependency/security maintenance, data-source terms, accessibility,
   SEO/social metadata, and incident response.
