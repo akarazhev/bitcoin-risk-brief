@@ -72,8 +72,8 @@ status depends on the recorded operator/public-host evidence.
 | Phase 4: Frontend Production Quality | Complete | `22793fb`, `frontend/e2e/frontend-quality.spec.ts`, `frontend/src/Chart.tsx`, `docs/frontend-qa.md` |
 | Phase 5: Performance, Caching, And Abuse Protection | Complete in repository; post-deploy Cloudflare HIT/fast repeat behavior verified for public smoke | `3c66df9`, `5bb179d`, `cache-warmup-local-complete-2026-07-05`, 2026-07-07 repeated public cache requests about `0.14s` to `0.22s` with Cloudflare `cf-cache-status: HIT`, `backend/app/public_cache.py`, `backend/app/main.py`, `scripts/cloudflare_edge_rules.py`, `backend/tests/test_cloudflare_edge_rules.py` |
 | Phase 6: Production Environment And Deployment | Verified for USB deploy and public freshness; closed as stale-data blocker | 2026-07-07 USB deploy verification passed; public `/api/readiness` returned HTTP 200 with `data_fresh: true`, `latest_date: 2026-07-06`, `covered_end: 2026-07-06`, and `data_age_days: 1`; selected path is USB deployment under `/srv/projects/bitcoin-risk-brief` |
-| Phase 7: Backups, Restore, And Monitoring | Partially verified; blocked by remaining operator action | One checksum-verified off-server USB backup copy is recorded for 2026-07-07, and public health/readiness endpoints were healthy on 2026-07-08. Restore drill remains deferred because the current setup has only the live production server and no separate restore target; external monitor dashboard/alert delivery, backup freshness alert, collector failure alert, Cloudflare Tunnel health alert, and import provenance evidence are not recorded. |
-| Phase 8: Launch Checklist And First Traffic Test | Blocked by remaining operator evidence gates; freshness blocker closed, first traffic test not run | 2026-07-07 post-deploy snapshot recorded readiness 200/fresh, latest-risk 200, public desktop/mobile Playwright smoke passed, model-price/OHLC display verified, fast repeated Cloudflare HIT behavior after warmup, and one off-server backup copy; 2026-07-08 public checks again returned health/readiness/latest-risk 200. Waitlist smoke, restore drill, monitoring/alert evidence, backup freshness monitoring, import provenance, broader launch-matrix/accessibility/governance evidence, and first traffic remain pending. |
+| Phase 7: Backups, Restore, And Monitoring | Partially verified; blocked by remaining operator action | One checksum-verified off-server USB backup copy is recorded for 2026-07-07, public health/readiness endpoints were healthy on 2026-07-08, and the 2026-07-09 import provenance pass partially verified public data/readiness/cache alignment. Restore drill remains deferred because the current setup has only the live production server and no separate restore target; external monitor dashboard/alert delivery, backup freshness alert, collector failure alert, Cloudflare Tunnel health alert, direct production validation/import metadata, and exact import source path/category remain pending. |
+| Phase 8: Launch Checklist And First Traffic Test | Blocked by remaining operator evidence gates; freshness blocker closed, first traffic test not run | 2026-07-07 post-deploy snapshot recorded readiness 200/fresh, latest-risk 200, public desktop/mobile Playwright smoke passed, model-price/OHLC display verified, fast repeated Cloudflare HIT behavior after warmup, and one off-server backup copy; 2026-07-08 public checks again returned health/readiness/latest-risk 200, and browser-like waitlist smoke closed. The 2026-07-09 import provenance pass verified public data/cache consistency but left exact source-path proof pending. Restore drill, monitoring/alert evidence, backup freshness monitoring, direct import source/archive proof, broader launch-matrix/accessibility/governance evidence, and first traffic remain pending. |
 | Phase 9: Post-Launch Learning Loop | Pending | Starts after launch traffic creates usage evidence, including optional agent-access demand testing |
 | Phase 10: Risk Methodology Research | Pending | Starts only after launch evidence justifies method work; current production metric remains `crypto-scout-canonical-v1` |
 | Phase 11: Distribution Channel Research | Pending | Evaluates PWA, Telegram Mini App, browser extension, and other channel packaging after launch evidence |
@@ -113,12 +113,12 @@ Remaining production-pilot gaps:
   still need to be configured and verified; one off-server USB backup copy was verified on 2026-07-07;
 - privacy/terms posture, post-waitlist handling, dependency/security maintenance, resource monitoring, credential
   ownership, accessibility, metadata, data-source terms, and incident response need a launch completeness pass;
-- waitlist test, full browser/device launch matrix, remaining cache-miss latency measurement, and first traffic test still
-  need to run; the stale-data blocker is closed, but broader launch gates remain;
+- full browser/device launch matrix, remaining cache-miss latency measurement, and first traffic test still need to run;
+  the stale-data blocker and browser-like waitlist smoke are closed, but broader launch gates remain;
 - tracked repository documentation and portfolio presentation work is locally complete as of 2026-07-06, but this does
-  not close restore drill, backup freshness monitoring, monitoring alerts, waitlist, import provenance,
+  not close restore drill, backup freshness monitoring, monitoring alerts, direct import source/archive proof,
   browser/device/accessibility, GitHub settings, or sibling product-ideas evidence;
-- post-launch learning cannot start until real usage and waitlist evidence exist.
+- post-launch learning cannot start until real usage evidence exists.
 
 ## Roadmap Phases
 
@@ -357,9 +357,11 @@ Acceptance criteria:
 Status: Blocked by remaining operator evidence gates; freshness blocker closed and first traffic test not run. The
 2026-07-07 post-deploy snapshot recorded public readiness 200/fresh, latest-risk 200, desktop/mobile Playwright public
 smoke passed, first-viewport model-price/OHLC display verified, mobile overflow passed, and repeated public cache
-requests after warmup were fast through Cloudflare HIT. Waitlist smoke remains blocked/not collected, backup/restore,
-monitoring, import provenance, broader browser/device/accessibility/governance evidence remain incomplete, and first
-traffic must remain pending until those gates are completed or explicitly accepted.
+requests after warmup were fast through Cloudflare HIT. The 2026-07-08 browser-like waitlist smoke is closed. The
+2026-07-09 import provenance pass verified public data/cache consistency but did not prove the exact import source
+path/category or direct production validation/import table metadata; backup/restore, monitoring, broader
+browser/device/accessibility/governance evidence remain incomplete, and first traffic must remain pending until those
+gates are completed or explicitly accepted.
 
 Goal: launch deliberately and measure product demand.
 
@@ -430,9 +432,9 @@ Post-deploy snapshot recorded on 2026-07-07:
   `age` around `33` to `35`. App-level `X-Cache` may still show `MISS` from a cached origin response, so that header
   alone is not a public-latency blocker.
 
-Still pending for Phase 8: waitlist production smoke, full browser/device launch matrix, localization add-on if accepted
-for pre-traffic scope, release/feedback/evidence checklist, data-correction/service-target evidence,
-import-provenance/source-archive evidence, external GitHub settings or sibling product-ideas updates if separately
+Still pending for Phase 8: full browser/device launch matrix, localization add-on if accepted for pre-traffic scope,
+release/feedback/evidence checklist, data-correction/service-target evidence, direct import-provenance source archive and
+production validation/import metadata proof, external GitHub settings or sibling product-ideas updates if separately
 requested, any remaining endpoint cache-miss latency measurement not covered by the post-deploy smoke, and first traffic
 test. The tracked repository documentation and portfolio presentation pass is locally complete as of 2026-07-06. Do not
 mark the first traffic test complete until the required launch gates are completed or explicitly accepted and the traffic

@@ -227,6 +227,56 @@ Monitoring and first-response status recorded on 2026-07-05:
   promotion when any required monitor is missing and no operator is actively watching the matching command/dashboard from
   the first-response runbook.
 
+Production import provenance evidence pass recorded on 2026-07-09 from 16:19 to 16:20 UTC for
+`https://bitcoinriskbrief.minihub.app`:
+
+- Scope/safety: docs and evidence pass only. No deploy, refresh/import, cache warmup, commit, push, or tag was performed.
+  This note intentionally records only redacted operational metadata and does not include raw CSV contents, `.env`
+  values, API keys, Cloudflare tokens, waitlist contacts, browser profiles, private account exports, credentials, or
+  other PII.
+- Local repository state before the docs edit: `git status --short --branch` returned `## main...origin/main`, and
+  `git log --oneline --decorate -5` showed local `HEAD` at `d997f8b`.
+- Production project/source evidence: `/srv/projects/bitcoin-risk-brief` is absent in this workstation session, no
+  production SSH target is documented here, and no mounted USB kit manifest was found under `/Volumes`. A live
+  production `.git` check and a current USB/deploy manifest check were therefore not available in this pass. Temporary
+  local USB-kit smoke manifests under the workstation temp directory were not treated as production deploy evidence. The
+  earlier 2026-07-07 USB deploy note remains the last recorded deploy-source evidence, but it was not revalidated here.
+- Public readiness: `GET /api/readiness` returned HTTP 200 with `status: ready`, `data_fresh: true`,
+  `latest_date: 2026-07-08`, `covered_end: 2026-07-08`, `data_age_days: 1`, `max_age_days: 2`,
+  `source: coinmarketcap_csv`, `row_count: 5840`, and methodology `crypto-scout-canonical-v1`.
+- Latest risk: `GET /api/risk/latest` returned HTTP 200 for timestamp `2026-07-08T00:00:00+00:00` with
+  `risk_state: low`, risk approximately `0.2536`, `model_price_usd: 62485.70392776667`, `low_usd: 61492.6501591`, and
+  `high_usd: 63706.8859194`. The latest risk date matches readiness `covered_end`.
+- Validation/import metadata summary: direct production `psql` metadata queries were not available because this session
+  has no production host/project access. Public readiness and cache-version metadata consistently expose validation
+  marker `validation:2026-07-09T01:00:06.303623+00:00:2026-07-08T00:00:00+00:00:5840:true`, which corresponds to
+  computed validation time `2026-07-09T01:00:06.303623+00:00`, validation `covered_end`
+  `2026-07-08T00:00:00+00:00`, row count `5840`, and `risk_range_ok: true`. This public metadata aligns with readiness
+  and latest risk, but it is not a substitute for a direct production validation-table query.
+- Source path/category: partially verified only. The public payloads prove the current validation source is
+  `coinmarketcap_csv`, but logs, direct validation/import metadata, source snapshot, manifest, and production collector
+  command evidence were unavailable. Therefore this pass does not prove whether the latest data was produced by the
+  scheduled public CoinMarketCap refresh, manual `download-cmc-csv`, manual `import-cmc-csv`, `run-now` existing CSV
+  import, optional API fallback, restore, or correction.
+- Public cache evidence: all checked public read endpoints returned HTTP 200 with `Cache-Control: public, max-age=60,
+  stale-while-revalidate=300`, an `ETag`, `X-Cache: MISS`, and the same validation-versioned `X-Cache-Version`.
+  Cloudflare cache status on repeat requests was `HIT` for `/api/readiness`, `/api/risk/latest`,
+  `/api/risk/history?limit=2000`, `/api/risk/levels`, and `/api/brief/latest`. The app-level `X-Cache: MISS` value on a
+  Cloudflare HIT remains the known cached-origin-header nuance already recorded above.
+
+| Endpoint | HTTP | ETag | X-Cache-Version | cf-cache-status evidence |
+| --- | --- | --- | --- | --- |
+| `/api/readiness` | 200 | `"9ac0754f06ecc44d3d921901"` | `validation:2026-07-09T01:00:06.303623+00:00:2026-07-08T00:00:00+00:00:5840:true` | initial `MISS`, repeat `HIT` with age about 38s |
+| `/api/risk/latest` | 200 | `"5886d24bdc7925a1a3585a87"` | same as readiness | `HIT` with age about 2s, repeat `HIT` with age about 37s |
+| `/api/risk/history?limit=2000` | 200 | `"f861ecd2321988c97f2cfec5"` | same as readiness | initial `MISS`, repeat `HIT` with age about 35s |
+| `/api/risk/levels` | 200 | `"47c635efa5b13af4a6689070"` | same as readiness | initial `MISS`, repeat `HIT` with age about 28s |
+| `/api/brief/latest` | 200 | `"0ad423e6c0e4cbc1da79a8f4"` | same as readiness | initial `MISS`, repeat `HIT` with age about 19s |
+
+- Import provenance gate status: partial, not passed. Production data consistency is publicly verified because readiness,
+  latest risk, validation-version metadata, and cache headers all align on `2026-07-08` / row count `5840`; however, the
+  exact source path/category and direct production validation/import metadata remain pending production-host or operator
+  evidence. No mismatch was observed in the public evidence.
+
 Import provenance and bad-data correction status recorded on 2026-07-05:
 
 - Task 6 status: blocked pending operator evidence for the real production import evidence packet. The operator
