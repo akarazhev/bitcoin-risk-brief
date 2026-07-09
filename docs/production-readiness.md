@@ -16,9 +16,9 @@ Recorded on 2026-07-01 for `https://bitcoinriskbrief.minihub.app`:
 - `GET /api/risk/latest` returned 200 with `X-Cache: HIT`.
 - Conditional `GET /api/risk/latest` with `If-None-Match` returned 304 with `X-Cache: HIT`.
 
-This snapshot confirms the public hostname, readiness path, and public-read cache behavior. It does not replace the
-remaining launch checks: waitlist production smoke, browser/device QA on the public hostname, backup/restore setup,
-alerts, and the first traffic test.
+This 2026-07-01 snapshot confirmed the public hostname, readiness path, and public-read cache behavior. At the time it
+was recorded, it did not replace the then-remaining launch checks: waitlist production smoke, browser/device QA on the
+public hostname, backup/restore setup, alerts, and the first traffic test.
 
 Additional public smoke evidence recorded on 2026-07-02 for `https://bitcoinriskbrief.minihub.app`:
 
@@ -269,13 +269,37 @@ curl -sD - -o /tmp/bitcoin-risk-latest-public.json "${PUBLIC_BASE_URL}/api/risk/
 
 Production waitlist smoke status recorded on 2026-07-08:
 
+- Browser-like retry source label used: `ops-smoke-20260708115806`.
+- Public endpoint tested: `POST https://bitcoinriskbrief.minihub.app/api/waitlist`.
+- Browser-like path: a `Mozilla/` User-Agent was used through Cloudflare, matching the user-path smoke guidance and
+  avoiding the known default-curl bot challenge.
+- HTTP/API smoke status: passed. The single authorized valid-contact POST returned HTTP 201 with
+  `Content-Type: application/json`.
+- Cache header result: passed. The response included `Cache-Control: no-store` and `Pragma: no-cache`.
+- Response shape result: passed. The saved JSON envelope contained `data.contact_type: email`, `data.locale: en`, and
+  boolean `data.created`.
+- Production source state: `git status` and `git rev-parse HEAD` were unavailable because the production directory is not
+  a Git checkout and `.git` is absent.
+- Server-side storage verification: passed. The operator ran an aggregate-only production-host query against
+  `waitlist_leads` for source `ops-smoke-20260708115806`, `contact_type='email'`, and `locale='en'`, without selecting
+  `contact` or `normalized_contact`. Result: count `1`, max `created_at`
+  `2026-07-02 12:12:54.605104+00`, max `updated_at` `2026-07-08 11:58:07.184215+00`.
+  The older `created_at` with the 2026-07-08 `updated_at` indicates an upsert/update of an existing lead, not proof that
+  a new lead was created.
+- Waitlist smoke gate: closed for this browser-like smoke because HTTP 201, no-store/no-cache headers, response shape,
+  and aggregate storage verification all passed.
+- Contact value is intentionally omitted from this document, and no raw contact or other PII is recorded in the evidence
+  note.
+
+Production waitlist default-curl smoke failure recorded on 2026-07-08:
+
 - Public endpoint tested: `POST https://bitcoinriskbrief.minihub.app/api/waitlist`.
 - Source label used: `ops-smoke-20260708085956`.
 - HTTP saved/upsert status: failed. The single authorized production smoke request reached Cloudflare and returned
   HTTP 403, so the API did not return the expected 201 saved/upsert response.
 - Cache header result: failed for this Cloudflare 403 artifact. The response did not include `Cache-Control: no-store`
-  or `Pragma: no-cache`; the origin waitlist no-store contract remains unchanged and still needs verification after a
-  successful or duplicate/upsert response.
+  or `Pragma: no-cache`; this artifact did not verify the origin waitlist no-store contract. The browser-like retry
+  above now verifies the origin no-store/no-cache result.
 - Response shape result: failed. The saved response artifact was HTML from Cloudflare rather than the expected JSON
   envelope with `data.contact_type`, `data.locale`, and `data.created`.
 - Server-side storage verification: blocked from this workstation. `/srv/projects/bitcoin-risk-brief` is not present and
@@ -297,8 +321,8 @@ Production waitlist Cloudflare 403 diagnostic recorded on 2026-07-08:
   present; no Security Events details were recorded.
 - Root-cause conclusion: the previous waitlist smoke method was blocked by the repo-managed waitlist bot challenge
   because the default curl User-Agent is non-browser-like and lacks `Mozilla/`.
-- Waitlist success smoke remains pending until an operator-approved valid contact submission reaches origin and the
-  aggregate `waitlist_leads` storage check by source/contact type/locale passes.
+- The browser-like retry smoke above reached origin with an operator-approved valid contact, passed the HTTP/API checks,
+  and has aggregate-only storage verification recorded above.
 
 Production waitlist smoke status recorded on 2026-07-05:
 
@@ -678,13 +702,16 @@ Completed or partially completed as of 2026-07-01:
   Cloudflare.
 - Cloudflare edge cache settings and the waitlist-specific rate-limit/custom challenge subset were applied with
   `scripts/cloudflare_edge_rules.py`.
-- The tracked repository documentation and portfolio presentation pass is locally complete as of 2026-07-06. This is a
-  docs-only repository status and does not prove backup/restore, monitoring, waitlist, import provenance,
+- The tracked repository documentation and portfolio presentation pass is locally complete as of 2026-07-06. At that
+  time, this docs-only repository status did not prove backup/restore, monitoring, waitlist, import provenance,
   browser/device/accessibility, or first-traffic readiness.
 - Post-deploy evidence recorded on 2026-07-07 verifies the operator-run USB deploy, closes the public data freshness
   blocker, confirms public `/api/readiness` HTTP 200 with latest public data date `2026-07-06`, verifies latest
   risk/model-price/OHLC display on desktop and mobile Playwright smoke, records fast repeated Cloudflare HIT behavior
   after warmup, and records one checksum-verified off-server USB backup copy.
+- Browser-like waitlist smoke evidence recorded on 2026-07-08 verifies HTTP 201, no-store/no-cache headers, expected JSON
+  response shape, and aggregate-only storage verification for source `ops-smoke-20260708115806`; the waitlist smoke gate
+  is closed for that smoke.
 
 Still required before treating the pilot as publicly launched:
 
@@ -702,9 +729,6 @@ Still required before treating the pilot as publicly launched:
   collector logs containing scheduled/public/API refresh failures.
 - Complete any browser/device launch-matrix coverage not represented by the 2026-07-07 Playwright desktop/mobile smoke,
   including physical-device/native branded browser evidence if required for the launch gate.
-- Adjust the Cloudflare/waitlist rule or allowlist a controlled smoke path, then retry the deliberate waitlist smoke and
-  verify a successful or duplicate/upsert response with no-store headers.
-- After a successful waitlist POST, verify the server-side `waitlist_leads` aggregate by source/contact type/locale.
 - Complete or explicitly defer the launch operations and governance checklist: privacy/terms, post-waitlist handling,
   credential ownership, resource monitoring, dependency/security maintenance, data-source terms, accessibility,
   SEO/social metadata, and incident response.
