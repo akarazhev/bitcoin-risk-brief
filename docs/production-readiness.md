@@ -240,8 +240,8 @@ Launch governance gap pass recorded on 2026-07-10:
 | Credential/account ownership and recovery record | pending operator decision | Required ownership categories are documented for GitHub, Cloudflare, domain, production `.env`, backups, server access, and optional CoinMarketCap credentials, but actual owners/recovery paths are intentionally absent from the repository. | Maintain the owner and recovery record outside Git; record only sanitized completion status here if needed. |
 | Data-source terms and attribution review | pending operator decision | No completed CoinMarketCap public CSV, optional API, or future methodology-source terms/attribution review evidence is recorded. | Review source terms and attribution requirements before broader launch or commercial/portfolio claims; record only sanitized outcome and date. |
 | Dependency/security maintenance cadence | passed with existing repo evidence | [Security and Privacy](security-and-privacy.md) and [Operations](operations.md) define a monthly manual review until automation is chosen. | The cadence is documented; the first completed review evidence remains pending and should record only date, scope, outcome, and follow-up. |
-| Accessibility pass evidence | pending external evidence | Browser-capable public-hostname QA is recorded, but no focused accessibility pass evidence is recorded. | Run and record a focused accessibility pass or explicitly accept the limitation for the controlled traffic window. |
-| SEO/social metadata pass evidence | pending external evidence | No completed SEO/social metadata evidence is recorded. | Review page title/description/social metadata on the public hostname and record sanitized results. |
+| Accessibility pass evidence | pending external evidence | Browser-capable public-hostname QA and 2026-07-10 source inspection are recorded, but no focused keyboard, screen-reader, color-contrast, mobile text-fit, or chart accessibility pass evidence is recorded. | Run and record a focused accessibility pass or explicitly accept the limitation for the controlled traffic window. |
+| SEO/social metadata pass evidence | partial/blocked | 2026-07-10 public homepage GET returned HTTP 200 and confirmed `title: Bitcoin Risk Brief`, but the returned HTML did not include meta description, canonical link, Open Graph title/description/image/url, or Twitter card/title/description/image metadata. | Add or explicitly defer the missing SEO/social metadata before treating the launch metadata gate as passed. |
 | Incident response readiness | passed with existing repo evidence | [Operations](operations.md) includes the first-response runbook, monitoring alert expectations, bad-data correction policy, restore guidance, and cache-safety procedures. | Keep the runbook aligned as new monitor, restore, and provenance evidence arrives. |
 | Release notes or decision log | passed with existing repo evidence | This document and [Production Roadmap](production-roadmap.md) contain dated evidence notes and decision/status history through 2026-07-10. | Add the final launch snapshot note only when the actual first-traffic window is ready; do not reuse the stale 2026-07-05 snapshot as a launch-ready note. |
 | First-user feedback review path | passed with existing repo evidence | This document and [Operations](operations.md) define a post-window review path for waitlist conversion, repeat-use signals, direct questions, methodology confusion, and requests for alerts/API/agents/widgets/licensing. | Run the review only after first traffic creates evidence; do not copy raw waitlist contacts into summaries. |
@@ -251,6 +251,31 @@ Launch governance gap pass recorded on 2026-07-10:
 | Import provenance source archive and direct production metadata | pending external evidence | The 2026-07-09 pass publicly verified data/cache consistency but did not prove the exact source path/category, source archive, direct production validation/import table metadata, or collector command evidence. | Capture a sanitized production import evidence packet outside the repository with source snapshot, manifest, `sha256`, retrieval metadata, row counts/range, validation/readiness output, and cache evidence. |
 | Restore drill | accepted limitation for operator-watched first traffic | One checksum-verified off-server USB backup copy is recorded for 2026-07-07, but the current setup has only the live production server and no staging or empty restore target. | Defer the drill until a separate target exists; do not run restore testing against live production. Record target type and readiness result after the drill. |
 | First traffic test | blocked | No first traffic window has run. Freshness and waitlist smoke evidence exist, but launch governance, monitoring/alerts, provenance, backup freshness, accessibility/metadata, and final snapshot evidence remain incomplete or explicitly limited. | Run only after freshness is rechecked and all launch gates are either completed or explicitly accepted for an operator-watched first traffic window. |
+
+Browser/device/accessibility/metadata gap pass recorded on 2026-07-10:
+
+- Scope/safety: evidence pass only. No code change, deploy, refresh/import, cache warmup, waitlist POST,
+  Cloudflare/routing change, commit, push, or tag was performed. No secrets, raw waitlist contacts, private account
+  details, dashboard URLs, tokens, `.env` values, browser profiles, or PII were recorded.
+- Local repository state before the pass: `git status --short --branch` returned `## main...origin/main`, and
+  `git log --oneline --decorate -5` showed `HEAD` at `59b4f5e` tagged
+  `launch-governance-gap-evidence-2026-07-10`.
+- Automated checks: `npm test --prefix frontend` passed 2 files / 21 tests; `npm run build --prefix frontend` passed;
+  `npm run smoke --prefix frontend` was first blocked in the sandbox by
+  `listen EPERM: operation not permitted 127.0.0.1:4173`, then passed 15 Playwright checks outside the sandbox.
+- Browser/device evidence: automated Playwright browser-profile smoke passed for the local production build with mocked
+  API responses in Chromium, Firefox, WebKit, Pixel 5, and iPhone 13 profiles. This is automated browser-profile
+  evidence, not native/manual desktop Chrome, Safari, Firefox, iOS Safari, Android Chrome, or physical-device evidence.
+- Accessibility evidence: source inspection found `html lang="en"`, semantic `main`, `nav`, section/article structure,
+  headings, several `aria-label` attributes, status fallbacks, an `aria-live` error state, and an aria-labeled waitlist
+  input. No dedicated axe, pa11y, Lighthouse, keyboard, screen-reader, color-contrast, mobile text-fit, or chart
+  accessibility pass was run, so the focused accessibility gate remains pending.
+- Public metadata evidence: `GET https://bitcoinriskbrief.minihub.app/` returned HTTP 200 with `title` set to
+  `Bitcoin Risk Brief` and the expected charset/viewport tags. The returned HTML did not include a meta description,
+  canonical link, Open Graph title/description/image/url, or Twitter card/title/description/image metadata.
+- Gap-pass status: partial/blocked, not launch-passed. Automated Playwright smoke passed, but native/manual
+  browser-device coverage remains pending, focused accessibility evidence remains pending, and SEO/social metadata is
+  inspected but incomplete.
 
 Monitoring, alerts, and single-server restore evidence pass recorded on 2026-07-08:
 

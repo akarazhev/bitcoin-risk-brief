@@ -66,7 +66,7 @@ privacy status as of the 2026-07-10 gap pass:
 | Credential and account ownership | pending operator decision | The account categories below are the required ownership categories. Actual account holders, recovery channels, and secret locations must stay in an operator-controlled record outside this repository. |
 | Data-source terms and attribution review | pending operator decision | No completed CoinMarketCap public CSV, optional CoinMarketCap API, or future methodology-source terms review evidence is recorded here. Record a sanitized review outcome before broader launch or commercial/portfolio source-rights claims. |
 | Dependency and security maintenance cadence | passed with existing repo evidence | The cadence is a manual monthly review of container images, Python dependencies, npm dependencies, GitHub Actions versions, advisories, vulnerability scans, and secret-scan output until automation such as Dependabot or Renovate is chosen. The latest completed review evidence is not recorded yet. |
-| Accessibility and metadata evidence | pending external evidence | Browser-capable public-hostname QA is recorded with limitations, but a focused accessibility pass and SEO/social metadata pass are not recorded as complete, so they remain pending launch checklist evidence rather than certifications. |
+| Accessibility and metadata evidence | partial/blocked | Browser-capable public-hostname QA and the 2026-07-10 local Playwright profile smoke are recorded with limitations. Focused accessibility evidence remains pending. Public homepage metadata was inspected on 2026-07-10 and is incomplete: title exists, but meta description, canonical, Open Graph, and Twitter metadata are missing. |
 
 ## Product Analytics Privacy
 

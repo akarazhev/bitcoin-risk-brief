@@ -89,6 +89,47 @@ Accepted limitations:
 - The public page was visually checkable, but readiness was degraded because the latest visible data was four days old.
   This QA pass does not clear the separate production data-freshness gate.
 
+## Browser, Accessibility, And Metadata Gap Pass
+
+Recorded on 2026-07-10.
+
+Automated checks run from this workstation:
+
+| Check | Result |
+| --- | --- |
+| `npm test --prefix frontend` | Passed: 2 test files, 21 tests. |
+| `npm run build --prefix frontend` | Passed. Output kept `index` at 211.31 kB minified / 67.61 kB gzip and lazy `Chart` at 557.61 kB minified / 188.87 kB gzip. |
+| `npm run smoke --prefix frontend` | First sandboxed attempt was blocked by `listen EPERM: operation not permitted 127.0.0.1:4173`; rerun outside the sandbox passed 15 Playwright checks. |
+
+Browser/device status:
+
+- Automated browser-profile coverage passed for the local production build with mocked API responses in Playwright
+  Chromium, Firefox, WebKit, Pixel 5, and iPhone 13 profiles.
+- This does not replace native/manual evidence on real branded desktop browsers, iOS Safari, Android Chrome, or physical
+  devices. Native/manual launch-matrix coverage remains pending unless the operator explicitly accepts that limitation.
+- No waitlist POST, deploy, data refresh/import, cache warmup, or Cloudflare/routing change was performed.
+
+Accessibility status:
+
+- No dedicated axe, pa11y, Lighthouse, or equivalent accessibility script is configured in `frontend/package.json`, and
+  no focused accessibility pass was run.
+- Source inspection found `html lang="en"`, semantic `main`, `nav`, section/article structure, headings, several
+  `aria-label` attributes, status fallbacks, an `aria-live` error state, and an aria-labeled waitlist input.
+- This source inspection is not a keyboard, screen-reader, color-contrast, mobile text-fit, or chart accessibility pass.
+  Focused accessibility evidence remains pending.
+
+Public metadata status from `GET https://bitcoinriskbrief.minihub.app/` on 2026-07-10:
+
+- HTTP 200 returned public HTML with `title` set to `Bitcoin Risk Brief`.
+- Present tags: `charset`, `viewport`, and `title`.
+- Missing tags in the returned HTML: meta description, canonical link, Open Graph title/description/image/url, and
+  Twitter card/title/description/image metadata.
+- SEO/social metadata gate is therefore inspected but incomplete, not passed.
+
+Overall browser/device/accessibility/metadata launch-gate status: partial/blocked. Automated Playwright smoke and source
+inspection provide useful evidence, but the full native/manual browser-device matrix, focused accessibility pass, and
+SEO/social metadata completion are still not launch-passed.
+
 ## Reproducing Locally
 
 Install Playwright browsers once:
