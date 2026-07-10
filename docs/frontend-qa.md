@@ -124,11 +124,27 @@ Public metadata status from `GET https://bitcoinriskbrief.minihub.app/` on 2026-
 - Present tags: `charset`, `viewport`, and `title`.
 - Missing tags in the returned HTML: meta description, canonical link, Open Graph title/description/image/url, and
   Twitter card/title/description/image metadata.
-- SEO/social metadata gate is therefore inspected but incomplete, not passed.
+- The public-host SEO/social metadata gate was therefore inspected but incomplete at that snapshot.
+
+Local SEO/social metadata implementation recorded on 2026-07-10:
+
+- `frontend/index.html` now keeps `title` as `Bitcoin Risk Brief` and adds a concise meta description, canonical URL,
+  Open Graph `type`, `title`, `description`, `url`, and `site_name`, plus Twitter `card`, `title`, and `description`.
+- `og:image` and `twitter:image` are intentionally omitted because no real production image asset exists in the repo and
+  is served publicly.
+- `npm test --prefix frontend` passed: 2 test files, 21 tests.
+- `npm run build --prefix frontend` passed. Output included `dist/index.html` at 1.36 kB minified / 0.46 kB gzip,
+  `index` JS at 211.31 kB minified / 67.61 kB gzip, and lazy `Chart` at 557.61 kB minified / 188.87 kB gzip.
+- Source/build inspection of `frontend/index.html` and `frontend/dist/index.html` confirmed the title, description,
+  canonical, Open Graph, and Twitter tags.
+- No deploy, waitlist POST, data refresh/import, cache warmup, or Cloudflare/routing change was performed. Production
+  public-host metadata verification remains pending until the frontend is deployed and checked on
+  `https://bitcoinriskbrief.minihub.app/`.
 
 Overall browser/device/accessibility/metadata launch-gate status: partial/blocked. Automated Playwright smoke and source
-inspection provide useful evidence, but the full native/manual browser-device matrix, focused accessibility pass, and
-SEO/social metadata completion are still not launch-passed.
+inspection provide useful evidence, and local SEO/social metadata implementation is now verified. The full native/manual
+browser-device matrix, focused accessibility pass, and public-host SEO/social metadata verification are still not
+launch-passed.
 
 ## Reproducing Locally
 

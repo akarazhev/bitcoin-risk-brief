@@ -5,9 +5,9 @@ Bitcoin Risk Brief is a standalone EN/RU mini-product for validating demand arou
 ## Current Status
 
 Bitcoin Risk Brief is implementation-complete in this repository for the current pre-traffic hardening items: scheduled
-public CoinMarketCap CSV refresh, public payload cache warmup, USB Update And Install Kit V2, and first-viewport
-model-price/OHLC display polish. Repository commits and local tags are implementation evidence; production readiness
-depends on recorded operator and public-host evidence.
+public CoinMarketCap CSV refresh, public payload cache warmup, USB Update And Install Kit V2, first-viewport
+model-price/OHLC display polish, and local SEO/social metadata. Repository files, commits, local tags, and recorded
+checks are implementation evidence; production readiness depends on recorded operator and public-host evidence.
 
 The public pilot hostname exists at `https://bitcoinriskbrief.minihub.app` and has evidence through 2026-07-10. The
 2026-07-05 public `/api/readiness` HTTP 503 stale-data blocker is closed by later public evidence: 2026-07-07
@@ -38,8 +38,8 @@ External production tasks still required before treating the pilot as publicly l
   drill until a separate staging or intentionally empty restore target exists.
 - Capture direct production import source/archive provenance outside the repository, including source snapshot, manifest,
   `sha256`, retrieval metadata, row count, covered range, expected tail, validation/readiness output, and cache evidence.
-- Complete launch governance, browser/device, accessibility, SEO/social metadata, release-feedback, and operational
-  evidence gates.
+- Complete launch governance, browser/device, accessibility, public-host SEO/social metadata verification,
+  release-feedback, and operational evidence gates.
 - Decide whether the current Cloudflare Free-plan edge subset is enough for first traffic or whether to upgrade for
   managed WAF and broader API burst-rate-limit entitlement.
 - Capture the launch snapshot and run the first traffic test only after freshness and accepted launch gates allow it.

@@ -241,7 +241,7 @@ Launch governance gap pass recorded on 2026-07-10:
 | Data-source terms and attribution review | pending operator decision | No completed CoinMarketCap public CSV, optional API, or future methodology-source terms/attribution review evidence is recorded. | Review source terms and attribution requirements before broader launch or commercial/portfolio claims; record only sanitized outcome and date. |
 | Dependency/security maintenance cadence | passed with existing repo evidence | [Security and Privacy](security-and-privacy.md) and [Operations](operations.md) define a monthly manual review until automation is chosen. | The cadence is documented; the first completed review evidence remains pending and should record only date, scope, outcome, and follow-up. |
 | Accessibility pass evidence | pending external evidence | Browser-capable public-hostname QA and 2026-07-10 source inspection are recorded, but no focused keyboard, screen-reader, color-contrast, mobile text-fit, or chart accessibility pass evidence is recorded. | Run and record a focused accessibility pass or explicitly accept the limitation for the controlled traffic window. |
-| SEO/social metadata pass evidence | partial/blocked | 2026-07-10 public homepage GET returned HTTP 200 and confirmed `title: Bitcoin Risk Brief`, but the returned HTML did not include meta description, canonical link, Open Graph title/description/image/url, or Twitter card/title/description/image metadata. | Add or explicitly defer the missing SEO/social metadata before treating the launch metadata gate as passed. |
+| SEO/social metadata pass evidence | implemented locally; production verification pending | 2026-07-10 local source/build inspection confirmed `frontend/index.html` and `frontend/dist/index.html` include the title, meta description, canonical URL, Open Graph type/title/description/url/site name, and Twitter card/title/description. `og:image` and `twitter:image` are intentionally omitted because no real repo-served production image asset exists. The earlier public homepage GET still showed missing tags before this deploy. | Deploy/update the frontend and verify `https://bitcoinriskbrief.minihub.app/` returns the metadata. Keep image metadata omitted unless a real publicly served production image asset is added. |
 | Incident response readiness | passed with existing repo evidence | [Operations](operations.md) includes the first-response runbook, monitoring alert expectations, bad-data correction policy, restore guidance, and cache-safety procedures. | Keep the runbook aligned as new monitor, restore, and provenance evidence arrives. |
 | Release notes or decision log | passed with existing repo evidence | This document and [Production Roadmap](production-roadmap.md) contain dated evidence notes and decision/status history through 2026-07-10. | Add the final launch snapshot note only when the actual first-traffic window is ready; do not reuse the stale 2026-07-05 snapshot as a launch-ready note. |
 | First-user feedback review path | passed with existing repo evidence | This document and [Operations](operations.md) define a post-window review path for waitlist conversion, repeat-use signals, direct questions, methodology confusion, and requests for alerts/API/agents/widgets/licensing. | Run the review only after first traffic creates evidence; do not copy raw waitlist contacts into summaries. |
@@ -250,7 +250,7 @@ Launch governance gap pass recorded on 2026-07-10:
 | External monitoring and alert delivery | blocked | The 2026-07-10 monitoring pass found no monitor-provider dashboard/API proof, alert rules, Cloudflare connector notification evidence, or delivery-test evidence. | Configure or show provider/dashboard evidence and alert delivery proof for health, readiness/freshness, stale data, collector failure, backup freshness, and Cloudflare Tunnel health. |
 | Import provenance source archive and direct production metadata | pending external evidence | The 2026-07-09 pass publicly verified data/cache consistency but did not prove the exact source path/category, source archive, direct production validation/import table metadata, or collector command evidence. | Capture a sanitized production import evidence packet outside the repository with source snapshot, manifest, `sha256`, retrieval metadata, row counts/range, validation/readiness output, and cache evidence. |
 | Restore drill | accepted limitation for operator-watched first traffic | One checksum-verified off-server USB backup copy is recorded for 2026-07-07, but the current setup has only the live production server and no staging or empty restore target. | Defer the drill until a separate target exists; do not run restore testing against live production. Record target type and readiness result after the drill. |
-| First traffic test | blocked | No first traffic window has run. Freshness and waitlist smoke evidence exist, but launch governance, monitoring/alerts, provenance, backup freshness, accessibility/metadata, and final snapshot evidence remain incomplete or explicitly limited. | Run only after freshness is rechecked and all launch gates are either completed or explicitly accepted for an operator-watched first traffic window. |
+| First traffic test | blocked | No first traffic window has run. Freshness and waitlist smoke evidence exist, but launch governance, monitoring/alerts, provenance, backup freshness, focused accessibility, public-host metadata verification, and final snapshot evidence remain incomplete or explicitly limited. | Run only after freshness is rechecked and all launch gates are either completed or explicitly accepted for an operator-watched first traffic window. |
 
 Browser/device/accessibility/metadata gap pass recorded on 2026-07-10:
 
@@ -273,9 +273,25 @@ Browser/device/accessibility/metadata gap pass recorded on 2026-07-10:
 - Public metadata evidence: `GET https://bitcoinriskbrief.minihub.app/` returned HTTP 200 with `title` set to
   `Bitcoin Risk Brief` and the expected charset/viewport tags. The returned HTML did not include a meta description,
   canonical link, Open Graph title/description/image/url, or Twitter card/title/description/image metadata.
-- Gap-pass status: partial/blocked, not launch-passed. Automated Playwright smoke passed, but native/manual
-  browser-device coverage remains pending, focused accessibility evidence remains pending, and SEO/social metadata is
-  inspected but incomplete.
+- Gap-pass status at that snapshot: partial/blocked, not launch-passed. Automated Playwright smoke passed, but
+  native/manual browser-device coverage remained pending, focused accessibility evidence remained pending, and
+  SEO/social metadata was inspected but incomplete. The later local implementation status is recorded below.
+
+SEO/social metadata local implementation recorded on 2026-07-10:
+
+- Scope/safety: frontend HTML and docs only. No deploy, refresh/import, cache warmup, waitlist POST, Cloudflare/routing
+  change, commit, push, or tag was performed. No secrets, raw waitlist contacts, private account details, dashboard URLs,
+  tokens, `.env` values, private contacts, or PII were recorded.
+- Local implementation: `frontend/index.html` keeps `title` as `Bitcoin Risk Brief` and adds a concise meta description,
+  canonical URL for `https://bitcoinriskbrief.minihub.app/`, Open Graph `type`, `title`, `description`, `url`, and
+  `site_name`, plus Twitter `card`, `title`, and `description`.
+- Image metadata is intentionally omitted: no `og:image` or `twitter:image` tag was added because no real production
+  image asset exists in the repo and is served publicly.
+- Local verification: `npm test --prefix frontend` passed 2 files / 21 tests; `npm run build --prefix frontend` passed;
+  source/build inspection confirmed the title, description, canonical, Open Graph, and Twitter tags in
+  `frontend/index.html` and `frontend/dist/index.html`.
+- Production status: not deployed or public-host verified in this pass. The production/public metadata gate remains
+  pending until `https://bitcoinriskbrief.minihub.app/` serves the new tags.
 
 Monitoring, alerts, and single-server restore evidence pass recorded on 2026-07-08:
 
@@ -518,9 +534,10 @@ Launch governance and release evidence status recorded on 2026-07-05:
   owner, review cadence, deletion/unsubscribe contact path, and support/contact identity are pending operator decisions;
   production backup/off-server copy/restore evidence was missing at that time; monitoring evidence is missing; production
   import provenance evidence is missing; waitlist smoke was not run; public page data was observed stale during Task 8;
-  full native-device/browser QA, focused accessibility, and SEO/social metadata evidence are not complete; Cloudflare
-  remains on the documented Free-plan-compatible subset. The 2026-07-07 evidence above supersedes the missing
-  backup/off-server copy portion while restore drill remains pending.
+  full native-device/browser QA, focused accessibility, and SEO/social metadata evidence were not complete then;
+  Cloudflare remains on the documented Free-plan-compatible subset. Later evidence above supersedes the missing
+  backup/off-server copy portion and records local SEO/social metadata implementation, while restore drill and
+  public-host metadata verification remain pending.
 - Governance evidence process: keep privacy/terms/disclaimer posture, waitlist handling, credential/account ownership,
   data-source terms review, dependency/security maintenance, accessibility, and metadata status in
   [Security and Privacy](security-and-privacy.md) and [Operations](operations.md). Unknown operator-owned facts must be
@@ -730,8 +747,8 @@ Before public launch, also complete and record:
 - Cloudflare WAF, bot protection, cache rules, and edge rate limits rendered and applied with
   `scripts/cloudflare_edge_rules.py`, plus dashboard bot protection enabled where required by the Cloudflare plan;
 - launch operations and governance posture: privacy/terms/disclaimer copy, post-waitlist handling, dependency/security
-  maintenance cadence, credential/account ownership, resource monitoring, data-source terms, accessibility, metadata,
-  and incident response notes;
+  maintenance cadence, credential/account ownership, resource monitoring, data-source terms, accessibility, public-host
+  metadata verification, and incident response notes;
 - release feedback and operational evidence posture: release notes or decision log, first-user feedback review path,
   support/contact identity, dependency-license review, launch evidence, and restore-drill evidence;
 - data correction and service-target posture: bad CSV/import/risk correction flow, correction-note rules, cache
@@ -885,7 +902,7 @@ Still required before treating the pilot as publicly launched:
   including physical-device/native branded browser evidence if required for the launch gate.
 - Complete or explicitly defer the launch operations and governance checklist: privacy/terms, post-waitlist handling,
   credential ownership, resource monitoring, dependency/security maintenance, data-source terms, accessibility,
-  SEO/social metadata, and incident response.
+  public-host SEO/social metadata verification, and incident response.
 - Complete or explicitly defer the release feedback and operational evidence checklist: release notes or decision log,
   first-user feedback path, support/contact identity, dependency-license review, launch evidence, and restore-drill
   evidence.
