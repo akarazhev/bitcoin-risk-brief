@@ -55,29 +55,18 @@ sender or bot ownership, unsubscribe or stop handling, provider recovery, no-adv
 
 ## Launch Governance Status
 
-Recorded on 2026-07-05 for the current production-pilot candidate:
+The current launch governance checklist is recorded in [Production Readiness](production-readiness.md). Security and
+privacy status as of the 2026-07-10 gap pass:
 
-- Privacy, terms, and disclaimer posture: the product has no standalone public privacy policy or terms page recorded in
-  this repository. The README and product copy keep the analytics/no-financial-advice disclaimer. This is an accepted
-  limitation only for an operator-watched first traffic test; before broader sharing, the operator must either publish a
-  short privacy/terms note for waitlist contacts and operational logs or explicitly record why that remains deferred.
-- Waitlist contact handling: waitlist contacts remain server-side operational lead data in PostgreSQL. The repository
-  does not name a lead owner, review cadence, retention period, or deletion/unsubscribe contact channel. Those are
-  required operator decisions before active traffic; do not invent or commit personal contact details here.
-- Support and deletion contact identity: one operator-owned contact path is required for deletion, unsubscribe, product
-  questions, bug reports, and professional/API/license interest. No public support SLA, help center, or paid-user support
-  process is implied by this requirement.
-- Credential and account ownership: the account categories below are the required ownership categories. Actual account
-  holders, recovery channels, and secret locations must be kept in an operator-controlled record outside this repository.
-- Data-source terms review: no completed CoinMarketCap public CSV, optional CoinMarketCap API, or future methodology
-  source terms review evidence is recorded here. Treat that as a required operator review before broader launch or
-  commercial/portfolio claims about source rights.
-- Dependency and security maintenance: use a manual monthly review of container images, Python dependencies, npm
-  dependencies, GitHub Actions versions, advisories, vulnerability scans, and secret-scan output until an operator
-  chooses automation such as Dependabot or Renovate. The latest completed review evidence is not recorded yet.
-- Accessibility and metadata: Task 8 recorded browser-capable public-hostname QA with limitations. A focused
-  accessibility pass and SEO/social metadata pass are still not recorded as complete, so they remain pending launch
-  checklist items rather than certifications.
+| Area | Status classification | Notes |
+| --- | --- | --- |
+| Privacy, terms, and disclaimer posture | accepted limitation for operator-watched first traffic | The README and product copy keep analytics/no-financial-advice framing, but no standalone public privacy policy or terms note is recorded. Before broader sharing, publish a short privacy/terms note for waitlist contacts and operational logs, or explicitly record the operator decision to defer it. |
+| Waitlist owner, cadence, retention, deletion, and unsubscribe path | pending operator decision | Waitlist contacts remain server-side operational lead data in PostgreSQL. The repository does not name a lead owner, review cadence, retention period, deletion path, or unsubscribe channel. Do not invent or commit personal contact details here. |
+| Support/contact identity | pending operator decision | One operator-owned path is required for deletion, unsubscribe, product questions, bug reports, and professional/API/license interest. No public support SLA, help center, or paid-user support process is implied. |
+| Credential and account ownership | pending operator decision | The account categories below are the required ownership categories. Actual account holders, recovery channels, and secret locations must stay in an operator-controlled record outside this repository. |
+| Data-source terms and attribution review | pending operator decision | No completed CoinMarketCap public CSV, optional CoinMarketCap API, or future methodology-source terms review evidence is recorded here. Record a sanitized review outcome before broader launch or commercial/portfolio source-rights claims. |
+| Dependency and security maintenance cadence | passed with existing repo evidence | The cadence is a manual monthly review of container images, Python dependencies, npm dependencies, GitHub Actions versions, advisories, vulnerability scans, and secret-scan output until automation such as Dependabot or Renovate is chosen. The latest completed review evidence is not recorded yet. |
+| Accessibility and metadata evidence | pending external evidence | Browser-capable public-hostname QA is recorded with limitations, but a focused accessibility pass and SEO/social metadata pass are not recorded as complete, so they remain pending launch checklist evidence rather than certifications. |
 
 ## Product Analytics Privacy
 
