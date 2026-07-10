@@ -245,7 +245,7 @@ Launch governance gap pass recorded on 2026-07-10:
 | Incident response readiness | passed with existing repo evidence | [Operations](operations.md) includes the first-response runbook, monitoring alert expectations, bad-data correction policy, restore guidance, and cache-safety procedures. | Keep the runbook aligned as new monitor, restore, and provenance evidence arrives. |
 | Release notes or decision log | passed with existing repo evidence | This document and [Production Roadmap](production-roadmap.md) contain dated evidence notes and decision/status history through 2026-07-10. | Add the final launch snapshot note only when the actual first-traffic window is ready; do not reuse the stale 2026-07-05 snapshot as a launch-ready note. |
 | First-user feedback review path | passed with existing repo evidence | This document and [Operations](operations.md) define a post-window review path for waitlist conversion, repeat-use signals, direct questions, methodology confusion, and requests for alerts/API/agents/widgets/licensing. | Run the review only after first traffic creates evidence; do not copy raw waitlist contacts into summaries. |
-| Dependency-license review | pending external evidence | The 2026-07-05 governance note marks dependency-license review as pending; no completed license review evidence is recorded. | Review production Python and npm dependency licenses before broader portfolio sharing or commercial claims; do not claim open-source status unless a license is chosen. |
+| Dependency-license review | partial; local evidence recorded, external/manual confirmation pending | [Dependency and License Review](dependency-license-review.md) records the 2026-07-10 local inventory from npm lockfile, Python requirements, container references, and CI workflow references. Local npm lockfile entries all include license metadata, including `@axe-core/playwright` and `axe-core` as `MPL-2.0`; Python and container license metadata remain unknown from repository files. | Confirm Python package metadata, transitive dependencies, container image and OS package licenses, CI action/license posture, vulnerability/advisory status, project license choice, and legal compatibility before broader portfolio sharing or commercial claims. |
 | Launch snapshot evidence | pending external evidence | The 2026-07-05 launch snapshot is historical and was blocked by stale readiness. Later public freshness evidence exists, but no final launch snapshot/first-traffic evidence packet is recorded. | Capture the launch commit, public hostname, readiness payload, cache headers, waitlist smoke, launch limitations, and related backup/restore/provenance references immediately before first traffic. |
 | External monitoring and alert delivery | blocked | The 2026-07-10 monitoring pass found no monitor-provider dashboard/API proof, alert rules, Cloudflare connector notification evidence, or delivery-test evidence. | Configure or show provider/dashboard evidence and alert delivery proof for health, readiness/freshness, stale data, collector failure, backup freshness, and Cloudflare Tunnel health. |
 | Import provenance source archive and direct production metadata | pending external evidence | The 2026-07-09 pass publicly verified data/cache consistency but did not prove the exact source path/category, source archive, direct production validation/import table metadata, or collector command evidence. | Capture a sanitized production import evidence packet outside the repository with source snapshot, manifest, `sha256`, retrieval metadata, row counts/range, validation/readiness output, and cache evidence. |
@@ -362,6 +362,35 @@ Waitlist live-region and keyboard/focus local implementation recorded on 2026-07
 - Accessibility status after this pass: local automated live-region and keyboard/focus evidence exists. Manual keyboard,
   manual screen-reader/assistive-tech, physical-device/native browser, production-host accessibility, first-traffic, and
   full WCAG/accessibility compliance evidence remain pending and must not be claimed complete.
+
+Dependency and license local evidence pass recorded on 2026-07-10:
+
+- Scope/safety: docs-only local evidence pass. No deploy, refresh/import, cache warmup, real waitlist POST,
+  Cloudflare/routing change, commit, push, or tag was performed. No secrets, raw waitlist contacts, private account
+  details, tokens, `.env` values, private URLs, account details, raw logs, or PII were recorded.
+- Local repository state before the pass: `git status --short --branch` returned `## main...origin/main`;
+  `git rev-parse HEAD` returned `b26daf6407d88a2a65bc278f1ef0cc3343bd3040`; and the local evidence tag
+  `waitlist-accessibility-local-evidence-2026-07-10` was present.
+- Reviewed local files: `frontend/package.json`, `frontend/package-lock.json`, `backend/requirements.txt`,
+  `collector/requirements.txt`, `pyproject.toml`, `backend/Dockerfile`, `collector/Dockerfile`,
+  `frontend/Dockerfile`, `podman-compose.yml`, `podman-compose.cloudflare.yml`, and `.github/workflows/ci.yml`.
+- Frontend npm evidence: the npm lockfile has 160 non-root package entries and no missing local `license` fields. Direct
+  dependency license metadata is recorded in [Dependency and License Review](dependency-license-review.md). The recently
+  added accessibility packages are explicitly recorded: `@axe-core/playwright` 4.12.1 has local lockfile license
+  metadata `MPL-2.0`, depends on `axe-core` `~4.12.1`, and `axe-core` is locked at 4.12.1 with local lockfile license
+  metadata `MPL-2.0`.
+- Python evidence: backend and collector direct package pins are visible in requirements files, but the repository has no
+  Python lockfile and the requirements files do not include license metadata. Python direct and transitive license
+  confirmation remains external/manual.
+- Container and CI evidence: Dockerfiles and compose files reference `node:22-alpine`, `nginx:1.27-alpine`,
+  `python:3.13-slim-bookworm`, `timescale/timescaledb:2.17.2-pg16`, and optional `cloudflare/cloudflared:2026.6.1`.
+  CI references `actions/checkout@v4`, `actions/setup-python@v5`, `actions/setup-node@v4`, Python 3.13, Node 22, and
+  Playwright browser installation. Local files identify these versions but do not prove base image, OS package, browser,
+  or action license posture.
+- Dependency/license gate status after this pass: partial local evidence recorded, not legal approval, not full license
+  compliance, not vulnerability/advisory clearance, and not production launch readiness. Remaining checks include Python
+  package metadata, npm external registry/tarball verification if required, container image and OS package SBOM/license
+  review, GitHub Actions/license posture, data-source terms, project license choice, and legal compatibility review.
 
 Monitoring, alerts, and single-server restore evidence pass recorded on 2026-07-08:
 
@@ -618,9 +647,11 @@ Launch governance and release evidence status recorded on 2026-07-05:
   Do not copy raw waitlist contacts into feedback notes.
 - Support/contact identity status: pending operator decision. One operator-owned contact path is required before
   broader sharing, but no public support portal, paid SLA, or guaranteed response time is implied for the first pilot.
-- Dependency-license review status: pending lightweight review. Before broader portfolio sharing or commercial claims,
-  review production Python and npm dependency licenses for obvious conflicts and record the repository posture. Do not
-  claim open-source status unless a license is intentionally chosen.
+- Dependency-license review status: superseded by the 2026-07-10 local evidence pass above. Local npm lockfile license
+  metadata, Python manifest gaps, container references, and CI references are now recorded in
+  [Dependency and License Review](dependency-license-review.md). External/manual confirmation and project license choice
+  remain pending, and the project must not claim legal approval, full license compliance, or open-source status unless a
+  license is intentionally chosen.
 - Release evidence packet process: the final launch snapshot should reference the launch commit, public hostname,
   readiness payload, cache headers, selected refresh path, deployment path, backup/off-server and restore-drill evidence,
   waitlist smoke, browser QA, known limitations, and any related import provenance manifest. Store private artifacts, raw
@@ -820,7 +851,8 @@ Before public launch, also complete and record:
   maintenance cadence, credential/account ownership, resource monitoring, data-source terms, accessibility, public-host
   metadata verification, and incident response notes;
 - release feedback and operational evidence posture: release notes or decision log, first-user feedback review path,
-  support/contact identity, dependency-license review, launch evidence, and restore-drill evidence;
+  support/contact identity, dependency-license review external/manual confirmation, launch evidence, and restore-drill
+  evidence;
 - data correction and service-target posture: bad CSV/import/risk correction flow, correction-note rules, cache
   correction safety, freshness target, RPO/RTO boundaries, and pilot downtime tolerance;
 - import provenance and source archive posture: source snapshot, import manifest, `sha256`, retrieval metadata, row
@@ -974,8 +1006,8 @@ Still required before treating the pilot as publicly launched:
   credential ownership, resource monitoring, dependency/security maintenance, data-source terms, accessibility,
   public-host SEO/social metadata verification, and incident response.
 - Complete or explicitly defer the release feedback and operational evidence checklist: release notes or decision log,
-  first-user feedback path, support/contact identity, dependency-license review, launch evidence, and restore-drill
-  evidence.
+  first-user feedback path, support/contact identity, dependency-license review external/manual confirmation, launch
+  evidence, and restore-drill evidence.
 - Keep the documented bad-data correction and service-target policy current as real restore/import evidence arrives;
   pilot freshness, RPO/RTO, correction, and downtime targets remain internal targets, not public SLA promises.
 - Capture a real production import evidence packet outside the repository: source snapshot, import manifest, `sha256`,

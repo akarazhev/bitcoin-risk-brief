@@ -11,6 +11,7 @@ This directory documents the current Bitcoin Risk Brief mini-product in English.
 - [API Reference](api-reference.md): public endpoints, request/response shapes, cache headers, latest model-price/OHLC fields, and readiness semantics.
 - [Waitlist](waitlist.md): lead capture behavior, validation rules, storage model, and privacy notes.
 - [Security and Privacy](security-and-privacy.md): headers, input validation, rate limiting, bot/abuse protection, caching safety, secrets, and PII handling.
+- [Dependency and License Review](dependency-license-review.md): dated local dependency inventory, lockfile license metadata, container image references, and pending external/manual confirmations.
 - [Operations](operations.md): local commands, automatic and manual CoinMarketCap CSV refresh, public cache warmup, container lifecycle, database maintenance, USB kit v2 packaging/updates, backups, ownership checks, and troubleshooting.
 - [Ubuntu and Cloudflare Tunnel Deployment](deploy-ubuntu-cloudflare.md): local-server deployment for Ubuntu, ByFly, Cloudflare Tunnel, USB install/update flow, backups, monitoring, and rollback.
 - [MSI Cubi 5 Ubuntu Server Setup](server-msi-cubi5-ubuntu-26.04.md): from-scratch guide for BIOS, Ubuntu Server 26.04 LTS, firewall, security, Podman Compose, USB kit deployments, ByFly, and Cloudflare Tunnel without remote SSH.
