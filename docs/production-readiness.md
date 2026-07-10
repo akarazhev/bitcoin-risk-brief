@@ -240,7 +240,7 @@ Launch governance gap pass recorded on 2026-07-10:
 | Credential/account ownership and recovery record | pending operator decision | Required ownership categories are documented for GitHub, Cloudflare, domain, production `.env`, backups, server access, and optional CoinMarketCap credentials, but actual owners/recovery paths are intentionally absent from the repository. | Maintain the owner and recovery record outside Git; record only sanitized completion status here if needed. |
 | Data-source terms and attribution review | pending operator decision | No completed CoinMarketCap public CSV, optional API, or future methodology-source terms/attribution review evidence is recorded. | Review source terms and attribution requirements before broader launch or commercial/portfolio claims; record only sanitized outcome and date. |
 | Dependency/security maintenance cadence | passed with existing repo evidence | [Security and Privacy](security-and-privacy.md) and [Operations](operations.md) define a monthly manual review until automation is chosen. | The cadence is documented; the first completed review evidence remains pending and should record only date, scope, outcome, and follow-up. |
-| Accessibility pass evidence | pending external evidence | Browser-capable public-hostname QA and 2026-07-10 source inspection are recorded, but no focused keyboard, screen-reader, color-contrast, mobile text-fit, or chart accessibility pass evidence is recorded. | Run and record a focused accessibility pass or explicitly accept the limitation for the controlled traffic window. |
+| Accessibility pass evidence | partial; local automated axe verified | Browser-capable public-hostname QA, source inspection, and the 2026-07-10 focused local axe pass are recorded. `@axe-core/playwright` was added to the Playwright smoke suite, and `npm run smoke --prefix frontend` passed 20 checks outside the sandbox across Chromium, Firefox, WebKit, Pixel 5, and iPhone 13 profiles with no axe violations reported. | Run and record manual keyboard, screen-reader/assistive-tech, physical-device/native browser, and chart screen-reader-alternative evidence, or explicitly accept those limitations for the controlled traffic window. |
 | SEO/social metadata pass evidence | implemented locally; production verification pending | 2026-07-10 local source/build inspection confirmed `frontend/index.html` and `frontend/dist/index.html` include the title, meta description, canonical URL, Open Graph type/title/description/url/site name, and Twitter card/title/description. `og:image` and `twitter:image` are intentionally omitted because no real repo-served production image asset exists. The earlier public homepage GET still showed missing tags before this deploy. | Deploy/update the frontend and verify `https://bitcoinriskbrief.minihub.app/` returns the metadata. Keep image metadata omitted unless a real publicly served production image asset is added. |
 | Incident response readiness | passed with existing repo evidence | [Operations](operations.md) includes the first-response runbook, monitoring alert expectations, bad-data correction policy, restore guidance, and cache-safety procedures. | Keep the runbook aligned as new monitor, restore, and provenance evidence arrives. |
 | Release notes or decision log | passed with existing repo evidence | This document and [Production Roadmap](production-roadmap.md) contain dated evidence notes and decision/status history through 2026-07-10. | Add the final launch snapshot note only when the actual first-traffic window is ready; do not reuse the stale 2026-07-05 snapshot as a launch-ready note. |
@@ -250,7 +250,7 @@ Launch governance gap pass recorded on 2026-07-10:
 | External monitoring and alert delivery | blocked | The 2026-07-10 monitoring pass found no monitor-provider dashboard/API proof, alert rules, Cloudflare connector notification evidence, or delivery-test evidence. | Configure or show provider/dashboard evidence and alert delivery proof for health, readiness/freshness, stale data, collector failure, backup freshness, and Cloudflare Tunnel health. |
 | Import provenance source archive and direct production metadata | pending external evidence | The 2026-07-09 pass publicly verified data/cache consistency but did not prove the exact source path/category, source archive, direct production validation/import table metadata, or collector command evidence. | Capture a sanitized production import evidence packet outside the repository with source snapshot, manifest, `sha256`, retrieval metadata, row counts/range, validation/readiness output, and cache evidence. |
 | Restore drill | accepted limitation for operator-watched first traffic | One checksum-verified off-server USB backup copy is recorded for 2026-07-07, but the current setup has only the live production server and no staging or empty restore target. | Defer the drill until a separate target exists; do not run restore testing against live production. Record target type and readiness result after the drill. |
-| First traffic test | blocked | No first traffic window has run. Freshness and waitlist smoke evidence exist, but launch governance, monitoring/alerts, provenance, backup freshness, focused accessibility, public-host metadata verification, and final snapshot evidence remain incomplete or explicitly limited. | Run only after freshness is rechecked and all launch gates are either completed or explicitly accepted for an operator-watched first traffic window. |
+| First traffic test | blocked | No first traffic window has run. Freshness and waitlist smoke evidence exist, but launch governance, monitoring/alerts, provenance, backup freshness, manual accessibility limitations, public-host metadata verification, and final snapshot evidence remain incomplete or explicitly limited. | Run only after freshness is rechecked and all launch gates are either completed or explicitly accepted for an operator-watched first traffic window. |
 
 Browser/device/accessibility/metadata gap pass recorded on 2026-07-10:
 
@@ -292,6 +292,33 @@ SEO/social metadata local implementation recorded on 2026-07-10:
   `frontend/index.html` and `frontend/dist/index.html`.
 - Production status: not deployed or public-host verified in this pass. The production/public metadata gate remains
   pending until `https://bitcoinriskbrief.minihub.app/` serves the new tags.
+
+Focused accessibility local pass recorded on 2026-07-10:
+
+- Scope/safety: focused frontend test/tooling and docs only. No deploy, refresh/import, cache warmup, waitlist POST,
+  Cloudflare/routing change, commit, push, or tag was performed. No secrets, raw waitlist contacts, private account
+  details, dashboard URLs, tokens, `.env` values, private contacts, or PII were recorded.
+- Tooling: no axe, pa11y, or Lighthouse tool was present at the start of this pass. The sandboxed install attempt for
+  `@axe-core/playwright` failed with DNS `ENOTFOUND`; the approved network rerun installed `@axe-core/playwright` 4.12.1
+  and `axe-core` 4.12.1. The install audit reported 0 vulnerabilities.
+- Local implementation: `frontend/e2e/frontend-quality.spec.ts` now runs a focused axe scan after the mocked production
+  page and chart canvases render.
+- Local verification: `npm test --prefix frontend` passed 2 files / 21 tests; `npm run build --prefix frontend` passed;
+  `npm run smoke --prefix frontend` was first blocked in the sandbox by `listen EPERM: operation not permitted
+  127.0.0.1:4173`, then passed 20 Playwright checks outside the sandbox. The focused axe scan passed in Chromium,
+  Firefox, WebKit, Pixel 5, and iPhone 13 profiles with no reported violations.
+- Manual/source checklist: `frontend/index.html` declares `html lang="en"`; the app renders `main`, language `nav`,
+  section/article structure, a single page `h1`, `h2` section headings, `h3` brief-card headings, an aria-labeled
+  waitlist input, visible waitlist success/error text, focus-visible styles for primary controls, chart loading/empty
+  `role="status"` fallbacks, an `aria-live` API error state, and aria labels around language/current-state/methodology
+  and threshold areas.
+- Limitations: this is local automated/source evidence, not a manual keyboard pass, screen-reader/assistive-tech pass,
+  physical-device/native browser pass, production-host pass, or full accessibility conformance audit. Axe can evaluate
+  rendered DOM color contrast, but not canvas-drawn chart internals; the charts still do not expose a screen-reader
+  equivalent data table. Waitlist success/error announcement timing is also unverified because those messages are
+  visible text rather than a live region.
+- Accessibility gate status: partial. The prior "focused accessibility evidence pending" state is replaced by local
+  automated axe evidence, but manual/native/assistive-tech and chart alternative evidence remain launch limitations.
 
 Monitoring, alerts, and single-server restore evidence pass recorded on 2026-07-08:
 

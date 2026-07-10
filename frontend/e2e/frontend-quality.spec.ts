@@ -1,4 +1,5 @@
 import { expect, test, type Page, type Route } from '@playwright/test'
+import AxeBuilder from '@axe-core/playwright'
 
 const latestRisk = {
   data: {
@@ -167,6 +168,25 @@ test('renders desktop and mobile layouts with non-empty chart canvases', async (
   await expect(page.getByText('Neutral / High near $118,000')).toBeVisible()
   await expectNoHorizontalOverflow(page)
   await expectNonBlankCharts(page, testInfo.project.name.startsWith('mobile') ? 280 : 440)
+})
+
+test('passes a focused axe accessibility scan on the rendered page', async ({ page }, testInfo) => {
+  await mockApi(page)
+
+  await page.goto('/')
+
+  await expect(page.getByRole('heading', { name: 'Bitcoin Risk Brief' })).toBeVisible()
+  await expectNonBlankCharts(page, testInfo.project.name.startsWith('mobile') ? 280 : 440)
+
+  const accessibilityScanResults = await new AxeBuilder({ page }).analyze()
+  const violations = accessibilityScanResults.violations.map((violation) => ({
+    id: violation.id,
+    impact: violation.impact,
+    description: violation.description,
+    nodes: violation.nodes.map((node) => node.target),
+  }))
+
+  expect(violations).toEqual([])
 })
 
 test('renders degraded readiness as a visible degraded state', async ({ page }) => {

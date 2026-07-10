@@ -99,7 +99,7 @@ Automated checks run from this workstation:
 | --- | --- |
 | `npm test --prefix frontend` | Passed: 2 test files, 21 tests. |
 | `npm run build --prefix frontend` | Passed. Output kept `index` at 211.31 kB minified / 67.61 kB gzip and lazy `Chart` at 557.61 kB minified / 188.87 kB gzip. |
-| `npm run smoke --prefix frontend` | First sandboxed attempt was blocked by `listen EPERM: operation not permitted 127.0.0.1:4173`; rerun outside the sandbox passed 15 Playwright checks. |
+| `npm run smoke --prefix frontend` | First sandboxed attempt was blocked by `listen EPERM: operation not permitted 127.0.0.1:4173`; rerun outside the sandbox passed 20 Playwright checks, including the focused axe scan. |
 
 Browser/device status:
 
@@ -111,12 +111,31 @@ Browser/device status:
 
 Accessibility status:
 
-- No dedicated axe, pa11y, Lighthouse, or equivalent accessibility script is configured in `frontend/package.json`, and
-  no focused accessibility pass was run.
-- Source inspection found `html lang="en"`, semantic `main`, `nav`, section/article structure, headings, several
-  `aria-label` attributes, status fallbacks, an `aria-live` error state, and an aria-labeled waitlist input.
-- This source inspection is not a keyboard, screen-reader, color-contrast, mobile text-fit, or chart accessibility pass.
-  Focused accessibility evidence remains pending.
+- `@axe-core/playwright` was added as focused accessibility tooling and integrated into
+  `frontend/e2e/frontend-quality.spec.ts`.
+- The new Playwright check loads the mocked local production page, waits for the chart canvases to render, runs axe on
+  the rendered DOM, and fails on any axe violation.
+- `npm install --prefix frontend --save-dev @axe-core/playwright` initially failed in the sandbox with DNS
+  `ENOTFOUND`; the approved network rerun installed `@axe-core/playwright` 4.12.1 and `axe-core` 4.12.1, with npm audit
+  reporting 0 vulnerabilities.
+- `npm run smoke --prefix frontend` passed 20 checks outside the sandbox across Playwright Chromium, Firefox, WebKit,
+  Pixel 5, and iPhone 13 profiles. The focused axe scan passed in each profile with no reported violations.
+- This is local automated evidence only. It is not a screen-reader test, manual keyboard pass, physical-device/native
+  browser pass, production-host pass, or full accessibility conformance audit.
+
+Manual/source checklist:
+
+| Area | Finding |
+| --- | --- |
+| Document language | `frontend/index.html` declares `<html lang="en">`. |
+| Landmarks and semantic structure | The app renders a `main` landmark, a language `nav`, sections, articles, and a methodology `dl`. |
+| Heading order | Source inspection shows one page `h1`, followed by section `h2` headings and brief-card `h3` headings. |
+| Form labels and status messaging | The waitlist input has an `aria-label`; the submit button has visible text. Waitlist success/error text is visible but is not a live region, so announcement timing remains unverified. |
+| Keyboard focus | CSS defines `:focus-visible` outlines for the methodology link, language button, waitlist input, and submit button. A manual tab-order pass was not run. |
+| ARIA and live regions | Source includes `aria-label` on language/current-state/methodology/threshold areas, `role="status"` on chart loading/empty placeholders, and an `aria-live` API error state. |
+| Chart accessibility | Charts render as non-empty canvas elements and nearby text exposes the current risk, threshold callouts, and model inputs, but there is no screen-reader-equivalent chart data table. |
+| Color and contrast | Axe reported no violations for rendered DOM content it can evaluate. Canvas-drawn chart internals remain outside this evidence. |
+| Reduced motion and responsive text fit | ECharts animation is disabled and the smoke suite checks horizontal overflow in desktop/mobile profiles. No separate OS reduced-motion or physical-device text-fit pass was run. |
 
 Public metadata status from `GET https://bitcoinriskbrief.minihub.app/` on 2026-07-10:
 
@@ -141,10 +160,10 @@ Local SEO/social metadata implementation recorded on 2026-07-10:
   public-host metadata verification remains pending until the frontend is deployed and checked on
   `https://bitcoinriskbrief.minihub.app/`.
 
-Overall browser/device/accessibility/metadata launch-gate status: partial/blocked. Automated Playwright smoke and source
-inspection provide useful evidence, and local SEO/social metadata implementation is now verified. The full native/manual
-browser-device matrix, focused accessibility pass, and public-host SEO/social metadata verification are still not
-launch-passed.
+Overall browser/device/accessibility/metadata launch-gate status: partial/blocked. Automated Playwright smoke, the local
+axe scan, source inspection, and local SEO/social metadata implementation provide useful evidence. The full
+native/manual browser-device matrix, manual keyboard/screen-reader evidence, chart screen-reader alternative evidence,
+and public-host SEO/social metadata verification are still not launch-passed.
 
 ## Reproducing Locally
 

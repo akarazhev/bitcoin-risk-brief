@@ -56,7 +56,7 @@ sender or bot ownership, unsubscribe or stop handling, provider recovery, no-adv
 ## Launch Governance Status
 
 The current launch governance checklist is recorded in [Production Readiness](production-readiness.md). Security and
-privacy status as of the 2026-07-10 gap pass and local metadata implementation:
+privacy status as of the 2026-07-10 gap pass, local metadata implementation, and focused local accessibility pass:
 
 | Area | Status classification | Notes |
 | --- | --- | --- |
@@ -66,7 +66,7 @@ privacy status as of the 2026-07-10 gap pass and local metadata implementation:
 | Credential and account ownership | pending operator decision | The account categories below are the required ownership categories. Actual account holders, recovery channels, and secret locations must stay in an operator-controlled record outside this repository. |
 | Data-source terms and attribution review | pending operator decision | No completed CoinMarketCap public CSV, optional CoinMarketCap API, or future methodology-source terms review evidence is recorded here. Record a sanitized review outcome before broader launch or commercial/portfolio source-rights claims. |
 | Dependency and security maintenance cadence | passed with existing repo evidence | The cadence is a manual monthly review of container images, Python dependencies, npm dependencies, GitHub Actions versions, advisories, vulnerability scans, and secret-scan output until automation such as Dependabot or Renovate is chosen. The latest completed review evidence is not recorded yet. |
-| Accessibility and metadata evidence | partial; metadata implemented locally, public verification pending | Browser-capable public-hostname QA and the 2026-07-10 local Playwright profile smoke are recorded with limitations. Focused accessibility evidence remains pending. `frontend/index.html` now includes title, meta description, canonical URL, Open Graph, and Twitter summary-card metadata, with image metadata intentionally omitted because no real repo-served production image asset exists. Public-host metadata verification remains pending until deployment. |
+| Accessibility and metadata evidence | partial; local axe verified, metadata implemented locally, public verification pending | Browser-capable public-hostname QA and the 2026-07-10 local Playwright profile smoke are recorded with limitations. `@axe-core/playwright` is now integrated into the smoke suite, and the focused local axe scan passed across Chromium, Firefox, WebKit, Pixel 5, and iPhone 13 profiles with no reported violations. Manual keyboard, screen-reader/assistive-tech, native/physical-device, and chart alternative evidence remain pending. `frontend/index.html` now includes title, meta description, canonical URL, Open Graph, and Twitter summary-card metadata, with image metadata intentionally omitted because no real repo-served production image asset exists. Public-host metadata verification remains pending until deployment. |
 
 ## Product Analytics Privacy
 
