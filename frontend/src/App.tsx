@@ -5,8 +5,9 @@ import { fetchBrief, fetchLatestRisk, fetchReadiness, fetchRiskHistory, fetchRis
 import type { BriefPayload, ReadinessPayload, RiskLevel, RiskPoint } from './types'
 
 type Locale = 'en' | 'ru'
-type ThresholdCallout = { risk: number; text: string }
+type ThresholdCallout = { risk: number; label: string; price: string; text: string }
 const COMPACT_CHART_QUERY = '(max-width: 640px)'
+const ACCESSIBLE_HISTORY_POINTS = 6
 const AUTO_CHART_SIZE = { width: 'auto', height: 'auto' } as const
 const Chart = lazy(() => import('./Chart'))
 
@@ -39,6 +40,21 @@ const copy = {
     disclaimer: 'Risk levels are scenario outputs, not financial advice or trading instructions.',
     thresholdCallouts: 'Nearest threshold prices',
     thresholdNear: (label: string, price: string) => `${label} near ${price}`,
+    riskHistoryAlternative: 'Risk history chart data alternative',
+    riskLevelsAlternative: 'Risk level chart data alternative',
+    chartCurrentSummary: (date: string, risk: string, state: string, modelPrice: string, range: string) => `Latest observation ${date}: current risk is ${risk} (${state}) and model price is ${modelPrice}${range}.`,
+    chartCurrentRange: (low: string, high: string) => `, with latest daily low ${low} and high ${high}`,
+    riskHistoryAlternativeNote: (count: number) => `The table lists the ${count} most recent risk history observations available to the chart.`,
+    riskLevelsAlternativeNote: 'The table lists the key risk threshold prices used with the risk levels chart.',
+    dateColumn: 'Date',
+    riskColumn: 'Risk',
+    priceColumn: 'BTC price',
+    stateColumn: 'Risk state',
+    thresholdColumn: 'Risk threshold',
+    bandColumn: 'Band',
+    nearestModelPriceColumn: 'Nearest model price',
+    recentRiskHistoryTable: 'Recent risk history table',
+    riskThresholdPriceTable: 'Risk threshold price table',
     history: 'Risk history',
     levels: 'Risk levels',
     brief: 'Today brief',
@@ -88,6 +104,21 @@ const copy = {
     disclaimer: 'Уровни риска - сценарные расчеты, а не финансовый совет или торговая инструкция.',
     thresholdCallouts: 'Ближайшие пороги цены',
     thresholdNear: (label: string, price: string) => `${label}: около ${price}`,
+    riskHistoryAlternative: 'Альтернатива данным графика истории риска',
+    riskLevelsAlternative: 'Альтернатива данным графика уровней риска',
+    chartCurrentSummary: (date: string, risk: string, state: string, modelPrice: string, range: string) => `Последнее наблюдение ${date}: текущий риск ${risk} (${state}), цена модели ${modelPrice}${range}.`,
+    chartCurrentRange: (low: string, high: string) => `, дневной минимум ${low}, максимум ${high}`,
+    riskHistoryAlternativeNote: (count: number) => `Таблица показывает ${count} последних наблюдений риска, доступных на графике.`,
+    riskLevelsAlternativeNote: 'Таблица показывает ключевые пороговые цены, используемые с графиком уровней риска.',
+    dateColumn: 'Дата',
+    riskColumn: 'Риск',
+    priceColumn: 'Цена BTC',
+    stateColumn: 'Состояние риска',
+    thresholdColumn: 'Порог риска',
+    bandColumn: 'Диапазон',
+    nearestModelPriceColumn: 'Ближайшая цена модели',
+    recentRiskHistoryTable: 'Таблица недавней истории риска',
+    riskThresholdPriceTable: 'Таблица пороговых цен риска',
     history: 'История риска',
     levels: 'Уровни риска',
     brief: 'Сегодняшний бриф',
@@ -238,12 +269,16 @@ export default function App() {
       const level = nearestRiskLevel(levels, targetRisk)
       if (!level) return []
       const label = t.riskZones[index]
+      const price = formatUsd(level.price_usd)
       return [{
         risk: targetRisk,
-        text: t.thresholdNear(label, formatUsd(level.price_usd)),
+        label,
+        price,
+        text: t.thresholdNear(label, price),
       }]
     })
   }, [levels, t])
+  const accessibleHistory = useMemo(() => history.slice(-ACCESSIBLE_HISTORY_POINTS), [history])
 
   async function submitWaitlist(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -286,6 +321,13 @@ export default function App() {
   const methodologyVersion = readiness.data.methodology_version ?? 'unknown'
   const modelPriceUsd = latest.model_price_usd ?? latest.price_usd
   const hasDailyRange = typeof latest.low_usd === 'number' && typeof latest.high_usd === 'number'
+  const chartCurrentSummary = t.chartCurrentSummary(
+    latest.timestamp.slice(0, 10),
+    formatPercent(latest.risk),
+    state,
+    formatUsd(modelPriceUsd),
+    hasDailyRange ? t.chartCurrentRange(formatUsd(latest.low_usd as number), formatUsd(latest.high_usd as number)) : '',
+  )
 
   return (
     <main className="shell">
@@ -385,9 +427,9 @@ export default function App() {
       </section>
 
       <section className="charts">
-        <article className="chart-panel">
+        <article className="chart-panel" aria-labelledby="risk-history-heading">
           <div className="chart-heading">
-            <h2>{t.history}</h2>
+            <h2 id="risk-history-heading">{t.history}</h2>
             <div className="risk-thresholds" aria-label="Risk thresholds">
               {t.riskZones.map((label) => <span key={label}>{label}</span>)}
             </div>
@@ -397,20 +439,79 @@ export default function App() {
               {thresholdCallouts.map((callout) => <span key={callout.risk}>{callout.text}</span>)}
             </div>
           )}
+          <section className="sr-only" aria-labelledby="risk-history-alternative-heading">
+            <h3 id="risk-history-alternative-heading">{t.riskHistoryAlternative}</h3>
+            <p id="risk-history-chart-summary">{chartCurrentSummary}</p>
+            {accessibleHistory.length > 0 && (
+              <>
+                <p id="risk-history-chart-note">{t.riskHistoryAlternativeNote(accessibleHistory.length)}</p>
+                <table aria-describedby="risk-history-chart-summary risk-history-chart-note">
+                  <caption>{t.recentRiskHistoryTable}</caption>
+                  <thead>
+                    <tr>
+                      <th scope="col">{t.dateColumn}</th>
+                      <th scope="col">{t.riskColumn}</th>
+                      <th scope="col">{t.priceColumn}</th>
+                      <th scope="col">{t.stateColumn}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {accessibleHistory.map((point) => (
+                      <tr key={point.timestamp}>
+                        <td>{point.timestamp.slice(0, 10)}</td>
+                        <td>{formatPercent(point.risk)}</td>
+                        <td>{formatUsd(point.price_usd)}</td>
+                        <td>{stateLabel(point.risk_state, locale)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </>
+            )}
+          </section>
           {history.length > 0 ? (
-            <Suspense fallback={<div className="chart-placeholder" role="status">{t.chartLoading}</div>}>
-              <Chart option={riskOption} notMerge opts={AUTO_CHART_SIZE} onChartReady={resizeChartWhenReady} style={{ height: 360, width: '100%' }} />
-            </Suspense>
+            <div className="chart-visual" role="img" aria-labelledby="risk-history-heading" aria-describedby="risk-history-chart-summary risk-history-chart-note">
+              <Suspense fallback={<div className="chart-placeholder" role="status">{t.chartLoading}</div>}>
+                <Chart option={riskOption} notMerge opts={AUTO_CHART_SIZE} onChartReady={resizeChartWhenReady} style={{ height: 360, width: '100%' }} />
+              </Suspense>
+            </div>
           ) : (
             <div className="chart-empty" role="status">{t.historyEmpty}</div>
           )}
         </article>
-        <article className="chart-panel">
-          <h2>{t.levels}</h2>
+        <article className="chart-panel" aria-labelledby="risk-levels-heading">
+          <h2 id="risk-levels-heading">{t.levels}</h2>
+          {thresholdCallouts.length > 0 && (
+            <section className="sr-only" aria-labelledby="risk-levels-alternative-heading">
+              <h3 id="risk-levels-alternative-heading">{t.riskLevelsAlternative}</h3>
+              <p id="risk-levels-chart-summary">{t.riskLevelsAlternativeNote}</p>
+              <table aria-describedby="risk-levels-chart-summary">
+                <caption>{t.riskThresholdPriceTable}</caption>
+                <thead>
+                  <tr>
+                    <th scope="col">{t.thresholdColumn}</th>
+                    <th scope="col">{t.bandColumn}</th>
+                    <th scope="col">{t.nearestModelPriceColumn}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {thresholdCallouts.map((callout) => (
+                    <tr key={callout.risk}>
+                      <td>{formatPercent(callout.risk)}</td>
+                      <td>{callout.label}</td>
+                      <td>{callout.price}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </section>
+          )}
           {levels.length > 0 ? (
-            <Suspense fallback={<div className="chart-placeholder" role="status">{t.chartLoading}</div>}>
-              <Chart option={levelsOption} notMerge opts={AUTO_CHART_SIZE} onChartReady={resizeChartWhenReady} style={{ height: 360, width: '100%' }} />
-            </Suspense>
+            <div className="chart-visual" role="img" aria-labelledby="risk-levels-heading" aria-describedby="risk-levels-chart-summary">
+              <Suspense fallback={<div className="chart-placeholder" role="status">{t.chartLoading}</div>}>
+                <Chart option={levelsOption} notMerge opts={AUTO_CHART_SIZE} onChartReady={resizeChartWhenReady} style={{ height: 360, width: '100%' }} />
+              </Suspense>
+            </div>
           ) : (
             <div className="chart-empty" role="status">{t.levelsEmpty}</div>
           )}

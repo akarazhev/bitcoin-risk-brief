@@ -365,8 +365,9 @@ test('lets ECharts derive chart dimensions from the rendered container', async (
 test('uses accessible risk threshold labels outside the chart canvas', async () => {
   render(<App />)
 
-  expect(await screen.findByText('Low / Neutral')).toBeInTheDocument()
-  expect(screen.getByText('Neutral / High')).toBeInTheDocument()
+  const visibleThresholds = within(await screen.findByLabelText('Risk thresholds'))
+  expect(visibleThresholds.getByText('Low / Neutral')).toBeInTheDocument()
+  expect(visibleThresholds.getByText('Neutral / High')).toBeInTheDocument()
   expect(screen.getByText('Low / Neutral near $82,000')).toBeInTheDocument()
   expect(screen.getByText('Neutral / High near $118,000')).toBeInTheDocument()
 
@@ -381,10 +382,43 @@ test('uses accessible risk threshold labels outside the chart canvas', async () 
   expect(riskOption.series[0].markLine.data).toEqual([{ yAxis: 0.35 }, { yAxis: 0.65 }])
 })
 
+test('renders screen-reader chart data alternatives for current risk, recent history, and thresholds', async () => {
+  render(<App />)
+
+  const riskChart = await screen.findByRole('img', { name: 'Risk history' })
+  expect(riskChart).toHaveAccessibleDescription(/Latest observation 2026-06-26: current risk is 70% \(High\)/)
+  expect(riskChart).toHaveAccessibleDescription(/model price is \$100,000/)
+  expect(riskChart).toHaveAccessibleDescription(/latest daily low \$96,500 and high \$104,250/)
+
+  const historyTable = screen.getByRole('table', { name: 'Recent risk history table' })
+  expect(within(historyTable).getByText('2026-06-24')).toBeInTheDocument()
+  expect(within(historyTable).getByText('52%')).toBeInTheDocument()
+  expect(within(historyTable).getByText('$98,000')).toBeInTheDocument()
+  expect(within(historyTable).getAllByText('Neutral')).toHaveLength(2)
+
+  const levelsChart = screen.getByRole('img', { name: 'Risk levels' })
+  expect(levelsChart).toHaveAccessibleDescription('The table lists the key risk threshold prices used with the risk levels chart.')
+
+  const thresholdTable = screen.getByRole('table', { name: 'Risk threshold price table' })
+  expect(within(thresholdTable).getByText('35%')).toBeInTheDocument()
+  expect(within(thresholdTable).getByText('65%')).toBeInTheDocument()
+  expect(within(thresholdTable).getByText('$82,000')).toBeInTheDocument()
+  expect(within(thresholdTable).getByText('$118,000')).toBeInTheDocument()
+})
+
 test('defines visible keyboard focus states for interactive controls', () => {
   const css = readFileSync(resolve(process.cwd(), 'src/App.css'), 'utf8')
 
   expect(css).toContain('.lang:focus-visible')
   expect(css).toContain('.lead-form input:focus-visible')
   expect(css).toContain('.lead-form button:focus-visible')
+})
+
+test('defines a standard screen-reader-only utility for hidden chart data', () => {
+  const css = readFileSync(resolve(process.cwd(), 'src/App.css'), 'utf8')
+
+  expect(css).toContain('.sr-only')
+  expect(css).toContain('position: absolute')
+  expect(css).toContain('width: 1px')
+  expect(css).toContain('clip: rect(0, 0, 0, 0)')
 })

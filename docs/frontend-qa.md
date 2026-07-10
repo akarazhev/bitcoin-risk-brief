@@ -38,7 +38,7 @@ mark-line, and canvas modules used by the page.
 
 Last local `npm run build --prefix frontend` output:
 
-- `index` JS: 210.53 kB minified, 67.43 kB gzip;
+- `index` JS: 215.92 kB minified, 68.57 kB gzip;
 - `Chart` lazy chunk: 557.61 kB minified, 188.87 kB gzip.
 
 `frontend/vite.config.ts` sets `chunkSizeWarningLimit` to `650` kB so this accepted lazy chart chunk does not produce an
@@ -97,8 +97,8 @@ Automated checks run from this workstation:
 
 | Check | Result |
 | --- | --- |
-| `npm test --prefix frontend` | Passed: 2 test files, 21 tests. |
-| `npm run build --prefix frontend` | Passed. Output kept `index` at 211.31 kB minified / 67.61 kB gzip and lazy `Chart` at 557.61 kB minified / 188.87 kB gzip. |
+| `npm test --prefix frontend` | Passed: 2 test files, 23 tests. |
+| `npm run build --prefix frontend` | Passed. Output kept `index` at 215.92 kB minified / 68.57 kB gzip and lazy `Chart` at 557.61 kB minified / 188.87 kB gzip. |
 | `npm run smoke --prefix frontend` | First sandboxed attempt was blocked by `listen EPERM: operation not permitted 127.0.0.1:4173`; rerun outside the sandbox passed 20 Playwright checks, including the focused axe scan. |
 
 Browser/device status:
@@ -120,8 +120,8 @@ Accessibility status:
   reporting 0 vulnerabilities.
 - `npm run smoke --prefix frontend` passed 20 checks outside the sandbox across Playwright Chromium, Firefox, WebKit,
   Pixel 5, and iPhone 13 profiles. The focused axe scan passed in each profile with no reported violations.
-- This is local automated evidence only. It is not a screen-reader test, manual keyboard pass, physical-device/native
-  browser pass, production-host pass, or full accessibility conformance audit.
+- This is local automated evidence only. It is not a manual screen-reader/assistive-tech test, manual keyboard pass,
+  physical-device/native browser pass, production-host pass, or full accessibility conformance audit.
 
 Manual/source checklist:
 
@@ -133,7 +133,7 @@ Manual/source checklist:
 | Form labels and status messaging | The waitlist input has an `aria-label`; the submit button has visible text. Waitlist success/error text is visible but is not a live region, so announcement timing remains unverified. |
 | Keyboard focus | CSS defines `:focus-visible` outlines for the methodology link, language button, waitlist input, and submit button. A manual tab-order pass was not run. |
 | ARIA and live regions | Source includes `aria-label` on language/current-state/methodology/threshold areas, `role="status"` on chart loading/empty placeholders, and an `aria-live` API error state. |
-| Chart accessibility | Charts render as non-empty canvas elements and nearby text exposes the current risk, threshold callouts, and model inputs, but there is no screen-reader-equivalent chart data table. |
+| Chart accessibility | Charts render as non-empty canvas elements. The local implementation now provides a screen-reader-only current chart summary, recent risk-history table, and risk-threshold price table outside the canvas. Manual screen-reader/assistive-tech behavior remains unverified. |
 | Color and contrast | Axe reported no violations for rendered DOM content it can evaluate. Canvas-drawn chart internals remain outside this evidence. |
 | Reduced motion and responsive text fit | ECharts animation is disabled and the smoke suite checks horizontal overflow in desktop/mobile profiles. No separate OS reduced-motion or physical-device text-fit pass was run. |
 
@@ -160,10 +160,30 @@ Local SEO/social metadata implementation recorded on 2026-07-10:
   public-host metadata verification remains pending until the frontend is deployed and checked on
   `https://bitcoinriskbrief.minihub.app/`.
 
+Chart accessibility alternative local implementation recorded on 2026-07-10:
+
+- Scope/safety: frontend code/tests/docs only. No deploy, waitlist POST, data refresh/import, cache warmup,
+  Cloudflare/routing change, commit, push, or tag was performed.
+- Local implementation: `frontend/src/App.tsx` now renders a semantic screen-reader-only alternative near the chart
+  panels: a concise current chart summary with latest date, current risk/state, model price, and daily low/high when
+  present; a recent risk-history table limited to the latest six history observations; and a risk-threshold price table
+  for the key 35% and 65% bands. `frontend/src/App.css` defines a standard `.sr-only` utility so this data does not add
+  visible clutter.
+- Chart containers now have accessible names/descriptions tied to the non-canvas summary/table content. The canvas
+  charts remain visible for sighted users, and the smoke suite still verifies both canvases are non-empty.
+- Focused local tests verify the current risk summary, recent risk-history rows, threshold table content, `.sr-only`
+  utility, chart accessible descriptions, Playwright chart-alternative presence, and the axe scan.
+- Local verification passed: `npm test --prefix frontend` passed 2 files / 23 tests; `npm run build --prefix frontend`
+  passed; `npm run smoke --prefix frontend` was first blocked in the sandbox by `listen EPERM: operation not permitted
+  127.0.0.1:4173`, then passed 20 Playwright checks outside the sandbox across Chromium, Firefox, WebKit, Pixel 5, and
+  iPhone 13 profiles, including the focused axe scan.
+- Limitations: this is local automated/source evidence. It is not a manual screen-reader/assistive-tech pass, manual
+  keyboard pass, physical-device/native browser pass, production-host pass, or full WCAG/accessibility compliance audit.
+
 Overall browser/device/accessibility/metadata launch-gate status: partial/blocked. Automated Playwright smoke, the local
-axe scan, source inspection, and local SEO/social metadata implementation provide useful evidence. The full
-native/manual browser-device matrix, manual keyboard/screen-reader evidence, chart screen-reader alternative evidence,
-and public-host SEO/social metadata verification are still not launch-passed.
+axe scan, source inspection, local chart data alternative, and local SEO/social metadata implementation provide useful
+evidence. The full native/manual browser-device matrix, manual keyboard/screen-reader/assistive-tech evidence, production
+host evidence, and public-host SEO/social metadata verification are still not launch-passed.
 
 ## Reproducing Locally
 
