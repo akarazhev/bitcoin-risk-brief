@@ -173,6 +173,50 @@ curl -fsS http://127.0.0.1:3001/api/readiness
   result, off-server copy confirmation, restore target type, and readiness result. Do not record `.env` values,
   secrets, waitlist contacts, raw dump or CSV contents, or private off-server paths.
 
+Monitoring and alerts evidence pass recorded on 2026-07-10 at 06:13 UTC for
+`https://bitcoinriskbrief.minihub.app`:
+
+- Scope/safety: docs and evidence pass only. No deploy, refresh/import, cache warmup, commit, push, or tag was performed.
+  This note intentionally records only redacted operational metadata and does not include tokens, account IDs, private
+  dashboard URLs, recipient contacts, phone numbers, IPs, raw logs with PII, `.env` values, credentials, or waitlist
+  contacts.
+- Local repository state before the docs edit: `git status --short --branch` returned `## main...origin/main`.
+- Public endpoint checks: the first sandboxed DNS attempt failed, then the required public curl checks were rerun with
+  network access. `GET /api/health` returned HTTP 200 with `status: ok` and `cf-cache-status: DYNAMIC`.
+- Public readiness: `GET /api/readiness` returned HTTP 200 with `status: ready`, `data_fresh: true`,
+  `latest_date: 2026-07-09`, `covered_end: 2026-07-09`, `data_age_days: 1`, `max_age_days: 2`,
+  `source: coinmarketcap_csv`, `row_count: 5841`, and methodology `crypto-scout-canonical-v1`. Relevant public cache
+  headers were `Cache-Control: public, max-age=60, stale-while-revalidate=300`, `ETag: "2982cd45d5bc626fecfb86c4"`,
+  `X-Cache: MISS`, `X-Cache-Version` marker
+  `validation:2026-07-10T01:00:06.300719+00:00:2026-07-09T00:00:00+00:00:5841:true`, and
+  `cf-cache-status: EXPIRED`.
+- Latest risk: `GET /api/risk/latest` returned HTTP 200 for timestamp `2026-07-09T00:00:00+00:00` with
+  `risk_state: low`, risk approximately `0.2494`, `model_price_usd: 62753.94724853333`,
+  `low_usd: 61645.7524817`, and `high_usd: 63422.9415885`. The latest risk date matches readiness `covered_end`.
+  Relevant public cache headers were `Cache-Control: public, max-age=60, stale-while-revalidate=300`,
+  `ETag: "970d143369867a8e06f4af55"`, `X-Cache: MISS`, the same `X-Cache-Version` as readiness, and
+  `cf-cache-status: EXPIRED`.
+- Monitor/provider evidence status: blocked. This workstation session has no external monitoring provider dashboard/API,
+  Cloudflare dashboard/API, alert-delivery dashboard, production host at `/srv/projects/bitcoin-risk-brief`, service
+  logs, or current backup/off-server filesystem evidence available. The repo search found no monitor-provider
+  configuration outside documentation. Therefore this pass does not prove that any production monitor or alert is
+  configured.
+
+| Evidence area | 2026-07-10 status | Exact remaining operator action |
+| --- | --- | --- |
+| External uptime monitor for `/api/health` | Blocked pending provider evidence. Public `/api/health` is currently HTTP 200, but no external uptime monitor dashboard/API proof was available. | Configure or show an external HTTP monitor for `https://bitcoinriskbrief.minihub.app/api/health`; alert on non-200, timeout, or TLS failure; record provider/dashboard name, sanitized check name, interval, latest check status, and delivery route without account details. |
+| External readiness/freshness monitor for `/api/readiness` | Blocked pending provider evidence. Public `/api/readiness` is currently HTTP 200 and fresh, but no monitor assertion or alert evidence was available. | Configure or show an external HTTP monitor for `https://bitcoinriskbrief.minihub.app/api/readiness`; alert when HTTP is non-200, `status` is not `ready`, or `checks.data_fresh` is not `true`; record sanitized assertion and latest check evidence. |
+| Stale-data alert | Blocked pending alert-rule evidence. Current public readiness is fresh, but no stale-data alert rule or delivery proof was available. | After the nightly collector window plus the operator-defined grace period, alert when readiness is HTTP 503, `data_age_days` exceeds `max_age_days`, or `latest_date`/`covered_end` is older than the last completed UTC day. |
+| Collector failure alert | Blocked pending production host or log-alert evidence. No collector container status, scheduled run proof, restart alert, or log-alert dashboard was available from this workstation. | Configure production alerts for `scheduled_refresh_failed`, `public_cmc_download_failed`, API fallback failure, missed scheduled refresh evidence, and repeated `data-collector` restarts; record the alert source and latest passing scheduled run without raw log dumps. |
+| Backup freshness/off-server copy monitor | Blocked for monitor evidence; only historical backup-copy evidence remains. The 2026-07-07 checksum-verified USB off-server backup copy is still the last recorded backup-copy evidence, but no current freshness-window check, recurring backup schedule, or backup alert evidence was available here. | Choose the freshness window, schedule backups and off-server copies, verify `SHA256SUMS`, alert when no checksum-verified backup plus off-server copy exists inside the chosen window, and record only sanitized timestamp basenames/status from the production host. |
+| Cloudflare Tunnel connector health notification | Blocked pending Cloudflare dashboard evidence. Public endpoints prove the hostname path is currently serving, but no connector-down/flapping notification or connector status proof was available. | In Cloudflare Zero Trust, enable or document connector health notifications for the tunnel serving `bitcoinriskbrief.minihub.app`; record notification configured yes/no, connector status, and whether production uses host-service or compose-managed `cloudflared`, without private dashboard URLs or account IDs. |
+| Alert delivery channel | Blocked pending delivery evidence. No email, chat, pager, or other delivery-channel configuration/test proof was available. | Choose the pilot alert channel, send a test notification from the monitoring provider, and record channel type, test time, and delivered/not-delivered result without recipient addresses, handles, phone numbers, tokens, or private contacts. |
+
+- Monitoring/alerts gate status: partial/blocked, not passed. Public health, readiness, and latest-risk endpoints are
+  healthy and current, but provider/dashboard evidence and delivery evidence are missing for every monitor/alert gate.
+  Until these blocked items have operator evidence, broader traffic remains limited to an operator-watched pilot using
+  the first-response runbook in [Operations](operations.md).
+
 Monitoring, alerts, and single-server restore evidence pass recorded on 2026-07-08:
 
 - Production topology constraint: there is currently one server, and that server is production. No staging project,

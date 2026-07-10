@@ -60,9 +60,9 @@ Already implemented:
 
 ## Current Roadmap Status
 
-Verified on 2026-07-07 from repository files, local implementation tags, public hostname checks, and the post-deploy
-evidence in [Production Readiness](production-readiness.md). Local tags remain implementation evidence only; production
-status depends on the recorded operator/public-host evidence.
+Current status reflects evidence through 2026-07-10 from repository files, local implementation tags, public hostname
+checks, and the post-deploy/evidence notes in [Production Readiness](production-readiness.md). Local tags remain
+implementation evidence only; production status depends on the recorded operator/public-host evidence.
 
 | Phase | Status | Repository evidence |
 | --- | --- | --- |
@@ -72,8 +72,8 @@ status depends on the recorded operator/public-host evidence.
 | Phase 4: Frontend Production Quality | Complete | `22793fb`, `frontend/e2e/frontend-quality.spec.ts`, `frontend/src/Chart.tsx`, `docs/frontend-qa.md` |
 | Phase 5: Performance, Caching, And Abuse Protection | Complete in repository; post-deploy Cloudflare HIT/fast repeat behavior verified for public smoke | `3c66df9`, `5bb179d`, `cache-warmup-local-complete-2026-07-05`, 2026-07-07 repeated public cache requests about `0.14s` to `0.22s` with Cloudflare `cf-cache-status: HIT`, `backend/app/public_cache.py`, `backend/app/main.py`, `scripts/cloudflare_edge_rules.py`, `backend/tests/test_cloudflare_edge_rules.py` |
 | Phase 6: Production Environment And Deployment | Verified for USB deploy and public freshness; closed as stale-data blocker | 2026-07-07 USB deploy verification passed; public `/api/readiness` returned HTTP 200 with `data_fresh: true`, `latest_date: 2026-07-06`, `covered_end: 2026-07-06`, and `data_age_days: 1`; selected path is USB deployment under `/srv/projects/bitcoin-risk-brief` |
-| Phase 7: Backups, Restore, And Monitoring | Partially verified; blocked by remaining operator action | One checksum-verified off-server USB backup copy is recorded for 2026-07-07, public health/readiness endpoints were healthy on 2026-07-08, and the 2026-07-09 import provenance pass partially verified public data/readiness/cache alignment. Restore drill remains deferred because the current setup has only the live production server and no separate restore target; external monitor dashboard/alert delivery, backup freshness alert, collector failure alert, Cloudflare Tunnel health alert, direct production validation/import metadata, and exact import source path/category remain pending. |
-| Phase 8: Launch Checklist And First Traffic Test | Blocked by remaining operator evidence gates; freshness blocker closed, first traffic test not run | 2026-07-07 post-deploy snapshot recorded readiness 200/fresh, latest-risk 200, public desktop/mobile Playwright smoke passed, model-price/OHLC display verified, fast repeated Cloudflare HIT behavior after warmup, and one off-server backup copy; 2026-07-08 public checks again returned health/readiness/latest-risk 200, and browser-like waitlist smoke closed. The 2026-07-09 import provenance pass verified public data/cache consistency but left exact source-path proof pending. Restore drill, monitoring/alert evidence, backup freshness monitoring, direct import source/archive proof, broader launch-matrix/accessibility/governance evidence, and first traffic remain pending. |
+| Phase 7: Backups, Restore, And Monitoring | Partially verified; blocked by remaining operator action | One checksum-verified off-server USB backup copy is recorded for 2026-07-07, the 2026-07-10 public health/readiness/latest-risk checks were healthy and fresh, and the 2026-07-09 import provenance pass partially verified public data/readiness/cache alignment. Restore drill remains deferred because the current setup has only the live production server and no separate restore target; external monitor dashboard/alert delivery, backup freshness alert, collector failure alert, Cloudflare Tunnel health alert, direct production validation/import metadata, and exact import source path/category remain pending. |
+| Phase 8: Launch Checklist And First Traffic Test | Blocked by remaining operator evidence gates; freshness blocker closed, first traffic test not run | 2026-07-07 post-deploy snapshot recorded readiness 200/fresh, latest-risk 200, public desktop/mobile Playwright smoke passed, model-price/OHLC display verified, fast repeated Cloudflare HIT behavior after warmup, and one off-server backup copy; 2026-07-08 public checks again returned health/readiness/latest-risk 200, browser-like waitlist smoke closed, and 2026-07-10 public checks remained healthy with `data_fresh: true` for `2026-07-09`. The 2026-07-09 import provenance pass verified public data/cache consistency but left exact source-path proof pending. Restore drill, monitoring/alert evidence, backup freshness monitoring, direct import source/archive proof, broader launch-matrix/accessibility/governance evidence, and first traffic remain pending. |
 | Phase 9: Post-Launch Learning Loop | Pending | Starts after launch traffic creates usage evidence, including optional agent-access demand testing |
 | Phase 10: Risk Methodology Research | Pending | Starts only after launch evidence justifies method work; current production metric remains `crypto-scout-canonical-v1` |
 | Phase 11: Distribution Channel Research | Pending | Evaluates PWA, Telegram Mini App, browser extension, and other channel packaging after launch evidence |
@@ -81,10 +81,11 @@ status depends on the recorded operator/public-host evidence.
 Current production-pilot progress after Phase 1-5:
 
 - public hostname `bitcoinriskbrief.minihub.app` is connected through Cloudflare and returned 200 for `/api/health` and
-  `/api/risk/latest` on 2026-07-05, post-deploy public checks returned fresh readiness on 2026-07-07, and a 2026-07-08
-  evidence pass returned HTTP 200 for `/api/health`, `/api/readiness`, and `/api/risk/latest`;
-- public `/api/readiness` returned HTTP 200 on 2026-07-07 with `data_fresh: true`, `latest_date: 2026-07-06`,
-  `covered_end: 2026-07-06`, and `data_age_days: 1`; the prior stale-data launch blocker is closed;
+  `/api/risk/latest` on 2026-07-05, post-deploy public checks returned fresh readiness on 2026-07-07, a 2026-07-08
+  evidence pass returned HTTP 200 for `/api/health`, `/api/readiness`, and `/api/risk/latest`, and a 2026-07-10
+  monitoring evidence pass again returned HTTP 200 for those same public paths;
+- public `/api/readiness` returned HTTP 200 on 2026-07-10 with `data_fresh: true`, `latest_date: 2026-07-09`,
+  `covered_end: 2026-07-09`, `data_age_days: 1`, and `row_count: 5841`; the prior stale-data launch blocker is closed;
 - public read caching is observable through `Cache-Control`, validation-versioned `ETag`, `X-Cache`, and
   `X-Cache-Version`; post-deploy repeated public cache requests after warmup were fast with Cloudflare
   `cf-cache-status: HIT`, while the cached origin `X-Cache` header may still show `MISS`;
@@ -110,7 +111,8 @@ Remaining production-pilot gaps:
 - decide whether to accept the current Cloudflare Free-plan subset for first traffic or upgrade/configure additional WAF,
   bot protection, and broader API burst-rate-limit controls;
 - recurring daily backups, recurring off-server copies, backup freshness monitoring, restore drill, and monitoring alerts
-  still need to be configured and verified; one off-server USB backup copy was verified on 2026-07-07;
+  still need to be configured and verified; one off-server USB backup copy was verified on 2026-07-07, but the
+  2026-07-10 monitoring pass did not have current backup freshness or monitor-provider evidence;
 - privacy/terms posture, post-waitlist handling, dependency/security maintenance, resource monitoring, credential
   ownership, accessibility, metadata, data-source terms, and incident response need a launch completeness pass;
 - full browser/device launch matrix, remaining cache-miss latency measurement, and first traffic test still need to run;
@@ -303,10 +305,11 @@ Acceptance criteria:
 ### Phase 7: Backups, Restore, And Monitoring
 
 Status: Partially verified; blocked by remaining operator action. The runbooks and policies are documented, and one
-checksum-verified off-server USB backup copy was recorded on 2026-07-07. The current setup has only the live production
-server, so the restore drill remains an accepted limitation/deferred until a separate staging or empty restore target
-exists. External monitor/alert delivery, backup freshness alert, collector failure alert, and Cloudflare Tunnel health
-alert evidence are not recorded.
+checksum-verified off-server USB backup copy was recorded on 2026-07-07. Public health, readiness, and latest-risk checks
+were healthy and fresh in the 2026-07-10 monitoring evidence pass, but that pass found no external monitor/provider
+dashboard, alert delivery, backup freshness monitor, collector failure alert, or Cloudflare Tunnel health notification
+evidence. The current setup has only the live production server, so the restore drill remains an accepted
+limitation/deferred until a separate staging or empty restore target exists.
 
 Goal: make production operations recoverable.
 
@@ -359,9 +362,11 @@ Status: Blocked by remaining operator evidence gates; freshness blocker closed a
 smoke passed, first-viewport model-price/OHLC display verified, mobile overflow passed, and repeated public cache
 requests after warmup were fast through Cloudflare HIT. The 2026-07-08 browser-like waitlist smoke is closed. The
 2026-07-09 import provenance pass verified public data/cache consistency but did not prove the exact import source
-path/category or direct production validation/import table metadata; backup/restore, monitoring, broader
-browser/device/accessibility/governance evidence remain incomplete, and first traffic must remain pending until those
-gates are completed or explicitly accepted.
+path/category or direct production validation/import table metadata. The 2026-07-10 monitoring evidence pass found
+public health/readiness/latest-risk healthy and current for `2026-07-09`, but monitor dashboard, alert delivery, backup
+freshness alert, collector failure alert, and Cloudflare Tunnel notification evidence remained blocked. Backup/restore,
+monitoring, broader browser/device/accessibility/governance evidence remain incomplete, and first traffic must remain
+pending until those gates are completed or explicitly accepted.
 
 Goal: launch deliberately and measure product demand.
 

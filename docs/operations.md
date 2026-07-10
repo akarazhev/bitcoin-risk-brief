@@ -273,6 +273,29 @@ curl -fsS http://localhost:3001/api/readiness
 Readiness should be used for deployment probes and monitoring alerts. After an automatic or manual CSV import, readiness
 should be HTTP 200 before the refreshed data is trusted.
 
+## Monitoring And Alerts
+
+Before broader public traffic, configure and record redacted evidence for these monitors. Store provider names, sanitized
+check names, monitored paths, assertion summaries, intervals/windows, latest check status, and delivery-test status only;
+do not record tokens, account IDs, private dashboard URLs, recipient addresses, phone numbers, IPs, raw logs with PII, or
+secret values.
+
+- Health uptime: monitor `GET https://bitcoinriskbrief.minihub.app/api/health`; alert on HTTP non-200, timeout, or TLS
+  failure.
+- Readiness/freshness: monitor `GET https://bitcoinriskbrief.minihub.app/api/readiness`; alert on HTTP non-200,
+  `status` not `ready`, or `checks.data_fresh` not `true`.
+- Stale data: after the nightly collector window plus the operator-defined grace period, alert when readiness is HTTP
+  503, `data_age_days` exceeds `max_age_days`, or `latest_date`/`covered_end` is older than the last completed UTC day.
+- Collector failure: alert on `scheduled_refresh_failed`, `public_cmc_download_failed`, API fallback failure, missed
+  scheduled refresh evidence, or repeated `data-collector` restarts.
+- Backup freshness/off-server copy: choose the freshness window, schedule backups and off-server copies, verify
+  `SHA256SUMS`, and alert when no checksum-verified backup plus off-server copy exists inside that window.
+- Cloudflare Tunnel connector health: enable or document Cloudflare Zero Trust connector-down or flapping notifications
+  for the tunnel serving `bitcoinriskbrief.minihub.app`; record whether production uses host-service `cloudflared` or
+  compose-managed `cloudflared`.
+- Alert delivery channel: choose the pilot channel, send a provider test notification, and record only the channel type,
+  test time, and delivered/not-delivered result.
+
 ## Cache Verification
 
 Public read endpoints are cacheable at the backend and edge:
