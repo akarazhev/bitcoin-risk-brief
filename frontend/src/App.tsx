@@ -68,6 +68,12 @@ const copy = {
     joined: 'Saved. You are on the Bitcoin Risk Brief waitlist.',
     joinError: 'Enter a valid email or Telegram handle.',
     joining: 'Saving...',
+    privacyNoteTitle: 'Privacy, terms, and disclaimer',
+    privacyNoteIntro: 'Bitcoin Risk Brief is informational research only, not financial advice, investment advice, or a trading recommendation.',
+    privacyNoteWaitlist: 'The waitlist stores the contact you submit, a normalized copy, contact type, locale, source, status, and timestamps.',
+    privacyNoteLogs: 'Operational logs may include request method, path, status, client key, Cloudflare ray ID, cache status, and timing.',
+    privacyNoteLimits: 'Do not enter sensitive information. No buy, sell, portfolio, or trading action is recommended, and no paid support SLA is provided.',
+    privacyNoteAnalytics: 'The current app source does not include product analytics or tracking-cookie code.',
     loading: 'Loading risk data...',
     empty: 'No collected data yet. Run the collector backfill to populate TimescaleDB.',
     loadErrorTitle: 'Risk data is temporarily unavailable',
@@ -132,6 +138,12 @@ const copy = {
     joined: 'Сохранено. Ты в листе ожидания Bitcoin Risk Brief.',
     joinError: 'Укажи корректный email или Telegram.',
     joining: 'Сохраняю...',
+    privacyNoteTitle: 'Приватность, условия и дисклеймер',
+    privacyNoteIntro: 'Bitcoin Risk Brief - только информационная аналитика, не финансовый или инвестиционный совет и не торговая рекомендация.',
+    privacyNoteWaitlist: 'Лист ожидания хранит введенный контакт, нормализованную копию, тип контакта, язык, источник, статус и временные метки.',
+    privacyNoteLogs: 'Операционные логи могут включать метод запроса, путь, статус, client key, Cloudflare ray ID, cache-статус и время выполнения.',
+    privacyNoteLimits: 'Не вводи конфиденциальную информацию. Покупка, продажа, портфельное или торговое действие не рекомендуется, платный SLA поддержки не предоставляется.',
+    privacyNoteAnalytics: 'В текущем исходном коде приложения нет product analytics или tracking-cookie кода.',
     loading: 'Загружаю risk data...',
     empty: 'Данных пока нет. Запусти collector backfill, чтобы заполнить TimescaleDB.',
     loadErrorTitle: 'Данные о риске временно недоступны',
@@ -448,6 +460,16 @@ export default function App() {
             {joinError}
           </p>
         )}
+        <details className="privacy-note">
+          <summary><ShieldAlert size={15} /> {t.privacyNoteTitle}</summary>
+          <div className="privacy-note-body">
+            <p>{t.privacyNoteIntro}</p>
+            <p>{t.privacyNoteWaitlist}</p>
+            <p>{t.privacyNoteLogs}</p>
+            <p>{t.privacyNoteLimits}</p>
+            <p>{t.privacyNoteAnalytics}</p>
+          </div>
+        </details>
       </section>
 
       <section className="charts">

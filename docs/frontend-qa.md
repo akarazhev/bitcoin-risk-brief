@@ -202,11 +202,33 @@ Waitlist live-region and keyboard/focus local implementation recorded on 2026-07
 - Limitations: this is local automated evidence. It is not a manual keyboard pass, screen-reader/assistive-tech pass,
   native/physical-device pass, production-host pass, first-traffic pass, or WCAG conformance claim.
 
-Overall browser/device/accessibility/metadata launch-gate status: partial/blocked. Automated Playwright smoke, the local
-axe scan, source inspection, local chart data alternative, local waitlist live-region/keyboard smoke, and local
-SEO/social metadata implementation provide useful evidence. The full native/manual browser-device matrix, manual
-keyboard/screen-reader/assistive-tech evidence, production-host evidence, and public-host SEO/social metadata
-verification are still not launch-passed.
+Privacy/terms/disclaimer local implementation recorded on 2026-07-10:
+
+- Scope/safety: frontend code/tests/docs only. No deploy, refresh/import, cache warmup, real waitlist POST,
+  Cloudflare/routing change, commit, push, or tag was performed. No secrets, raw waitlist contacts, private account
+  details, private URLs, tokens, `.env` values, raw logs, or PII were recorded.
+- Local implementation: the waitlist section now includes a compact native expandable note with English and Russian
+  copy. The note states the product is informational research only, not financial advice, investment advice, or a
+  trading recommendation; warns users not to enter sensitive information; describes implemented waitlist storage and
+  operational log fields; states that no buy, sell, portfolio, or trading action is recommended; states that no paid
+  support SLA is provided; and narrowly records that the current app source has no product analytics or tracking-cookie
+  code.
+- Focused local tests verify the note expands, includes the conservative English copy, localizes to Russian, and has a
+  visible focus style for the summary control.
+- Local verification passed: `npm test --prefix frontend` passed 2 files / 27 tests; `npm run build --prefix frontend`
+  passed with `index` at 218.57 kB minified / 69.43 kB gzip and lazy `Chart` at 557.61 kB minified / 188.87 kB gzip;
+  `npm run smoke --prefix frontend` was first blocked in the sandbox by `listen EPERM: operation not permitted
+  127.0.0.1:4173`, then passed 25 Playwright checks outside the sandbox across Chromium, Firefox, WebKit, Pixel 5, and
+  iPhone 13 profiles, including the focused axe scan and keyboard/focus smoke.
+- Limitations: this is local automated/source evidence. It is not production-host verification, legal approval, a full
+  privacy policy, a terms-of-service page, a support process, or a promise of deletion/unsubscribe handling.
+
+Overall browser/device/accessibility/metadata/privacy launch-gate status: partial/blocked. Automated Playwright smoke,
+the local axe scan, source inspection, local chart data alternative, local waitlist live-region/keyboard smoke, local
+SEO/social metadata implementation, and local privacy/terms/disclaimer note provide useful evidence. The full
+native/manual browser-device matrix, manual keyboard/screen-reader/assistive-tech evidence, production-host evidence,
+public-host SEO/social metadata verification, and public-host privacy/terms/disclaimer verification are still not
+launch-passed.
 
 ## Reproducing Locally
 

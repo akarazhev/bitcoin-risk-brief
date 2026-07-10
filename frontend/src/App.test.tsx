@@ -217,6 +217,45 @@ test('renders methodology reference and no-advice disclaimer', async () => {
   expect(screen.getByText('Risk levels are scenario outputs, not financial advice or trading instructions.')).toBeInTheDocument()
 })
 
+test('renders an expandable privacy terms and disclaimer note near the waitlist', async () => {
+  render(<App />)
+
+  const summary = await screen.findByText('Privacy, terms, and disclaimer')
+  const note = summary.closest('details')
+  expect(note).not.toBeNull()
+  const noteElement = note as HTMLDetailsElement
+
+  expect(noteElement).not.toHaveAttribute('open')
+
+  fireEvent.click(summary)
+
+  expect(noteElement).toHaveAttribute('open')
+  expect(noteElement).toHaveTextContent('informational research only')
+  expect(noteElement).toHaveTextContent('not financial advice, investment advice, or a trading recommendation')
+  expect(noteElement).toHaveTextContent('stores the contact you submit, a normalized copy, contact type, locale, source, status, and timestamps')
+  expect(noteElement).toHaveTextContent('Operational logs may include request method, path, status, client key, Cloudflare ray ID, cache status, and timing')
+  expect(noteElement).toHaveTextContent('Do not enter sensitive information')
+  expect(noteElement).toHaveTextContent('No buy, sell, portfolio, or trading action is recommended')
+  expect(noteElement).toHaveTextContent('no paid support SLA is provided')
+  expect(noteElement).toHaveTextContent('does not include product analytics or tracking-cookie code')
+})
+
+test('localizes the privacy terms and disclaimer note', async () => {
+  render(<App />)
+
+  fireEvent.click(await screen.findByRole('button', { name: /ru/i }))
+
+  const summary = await screen.findByText('Приватность, условия и дисклеймер')
+  const note = summary.closest('details')
+  expect(note).not.toBeNull()
+  const noteElement = note as HTMLDetailsElement
+  fireEvent.click(summary)
+
+  expect(noteElement).toHaveAttribute('open')
+  expect(noteElement).toHaveTextContent('только информационная аналитика')
+  expect(noteElement).toHaveTextContent('платный SLA поддержки не предоставляется')
+})
+
 test('submits waitlist contacts to the backend API', async () => {
   render(<App />)
 
@@ -450,6 +489,7 @@ test('defines visible keyboard focus states for interactive controls', () => {
   expect(css).toContain('.lang:focus-visible')
   expect(css).toContain('.lead-form input:focus-visible')
   expect(css).toContain('.lead-form button:focus-visible')
+  expect(css).toContain('.privacy-note summary:focus-visible')
 })
 
 test('defines a standard screen-reader-only utility for hidden chart data', () => {

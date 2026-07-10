@@ -644,6 +644,10 @@ loops, Cloudflare Tunnel connector health, public hostname availability, and any
 
 Recorded on 2026-07-05 for the current production-pilot candidate:
 
+- Privacy/terms/disclaimer note: locally implemented on 2026-07-10 as compact public copy near the waitlist, with
+  production-host verification still pending. It documents no-advice/no-recommendation limits, sensitive-info caution,
+  implemented waitlist storage, operational log fields, no paid support SLA, and the current absence of app
+  product-analytics/tracking-cookie source code.
 - Waitlist lead owner and cadence: pending operator decision. Before active traffic, name one owner or owning role in an
   operator-controlled record and choose a review cadence. A weekly manual review is sufficient for the first controlled
   traffic test unless demand requires a faster cadence.
@@ -660,9 +664,10 @@ Recorded on 2026-07-05 for the current production-pilot candidate:
   follow-up.
 - Data-source terms review: record the CoinMarketCap public CSV and optional API terms review outcome before broader
   launch. For future methodology sources, record terms and attribution before the source becomes production-critical.
-- Accessibility and metadata pass: browser-capable public-hostname QA is recorded, but a focused accessibility pass and
-  SEO/social metadata review still need operator evidence. Treat missing evidence as a launch limitation, not as a
-  pass.
+- Accessibility and metadata pass: browser-capable public-hostname QA is recorded, and local focused accessibility,
+  chart-alternative, waitlist live-region/keyboard, privacy/terms/disclaimer, and SEO/social metadata evidence exists.
+  Production-host verification, physical-device/native browser evidence, and manual assistive-tech evidence still need
+  operator evidence. Treat missing evidence as a launch limitation, not as a pass.
 - Feedback review path: after the first controlled traffic window, summarize waitlist conversion, repeat-use signals,
   direct questions, and requests for alerts, API access, agents, widgets, embeddings, or licensing into the production
   readiness or roadmap notes. Do not copy raw contacts into feedback summaries.

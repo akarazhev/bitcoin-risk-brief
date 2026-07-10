@@ -11,6 +11,9 @@ The frontend form accepts one value:
 
 On successful submission, the UI shows a saved state. The contact is not persisted in browser storage.
 
+The frontend also shows a compact privacy/terms/disclaimer note near the waitlist. The note is local UI copy only; it
+does not add notification delivery, accounts, deletion handling, unsubscribe handling, or a public support channel.
+
 ## API Endpoint
 
 ```http
@@ -56,6 +59,10 @@ Important columns:
 
 `normalized_contact` is unique. Re-submitting the same normalized contact updates metadata instead of creating a duplicate.
 
+The public note summarizes this storage behavior: the app stores the submitted contact value, a normalized copy, contact
+type, locale, source, status, and timestamps. Backend access logs may include method, path, status, client key,
+Cloudflare ray ID, cache status, and duration, but they do not intentionally log submitted contact values.
+
 ## Rate Limiting
 
 `POST /api/waitlist` uses an in-memory fixed-window per-client limit. The default is:
@@ -71,3 +78,6 @@ for waitlist submissions.
 ## Current Scope
 
 The waitlist stores leads only. It does not send emails, Telegram messages, or daily alerts yet.
+
+Waitlist owner, review cadence, retention period, deletion path, unsubscribe path, and public support/contact identity
+remain pending operator decisions.

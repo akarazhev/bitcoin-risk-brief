@@ -38,7 +38,7 @@ button, input { font: inherit; }
 .top-actions { display: inline-flex; align-items: center; gap: 10px; }
 .methodology-link { border: 1px solid #30343b; background: rgba(21, 23, 27, 0.76); color: #f4f0e8; padding: 9px 12px; border-radius: 8px; text-decoration: none; }
 .lang { border: 1px solid #30343b; background: #15171b; color: #f4f0e8; padding: 9px 12px; border-radius: 8px; cursor: pointer; }
-.lang:focus-visible, .methodology-link:focus-visible, .lead-form input:focus-visible, .lead-form button:focus-visible { outline: 2px solid #f2b84b; outline-offset: 3px; }
+.lang:focus-visible, .methodology-link:focus-visible, .lead-form input:focus-visible, .lead-form button:focus-visible, .privacy-note summary:focus-visible { outline: 2px solid #f2b84b; outline-offset: 3px; }
 
 .hero { max-width: 1180px; margin: 0 auto 28px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, 320px); gap: 28px; align-items: end; }
 .eyebrow { margin: 0 0 12px; color: #f2b84b; text-transform: uppercase; font-size: 0.78rem; font-weight: 800; letter-spacing: 0; }
@@ -115,6 +115,13 @@ h1 { margin: 0; font-size: clamp(3rem, 9vw, 7rem); line-height: 0.9; letter-spac
 .joined { grid-column: 1 / -1; color: #5bd6c6 !important; }
 .error-text { color: #ff6b5f !important; }
 .lead-form button:disabled { cursor: wait; opacity: 0.72; }
+.privacy-note { grid-column: 1 / -1; border-top: 1px solid #30343b; padding-top: 12px; color: #b2ada5; }
+.privacy-note summary { display: inline-flex; width: fit-content; align-items: center; gap: 8px; color: #f4d58e; font-weight: 800; cursor: pointer; list-style: none; }
+.privacy-note summary::-webkit-details-marker { display: none; }
+.privacy-note summary::after { content: "+"; display: inline-grid; place-items: center; width: 18px; height: 18px; border: 1px solid #5b4630; border-radius: 999px; color: #f2b84b; font-size: 0.88rem; line-height: 1; }
+.privacy-note[open] summary::after { content: "-"; }
+.privacy-note-body { display: grid; gap: 8px; max-width: 920px; margin-top: 10px; }
+.privacy-note-body p { font-size: 0.9rem; }
 .loading { color: #c8c4bd; }
 .empty-state { max-width: 560px; }
 .empty-state svg { color: #ff6b5f; }

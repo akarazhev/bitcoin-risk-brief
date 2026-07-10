@@ -234,7 +234,7 @@ Launch governance gap pass recorded on 2026-07-10:
 | --- | --- | --- | --- |
 | Public freshness and latest-risk launch evidence | passed with existing repo evidence | The 2026-07-10 monitoring evidence above records public `/api/health`, `/api/readiness`, and `/api/risk/latest` healthy/current with readiness HTTP 200, `data_fresh: true`, `latest_date: 2026-07-09`, and `covered_end: 2026-07-09`. | Recheck public `/api/readiness` immediately before any first traffic window because freshness is time-sensitive. |
 | Browser-like waitlist smoke | passed with existing repo evidence | The 2026-07-08 browser-like smoke records HTTP 201, `Cache-Control: no-store`, `Pragma: no-cache`, expected JSON shape, and aggregate-only storage verification. | Keep raw contacts out of repo notes; rerun only with an operator-approved test contact when a new launch snapshot needs fresh evidence. |
-| Privacy, terms, and disclaimer posture | accepted limitation for operator-watched first traffic | README and product copy include analytics/no-financial-advice framing, but no standalone public privacy policy or terms note is recorded. | Before broader sharing, publish a short privacy/terms note for waitlist contacts and operational logs, or explicitly record the operator decision to defer it. |
+| Privacy, terms, and disclaimer posture | implemented locally; production-host verification pending | The frontend now includes a compact public privacy/terms/disclaimer note near the waitlist with no-advice, no sensitive-info, waitlist storage, operational-log, no recommendation, no paid-SLA, and current no product analytics/tracking-cookie source-code statements. | Deploy/update the frontend and verify the public host serves the note. Keep waitlist owner, review cadence, retention, deletion, unsubscribe, and public support/contact identity as pending operator decisions until separately resolved. |
 | Waitlist contact handling owner, review cadence, retention, deletion, and unsubscribe path | pending operator decision | [Security and Privacy](security-and-privacy.md) and [Operations](operations.md) state the required owner/cadence/retention/deletion choices, but no owner, cadence, retention period, or contact path is recorded. | Choose the owner or owning role, review cadence, retention/deletion posture, and unsubscribe/deletion path in an operator-controlled record without committing private contact details. |
 | Support/contact identity for questions, deletion, unsubscribe, API, and license interest | pending operator decision | The docs require one operator-owned contact path, but no public support/contact identity is recorded. | Choose the contact path and decide whether it is intentionally public; do not imply a paid support SLA for the first pilot. |
 | Credential/account ownership and recovery record | pending operator decision | Required ownership categories are documented for GitHub, Cloudflare, domain, production `.env`, backups, server access, and optional CoinMarketCap credentials, but actual owners/recovery paths are intentionally absent from the repository. | Maintain the owner and recovery record outside Git; record only sanitized completion status here if needed. |
@@ -362,6 +362,30 @@ Waitlist live-region and keyboard/focus local implementation recorded on 2026-07
 - Accessibility status after this pass: local automated live-region and keyboard/focus evidence exists. Manual keyboard,
   manual screen-reader/assistive-tech, physical-device/native browser, production-host accessibility, first-traffic, and
   full WCAG/accessibility compliance evidence remain pending and must not be claimed complete.
+
+Privacy/terms/disclaimer local implementation recorded on 2026-07-10:
+
+- Scope/safety: frontend code/tests/docs only. No deploy, refresh/import, cache warmup, real waitlist POST,
+  Cloudflare/routing change, commit, push, or tag was performed. No secrets, raw waitlist contacts, private account
+  details, private URLs, tokens, `.env` values, raw logs, account details, or PII were recorded.
+- Source-inspected behavior behind the copy: the waitlist form accepts an email address or Telegram handle and sends the
+  trimmed contact value with locale and source `landing`; the backend validates and stores `contact`,
+  `normalized_contact`, `contact_type`, `locale`, `source`, `status`, `created_at`, and `updated_at`; access logs may
+  include method, path, status, client key, Cloudflare ray ID, cache status, and duration; frontend/backend application
+  code did not contain product analytics or tracking-cookie code.
+- Local implementation: the waitlist section now includes a compact native expandable note with English and Russian
+  copy. It states that Bitcoin Risk Brief is informational research only and not financial advice, investment advice, or
+  a trading recommendation; warns users not to enter sensitive information; describes the implemented waitlist storage
+  and operational log fields; says no buy, sell, portfolio, or trading action is recommended; says no paid support SLA is
+  provided; and narrowly states that the current app source does not include product analytics or tracking-cookie code.
+- Local verification: `npm test --prefix frontend` passed 2 files / 27 tests; `npm run build --prefix frontend` passed
+  with `index` at 218.57 kB minified / 69.43 kB gzip and lazy `Chart` at 557.61 kB minified / 188.87 kB gzip;
+  `npm run smoke --prefix frontend` was first blocked in the sandbox by `listen EPERM: operation not permitted
+  127.0.0.1:4173`, then passed 25 Playwright checks outside the sandbox across Chromium, Firefox, WebKit, Pixel 5, and
+  iPhone 13 profiles, including the focused axe scan and keyboard/focus smoke.
+- Remaining status: local implementation only. Production/public-host verification, waitlist owner, review cadence,
+  retention period, deletion path, unsubscribe path, support/contact identity, legal approval, full privacy policy, and
+  terms-of-service decisions remain pending. Launch governance remains partial/blocked, not launch-passed.
 
 Dependency and license local evidence pass recorded on 2026-07-10:
 
@@ -629,14 +653,16 @@ Launch governance and release evidence status recorded on 2026-07-05:
 - Selected data refresh path: scheduled public-download-first CoinMarketCap CSV refresh with manual
   `download-cmc-csv` or `import-cmc-csv` fallback. The optional official CoinMarketCap API path is used only when
   `COINMARKETCAP_API_KEY` is configured.
-- Known accepted limitations for that snapshot candidate: no standalone privacy/terms page is recorded; waitlist lead
-  owner, review cadence, deletion/unsubscribe contact path, and support/contact identity are pending operator decisions;
+- Known accepted limitations for that snapshot candidate: no standalone privacy/terms page was recorded at that time;
+  waitlist lead owner, review cadence, deletion/unsubscribe contact path, and support/contact identity are pending
+  operator decisions;
   production backup/off-server copy/restore evidence was missing at that time; monitoring evidence is missing; production
   import provenance evidence is missing; waitlist smoke was not run; public page data was observed stale during Task 8;
   full native-device/browser QA, focused accessibility, and SEO/social metadata evidence were not complete then;
   Cloudflare remains on the documented Free-plan-compatible subset. Later evidence above supersedes the missing
-  backup/off-server copy portion and records local SEO/social metadata implementation, while restore drill and
-  public-host metadata verification remain pending.
+  backup/off-server copy portion and records local privacy/terms/disclaimer and SEO/social metadata implementation,
+  while restore drill, production-host privacy/terms/disclaimer verification, and public-host metadata verification
+  remain pending.
 - Governance evidence process: keep privacy/terms/disclaimer posture, waitlist handling, credential/account ownership,
   data-source terms review, dependency/security maintenance, accessibility, and metadata status in
   [Security and Privacy](security-and-privacy.md) and [Operations](operations.md). Unknown operator-owned facts must be
@@ -847,9 +873,9 @@ Before public launch, also complete and record:
 - cache policy for public read endpoints;
 - Cloudflare WAF, bot protection, cache rules, and edge rate limits rendered and applied with
   `scripts/cloudflare_edge_rules.py`, plus dashboard bot protection enabled where required by the Cloudflare plan;
-- launch operations and governance posture: privacy/terms/disclaimer copy, post-waitlist handling, dependency/security
-  maintenance cadence, credential/account ownership, resource monitoring, data-source terms, accessibility, public-host
-  metadata verification, and incident response notes;
+- launch operations and governance posture: public-host verification of the privacy/terms/disclaimer copy,
+  post-waitlist handling, dependency/security maintenance cadence, credential/account ownership, resource monitoring,
+  data-source terms, accessibility, public-host metadata verification, and incident response notes;
 - release feedback and operational evidence posture: release notes or decision log, first-user feedback review path,
   support/contact identity, dependency-license review external/manual confirmation, launch evidence, and restore-drill
   evidence;
@@ -1002,9 +1028,9 @@ Still required before treating the pilot as publicly launched:
   collector logs containing scheduled/public/API refresh failures.
 - Complete any browser/device launch-matrix coverage not represented by the 2026-07-07 Playwright desktop/mobile smoke,
   including physical-device/native branded browser evidence if required for the launch gate.
-- Complete or explicitly defer the launch operations and governance checklist: privacy/terms, post-waitlist handling,
-  credential ownership, resource monitoring, dependency/security maintenance, data-source terms, accessibility,
-  public-host SEO/social metadata verification, and incident response.
+- Complete or explicitly defer the launch operations and governance checklist: public-host privacy/terms/disclaimer
+  verification, post-waitlist handling, credential ownership, resource monitoring, dependency/security maintenance,
+  data-source terms, accessibility, public-host SEO/social metadata verification, and incident response.
 - Complete or explicitly defer the release feedback and operational evidence checklist: release notes or decision log,
   first-user feedback path, support/contact identity, dependency-license review external/manual confirmation, launch
   evidence, and restore-drill evidence.

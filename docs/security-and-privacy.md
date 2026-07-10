@@ -44,11 +44,23 @@ Database writes and reads use asyncpg parameterized queries. No user input is co
 
 Waitlist contacts are stored in PostgreSQL. The frontend does not store submitted contacts in `localStorage` or other persistent browser storage.
 
+Local public-page implementation recorded on 2026-07-10: the frontend includes a compact expandable
+privacy/terms/disclaimer note near the waitlist. The note states that Bitcoin Risk Brief is informational research only,
+not financial advice, investment advice, or a trading recommendation; that users should not enter sensitive
+information; that no buy, sell, portfolio, or trading action is recommended; and that no paid support SLA is provided.
+It summarizes the implemented waitlist behavior: the app stores the submitted contact value, a normalized copy, contact
+type, locale, source, status, and timestamps. It also states that operational logs may include request method, path,
+status, client key, Cloudflare ray ID, cache status, and timing.
+
+The public note does not promise deletion, unsubscribe, support, response time, owner, cadence, or retention handling
+because those operator decisions are not recorded in this repository. Production/public-host verification of this local
+copy remains pending until deployment.
+
 The product currently has no authentication and no user accounts. Waitlist contacts are operational lead data and should be handled as PII.
 
-Before active traffic, decide and document the public privacy posture for waitlist contacts: how long contacts are kept,
-who can access them, how manual outreach works, and how a user can unsubscribe or request deletion. If the project adds
-email or Telegram delivery later, update this section before sending recurring messages.
+Before active traffic, finish the remaining waitlist-contact handling decisions: how long contacts are kept, who can
+access them, how manual outreach works, and how a user can unsubscribe or request deletion. If the project adds email or
+Telegram delivery later, update this section before sending recurring messages.
 
 Before recurring email or Telegram delivery, also complete the deferred email/outreach readiness gate: opt-in source,
 sender or bot ownership, unsubscribe or stop handling, provider recovery, no-advice framing, and delivery privacy copy.
@@ -61,7 +73,7 @@ dependency/license evidence pass:
 
 | Area | Status classification | Notes |
 | --- | --- | --- |
-| Privacy, terms, and disclaimer posture | accepted limitation for operator-watched first traffic | The README and product copy keep analytics/no-financial-advice framing, but no standalone public privacy policy or terms note is recorded. Before broader sharing, publish a short privacy/terms note for waitlist contacts and operational logs, or explicitly record the operator decision to defer it. |
+| Privacy, terms, and disclaimer posture | implemented locally; production-host verification pending | The frontend now includes a compact public privacy/terms/disclaimer note near the waitlist with no-advice, no sensitive-info, waitlist storage, operational-log, no recommendation, no paid-SLA, and current no product analytics/tracking-cookie source-code statements. This is local implementation evidence only until deployed and verified on the public host. |
 | Waitlist owner, cadence, retention, deletion, and unsubscribe path | pending operator decision | Waitlist contacts remain server-side operational lead data in PostgreSQL. The repository does not name a lead owner, review cadence, retention period, deletion path, or unsubscribe channel. Do not invent or commit personal contact details here. |
 | Support/contact identity | pending operator decision | One operator-owned path is required for deletion, unsubscribe, product questions, bug reports, and professional/API/license interest. No public support SLA, help center, or paid-user support process is implied. |
 | Credential and account ownership | pending operator decision | The account categories below are the required ownership categories. Actual account holders, recovery channels, and secret locations must stay in an operator-controlled record outside this repository. |
@@ -70,6 +82,9 @@ dependency/license evidence pass:
 | Accessibility and metadata evidence | partial; local axe, chart alternative, live-region, and keyboard/focus evidence verified; metadata implemented locally; public verification pending | Browser-capable public-hostname QA and the 2026-07-10 local Playwright profile smoke are recorded with limitations. `@axe-core/playwright` is integrated into the smoke suite, and the focused local axe scan passed across Chromium, Firefox, WebKit, Pixel 5, and iPhone 13 profiles with no reported violations. The chart panels now include a screen-reader-only current summary plus recent risk-history and threshold tables, verified locally. Waitlist submit feedback now exposes polite status semantics for submitting/success states and alert semantics for errors; automated keyboard/focus smoke verifies tab and reverse-tab movement through the public controls using mocked local API routes. Manual keyboard, screen-reader/assistive-tech, native/physical-device, production-host accessibility, and full compliance evidence remain pending. `frontend/index.html` now includes title, meta description, canonical URL, Open Graph, and Twitter summary-card metadata, with image metadata intentionally omitted because no real repo-served production image asset exists. Public-host metadata verification remains pending until deployment. |
 
 ## Product Analytics Privacy
+
+As of the 2026-07-10 local source inspection, frontend and backend application code did not contain product analytics or
+tracking-cookie code. Future source changes must recheck this before making any public no-analytics or no-cookie claim.
 
 Future persisted product analytics should collect only the fields needed to understand demand and abuse patterns. The
 current backend access logs are operational logs; a product analytics table or aggregate should be designed separately
@@ -95,8 +110,8 @@ If raw analytics events are introduced, retain them only briefly, for example 30
 that do not contain contact values, raw IPs, or full user-agent strings. Future professional API usage tracking should
 identify products or agents through API client records and key identifiers or hashes, not through raw IP addresses.
 
-If a separate privacy policy or terms note is published for the public page, it should summarize these analytics and
-waitlist choices without implying financial advice, investment advice, or trading recommendations.
+If a fuller separate privacy policy or terms page is published later, it should summarize these analytics and waitlist
+choices without implying financial advice, investment advice, or trading recommendations.
 
 ## Account And Credential Ownership
 
