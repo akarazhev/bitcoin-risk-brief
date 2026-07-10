@@ -240,7 +240,7 @@ Launch governance gap pass recorded on 2026-07-10:
 | Credential/account ownership and recovery record | pending operator decision | Required ownership categories are documented for GitHub, Cloudflare, domain, production `.env`, backups, server access, and optional CoinMarketCap credentials, but actual owners/recovery paths are intentionally absent from the repository. | Maintain the owner and recovery record outside Git; record only sanitized completion status here if needed. |
 | Data-source terms and attribution review | pending operator decision | No completed CoinMarketCap public CSV, optional API, or future methodology-source terms/attribution review evidence is recorded. | Review source terms and attribution requirements before broader launch or commercial/portfolio claims; record only sanitized outcome and date. |
 | Dependency/security maintenance cadence | passed with existing repo evidence | [Security and Privacy](security-and-privacy.md) and [Operations](operations.md) define a monthly manual review until automation is chosen. | The cadence is documented; the first completed review evidence remains pending and should record only date, scope, outcome, and follow-up. |
-| Accessibility pass evidence | partial; local automated axe and chart alternative verified | Browser-capable public-hostname QA, source inspection, the 2026-07-10 focused local axe pass, and the 2026-07-10 local chart data alternative implementation are recorded. `@axe-core/playwright` is in the Playwright smoke suite, the chart panels now expose a screen-reader-only current summary plus recent history/threshold tables, and `npm run smoke --prefix frontend` passed 20 checks outside the sandbox across Chromium, Firefox, WebKit, Pixel 5, and iPhone 13 profiles with no axe violations reported. | Run and record manual keyboard, screen-reader/assistive-tech, physical-device/native browser, and production-host accessibility evidence, or explicitly accept those limitations for the controlled traffic window. |
+| Accessibility pass evidence | partial; local automated axe, chart alternative, live-region, and keyboard/focus evidence verified | Browser-capable public-hostname QA, source inspection, the 2026-07-10 focused local axe pass, local chart data alternative implementation, and local waitlist live-region/keyboard smoke are recorded. `@axe-core/playwright` is in the Playwright smoke suite, the chart panels expose a screen-reader-only current summary plus recent history/threshold tables, waitlist submit feedback exposes status/alert semantics, and `npm run smoke --prefix frontend` passed 25 checks outside the sandbox across Chromium, Firefox, WebKit, Pixel 5, and iPhone 13 profiles with no axe violations reported. | Run and record manual keyboard, screen-reader/assistive-tech, physical-device/native browser, and production-host accessibility evidence, or explicitly accept those limitations for the controlled traffic window. |
 | SEO/social metadata pass evidence | implemented locally; production verification pending | 2026-07-10 local source/build inspection confirmed `frontend/index.html` and `frontend/dist/index.html` include the title, meta description, canonical URL, Open Graph type/title/description/url/site name, and Twitter card/title/description. `og:image` and `twitter:image` are intentionally omitted because no real repo-served production image asset exists. The earlier public homepage GET still showed missing tags before this deploy. | Deploy/update the frontend and verify `https://bitcoinriskbrief.minihub.app/` returns the metadata. Keep image metadata omitted unless a real publicly served production image asset is added. |
 | Incident response readiness | passed with existing repo evidence | [Operations](operations.md) includes the first-response runbook, monitoring alert expectations, bad-data correction policy, restore guidance, and cache-safety procedures. | Keep the runbook aligned as new monitor, restore, and provenance evidence arrives. |
 | Release notes or decision log | passed with existing repo evidence | This document and [Production Roadmap](production-roadmap.md) contain dated evidence notes and decision/status history through 2026-07-10. | Add the final launch snapshot note only when the actual first-traffic window is ready; do not reuse the stale 2026-07-05 snapshot as a launch-ready note. |
@@ -311,12 +311,14 @@ Focused accessibility local pass recorded on 2026-07-10:
   section/article structure, a single page `h1`, `h2` section headings, `h3` brief-card headings, an aria-labeled
   waitlist input, visible waitlist success/error text, focus-visible styles for primary controls, chart loading/empty
   `role="status"` fallbacks, an `aria-live` API error state, and aria labels around language/current-state/methodology
-  and threshold areas.
+  and threshold areas. The later waitlist live-region implementation below supersedes the earlier visible-text-only
+  status-message limitation.
 - Limitations: this is local automated/source evidence, not a manual keyboard pass, screen-reader/assistive-tech pass,
   physical-device/native browser pass, production-host pass, or full accessibility conformance audit. Axe can evaluate
-  rendered DOM color contrast, but not canvas-drawn chart internals. Waitlist success/error announcement timing is also
-  unverified because those messages are visible text rather than a live region. The chart alternative implementation
-  below supersedes the earlier missing chart-equivalent-table limitation for local source evidence only.
+  rendered DOM color contrast, but not canvas-drawn chart internals. The chart alternative implementation below
+  supersedes the earlier missing chart-equivalent-table limitation for local source evidence only, and the later
+  waitlist live-region implementation below supersedes the earlier waitlist announcement limitation for local automated
+  evidence only.
 - Accessibility gate status: partial. The prior "focused accessibility evidence pending" state is replaced by local
   automated axe evidence, but manual/native/assistive-tech evidence remains a launch limitation.
 
@@ -339,6 +341,27 @@ Chart accessibility alternative local implementation recorded on 2026-07-10:
 - Accessibility status after this pass: chart screen-reader alternative evidence is locally implemented and verified.
   Manual keyboard, manual screen-reader/assistive-tech, physical-device/native browser, production-host accessibility,
   and full WCAG/accessibility compliance evidence remain pending and must not be claimed complete.
+
+Waitlist live-region and keyboard/focus local implementation recorded on 2026-07-10:
+
+- Scope/safety: frontend code/tests/docs only. No deploy, refresh/import, cache warmup, real waitlist POST,
+  Cloudflare/routing change, commit, push, or tag was performed. No secrets, raw waitlist contacts, private account
+  details, dashboard URLs, tokens, `.env` values, private contacts, or PII were recorded.
+- Local implementation: waitlist submitting and success feedback uses polite `role="status"` live-region semantics;
+  waitlist error feedback uses `role="alert"`; the input uses `aria-invalid` and `aria-describedby` when an error is
+  present; and the disabled submit button exposes `aria-busy` while submission is pending.
+- Local automated coverage: unit tests verify submitting/success status regions, the assertive error alert, input error
+  description, busy/disabled submit state, and no browser-storage persistence. Playwright tabs through the public
+  controls, verifies reverse focus movement between waitlist submit and input, submits only to a mocked local waitlist
+  route with a reserved `.invalid` test address, and verifies the success status region.
+- Local verification: `npm test --prefix frontend` passed 2 files / 25 tests; `npm run build --prefix frontend` passed
+  with `index` at 216.21 kB minified / 68.64 kB gzip and lazy `Chart` at 557.61 kB minified / 188.87 kB gzip;
+  `npm run smoke --prefix frontend` was first blocked in the sandbox by `listen EPERM: operation not permitted
+  127.0.0.1:4173`, then passed 25 Playwright checks outside the sandbox across Chromium, Firefox, WebKit, Pixel 5, and
+  iPhone 13 profiles.
+- Accessibility status after this pass: local automated live-region and keyboard/focus evidence exists. Manual keyboard,
+  manual screen-reader/assistive-tech, physical-device/native browser, production-host accessibility, first-traffic, and
+  full WCAG/accessibility compliance evidence remain pending and must not be claimed complete.
 
 Monitoring, alerts, and single-server restore evidence pass recorded on 2026-07-08:
 

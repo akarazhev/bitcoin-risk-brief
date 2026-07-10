@@ -1,4 +1,4 @@
-import { expect, test, type Page, type Route } from '@playwright/test'
+import { expect, test, type Locator, type Page, type Route } from '@playwright/test'
 import AxeBuilder from '@axe-core/playwright'
 
 const latestRisk = {
@@ -115,13 +115,17 @@ async function fulfillJson(route: Route, body: unknown, status = 200) {
   })
 }
 
-async function mockApi(page: Page, readiness: typeof readyReadiness | typeof degradedReadiness = readyReadiness) {
+async function mockApi(
+  page: Page,
+  readiness: typeof readyReadiness | typeof degradedReadiness = readyReadiness,
+  waitlistHandler?: (route: Route) => Promise<void>,
+) {
   await page.route('**/api/risk/latest', (route) => fulfillJson(route, latestRisk))
   await page.route('**/api/risk/history?limit=2000', (route) => fulfillJson(route, riskHistory))
   await page.route('**/api/risk/levels', (route) => fulfillJson(route, riskLevels))
   await page.route('**/api/brief/latest', (route) => fulfillJson(route, brief))
   await page.route('**/api/readiness', (route) => fulfillJson(route, readiness, readiness.status === 'ready' ? 200 : 503))
-  await page.route('**/api/waitlist', (route) => fulfillJson(route, { data: { contact_type: 'email', locale: 'en', created: true } }))
+  await page.route('**/api/waitlist', waitlistHandler ?? ((route) => fulfillJson(route, { data: { contact_type: 'email', locale: 'en', created: true } })))
 }
 
 async function expectNoHorizontalOverflow(page: Page) {
@@ -149,6 +153,10 @@ async function expectNonBlankCharts(page: Page, minimumCssWidth: number) {
       return false
     }, minimumCssWidth)).toBe(true)
   }
+}
+
+async function isFocused(locator: Locator) {
+  return locator.evaluate((node) => node === document.activeElement)
 }
 
 test('renders desktop and mobile layouts with non-empty chart canvases', async ({ page }, testInfo) => {
@@ -190,6 +198,44 @@ test('passes a focused axe accessibility scan on the rendered page', async ({ pa
   }))
 
   expect(violations).toEqual([])
+})
+
+test('supports keyboard focus navigation through public controls with mocked waitlist submit', async ({ page, browserName }) => {
+  const waitlistPayloads: unknown[] = []
+  const pressTab = () => page.keyboard.press(browserName === 'webkit' ? 'Alt+Tab' : 'Tab')
+  const pressShiftTab = () => page.keyboard.press(browserName === 'webkit' ? 'Alt+Shift+Tab' : 'Shift+Tab')
+  await mockApi(page, readyReadiness, async (route) => {
+    expect(route.request().method()).toBe('POST')
+    waitlistPayloads.push(route.request().postDataJSON())
+    await fulfillJson(route, { data: { contact_type: 'email', locale: 'en', created: true } })
+  })
+
+  await page.goto('/')
+
+  await expect(page.getByRole('heading', { name: 'Bitcoin Risk Brief' })).toBeVisible()
+  const methodologyLink = page.getByRole('link', { name: /methodology/i })
+  const languageButton = page.getByRole('button', { name: 'RU' })
+  const waitlistInput = page.getByLabel('email or @telegram')
+  const submitButton = page.getByRole('button', { name: /join waitlist/i })
+
+  await pressTab()
+  if (await isFocused(methodologyLink)) {
+    await pressTab()
+  }
+  await expect(languageButton).toBeFocused()
+  await pressTab()
+  await expect(waitlistInput).toBeFocused()
+  await page.keyboard.type('keyboard@example.invalid')
+  await pressTab()
+  await expect(submitButton).toBeFocused()
+  await pressShiftTab()
+  await expect(waitlistInput).toBeFocused()
+  await pressTab()
+  await expect(submitButton).toBeFocused()
+  await page.keyboard.press('Enter')
+
+  await expect(page.locator('#waitlist-status')).toHaveText('Saved. You are on the Bitcoin Risk Brief waitlist.')
+  expect(waitlistPayloads).toEqual([{ contact: 'keyboard@example.invalid', locale: 'en', source: 'landing' }])
 })
 
 test('renders degraded readiness as a visible degraded state', async ({ page }) => {

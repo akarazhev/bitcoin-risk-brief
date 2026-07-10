@@ -215,6 +215,8 @@ export default function App() {
   const [joining, setJoining] = useState(false)
   const [compactCharts, setCompactCharts] = useState(getCompactChartPreference)
   const t = copy[locale]
+  const waitlistStatusId = 'waitlist-status'
+  const waitlistErrorId = 'waitlist-error'
 
   useEffect(() => {
     let active = true
@@ -419,11 +421,33 @@ export default function App() {
           <p>{t.waitlistBody}</p>
         </div>
         <form className="lead-form" onSubmit={submitWaitlist}>
-          <input value={lead} onChange={(event) => setLead(event.target.value)} placeholder={t.placeholder} aria-label={t.placeholder} />
-          <button type="submit" disabled={joining}><Send size={16} /> {joining ? t.joining : t.join}</button>
+          <input
+            value={lead}
+            onChange={(event) => setLead(event.target.value)}
+            placeholder={t.placeholder}
+            aria-label={t.placeholder}
+            aria-invalid={joinError ? 'true' : undefined}
+            aria-describedby={joinError ? waitlistErrorId : undefined}
+          />
+          <button type="submit" disabled={joining} aria-busy={joining}>
+            <Send size={16} /> {joining ? t.joining : t.join}
+          </button>
         </form>
-        {joined && <p className="joined">{t.joined}</p>}
-        {joinError && <p className="joined error-text">{joinError}</p>}
+        {joining && (
+          <p id={waitlistStatusId} className="sr-only" role="status" aria-live="polite">
+            {t.joining}
+          </p>
+        )}
+        {joined && !joining && (
+          <p id={waitlistStatusId} className="joined" role="status" aria-live="polite">
+            {t.joined}
+          </p>
+        )}
+        {joinError && (
+          <p id={waitlistErrorId} className="joined error-text" role="alert">
+            {joinError}
+          </p>
+        )}
       </section>
 
       <section className="charts">

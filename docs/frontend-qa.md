@@ -38,7 +38,7 @@ mark-line, and canvas modules used by the page.
 
 Last local `npm run build --prefix frontend` output:
 
-- `index` JS: 215.92 kB minified, 68.57 kB gzip;
+- `index` JS: 216.21 kB minified, 68.64 kB gzip;
 - `Chart` lazy chunk: 557.61 kB minified, 188.87 kB gzip.
 
 `frontend/vite.config.ts` sets `chunkSizeWarningLimit` to `650` kB so this accepted lazy chart chunk does not produce an
@@ -97,9 +97,9 @@ Automated checks run from this workstation:
 
 | Check | Result |
 | --- | --- |
-| `npm test --prefix frontend` | Passed: 2 test files, 23 tests. |
-| `npm run build --prefix frontend` | Passed. Output kept `index` at 215.92 kB minified / 68.57 kB gzip and lazy `Chart` at 557.61 kB minified / 188.87 kB gzip. |
-| `npm run smoke --prefix frontend` | First sandboxed attempt was blocked by `listen EPERM: operation not permitted 127.0.0.1:4173`; rerun outside the sandbox passed 20 Playwright checks, including the focused axe scan. |
+| `npm test --prefix frontend` | Passed: 2 test files, 25 tests. |
+| `npm run build --prefix frontend` | Passed. Output kept `index` at 216.21 kB minified / 68.64 kB gzip and lazy `Chart` at 557.61 kB minified / 188.87 kB gzip. |
+| `npm run smoke --prefix frontend` | First sandboxed attempt was blocked by `listen EPERM: operation not permitted 127.0.0.1:4173`; rerun outside the sandbox passed 25 Playwright checks, including the focused axe scan and keyboard/focus navigation smoke. |
 
 Browser/device status:
 
@@ -115,11 +115,14 @@ Accessibility status:
   `frontend/e2e/frontend-quality.spec.ts`.
 - The new Playwright check loads the mocked local production page, waits for the chart canvases to render, runs axe on
   the rendered DOM, and fails on any axe violation.
+- The keyboard/focus Playwright smoke uses mocked API routes, tabs through the top actions and waitlist controls,
+  verifies reverse focus movement between the submit button and input, submits only to the mocked waitlist route with a
+  reserved `.invalid` test address, and verifies the waitlist success status region.
 - `npm install --prefix frontend --save-dev @axe-core/playwright` initially failed in the sandbox with DNS
   `ENOTFOUND`; the approved network rerun installed `@axe-core/playwright` 4.12.1 and `axe-core` 4.12.1, with npm audit
   reporting 0 vulnerabilities.
-- `npm run smoke --prefix frontend` passed 20 checks outside the sandbox across Playwright Chromium, Firefox, WebKit,
-  Pixel 5, and iPhone 13 profiles. The focused axe scan passed in each profile with no reported violations.
+- `npm run smoke --prefix frontend` passed 25 checks outside the sandbox across Playwright Chromium, Firefox, WebKit,
+  Pixel 5, and iPhone 13 profiles. The focused axe scan and keyboard/focus smoke passed in each profile.
 - This is local automated evidence only. It is not a manual screen-reader/assistive-tech test, manual keyboard pass,
   physical-device/native browser pass, production-host pass, or full accessibility conformance audit.
 
@@ -130,9 +133,9 @@ Manual/source checklist:
 | Document language | `frontend/index.html` declares `<html lang="en">`. |
 | Landmarks and semantic structure | The app renders a `main` landmark, a language `nav`, sections, articles, and a methodology `dl`. |
 | Heading order | Source inspection shows one page `h1`, followed by section `h2` headings and brief-card `h3` headings. |
-| Form labels and status messaging | The waitlist input has an `aria-label`; the submit button has visible text. Waitlist success/error text is visible but is not a live region, so announcement timing remains unverified. |
-| Keyboard focus | CSS defines `:focus-visible` outlines for the methodology link, language button, waitlist input, and submit button. A manual tab-order pass was not run. |
-| ARIA and live regions | Source includes `aria-label` on language/current-state/methodology/threshold areas, `role="status"` on chart loading/empty placeholders, and an `aria-live` API error state. |
+| Form labels and status messaging | The waitlist input has an `aria-label`; submit uses visible text plus `aria-busy` while disabled; submitting/success feedback uses `role="status"` with polite live semantics; error feedback uses `role="alert"` and is linked to the input with `aria-invalid`/`aria-describedby`. |
+| Keyboard focus | CSS defines `:focus-visible` outlines for the methodology link, language button, waitlist input, and submit button. Automated Playwright keyboard smoke verifies tab/reverse-tab movement through the public controls with mocked local API routes. A manual tab-order pass was not run. |
+| ARIA and live regions | Source includes `aria-label` on language/current-state/methodology/threshold areas, waitlist `role="status"`/`role="alert"` feedback, `role="status"` on chart loading/empty placeholders, and an `aria-live` API error state. |
 | Chart accessibility | Charts render as non-empty canvas elements. The local implementation now provides a screen-reader-only current chart summary, recent risk-history table, and risk-threshold price table outside the canvas. Manual screen-reader/assistive-tech behavior remains unverified. |
 | Color and contrast | Axe reported no violations for rendered DOM content it can evaluate. Canvas-drawn chart internals remain outside this evidence. |
 | Reduced motion and responsive text fit | ECharts animation is disabled and the smoke suite checks horizontal overflow in desktop/mobile profiles. No separate OS reduced-motion or physical-device text-fit pass was run. |
@@ -180,10 +183,30 @@ Chart accessibility alternative local implementation recorded on 2026-07-10:
 - Limitations: this is local automated/source evidence. It is not a manual screen-reader/assistive-tech pass, manual
   keyboard pass, physical-device/native browser pass, production-host pass, or full WCAG/accessibility compliance audit.
 
+Waitlist live-region and keyboard/focus local implementation recorded on 2026-07-10:
+
+- Scope/safety: frontend code/tests/docs only. No deploy, waitlist POST, data refresh/import, cache warmup,
+  Cloudflare/routing change, commit, push, or tag was performed.
+- Local implementation: waitlist submitting and success feedback now has polite `role="status"` live-region semantics;
+  waitlist errors use `role="alert"`; the input is marked invalid and described by the error text when a submit fails;
+  the disabled submit button exposes `aria-busy` while the mocked submit is pending.
+- Focused local tests verify the submitting status region, success status region, error alert, input error description,
+  disabled/busy submit state, and the absence of browser-storage persistence for waitlist contacts.
+- Playwright keyboard/focus smoke uses only mocked API routes, tabs through the top controls and waitlist form, verifies
+  reverse focus movement from submit back to input, and submits a reserved `.invalid` test address only to the mocked
+  route.
+- Local verification passed: `npm test --prefix frontend` passed 2 files / 25 tests; `npm run build --prefix frontend`
+  passed; `npm run smoke --prefix frontend` was first blocked in the sandbox by `listen EPERM: operation not permitted
+  127.0.0.1:4173`, then passed 25 Playwright checks outside the sandbox across Chromium, Firefox, WebKit, Pixel 5, and
+  iPhone 13 profiles.
+- Limitations: this is local automated evidence. It is not a manual keyboard pass, screen-reader/assistive-tech pass,
+  native/physical-device pass, production-host pass, first-traffic pass, or WCAG conformance claim.
+
 Overall browser/device/accessibility/metadata launch-gate status: partial/blocked. Automated Playwright smoke, the local
-axe scan, source inspection, local chart data alternative, and local SEO/social metadata implementation provide useful
-evidence. The full native/manual browser-device matrix, manual keyboard/screen-reader/assistive-tech evidence, production
-host evidence, and public-host SEO/social metadata verification are still not launch-passed.
+axe scan, source inspection, local chart data alternative, local waitlist live-region/keyboard smoke, and local
+SEO/social metadata implementation provide useful evidence. The full native/manual browser-device matrix, manual
+keyboard/screen-reader/assistive-tech evidence, production-host evidence, and public-host SEO/social metadata
+verification are still not launch-passed.
 
 ## Reproducing Locally
 
