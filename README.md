@@ -4,35 +4,45 @@ Bitcoin Risk Brief is a standalone EN/RU mini-product for validating demand arou
 
 ## Current Status
 
-Bitcoin Risk Brief is locally implementation-complete for the current pre-traffic hardening items: scheduled public
-CoinMarketCap CSV refresh, public payload cache warmup, USB Update And Install Kit V2, and first-viewport
-model-price/OHLC display polish. These are local repository states, not proof that production has been updated.
+Bitcoin Risk Brief is implementation-complete in this repository for the current pre-traffic hardening items: scheduled
+public CoinMarketCap CSV refresh, public payload cache warmup, USB Update And Install Kit V2, and first-viewport
+model-price/OHLC display polish. Repository commits and local tags are implementation evidence; production readiness
+depends on recorded operator and public-host evidence.
 
-The public pilot hostname exists at `https://bitcoinriskbrief.minihub.app` and has historical smoke-test evidence.
-However, the latest documented public snapshot on 2026-07-05 showed public `/api/readiness` returning HTTP 503 because
-production BTC data was stale (`latest_date: 2026-06-30`, `data_age_days: 4`, `max_age_days: 2`). Do not treat the
-project as publicly launched until public `/api/readiness` returns HTTP 200 again and the remaining production
-operations gates are completed or explicitly accepted.
+The public pilot hostname exists at `https://bitcoinriskbrief.minihub.app` and has evidence through 2026-07-10. The
+2026-07-05 public `/api/readiness` HTTP 503 stale-data blocker is closed by later public evidence: 2026-07-07
+post-deploy checks returned public readiness HTTP 200/fresh, and the 2026-07-10 monitoring evidence recorded public
+`/api/health`, `/api/readiness`, and `/api/risk/latest` healthy/current. Latest recorded public readiness evidence is
+from 2026-07-10: HTTP 200, `status: ready`, `data_fresh: true`, `latest_date: 2026-07-09`,
+`covered_end: 2026-07-09`, `data_age_days: 1`, `max_age_days: 2`, and `row_count: 5841`.
 
-Production deployment is unavailable from this workspace. Local changes made after the current production snapshot still
-require operator deployment or update verification on the selected production path under
-`/srv/projects/bitcoin-risk-brief`, or an explicitly chosen replacement path.
+The 2026-07-08 browser-like waitlist smoke is closed for HTTP 201, no-store/no-cache headers, expected JSON response
+shape, and aggregate-only server-side storage verification. The 2026-07-09 import provenance pass is partial, not
+passed: public data/readiness/cache consistency aligned, but direct production source/archive proof and validation/import
+metadata remain pending.
+
+The project is still not publicly launched. Launch remains blocked by external/operational evidence gates, and public
+readiness must be rechecked before any first traffic window because freshness is time-sensitive. Production host access
+is unavailable from this workspace; future production updates still require operator deployment or update verification on
+the selected production path, or an explicitly chosen replacement path.
 
 External production tasks still required before treating the pilot as publicly launched:
 
-- Restore fresh production data and verify public `/api/readiness` returns HTTP 200.
-- Deploy and verify the scheduled public CoinMarketCap refresh and public cache warmup on the production host.
-- Prepare a real USB kit v2 package and run the backup-gated production update wrapper, or verify the selected deployment
-  path another way.
-- Configure scheduled backups for TimescaleDB data and the canonical BTC CSV, copy them off-server, and run a restore
-  drill.
-- Configure alerts on `/api/readiness`, stale data after the nightly update window, and collector failures.
-- Run a deliberate waitlist smoke test and verify server-side storage with no cached response.
-- Capture production import provenance outside the repository.
-- Complete browser/device and focused accessibility checks on the public hostname.
+- Recheck public `/api/readiness` immediately before first traffic and keep scheduled public-download-first refresh
+  evidence current on the production host.
+- Keep USB deploy/update evidence current on future production updates, including project revision, health/readiness
+  checks, and backup-gated mode when a fresh pre-update database dump is required.
+- Configure external monitors and alerts for `/api/health`, `/api/readiness`, stale data after the nightly update
+  window, collector failures, Cloudflare Tunnel health, and alert delivery.
+- Configure recurring scheduled backups, recurring off-server copies, and backup freshness monitoring; defer the restore
+  drill until a separate staging or intentionally empty restore target exists.
+- Capture direct production import source/archive provenance outside the repository, including source snapshot, manifest,
+  `sha256`, retrieval metadata, row count, covered range, expected tail, validation/readiness output, and cache evidence.
+- Complete launch governance, browser/device, accessibility, SEO/social metadata, release-feedback, and operational
+  evidence gates.
 - Decide whether the current Cloudflare Free-plan edge subset is enough for first traffic or whether to upgrade for
   managed WAF and broader API burst-rate-limit entitlement.
-- Run the first traffic test only after freshness and accepted launch gates allow it.
+- Capture the launch snapshot and run the first traffic test only after freshness and accepted launch gates allow it.
 
 ## Product Surface
 
@@ -87,12 +97,13 @@ PUBLIC_BASE_URL=http://127.0.0.1:3001 ./scripts/manage.sh warm-public-cache
 ## Operational Notes
 
 - `warm-public-cache` warms the standard public read payloads through normal GET routes against a local or private
-  origin after readiness is healthy. Production latency benefit still requires deployment, fresh readiness, and
-  post-deploy operator execution.
+  origin after readiness is healthy. Post-deploy public smoke has recorded fast Cloudflare HIT behavior after warmup, but
+  operators must rerun or verify warmup after validation-version changes and must not use it to mask stale readiness.
 - USB Update And Install Kit V2 packages a filtered project snapshot and update wrapper for the selected local-server
   deployment path. It does not include production secrets, container images, dependency caches, backups, or a full
-  offline package mirror. Production benefit still requires preparing a real USB package and running the backup-gated
-  update on the production host.
+  offline package mirror. A 2026-07-07 USB deploy verification is recorded; future production updates still need current
+  sanitized evidence for the selected revision, health/readiness checks, backup-gated mode when required, and no secrets
+  staged.
 
 ## Development Workflow
 
