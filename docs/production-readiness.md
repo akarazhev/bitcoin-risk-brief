@@ -217,6 +217,31 @@ Monitoring and alerts evidence pass recorded on 2026-07-10 at 06:13 UTC for
   Until these blocked items have operator evidence, broader traffic remains limited to an operator-watched pilot using
   the first-response runbook in [Operations](operations.md).
 
+Bundled canonical CSV repository evidence recorded on 2026-07-11:
+
+- Scope/safety: documentation-only evidence note. This pass records existing local repository and tag state. It did not
+  edit code or CSV data, deploy, refresh/import data, warm cache, run a real waitlist POST, change Cloudflare/routing, or
+  create a new commit, push, or tag.
+- Local repository state before the docs edit: `git status --short --branch` returned `## main...origin/main`;
+  `git rev-parse HEAD` returned `8cbc6998c757f1ca1716277104e099b4705dfba9`; local tag
+  `btc-csv-through-2026-07-09-evidence-2026-07-11` was present.
+- Bundled data evidence: commit `8cbc6998c757f1ca1716277104e099b4705dfba9`
+  (`data: update bundled BTC CSV through 2026-07-09`) added 11 rows to the repository's bundled canonical CSV,
+  `collector/btc-csv/btc_usd_daily.csv`, covering 2026-06-29 through 2026-07-09. The bundled canonical CSV therefore
+  includes rows through 2026-07-09 in this repository state.
+- Local source review: the incoming source reviewed for that commit was
+  `collector/btc-csv/incoming/coinmarketcap-public-btc-20260629-20260709.csv`, with SHA-256
+  `38e9b0e8717013f217b93e7501aa3e216b1f989b52899cacff9e14c13f309d07`. Raw source rows and raw logs are intentionally
+  not copied into this document. The reviewed `timeHigh`/`timeLow` mismatch is not treated as a blocker for the
+  canonical CSV path because those fields are not consumed as authoritative canonical fields.
+- Evidence boundary: this is local repository data evidence only. It does not prove production deployment, production
+  database import, public-host freshness after this commit, direct production source/archive provenance,
+  validation/import table metadata from the production database, launch readiness, or first traffic.
+- Pending production evidence: direct production import source/archive provenance remains pending until an
+  operator-controlled evidence packet exists outside the repository. Production refresh/import verification also remains
+  pending until deployment or operator evidence proves the production host imported this repository state or an
+  equivalent production source.
+
 Launch governance gap pass recorded on 2026-07-10:
 
 - Scope/safety: docs and evidence pass only. No deploy, refresh/import, cache warmup, waitlist POST, Cloudflare/routing

@@ -137,6 +137,15 @@ repository and outside the production project checkout. A mounted off-server evi
 archive is acceptable; `./backups`, `collector/btc-csv/incoming/`, workstation downloads, and Git history are not the
 long-term provenance archive.
 
+Repository-local bundled CSV commits and tags can support repository history, but they are not production import
+provenance. For example, 2026-07-11 local repository evidence records commit
+`8cbc6998c757f1ca1716277104e099b4705dfba9`, tag
+`btc-csv-through-2026-07-09-evidence-2026-07-11`, and local incoming source SHA-256
+`38e9b0e8717013f217b93e7501aa3e216b1f989b52899cacff9e14c13f309d07` for the bundled canonical CSV rows through
+2026-07-09. Treat that as local repository data evidence only. A production import still requires the outside-repository
+packet below, including the production source snapshot, manifest, `sha256`, retrieval metadata, row counts/range,
+validation/readiness output, cache evidence, and deployment/operator context.
+
 Before or immediately after an import, create an archive directory:
 
 ```bash

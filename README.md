@@ -10,6 +10,15 @@ model-price/OHLC display polish, local SEO/social metadata, and a local public p
 waitlist. Repository files, commits, local tags, and recorded checks are implementation evidence; production readiness
 depends on recorded operator and public-host evidence.
 
+Repository-local bundled BTC CSV evidence recorded on 2026-07-11: commit
+`8cbc6998c757f1ca1716277104e099b4705dfba9` is tagged
+`btc-csv-through-2026-07-09-evidence-2026-07-11` and adds 11 canonical rows for 2026-06-29 through 2026-07-09 to
+`collector/btc-csv/btc_usd_daily.csv`. The reviewed local incoming source was
+`collector/btc-csv/incoming/coinmarketcap-public-btc-20260629-20260709.csv` with SHA-256
+`38e9b0e8717013f217b93e7501aa3e216b1f989b52899cacff9e14c13f309d07`. This is local repository data evidence only; it
+does not prove a production deployment, production database import, public-host freshness after this commit, full
+production import provenance, launch readiness, or first traffic.
+
 The public pilot hostname exists at `https://bitcoinriskbrief.minihub.app` and has evidence through 2026-07-10. The
 2026-07-05 public `/api/readiness` HTTP 503 stale-data blocker is closed by later public evidence: 2026-07-07
 post-deploy checks returned public readiness HTTP 200/fresh, and the 2026-07-10 monitoring evidence recorded public

@@ -67,9 +67,10 @@ Already implemented:
 
 ## Current Roadmap Status
 
-Current status reflects evidence through 2026-07-10 from repository files, local implementation tags, public hostname
-checks, and the post-deploy/evidence notes in [Production Readiness](production-readiness.md). Local tags remain
-implementation evidence only; production status depends on the recorded operator/public-host evidence.
+Current status reflects public/operator evidence through 2026-07-10 and repository-local bundled CSV evidence recorded
+on 2026-07-11 from repository files, local tags, public hostname checks, and the post-deploy/evidence notes in
+[Production Readiness](production-readiness.md). Local tags and bundled CSV commits remain local repository evidence
+only; production status depends on the recorded operator/public-host evidence.
 
 | Phase | Status | Repository evidence |
 | --- | --- | --- |
@@ -93,6 +94,11 @@ Current production-pilot progress after Phase 1-5:
   monitoring evidence pass again returned HTTP 200 for those same public paths;
 - public `/api/readiness` returned HTTP 200 on 2026-07-10 with `data_fresh: true`, `latest_date: 2026-07-09`,
   `covered_end: 2026-07-09`, `data_age_days: 1`, and `row_count: 5841`; the prior stale-data launch blocker is closed;
+- repository-local bundled canonical CSV evidence recorded on 2026-07-11 shows commit
+  `8cbc6998c757f1ca1716277104e099b4705dfba9`, tagged
+  `btc-csv-through-2026-07-09-evidence-2026-07-11`, adding 11 local rows for 2026-06-29 through 2026-07-09; this is
+  local repository data evidence only and does not prove deployment, production database import, public-host freshness
+  after that commit, or direct production source/archive provenance;
 - public read caching is observable through `Cache-Control`, validation-versioned `ETag`, `X-Cache`, and
   `X-Cache-Version`; post-deploy repeated public cache requests after warmup were fast with Cloudflare
   `cf-cache-status: HIT`, while the cached origin `X-Cache` header may still show `MISS`;
@@ -111,7 +117,8 @@ Remaining production-pilot gaps:
 - keep the production host runbook, `.env`, service path, and data-refresh workflow aligned with the verified USB deploy
   path;
 - keep scheduled public CoinMarketCap refresh verification current on the production host without a
-  `COINMARKETCAP_API_KEY`; the 2026-07-07 snapshot proves current freshness, not future scheduled runs;
+  `COINMARKETCAP_API_KEY`; the 2026-07-07 snapshot and 2026-07-10 public checks prove recorded freshness, not future
+  scheduled runs or the 2026-07-11 local bundled CSV state;
 - continue cache-miss/edge-hit latency measurement for any endpoint not covered by the 2026-07-07 post-deploy smoke; add
   precomputed expensive payloads only if the first real user would still pay visible database/build cost after startup or
   nightly import;
@@ -129,6 +136,8 @@ Remaining production-pilot gaps:
 - tracked repository documentation and portfolio presentation work is locally complete as of 2026-07-06, but this does
   not close restore drill, backup freshness monitoring, monitoring alerts, direct import source/archive proof,
   browser/device/manual accessibility, GitHub settings, or sibling product-ideas evidence;
+- keep direct production import source/archive proof and production refresh/import verification pending; the 2026-07-11
+  bundled CSV commit/tag evidence is supporting repository evidence only, not a production import evidence packet;
 - post-launch learning cannot start until real usage evidence exists.
 
 ## Roadmap Phases
