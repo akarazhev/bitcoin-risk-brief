@@ -72,6 +72,10 @@ The current launch governance checklist and 2026-07-11 sanitized operator decisi
 metadata implementation, focused local accessibility pass, local dependency/license evidence pass, and current decision
 register:
 
+Use [docs/operator-launch-decision-packet-template.md](operator-launch-decision-packet-template.md) to collect sanitized
+operator decisions outside Git before copying final outcomes into the launch register. The template is not completed
+evidence.
+
 | Area | Status classification | Notes |
 | --- | --- | --- |
 | Privacy, terms, and disclaimer posture | public-host smoke verified for 2026-07-11 update; operator decisions pending | The frontend includes a compact public privacy/terms/disclaimer note near the waitlist with no-advice, no sensitive-info, waitlist storage, operational-log, no recommendation, no paid-SLA, and current no product analytics/tracking-cookie source-code statements. The 2026-07-11 desktop/mobile public smoke observed the privacy/disclaimer note and no waitlist POSTs. This does not resolve waitlist owner, review cadence, retention, deletion, unsubscribe, support/contact identity, legal approval, full privacy policy, or terms-of-service decisions. |

@@ -153,6 +153,10 @@ path, source-terms text, dashboard URL, token, `.env` value, raw log, or raw wai
 This register does not prove deployment, data refresh/import, cache warmup, waitlist submission, Cloudflare/routing
 change, monitor configuration, first traffic, commit, push, or tag.
 
+Use [docs/operator-launch-decision-packet-template.md](operator-launch-decision-packet-template.md) to collect sanitized
+operator answers before updating this register. The template is not completed evidence and does not close any pending
+decision by itself.
+
 | Decision area | Sanitized status | Exact remaining operator decision |
 | --- | --- | --- |
 | Waitlist owner, cadence, retention, deletion, and unsubscribe | Pending operator decision. The public note describes current storage/log behavior but does not name an owner role, review cadence, retention period, deletion path, or unsubscribe path. | Choose the owner role only, choose the review cadence, choose a retention period or explicitly defer retention until the public pilot ends, and record deletion/unsubscribe handling status without private contact details. |
