@@ -103,6 +103,49 @@ Backup-gated USB production update evidence recorded on 2026-07-11:
   runs, recurring backup freshness monitoring and alert delivery, restore drill target and drill, manual/native
   accessibility limitations, final launch snapshot, and first traffic.
 
+External monitoring and alert delivery gate remains partial/blocked as of 2026-07-11:
+
+- Scope/safety: public GET-only endpoint validation plus documentation-only gate status. No code, test, script, CSV data,
+  config, or lockfile changes were made; no deploy, refresh/import, cache warmup command, waitlist POST,
+  Cloudflare/routing change, external monitor configuration, alert delivery test, first traffic, commit, push, or tag was
+  performed. The sandboxed public probe first failed on network access, then the same GET-only probe was rerun with
+  network access. This note intentionally avoids secrets, tokens, private dashboard URLs, account IDs, recipient
+  addresses, phone numbers, private contacts, raw logs, `.env` values, raw waitlist contacts, raw backup contents, and
+  private filesystem paths.
+- Provider name/type: not recorded because no external monitoring provider dashboard/API evidence was available in this
+  workspace. No chosen provider, monitor IDs, dashboard URLs, account IDs, or delivery recipients were inspected.
+- Latest public endpoint check time: 2026-07-11T20:46:22Z. Local probe command:
+  `python3 scripts/check_public_endpoints.py --base-url https://bitcoinriskbrief.minihub.app --max-data-age-days 2
+  --require-cache-header Cache-Control --require-cache-header ETag --require-cache-header X-Cache-Version
+  --require-cache-header X-Cache`.
+- Public endpoint probe result: passed. Assertions covered `GET /api/health` HTTP 200 with `status: ok`,
+  `GET /api/readiness` HTTP 200 with `status: ready`, all required readiness checks true including `data_fresh`, matching
+  readiness/latest-risk dates, latest data age no more than 2 UTC days, and required cache headers on readiness and latest
+  risk. Sanitized summary: `latest_date=2026-07-10`, `risk=0.2616`, cache headers present.
+- Backup freshness checker result from this workstation: failed/stale for local backup timestamp basename
+  `20260626T165423Z` with a 30-hour freshness window. This is not production-host or off-server scheduler evidence. The
+  latest recorded production update backup evidence remains the historical 2026-07-11 copied/off-server checker pass for
+  timestamp basename `20260711T190355Z`, but recurring backup scheduling, selected-scheduler execution, off-server-root
+  monitoring, and alert delivery are still unverified.
+
+| Required coverage | 2026-07-11 sanitized status | Assertion type / limitation |
+| --- | --- | --- |
+| Uptime monitor for `GET /api/health` | Partial. Local public probe passed; no external provider monitor was configured or verified. | HTTP 200 and JSON `status: ok` assertion proven by local probe only. |
+| Readiness/freshness monitor for `GET /api/readiness` | Partial. Local public probe passed; no external provider JSON assertion evidence was available. | HTTP 200, JSON `status: ready`, required readiness checks, `data_fresh`, date match, max age, and cache headers proven by local probe only. If the selected provider cannot assert JSON, use this probe from cron or a synthetic runner and record that limitation. |
+| Latest-risk monitor for `GET /api/risk/latest` | Partial. Local public probe passed; no external provider monitor evidence was available. | HTTP 200, parseable timestamp date matching readiness, numeric risk in range, freshness, and cache headers proven by local probe only. |
+| Backup freshness monitor | Blocked for production monitoring. Workstation-local checker failed stale; production/off-server scheduler evidence was unavailable. | Record only timestamp basename plus pass/fail from the production host or selected scheduler with off-server root when available. |
+| Cloudflare Tunnel connector health notification | Blocked. No Cloudflare dashboard/API evidence or current plan notification evidence was available. | Public endpoints prove the hostname path served during the probe, but not connector-down/flapping notification coverage. |
+| Alert delivery | Blocked. No provider channel was available and no test alert was sent. | Record channel type, test time, and delivered/not-delivered only after an operator sends a test through the chosen channel. |
+
+- Monitoring/alert delivery gate status: partial/blocked, not passed. Public health/readiness/latest-risk behavior is
+  currently healthy by local probe, but external monitor provider proof, JSON assertion configuration or documented
+  provider limitation, backup freshness scheduler proof, Cloudflare Tunnel health notification status, and alert delivery
+  test evidence remain missing.
+- Remaining launch blockers from this gate: configure or verify external uptime/readiness/latest-risk monitors, configure
+  stale-data and collector-failure alerts, configure recurring backup freshness/off-server monitoring, verify Cloudflare
+  Tunnel connector health notification availability/status, send and record a sanitized test alert, and keep final
+  pre-traffic readiness fresh before any first traffic window.
+
 ## Current Public Pilot Snapshot
 
 Recorded on 2026-07-01 for `https://bitcoinriskbrief.minihub.app`:
