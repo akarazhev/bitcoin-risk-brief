@@ -44,8 +44,10 @@ External production tasks still required before treating the pilot as publicly l
   checks, and backup-gated mode when a fresh pre-update database dump is required.
 - Configure external monitors and alerts for `/api/health`, `/api/readiness`, stale data after the nightly update
   window, collector failures, Cloudflare Tunnel health, and alert delivery.
-- Configure recurring scheduled backups, recurring off-server copies, and backup freshness monitoring; defer the restore
-  drill until a separate staging or intentionally empty restore target exists.
+- Configure recurring scheduled backups, recurring off-server copies, and backup freshness monitoring using the local
+  `scripts/check_backup_freshness.py` checker; defer the restore drill until a separate staging or intentionally empty
+  restore target exists. The checker is implemented and tested locally, but production scheduling, alert delivery, and
+  current production backup freshness evidence remain pending.
 - Capture direct production import source/archive provenance outside the repository, including source snapshot, manifest,
   `sha256`, retrieval metadata, row count, covered range, expected tail, validation/readiness output, and cache evidence.
 - Verify the local privacy/terms/disclaimer note and SEO/social metadata on the public host, and complete launch

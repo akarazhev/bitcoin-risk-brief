@@ -297,8 +297,9 @@ secret values.
   503, `data_age_days` exceeds `max_age_days`, or `latest_date`/`covered_end` is older than the last completed UTC day.
 - Collector failure: alert on `scheduled_refresh_failed`, `public_cmc_download_failed`, API fallback failure, missed
   scheduled refresh evidence, or repeated `data-collector` restarts.
-- Backup freshness/off-server copy: choose the freshness window, schedule backups and off-server copies, verify
-  `SHA256SUMS`, and alert when no checksum-verified backup plus off-server copy exists inside that window.
+- Backup freshness/off-server copy: choose the freshness window, schedule backups and off-server copies, run
+  `scripts/check_backup_freshness.py`, and alert when no checksum-verified backup plus off-server copy exists inside
+  that window.
 - Cloudflare Tunnel connector health: enable or document Cloudflare Zero Trust connector-down or flapping notifications
   for the tunnel serving `bitcoinriskbrief.minihub.app`; record whether production uses host-service `cloudflared` or
   compose-managed `cloudflared`.
@@ -469,6 +470,41 @@ Each backup directory contains:
 - `SHA256SUMS` for integrity checks.
 
 Backups should be copied off the server. Keeping the only backup under `./backups` protects against accidental database edits, but not against disk failure.
+
+Check local backup freshness and checksums without creating or modifying backup files:
+
+```bash
+python3 scripts/check_backup_freshness.py \
+  --backup-root ./backups \
+  --max-age-hours 30
+```
+
+The freshness window is intentionally required; choose the production value before putting the check under cron or an
+external monitor. The checker validates the newest timestamped backup directory basename, required PostgreSQL dump, BTC
+CSV copy, `manifest.txt`, `SHA256SUMS`, and checksum verification using `sha256sum` or `shasum -a 256`. It prints concise
+status with the timestamp basename and exits nonzero when the backup is missing, stale, malformed, or checksum-invalid.
+
+After verified backups are copied to off-server storage, require the same timestamped basename under the off-server root:
+
+```bash
+python3 scripts/check_backup_freshness.py \
+  --backup-root ./backups \
+  --off-server-root "<mounted-off-server-backup-root>" \
+  --max-age-hours 30
+```
+
+For cron or a monitoring wrapper, the same values can come from the environment:
+
+```bash
+BACKUP_DIR=./backups \
+OFFSERVER_BACKUP_ROOT="<mounted-off-server-backup-root>" \
+BACKUP_FRESHNESS_MAX_AGE_HOURS=30 \
+python3 scripts/check_backup_freshness.py
+```
+
+Local checker implementation and unit coverage are in place. Production scheduling, off-server copy configuration,
+external alert delivery, and current production evidence remain pending until an operator records redacted evidence from
+the production host.
 
 ## USB Kit Packaging And Updates
 
