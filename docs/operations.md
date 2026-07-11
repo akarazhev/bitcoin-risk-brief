@@ -137,6 +137,11 @@ repository and outside the production project checkout. A mounted off-server evi
 archive is acceptable; `./backups`, `collector/btc-csv/incoming/`, workstation downloads, and Git history are not the
 long-term provenance archive.
 
+Use [docs/import-provenance-evidence-packet-template.md](import-provenance-evidence-packet-template.md) as the sanitized
+operator checklist for the packet. Fill a copy outside Git first, then copy only redacted final status, hashes, row
+counts, date ranges, cache/header facts, and accepted limitations into launch docs. The template is not completed
+production import evidence.
+
 Repository-local bundled CSV commits and tags can support repository history, but they are not production import
 provenance. For example, 2026-07-11 local repository evidence records commit
 `8cbc6998c757f1ca1716277104e099b4705dfba9`, tag

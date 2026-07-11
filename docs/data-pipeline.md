@@ -163,6 +163,10 @@ The evidence packet should include:
 - `Cache-Control`, `ETag`, `X-Cache`, and `X-Cache-Version` for a standard public endpoint after import;
 - collector log summary and related launch, restore, or correction note path if any.
 
+Use [docs/import-provenance-evidence-packet-template.md](import-provenance-evidence-packet-template.md) to collect these
+fields in a copy outside Git before copying only sanitized final outcomes into launch docs. The template is not
+production import evidence and does not replace the outside-repository source/archive packet.
+
 Do not store `.env` values, API keys, Cloudflare tokens, waitlist contacts, raw analytics, browser profiles, private
 account exports, or other PII in provenance artifacts. Manifests may include local file paths or operator names, so
 review and redact them before external sharing. These artifacts support launch evidence, restore drills, bad-data

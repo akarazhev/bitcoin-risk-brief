@@ -33,7 +33,10 @@ Production/operator evidence still pending before public launch:
 - Final pre-traffic public readiness/freshness recheck. The 2026-07-11 backup-gated update evidence below records
   update-time public readiness/latest/cache evidence, but freshness remains time-sensitive.
 - Production import provenance packet for a real production refresh/import, including exact source/archive proof and
-  direct validation/import metadata or accepted operator evidence.
+  direct validation/import metadata or accepted operator evidence. Use
+  [docs/import-provenance-evidence-packet-template.md](import-provenance-evidence-packet-template.md) to collect a
+  sanitized packet outside Git before copying final outcomes into launch docs. The template is not completed evidence
+  and does not close this blocker by itself.
 - Recurring production backups, recurring off-server copies, backup freshness monitoring, and alert delivery. The
   2026-07-11 update below records one backup-gated copied/off-server freshness/checksum checker pass, not a recurring
   schedule or alert.
