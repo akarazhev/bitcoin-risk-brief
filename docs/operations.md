@@ -345,6 +345,10 @@ check names, monitored paths, assertion summaries, intervals/windows, latest che
 do not record tokens, account IDs, private dashboard URLs, recipient addresses, phone numbers, IPs, raw logs with PII, or
 secret values.
 
+Use [docs/monitoring-alert-evidence-packet-template.md](monitoring-alert-evidence-packet-template.md) to collect the
+sanitized provider, scheduler, probe, backup freshness, Cloudflare connector, and alert-delivery fields before copying
+final outcomes into launch docs. The template is not provider evidence and does not mark the gate passed.
+
 - Health uptime: monitor `GET https://bitcoinriskbrief.minihub.app/api/health`; alert on HTTP non-200, timeout, or TLS
   failure. The local probe can supply this assertion, but provider/dashboard evidence is still required before this gate
   is treated as configured.

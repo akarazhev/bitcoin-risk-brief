@@ -105,6 +105,10 @@ Backup-gated USB production update evidence recorded on 2026-07-11:
 
 External monitoring and alert delivery gate remains partial/blocked as of 2026-07-11:
 
+Use [docs/monitoring-alert-evidence-packet-template.md](monitoring-alert-evidence-packet-template.md) to collect
+sanitized monitoring and alert evidence outside Git before copying final outcomes into this gate. The template is not
+completed evidence and does not close monitor/provider or alert-delivery blockers by itself.
+
 - Scope/safety: public GET-only endpoint validation plus documentation-only gate status. No code, test, script, CSV data,
   config, or lockfile changes were made; no deploy, refresh/import, cache warmup command, waitlist POST,
   Cloudflare/routing change, external monitor configuration, alert delivery test, first traffic, commit, push, or tag was
