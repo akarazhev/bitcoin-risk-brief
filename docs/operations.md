@@ -655,6 +655,10 @@ expected PostgreSQL dump, BTC CSV, manifest, and checksum artifacts present. Pro
 copy configuration, and external alert delivery remain pending until an operator records redacted recurring evidence from
 the production host or monitoring system.
 
+Use [docs/backup-restore-evidence-packet-template.md](backup-restore-evidence-packet-template.md) to collect the
+sanitized backup run, off-server copy, freshness/checksum, scheduler, alert-delivery, and safe restore-target fields
+outside Git before copying final outcomes into launch docs. The template is not completed backup or restore evidence.
+
 ## USB Kit Packaging And Updates
 
 Prepare the USB kit on the workstation from the repository checkout:

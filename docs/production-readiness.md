@@ -39,7 +39,9 @@ Production/operator evidence still pending before public launch:
   and does not close this blocker by itself.
 - Recurring production backups, recurring off-server copies, backup freshness monitoring, and alert delivery. The
   2026-07-11 update below records one backup-gated copied/off-server freshness/checksum checker pass, not a recurring
-  schedule or alert.
+  schedule or alert. Use [docs/backup-restore-evidence-packet-template.md](backup-restore-evidence-packet-template.md)
+  to collect sanitized backup/restore evidence outside Git before copying final outcomes into launch docs. The template
+  is not completed evidence and does not close this blocker by itself.
 - External monitoring provider/dashboard proof and alert delivery proof for health, readiness/freshness, stale data,
   collector failures, backup freshness, and Cloudflare Tunnel health.
 - Restore drill evidence on a staging project or intentionally empty restore target; no live-production restore drill is
