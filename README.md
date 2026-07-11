@@ -50,6 +50,8 @@ External production tasks still required before treating the pilot as publicly l
   current production backup freshness evidence remain pending.
 - Capture direct production import source/archive provenance outside the repository, including source snapshot, manifest,
   `sha256`, retrieval metadata, row count, covered range, expected tail, validation/readiness output, and cache evidence.
+  The local `scripts/import_provenance_packet.py` helper is implemented/tested to build or validate sanitized manifests
+  for future runs, but a real production packet and direct production validation/import metadata remain pending.
 - Verify the local privacy/terms/disclaimer note and SEO/social metadata on the public host, and complete launch
   governance, browser/device, accessibility, release-feedback, and operational evidence gates.
 - Decide whether the current Cloudflare Free-plan edge subset is enough for first traffic or whether to upgrade for

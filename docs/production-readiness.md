@@ -563,6 +563,10 @@ Production import provenance evidence pass recorded on 2026-07-09 from 16:19 to 
   latest risk, validation-version metadata, and cache headers all align on `2026-07-08` / row count `5840`; however, the
   exact source path/category and direct production validation/import metadata remain pending production-host or operator
   evidence. No mismatch was observed in the public evidence.
+- Local helper status: `scripts/import_provenance_packet.py` is implemented and tested locally to create or validate a
+  sanitized JSON manifest for a future production import evidence packet. This is local tooling only; it did not create a
+  real production source/archive packet and does not close the pending exact source path/category or direct
+  validation/import metadata gaps.
 
 Import provenance and bad-data correction status recorded on 2026-07-05:
 

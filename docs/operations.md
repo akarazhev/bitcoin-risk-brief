@@ -196,7 +196,36 @@ curl -sD "${ARCHIVE_DIR}/risk-latest-public.headers" \
 podman-compose -f podman-compose.yml logs --tail=300 data-collector > "${ARCHIVE_DIR}/collector-log-tail.txt"
 ```
 
-Create a manifest in the same directory. Use real values, not placeholders, before treating it as evidence:
+Create or validate the sanitized JSON manifest in the same directory. The local helper reads local files only, stores
+file basenames rather than full paths, records `sha256`, observed row count/date range, canonical tail date, and supplied
+evidence-file basenames, and rejects unsupported source types, checksum/date mismatches, malformed CSVs, and unsafe
+manifest fields. It does not copy the source snapshot or prove production provenance by itself; operators must still
+store the packet outside the repository and include the real production source, validation/readiness, cache, and
+deployment/operator context.
+
+Example helper flow:
+
+```bash
+python3 scripts/import_provenance_packet.py create \
+  --source-type automatic_public_cmc \
+  --source-csv "${ARCHIVE_DIR}/source.csv" \
+  --canonical-csv "${ARCHIVE_DIR}/canonical-after.csv" \
+  --output "${ARCHIVE_DIR}/manifest.json" \
+  --evidence-created-at-utc "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+  --expected-end-date "${EXPECTED_END_DATE}" \
+  --readiness-evidence "${ARCHIVE_DIR}/readiness-origin.json" \
+  --validation-evidence "${ARCHIVE_DIR}/canonical-range.json" \
+  --cache-evidence "${ARCHIVE_DIR}/risk-latest-public.headers" \
+  --production-commit "$(cat "${ARCHIVE_DIR}/git-commit.txt")" \
+  --note "sanitized packet for this production import"
+
+python3 scripts/import_provenance_packet.py validate \
+  --manifest "${ARCHIVE_DIR}/manifest.json" \
+  --source-csv "${ARCHIVE_DIR}/source.csv"
+```
+
+If the helper is unavailable, create a manifest manually in the same directory. Use real values, not placeholders, before
+treating it as evidence:
 
 ```json
 {

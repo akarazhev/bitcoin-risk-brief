@@ -139,8 +139,10 @@ is valid with only the public/manual CSV workflows.
 
 ## Import Provenance And Source Archive
 
-Production-pilot imports should keep sanitized import evidence outside the repository. Until an automated provenance
-feature exists, the operator should create a small evidence packet for each production import. Store the packet in an
+Production-pilot imports should keep sanitized import evidence outside the repository. The local helper
+`scripts/import_provenance_packet.py` can create or validate a sanitized JSON manifest from local source/canonical CSVs
+and supplied evidence-file paths, but it is tooling only; a real production packet still has to be captured by the
+operator outside the project checkout for each production import. Store the packet in an
 operator-controlled archive or off-server backup location, not under the project checkout, Git history, dependency
 caches, browser profiles, or ad hoc workstation downloads.
 

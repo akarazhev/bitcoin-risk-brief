@@ -139,7 +139,8 @@ Remaining production-pilot gaps:
 - tracked repository documentation and portfolio presentation work is locally complete as of 2026-07-06, but this does
   not close restore drill, backup freshness monitoring, monitoring alerts, direct import source/archive proof,
   browser/device/manual accessibility, GitHub settings, or sibling product-ideas evidence;
-- keep direct production import source/archive proof and production refresh/import verification pending; the 2026-07-11
+- keep direct production import source/archive proof and production refresh/import verification pending; the local
+  `scripts/import_provenance_packet.py` helper is implemented/tested for future sanitized manifests, but the 2026-07-11
   bundled CSV commit/tag evidence is supporting repository evidence only, not a production import evidence packet;
 - post-launch learning cannot start until real usage evidence exists.
 
