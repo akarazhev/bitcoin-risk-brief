@@ -640,9 +640,11 @@ BACKUP_FRESHNESS_MAX_AGE_HOURS=30 \
 python3 scripts/check_backup_freshness.py
 ```
 
-Local checker implementation and unit coverage are in place. Production scheduling, off-server copy configuration,
-external alert delivery, and current production evidence remain pending until an operator records redacted evidence from
-the production host.
+Local checker implementation and unit coverage are in place. A 2026-07-11 backup-gated USB production update recorded a
+copied/off-server freshness/checksum checker pass for timestamp basename `20260711T190355Z` as valid and fresh, with the
+expected PostgreSQL dump, BTC CSV, manifest, and checksum artifacts present. Production scheduling, recurring off-server
+copy configuration, and external alert delivery remain pending until an operator records redacted recurring evidence from
+the production host or monitoring system.
 
 ## USB Kit Packaging And Updates
 
@@ -698,6 +700,12 @@ bash deploy-from-usb.sh --with-backup https://bitcoinriskbrief.minihub.app
 That mode runs a backup from the current deployed project before copying new code, verifies the backup checksums, copies
 the verified backup to the USB default `backups-from-server/` or an operator-provided `BACKUP_COPY_DEST`, verifies the
 copied backup, then deploys and checks the service.
+
+Production update evidence recorded on 2026-07-11 confirms this backup-gated flow for target commit
+`86cb2dad889baf24a7464a105bbe2224f75b14ef`: the server-reported exit code was 0, the copied/off-server
+freshness/checksum checker passed for timestamp basename `20260711T190355Z`, public readiness/latest checks passed,
+public metadata/privacy smoke passed, and desktop/mobile browser smoke passed without waitlist POSTs. That evidence does
+not record a data refresh/import, monitor configuration, restore drill, launch snapshot, or first traffic.
 
 ## Restore Notes
 

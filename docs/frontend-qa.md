@@ -159,9 +159,24 @@ Local SEO/social metadata implementation recorded on 2026-07-10:
   `index` JS at 211.31 kB minified / 67.61 kB gzip, and lazy `Chart` at 557.61 kB minified / 188.87 kB gzip.
 - Source/build inspection of `frontend/index.html` and `frontend/dist/index.html` confirmed the title, description,
   canonical, Open Graph, and Twitter tags.
-- No deploy, waitlist POST, data refresh/import, cache warmup, or Cloudflare/routing change was performed. Production
-  public-host metadata verification remains pending until the frontend is deployed and checked on
-  `https://bitcoinriskbrief.minihub.app/`.
+- No deploy, waitlist POST, data refresh/import, cache warmup, or Cloudflare/routing change was performed in that local
+  implementation pass. The later 2026-07-11 production update evidence below verifies the public-host metadata for the
+  deployed update.
+
+Public metadata, privacy, and browser-smoke evidence recorded on 2026-07-11:
+
+- Scope/safety: documentation-only evidence note. During this docs update, no deploy, refresh/import, cache warmup,
+  waitlist POST, Cloudflare/routing change, production endpoint call, monitor configuration, first traffic, commit, push,
+  or tag was performed.
+- Production update identity: target commit `86cb2dad889baf24a7464a105bbe2224f75b14ef`; evidence tag
+  `predeployment-readiness-reconciled-2026-07-11`.
+- Public metadata passed: title, description, canonical URL, Open Graph type/title/description/url/site name, and Twitter
+  card/title/description were present. `og:image` and `twitter:image` were absent as expected because no real repo-served
+  production image asset exists.
+- Desktop/mobile browser smoke passed: H1/readiness/latest date were visible, charts were nonblank, EN/RU toggle worked,
+  no horizontal overflow was observed, the privacy/disclaimer note was present, and no waitlist POSTs were observed.
+- This evidence does not claim a manual keyboard pass, screen-reader/assistive-tech pass, physical-device/native browser
+  pass, full WCAG/accessibility compliance audit, first traffic, or any waitlist submission.
 
 Chart accessibility alternative local implementation recorded on 2026-07-10:
 
@@ -225,9 +240,9 @@ Privacy/terms/disclaimer local implementation recorded on 2026-07-10:
 
 Overall browser/device/accessibility/metadata/privacy launch-gate status: partial/blocked. Automated Playwright smoke,
 the local axe scan, source inspection, local chart data alternative, local waitlist live-region/keyboard smoke, local
-SEO/social metadata implementation, and local privacy/terms/disclaimer note provide useful evidence. The full
-native/manual browser-device matrix, manual keyboard/screen-reader/assistive-tech evidence, production-host evidence,
-public-host SEO/social metadata verification, and public-host privacy/terms/disclaimer verification are still not
+SEO/social metadata implementation, local privacy/terms/disclaimer note, and 2026-07-11 public-host metadata/privacy
+smoke provide useful evidence. The full native/manual browser-device matrix, manual keyboard/screen-reader/assistive-tech
+evidence, production-host accessibility evidence, first traffic, and full WCAG/accessibility compliance remain not
 launch-passed.
 
 ## Reproducing Locally

@@ -31,12 +31,20 @@ Repository-local bundled BTC CSV evidence recorded on 2026-07-11: commit
 does not prove a production deployment, production database import, public-host freshness after this commit, full
 production import provenance, launch readiness, or first traffic.
 
-The public pilot hostname exists at `https://bitcoinriskbrief.minihub.app` and has evidence through 2026-07-10. The
+The public pilot hostname exists at `https://bitcoinriskbrief.minihub.app` and has evidence through 2026-07-11. The
 2026-07-05 public `/api/readiness` HTTP 503 stale-data blocker is closed by later public evidence: 2026-07-07
-post-deploy checks returned public readiness HTTP 200/fresh, and the 2026-07-10 monitoring evidence recorded public
-`/api/health`, `/api/readiness`, and `/api/risk/latest` healthy/current. Latest recorded public readiness evidence is
-from 2026-07-10: HTTP 200, `status: ready`, `data_fresh: true`, `latest_date: 2026-07-09`,
-`covered_end: 2026-07-09`, `data_age_days: 1`, `max_age_days: 2`, and `row_count: 5841`.
+post-deploy checks returned public readiness HTTP 200/fresh, the 2026-07-10 monitoring evidence recorded public
+`/api/health`, `/api/readiness`, and `/api/risk/latest` healthy/current, and the 2026-07-11 backup-gated USB update
+evidence recorded public readiness/latest checks passed. Latest recorded public readiness evidence is from 2026-07-11:
+`data_fresh=True`, `latest_date=2026-07-10`, `row_count=5842`, latest risk `0.26161621315507155`, `risk_state=low`,
+and required cache headers present.
+
+Backup-gated USB production update evidence recorded on 2026-07-11 targets commit
+`86cb2dad889baf24a7464a105bbe2224f75b14ef` with evidence tag
+`predeployment-readiness-reconciled-2026-07-11`. The server-reported update exit code was 0; the copied/off-server backup
+freshness/checksum checker passed for timestamp basename `20260711T190355Z` as valid and fresh; public metadata/privacy
+smoke passed; and desktop/mobile browser smoke passed without waitlist POSTs. No data refresh/import, external monitor
+configuration, restore drill, launch snapshot, or first traffic is claimed by that evidence.
 
 The 2026-07-08 browser-like waitlist smoke is closed for HTTP 201, no-store/no-cache headers, expected JSON response
 shape, and aggregate-only server-side storage verification. The 2026-07-09 import provenance pass is partial, not
@@ -60,18 +68,19 @@ Still external/operator before treating the pilot as publicly launched:
   alert rule, or delivery evidence is recorded.
 - Configure recurring scheduled backups, recurring off-server copies, and backup freshness monitoring using the local
   `scripts/check_backup_freshness.py` checker; defer the restore drill until a separate staging or intentionally empty
-  restore target exists. The checker is implemented and tested locally, but production scheduling, alert delivery, and
-  current production backup freshness evidence remain pending.
+  restore target exists. The checker is implemented and tested locally, and one backup-gated copied/off-server
+  freshness/checksum checker pass is recorded for 2026-07-11, but production scheduling, recurring off-server-copy
+  evidence, and alert delivery remain pending.
 - Capture direct production import source/archive provenance outside the repository, including source snapshot, manifest,
   `sha256`, retrieval metadata, row count, covered range, expected tail, validation/readiness output, and cache evidence.
   The local `scripts/import_provenance_packet.py` helper is implemented/tested to build or validate sanitized manifests
   for future runs, but a real production packet and direct production validation/import metadata remain pending.
 - Use `scripts/launch_snapshot_packet.py` during the final pre-traffic window to create or validate a sanitized local
   launch snapshot packet from already collected evidence. The helper is implemented/tested, but the actual launch
-  snapshot packet, current public readiness evidence, monitor/alert delivery proof, production import provenance,
-  production backup freshness evidence, operator decisions, and first traffic remain pending.
-- Verify the local privacy/terms/disclaimer note and SEO/social metadata on the public host, and complete launch
-  governance, browser/device, accessibility, release-feedback, and operational evidence gates.
+  snapshot packet, final pre-traffic public readiness evidence, monitor/alert delivery proof, production import provenance,
+  recurring backup freshness evidence, operator decisions, and first traffic remain pending.
+- Keep public-host privacy/terms/disclaimer and SEO/social metadata verification current after future deployments, and
+  complete launch governance, browser/device, accessibility, release-feedback, and operational evidence gates.
 - Decide whether the current Cloudflare Free-plan edge subset is enough for first traffic or whether to upgrade for
   managed WAF and broader API burst-rate-limit entitlement.
 - Capture the launch snapshot and run the first traffic test only after freshness and accepted launch gates allow it.
@@ -104,7 +113,7 @@ Recommended next production sequence before first traffic:
   the matching OHLCV row exists. These fields are not live spot-price ticks or close-only pricing.
 - Daily brief payload in English and Russian.
 - Waitlist form for email or Telegram handles.
-- Compact privacy/terms/disclaimer note near the waitlist, implemented locally and pending public-host verification.
+- Compact privacy/terms/disclaimer note near the waitlist, verified in the 2026-07-11 public browser smoke.
 - Readiness endpoint for deployment probes and alerts.
 
 ## Architecture
@@ -152,9 +161,9 @@ PUBLIC_BASE_URL=http://127.0.0.1:3001 ./scripts/manage.sh warm-public-cache
   operators must rerun or verify warmup after validation-version changes and must not use it to mask stale readiness.
 - USB Update And Install Kit V2 packages a filtered project snapshot and update wrapper for the selected local-server
   deployment path. It does not include production secrets, container images, dependency caches, backups, or a full
-  offline package mirror. A 2026-07-07 USB deploy verification is recorded; future production updates still need current
-  sanitized evidence for the selected revision, health/readiness checks, backup-gated mode when required, and no secrets
-  staged.
+  offline package mirror. A 2026-07-11 backup-gated USB production update verification is recorded for commit
+  `86cb2dad889baf24a7464a105bbe2224f75b14ef`; future production updates still need current sanitized evidence for the
+  selected revision, health/readiness checks, backup-gated mode when required, and no secrets staged.
 
 ## Development Workflow
 

@@ -30,16 +30,17 @@ Local pre-deployment tooling and evidence that is complete in the repository:
 
 Production/operator evidence still pending before public launch:
 
-- Current public readiness/freshness evidence after the selected production update path is run.
+- Final pre-traffic public readiness/freshness recheck. The 2026-07-11 backup-gated update evidence below records
+  update-time public readiness/latest/cache evidence, but freshness remains time-sensitive.
 - Production import provenance packet for a real production refresh/import, including exact source/archive proof and
   direct validation/import metadata or accepted operator evidence.
-- Recurring production backups, recurring off-server copies, backup freshness monitoring, alert delivery, and a current
-  production freshness check using the local checker or equivalent monitor.
+- Recurring production backups, recurring off-server copies, backup freshness monitoring, and alert delivery. The
+  2026-07-11 update below records one backup-gated copied/off-server freshness/checksum checker pass, not a recurring
+  schedule or alert.
 - External monitoring provider/dashboard proof and alert delivery proof for health, readiness/freshness, stale data,
   collector failures, backup freshness, and Cloudflare Tunnel health.
 - Restore drill evidence on a staging project or intentionally empty restore target; no live-production restore drill is
   recorded or recommended.
-- Public-host verification for privacy/terms/disclaimer copy and SEO/social metadata after deployment.
 - Manual keyboard, screen-reader/assistive-tech, physical-device/native browser, production-host accessibility, full
   accessibility/WCAG, legal approval, data-source terms approval, and full dependency/license compliance evidence.
 - Sanitized operator decisions for waitlist handling, support/contact identity, account recovery, source terms, launch
@@ -68,6 +69,39 @@ Recommended next production sequence before first traffic:
 7. Create and validate the final launch snapshot packet from already collected sanitized evidence.
 8. Run the operator-watched first traffic test only after freshness and all launch gates are completed or explicitly
    accepted.
+
+Backup-gated USB production update evidence recorded on 2026-07-11:
+
+- Scope/safety: documentation-only evidence note for existing operator/public evidence. During this docs update, no code,
+  tests, scripts, CSV data, config, lockfiles, deploy, refresh/import, cache warmup, waitlist POST,
+  Cloudflare/routing change, production endpoint call, monitor configuration, first traffic, commit, push, or tag was
+  performed. This note intentionally avoids private paths, raw logs, raw backup contents, raw CSV contents, `.env` values,
+  secrets, account details, private dashboard URLs, raw waitlist contacts, private contacts, and PII.
+- Production update identity: target commit `86cb2dad889baf24a7464a105bbe2224f75b14ef`; evidence tag
+  `predeployment-readiness-reconciled-2026-07-11`.
+- Backup-gated USB update status: completed with server-reported exit code 0. Backup timestamp basename:
+  `20260711T190355Z`.
+- Backup evidence: copied/off-server backup freshness/checksum checker passed as valid and fresh,
+  age `0.28h <= max 30h`. Expected copied artifact filenames were present: `postgres_20260711T190355Z.dump`,
+  `btc_usd_daily_20260711T190355Z.csv`,
+  `manifest.txt`, and `SHA256SUMS`. These correspond to the PostgreSQL dump, canonical BTC CSV copy, backup manifest,
+  and checksum file categories. Local backup checksum verification is evidenced by the deploy exit 0 and the USB update
+  script flow, which verifies local backup checksums before copying and exits on failure.
+- Public API probe evidence: readiness/latest checks passed with `latest_date=2026-07-10`, `row_count=5842`,
+  `data_fresh=True`, `risk=0.26161621315507155`, and `risk_state=low`. Required public cache headers were present:
+  `Cache-Control`, `ETag`, `X-Cache-Version`, and `X-Cache`.
+- Public metadata/privacy evidence: the public homepage included `title`, meta description, canonical URL, Open Graph
+  `type`, `title`, `description`, `url`, and `site_name`, plus Twitter `card`, `title`, and `description`. `og:image`
+  and `twitter:image` were absent as expected because no real repo-served production image asset exists. The public
+  privacy/disclaimer note was present in the browser smoke.
+- Browser smoke evidence: desktop and mobile smoke passed with the H1, readiness, and latest date visible; charts were
+  nonblank; the EN/RU toggle worked; no horizontal overflow was observed; the privacy/disclaimer note was present; and
+  no waitlist POSTs were observed.
+- Explicit non-events: no data refresh/import, waitlist POST, Cloudflare/routing change, external monitor configuration,
+  manual cache warmup, first traffic, or import provenance packet for a new production import occurred in this update.
+- Remaining gates after this evidence: external monitors and alert delivery, import provenance if a later refresh/import
+  runs, recurring backup freshness monitoring and alert delivery, restore drill target and drill, manual/native
+  accessibility limitations, final launch snapshot, and first traffic.
 
 ## Current Public Pilot Snapshot
 
@@ -289,15 +323,16 @@ Monitoring and alerts evidence pass recorded on 2026-07-10 at 06:13 UTC for
   tooling only; no external monitor provider, dashboard/API proof, alert rule, delivery channel, or current production
   probe run evidence is recorded here.
 - Local backup freshness checker status: implemented and covered by focused unit tests in this repository. This is local
-  tooling only; production backup scheduling, recurring off-server copies, external monitor execution, alert delivery,
-  and current production evidence remain pending. No restore drill has been completed.
+  tooling only. The 2026-07-11 backup-gated update records one copied/off-server freshness/checksum checker pass, but
+  production backup scheduling, recurring off-server copies, external monitor execution, and alert delivery remain
+  pending. No restore drill has been completed.
 - Local launch snapshot packet status: implemented and covered by focused unit tests in this repository. The helper
   `scripts/launch_snapshot_packet.py` creates or validates a sanitized JSON packet template for the final pre-traffic
   evidence window, stores evidence basenames instead of full paths, keeps missing categories as pending gates, and keeps
   `first_traffic_status` at `not_run` unless explicit first-traffic evidence fields are deliberately supplied. This is
-  local tooling only; the actual final launch snapshot packet, current public readiness evidence, monitor/alert delivery
-  proof, production import provenance, production backup freshness evidence, operator decisions, and first traffic remain
-  pending.
+  local tooling only; the actual final launch snapshot packet, final pre-traffic public readiness evidence,
+  monitor/alert delivery proof, production import provenance, recurring backup freshness evidence, operator decisions, and
+  first traffic remain pending.
 
 Bundled canonical CSV repository evidence recorded on 2026-07-11:
 
@@ -339,25 +374,25 @@ Launch governance gap pass recorded on 2026-07-10:
 
 | Checklist item | Status classification | Current evidence | Exact remaining action |
 | --- | --- | --- | --- |
-| Public freshness and latest-risk launch evidence | passed with existing repo evidence | The 2026-07-10 monitoring evidence above records public `/api/health`, `/api/readiness`, and `/api/risk/latest` healthy/current with readiness HTTP 200, `data_fresh: true`, `latest_date: 2026-07-09`, and `covered_end: 2026-07-09`. | Recheck public `/api/readiness` immediately before any first traffic window because freshness is time-sensitive. |
+| Public freshness and latest-risk launch evidence | passed with current update evidence | The 2026-07-11 backup-gated update evidence records public readiness/latest checks passed with `latest_date=2026-07-10`, `row_count=5842`, `data_fresh=True`, `risk=0.26161621315507155`, `risk_state=low`, and required cache headers present. | Recheck public `/api/readiness` immediately before any first traffic window because freshness is time-sensitive. |
 | Browser-like waitlist smoke | passed with existing repo evidence | The 2026-07-08 browser-like smoke records HTTP 201, `Cache-Control: no-store`, `Pragma: no-cache`, expected JSON shape, and aggregate-only storage verification. | Keep raw contacts out of repo notes; rerun only with an operator-approved test contact when a new launch snapshot needs fresh evidence. |
-| Privacy, terms, and disclaimer posture | implemented locally; production-host verification pending | The frontend now includes a compact public privacy/terms/disclaimer note near the waitlist with no-advice, no sensitive-info, waitlist storage, operational-log, no recommendation, no paid-SLA, and current no product analytics/tracking-cookie source-code statements. | Deploy/update the frontend and verify the public host serves the note. Keep waitlist owner, review cadence, retention, deletion, unsubscribe, and public support/contact identity as pending operator decisions until separately resolved. |
+| Privacy, terms, and disclaimer posture | public-host smoke verified for 2026-07-11 update; operator decisions pending | The 2026-07-11 desktop/mobile browser smoke observed the privacy/disclaimer note on the public page and no waitlist POSTs. The source still contains the compact public privacy/terms/disclaimer note near the waitlist with no-advice, no sensitive-info, waitlist storage, operational-log, no recommendation, no paid-SLA, and current no product analytics/tracking-cookie source-code statements. | Keep the public note current after future deployments. Waitlist owner, review cadence, retention, deletion, unsubscribe, and public support/contact identity remain pending operator decisions until separately resolved. |
 | Waitlist contact handling owner, review cadence, retention, deletion, and unsubscribe path | pending operator decision | [Security and Privacy](security-and-privacy.md) and [Operations](operations.md) state the required owner/cadence/retention/deletion choices, but no owner, cadence, retention period, or contact path is recorded. | Choose the owner or owning role, review cadence, retention/deletion posture, and unsubscribe/deletion path in an operator-controlled record without committing private contact details. |
 | Support/contact identity for questions, deletion, unsubscribe, API, and license interest | pending operator decision | The docs require one operator-owned contact path, but no public support/contact identity is recorded. | Choose the contact path and decide whether it is intentionally public; do not imply a paid support SLA for the first pilot. |
 | Credential/account ownership and recovery record | pending operator decision | Required ownership categories are documented for GitHub, Cloudflare, domain, production `.env`, backups, server access, and optional CoinMarketCap credentials, but actual owners/recovery paths are intentionally absent from the repository. | Maintain the owner and recovery record outside Git; record only sanitized completion status here if needed. |
 | Data-source terms and attribution review | pending operator decision | No completed CoinMarketCap public CSV, optional API, or future methodology-source terms/attribution review evidence is recorded. | Review source terms and attribution requirements before broader launch or commercial/portfolio claims; record only sanitized outcome and date. |
 | Dependency/security maintenance cadence | partial; local config added and GitHub execution pending | [Security and Privacy](security-and-privacy.md), [Operations](operations.md), and `.github/dependabot.yml` record a conservative monthly Dependabot version-update configuration for frontend npm, backend and collector pip requirements, GitHub Actions, Dockerfiles, and a root `docker-compose` ecosystem entry for Compose-style image references. | Merge/push the config and observe the first GitHub-hosted Dependabot run or PRs, including whether Podman-specific compose filenames are handled. Continue manual monthly checks for advisories, vulnerability scans, secret-scan output, Python transitive inventory, container image/OS package licenses, CI action/license posture, project license choice, and legal compatibility. |
 | Accessibility pass evidence | partial; local automated axe, chart alternative, live-region, and keyboard/focus evidence verified | Browser-capable public-hostname QA, source inspection, the 2026-07-10 focused local axe pass, local chart data alternative implementation, and local waitlist live-region/keyboard smoke are recorded. `@axe-core/playwright` is in the Playwright smoke suite, the chart panels expose a screen-reader-only current summary plus recent history/threshold tables, waitlist submit feedback exposes status/alert semantics, and `npm run smoke --prefix frontend` passed 25 checks outside the sandbox across Chromium, Firefox, WebKit, Pixel 5, and iPhone 13 profiles with no axe violations reported. | Run and record manual keyboard, screen-reader/assistive-tech, physical-device/native browser, and production-host accessibility evidence, or explicitly accept those limitations for the controlled traffic window. |
-| SEO/social metadata pass evidence | implemented locally; production verification pending | 2026-07-10 local source/build inspection confirmed `frontend/index.html` and `frontend/dist/index.html` include the title, meta description, canonical URL, Open Graph type/title/description/url/site name, and Twitter card/title/description. `og:image` and `twitter:image` are intentionally omitted because no real repo-served production image asset exists. The earlier public homepage GET still showed missing tags before this deploy. | Deploy/update the frontend and verify `https://bitcoinriskbrief.minihub.app/` returns the metadata. Keep image metadata omitted unless a real publicly served production image asset is added. |
+| SEO/social metadata pass evidence | public-host verified for 2026-07-11 update | The 2026-07-11 public metadata check found `title`, description, canonical URL, Open Graph type/title/description/url/site name, and Twitter card/title/description. `og:image` and `twitter:image` were absent as expected because no real repo-served production image asset exists. | Keep public metadata current after future deployments. Keep image metadata omitted unless a real publicly served production image asset is added. |
 | Incident response readiness | passed with existing repo evidence | [Operations](operations.md) includes the first-response runbook, monitoring alert expectations, bad-data correction policy, restore guidance, and cache-safety procedures. | Keep the runbook aligned as new monitor, restore, and provenance evidence arrives. |
 | Release notes or decision log | passed with existing repo evidence | This document and [Production Roadmap](production-roadmap.md) contain dated evidence notes and decision/status history through 2026-07-10. | Add the final launch snapshot note only when the actual first-traffic window is ready; do not reuse the stale 2026-07-05 snapshot as a launch-ready note. |
 | First-user feedback review path | passed with existing repo evidence | This document and [Operations](operations.md) define a post-window review path for waitlist conversion, repeat-use signals, direct questions, methodology confusion, and requests for alerts/API/agents/widgets/licensing. | Run the review only after first traffic creates evidence; do not copy raw waitlist contacts into summaries. |
 | Dependency-license review | partial; local evidence recorded, external/manual confirmation pending | [Dependency and License Review](dependency-license-review.md) records the 2026-07-10 local inventory from npm lockfile, Python requirements, container references, CI workflow references, and local Dependabot configuration. Local npm lockfile entries all include license metadata, including `@axe-core/playwright` and `axe-core` as `MPL-2.0`; Python and container license metadata remain unknown from repository files. | Confirm GitHub-hosted Dependabot execution and first PR evidence, Python package metadata, transitive dependencies, container image and OS package licenses, CI action/license posture, vulnerability/advisory status, project license choice, and legal compatibility before broader portfolio sharing or commercial claims. |
-| Launch snapshot evidence | pending external evidence | The 2026-07-05 launch snapshot is historical and was blocked by stale readiness. Later public freshness evidence exists, and local launch snapshot packet tooling is implemented/tested, but no final launch snapshot/first-traffic evidence packet is recorded. | Use `scripts/launch_snapshot_packet.py` during the final pre-traffic window to create or validate a sanitized packet from already collected local evidence, then capture the launch commit, public hostname, readiness payload, cache headers, waitlist smoke, launch limitations, and related backup/restore/provenance references immediately before first traffic. |
+| Launch snapshot evidence | pending external evidence | The 2026-07-05 launch snapshot is historical and was blocked by stale readiness. Later public freshness evidence exists, including the 2026-07-11 update probe, and local launch snapshot packet tooling is implemented/tested, but no final launch snapshot/first-traffic evidence packet is recorded. | Use `scripts/launch_snapshot_packet.py` during the final pre-traffic window to create or validate a sanitized packet from already collected local evidence, then capture the launch commit, public hostname, readiness payload, cache headers, waitlist smoke, launch limitations, and related backup/restore/provenance references immediately before first traffic. |
 | External monitoring and alert delivery | blocked | The 2026-07-10 monitoring pass found no monitor-provider dashboard/API proof, alert rules, Cloudflare connector notification evidence, or delivery-test evidence. | Configure or show provider/dashboard evidence and alert delivery proof for health, readiness/freshness, stale data, collector failure, backup freshness, and Cloudflare Tunnel health. |
 | Import provenance source archive and direct production metadata | pending external evidence | The 2026-07-09 pass publicly verified data/cache consistency but did not prove the exact source path/category, source archive, direct production validation/import table metadata, or collector command evidence. | Capture a sanitized production import evidence packet outside the repository with source snapshot, manifest, `sha256`, retrieval metadata, row counts/range, validation/readiness output, and cache evidence. |
-| Restore drill | accepted limitation for operator-watched first traffic | One checksum-verified off-server USB backup copy is recorded for 2026-07-07, but the current setup has only the live production server and no staging or empty restore target. | Defer the drill until a separate target exists; do not run restore testing against live production. Record target type and readiness result after the drill. |
-| First traffic test | blocked | No first traffic window has run. Freshness and waitlist smoke evidence exist, but launch governance, monitoring/alerts, provenance, backup freshness, manual accessibility limitations, public-host metadata verification, and final snapshot evidence remain incomplete or explicitly limited. | Run only after freshness is rechecked and all launch gates are either completed or explicitly accepted for an operator-watched first traffic window. |
+| Restore drill | accepted limitation for operator-watched first traffic | Checksum-verified off-server USB backup copy evidence is recorded for 2026-07-07 and copied/off-server freshness/checksum checker evidence is recorded for timestamp `20260711T190355Z`, but the current setup has only the live production server and no staging or empty restore target. | Defer the drill until a separate target exists; do not run restore testing against live production. Record target type and readiness result after the drill. |
+| First traffic test | blocked | No first traffic window has run. Freshness, public metadata/privacy smoke, and waitlist smoke evidence exist, but launch governance, monitoring/alerts, provenance, recurring backup freshness monitoring, manual/native accessibility limitations, and final snapshot evidence remain incomplete or explicitly limited. | Run only after freshness is rechecked and all launch gates are either completed or explicitly accepted for an operator-watched first traffic window. |
 
 Browser/device/accessibility/metadata gap pass recorded on 2026-07-10:
 
@@ -397,8 +432,8 @@ SEO/social metadata local implementation recorded on 2026-07-10:
 - Local verification: `npm test --prefix frontend` passed 2 files / 21 tests; `npm run build --prefix frontend` passed;
   source/build inspection confirmed the title, description, canonical, Open Graph, and Twitter tags in
   `frontend/index.html` and `frontend/dist/index.html`.
-- Production status: not deployed or public-host verified in this pass. The production/public metadata gate remains
-  pending until `https://bitcoinriskbrief.minihub.app/` serves the new tags.
+- Production status: not deployed or public-host verified in this local implementation pass. The 2026-07-11 backup-gated
+  update evidence records the public host serving the expected metadata, with image metadata absent as expected.
 
 Focused accessibility local pass recorded on 2026-07-10:
 
@@ -490,9 +525,10 @@ Privacy/terms/disclaimer local implementation recorded on 2026-07-10:
   `npm run smoke --prefix frontend` was first blocked in the sandbox by `listen EPERM: operation not permitted
   127.0.0.1:4173`, then passed 25 Playwright checks outside the sandbox across Chromium, Firefox, WebKit, Pixel 5, and
   iPhone 13 profiles, including the focused axe scan and keyboard/focus smoke.
-- Remaining status: local implementation only. Production/public-host verification, waitlist owner, review cadence,
-  retention period, deletion path, unsubscribe path, support/contact identity, legal approval, full privacy policy, and
-  terms-of-service decisions remain pending. Launch governance remains partial/blocked, not launch-passed.
+- Remaining status: production/public-host smoke verification for the note is recorded in the 2026-07-11 update evidence.
+  Waitlist owner, review cadence, retention period, deletion path, unsubscribe path, support/contact identity, legal
+  approval, full privacy policy, and terms-of-service decisions remain pending. Launch governance remains partial/blocked,
+  not launch-passed.
 
 Dependency and license local evidence pass recorded on 2026-07-10:
 
@@ -787,9 +823,9 @@ Launch governance and release evidence status recorded on 2026-07-05:
   import provenance evidence is missing; waitlist smoke was not run; public page data was observed stale during Task 8;
   full native-device/browser QA, focused accessibility, and SEO/social metadata evidence were not complete then;
   Cloudflare remains on the documented Free-plan-compatible subset. Later evidence above supersedes the missing
-  backup/off-server copy portion and records local privacy/terms/disclaimer and SEO/social metadata implementation,
-  while restore drill, production-host privacy/terms/disclaimer verification, and public-host metadata verification
-  remain pending.
+  backup/off-server copy portion, records local privacy/terms/disclaimer and SEO/social metadata implementation, and
+  records 2026-07-11 public-host privacy/disclaimer smoke plus metadata verification, while restore drill evidence remains
+  pending.
 - Governance evidence process: keep privacy/terms/disclaimer posture, waitlist handling, credential/account ownership,
   data-source terms review, dependency/security maintenance, accessibility, and metadata status in
   [Security and Privacy](security-and-privacy.md) and [Operations](operations.md). Unknown operator-owned facts must be
@@ -1135,6 +1171,10 @@ Completed or partially completed as of 2026-07-01:
   blocker, confirms public `/api/readiness` HTTP 200 with latest public data date `2026-07-06`, verifies latest
   risk/model-price/OHLC display on desktop and mobile Playwright smoke, records fast repeated Cloudflare HIT behavior
   after warmup, and records one checksum-verified off-server USB backup copy.
+- Backup-gated USB production update evidence recorded on 2026-07-11 verifies target commit
+  `86cb2dad889baf24a7464a105bbe2224f75b14ef`, server-reported exit code 0, copied/off-server backup freshness/checksum
+  checker status valid and fresh for timestamp basename `20260711T190355Z`, public readiness/latest/cache evidence through
+  latest date `2026-07-10`, public metadata/privacy smoke, and desktop/mobile browser smoke without waitlist POSTs.
 - Browser-like waitlist smoke evidence recorded on 2026-07-08 verifies HTTP 201, no-store/no-cache headers, expected JSON
   response shape, and aggregate-only storage verification for source `ops-smoke-20260708115806`; the waitlist smoke gate
   is closed for that smoke.
@@ -1147,17 +1187,19 @@ Still required before treating the pilot as publicly launched:
 - Decide whether to accept the current Cloudflare Free-plan subset for first traffic or upgrade/configure additional WAF,
   bot protection, and broader API burst-rate-limit controls.
 - Configure scheduled `./scripts/backup.sh` runs, recurring off-server backup copies, and backup freshness monitoring; one
-  USB off-server backup copy was verified on 2026-07-07.
+  USB off-server backup copy was verified on 2026-07-07, and one copied/off-server freshness/checksum checker pass was
+  recorded on 2026-07-11.
 - Continue verifying the scheduled public-download-first refresh on the production host because the production pilot runs
-  without a `COINMARKETCAP_API_KEY`; the 2026-07-07 snapshot proves current freshness, not future scheduled runs.
+  without a `COINMARKETCAP_API_KEY`; the 2026-07-11 update evidence proves update-time freshness, not future scheduled
+  runs.
 - Put request logging, backup health, and operational review in place.
 - Configure alerts on `/api/readiness` returning non-200, readiness becoming stale after the nightly update window, or
   collector logs containing scheduled/public/API refresh failures.
 - Complete any browser/device launch-matrix coverage not represented by the 2026-07-07 Playwright desktop/mobile smoke,
   including physical-device/native branded browser evidence if required for the launch gate.
-- Complete or explicitly defer the launch operations and governance checklist: public-host privacy/terms/disclaimer
-  verification, post-waitlist handling, credential ownership, resource monitoring, dependency/security maintenance,
-  data-source terms, accessibility, public-host SEO/social metadata verification, and incident response.
+- Complete or explicitly defer the launch operations and governance checklist: keep public-host privacy/terms/disclaimer
+  and SEO/social metadata verification current after future deployments, post-waitlist handling, credential ownership,
+  resource monitoring, dependency/security maintenance, data-source terms, accessibility, and incident response.
 - Complete or explicitly defer the release feedback and operational evidence checklist: release notes or decision log,
   first-user feedback path, support/contact identity, dependency-license review external/manual confirmation, launch
   evidence, and restore-drill evidence.
