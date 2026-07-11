@@ -499,6 +499,35 @@ separate sanitized first-traffic evidence and intentionally supplies the explici
 validating a packet does not prove the launch snapshot is complete, does not configure monitors or alerts, does not prove
 production import provenance or backup freshness, and does not run first traffic.
 
+## Recommended First-Traffic Production Sequence
+
+Run this sequence from the selected production path and the operator-controlled evidence archive. Record only sanitized
+evidence: status, dates, commit IDs, timestamp basenames, check names, and pass/fail summaries. Do not record secrets,
+tokens, `.env` values, raw waitlist contacts, private account details, raw logs, dashboard URLs, private contacts, or
+private filesystem paths.
+
+1. Record operator decisions outside Git, then add only sanitized status here if needed: waitlist owner/review cadence,
+   retention/deletion/unsubscribe path, support/contact identity, account recovery, source-terms review, legal/license
+   status, dependency/security review status, and accepted launch limitations.
+2. Deploy or update the selected production path. Record the project revision, selected deployment path, service status,
+   local health/readiness, public readiness, and whether the current Cloudflare Free-plan edge subset is accepted or an
+   upgraded edge posture is configured.
+3. Run the selected production refresh/import path. Create the production import provenance packet from the real source
+   snapshot, source `sha256`, retrieval metadata, canonical output, validation/readiness output, public cache evidence,
+   row count/range, expected tail, and deployment/operator context.
+4. Create a fresh backup, copy it off-server, verify checksums in both locations, and run
+   `scripts/check_backup_freshness.py` with the chosen freshness window and required off-server root. Keep the restore
+   drill pending until a staging project or intentionally empty restore target exists.
+5. Run `scripts/check_public_endpoints.py` against the public hostname with the chosen freshness policy. Configure
+   external monitors and alert delivery for health, readiness/freshness, stale data after the nightly update window,
+   collector failures, backup freshness, and Cloudflare Tunnel connector health.
+6. Verify public-host privacy/terms/disclaimer copy, SEO/social metadata, browser/device smoke, and the remaining manual
+   accessibility evidence or accepted limitations.
+7. Create and validate the final launch snapshot packet from already collected sanitized evidence. Missing categories
+   must remain pending; do not mark first traffic as run in the packet unless separate first-traffic evidence exists.
+8. Run the operator-watched first traffic test only after freshness is current and all launch gates are completed or
+   explicitly accepted.
+
 ## Cloudflare Edge Rules
 
 Render the repo-managed Cloudflare WAF, rate-limit, cache, and waitlist bot-challenge rules:

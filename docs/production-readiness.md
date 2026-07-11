@@ -2,6 +2,73 @@
 
 This document defines the current production-pilot gate for Bitcoin Risk Brief.
 
+## Current Pre-Deployment Reconciliation
+
+Recorded on 2026-07-11 from repository-local evidence. The local evidence tag
+`launch-snapshot-helper-local-evidence-2026-07-11` points at commit
+`e1a4dc521343b8c48060358204ff5c9cfd7e1ecf`. This records local tooling and documentation state only. It does not prove
+a production deployment, production import, public readiness recheck after the latest local commits, external monitor
+setup, backup freshness scheduling, restore drill, launch snapshot completion, or first traffic.
+
+Local pre-deployment tooling and evidence that is complete in the repository:
+
+- Scheduled public-download-first CoinMarketCap CSV refresh, validated manual CSV intake, and bundled canonical BTC CSV
+  evidence through 2026-07-09.
+- Public payload cache warmup, USB Update And Install Kit V2, model-price/OHLC display polish, local SEO/social
+  metadata, and local privacy/terms/disclaimer copy near the waitlist.
+- `scripts/check_public_endpoints.py` for local health/readiness/latest-risk assertions, including explicit freshness
+  policy inputs for future monitor runs.
+- `scripts/check_backup_freshness.py` for local backup and off-server copy freshness/checksum checks.
+- `scripts/import_provenance_packet.py` for creating or validating sanitized production import provenance manifests
+  after an operator has collected the real production source, canonical output, validation/readiness, cache, and
+  deployment evidence.
+- `scripts/launch_snapshot_packet.py` for creating or validating a sanitized final pre-traffic launch snapshot packet
+  from already collected evidence while keeping missing categories pending and `first_traffic_status` at `not_run` by
+  default.
+- Dependabot configuration, local dependency/license inventory evidence, local accessibility improvements/evidence,
+  local waitlist live-region/keyboard evidence, and local public privacy/terms/disclaimer evidence.
+
+Production/operator evidence still pending before public launch:
+
+- Current public readiness/freshness evidence after the selected production update path is run.
+- Production import provenance packet for a real production refresh/import, including exact source/archive proof and
+  direct validation/import metadata or accepted operator evidence.
+- Recurring production backups, recurring off-server copies, backup freshness monitoring, alert delivery, and a current
+  production freshness check using the local checker or equivalent monitor.
+- External monitoring provider/dashboard proof and alert delivery proof for health, readiness/freshness, stale data,
+  collector failures, backup freshness, and Cloudflare Tunnel health.
+- Restore drill evidence on a staging project or intentionally empty restore target; no live-production restore drill is
+  recorded or recommended.
+- Public-host verification for privacy/terms/disclaimer copy and SEO/social metadata after deployment.
+- Manual keyboard, screen-reader/assistive-tech, physical-device/native browser, production-host accessibility, full
+  accessibility/WCAG, legal approval, data-source terms approval, and full dependency/license compliance evidence.
+- Sanitized operator decisions for waitlist handling, support/contact identity, account recovery, source terms, launch
+  limitations, and legal/license status.
+- Final launch snapshot packet and an operator-watched first traffic test.
+
+External gates that cannot be closed from this local workspace include production host execution, Cloudflare or external
+monitor provider configuration, alert delivery tests, operator account/contact/retention/source-terms decisions,
+production backup/off-server scheduling, restore target provisioning, legal/license approval, and first traffic.
+
+Recommended next production sequence before first traffic:
+
+1. Record sanitized operator decisions for contact/retention/account/source-terms/legal-license statuses and accepted
+   launch limitations.
+2. Deploy or update the selected production path and record project revision, health/readiness, public-host
+   privacy/metadata/accessibility smoke, and selected Cloudflare edge posture.
+3. Run the production refresh/import path and create the production import provenance packet from the real source,
+   canonical output, validation/readiness, cache evidence, and deployment context.
+4. Create a fresh backup, copy it off-server, run the backup freshness checker against the required roots, and keep the
+   restore drill pending until a safe restore target exists.
+5. Run the public endpoint monitor probe with the selected freshness policy, then configure external monitors and alert
+   delivery for health, readiness/freshness, stale data, collector failures, backup freshness, and Cloudflare Tunnel
+   health.
+6. Verify public-host metadata, privacy/terms/disclaimer copy, browser/device smoke, and remaining accessibility
+   limitations or accepted deferrals.
+7. Create and validate the final launch snapshot packet from already collected sanitized evidence.
+8. Run the operator-watched first traffic test only after freshness and all launch gates are completed or explicitly
+   accepted.
+
 ## Current Public Pilot Snapshot
 
 Recorded on 2026-07-01 for `https://bitcoinriskbrief.minihub.app`:

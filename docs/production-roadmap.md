@@ -65,14 +65,29 @@ Already implemented:
   verification passed according to the 2026-07-07 post-deploy evidence.
 - Local backup freshness/off-server copy checker tooling is implemented and tested. Production scheduling, recurring
   off-server copy configuration, external alert delivery, current production evidence, and restore drill remain pending.
+- Local public endpoint monitor probe tooling is implemented and tested for health/readiness/latest-risk assertions with
+  explicit freshness policy inputs. External monitor provider configuration, dashboard proof, and delivery evidence
+  remain pending.
+- Local import provenance packet tooling is implemented and tested for sanitized manifests. A real production import
+  provenance packet still requires operator-collected source/archive, validation/readiness, cache, and deployment
+  evidence outside the repository.
+- Local launch snapshot packet tooling is implemented and tested, tagged
+  `launch-snapshot-helper-local-evidence-2026-07-11` at
+  `e1a4dc521343b8c48060358204ff5c9cfd7e1ecf`. The final launch snapshot packet and first traffic remain pending.
 - Production readiness, operations, security, testing, architecture, and data-pipeline documentation.
 
 ## Current Roadmap Status
 
-Current status reflects public/operator evidence through 2026-07-10 and repository-local bundled CSV evidence recorded
-on 2026-07-11 from repository files, local tags, public hostname checks, and the post-deploy/evidence notes in
-[Production Readiness](production-readiness.md). Local tags and bundled CSV commits remain local repository evidence
-only; production status depends on the recorded operator/public-host evidence.
+Current status reflects public/operator evidence through 2026-07-10 from public hostname checks and the
+post-deploy/evidence notes in [Production Readiness](production-readiness.md). Repository-local bundled CSV and helper
+evidence recorded on 2026-07-11 comes from repository files and local tags only. Local tags, helper scripts, Dependabot
+configuration, accessibility and dependency/license notes, and bundled CSV commits remain local repository evidence only;
+production status depends on the recorded operator/public-host evidence.
+
+As of the 2026-07-11 local pre-deployment reconciliation, the repo has local helpers for backup freshness/off-server
+checks, import provenance manifests, public endpoint monitor probes, and launch snapshot packets. These helpers support
+the first-traffic evidence workflow but do not close production backup scheduling, production import provenance,
+external monitor/alert setup, restore drill, final launch snapshot, or first traffic.
 
 | Phase | Status | Repository evidence |
 | --- | --- | --- |

@@ -4,12 +4,23 @@ Bitcoin Risk Brief is a standalone EN/RU mini-product for validating demand arou
 
 ## Current Status
 
-Bitcoin Risk Brief is implementation-complete in this repository for the current pre-traffic hardening items: scheduled
-public CoinMarketCap CSV refresh, public payload cache warmup, USB Update And Install Kit V2, first-viewport
-model-price/OHLC display polish, local SEO/social metadata, a local public privacy/terms/disclaimer note near the
-waitlist, local public endpoint probe tooling for health/readiness/latest-risk assertions, and local launch snapshot
-packet tooling for the final pre-traffic evidence window. Repository files, commits, local tags, and recorded checks are
-implementation evidence; production readiness depends on recorded operator and public-host evidence.
+Bitcoin Risk Brief is implementation-complete in this repository for the current local pre-traffic hardening items.
+Repository files, commits, local tags, and recorded checks are implementation evidence; production readiness still
+depends on recorded operator execution and public-host evidence. The project is still not publicly launched.
+
+Local pre-deployment tooling and evidence completed in the repository:
+
+- Scheduled public CoinMarketCap CSV refresh, local bundled BTC CSV evidence through 2026-07-09, and operator/manual CSV
+  fallback workflows.
+- Public payload cache warmup, USB Update And Install Kit V2, first-viewport model-price/OHLC display polish, local
+  SEO/social metadata, and a local public privacy/terms/disclaimer note near the waitlist.
+- Local public endpoint probe tooling for health/readiness/latest-risk assertions, local backup freshness/off-server copy
+  checker tooling, local import provenance packet helper, and local launch snapshot packet helper for the final
+  pre-traffic evidence window.
+- Local Dependabot configuration, local dependency/license inventory evidence, local accessibility improvements/evidence,
+  and local waitlist live-region/keyboard evidence.
+- Latest local tooling evidence tag: `launch-snapshot-helper-local-evidence-2026-07-11` at commit
+  `e1a4dc521343b8c48060358204ff5c9cfd7e1ecf`.
 
 Repository-local bundled BTC CSV evidence recorded on 2026-07-11: commit
 `8cbc6998c757f1ca1716277104e099b4705dfba9` is tagged
@@ -37,7 +48,7 @@ readiness must be rechecked before any first traffic window because freshness is
 is unavailable from this workspace; future production updates still require operator deployment or update verification on
 the selected production path, or an explicitly chosen replacement path.
 
-External production tasks still required before treating the pilot as publicly launched:
+Still external/operator before treating the pilot as publicly launched:
 
 - Recheck public `/api/readiness` immediately before first traffic and keep scheduled public-download-first refresh
   evidence current on the production host.
@@ -64,6 +75,24 @@ External production tasks still required before treating the pilot as publicly l
 - Decide whether the current Cloudflare Free-plan edge subset is enough for first traffic or whether to upgrade for
   managed WAF and broader API burst-rate-limit entitlement.
 - Capture the launch snapshot and run the first traffic test only after freshness and accepted launch gates allow it.
+
+Recommended next production sequence before first traffic:
+
+1. Record sanitized operator decisions for waitlist owner/cadence/retention/deletion/unsubscribe, support/contact
+   identity, account recovery, source-terms status, dependency/license/legal status, and accepted launch limitations.
+2. Deploy or update the selected production path, then record project revision, service status, health/readiness, and
+   public-host metadata/privacy/accessibility smoke evidence.
+3. Run the production refresh/import path and create the production import provenance packet from the real source,
+   canonical output, validation/readiness, cache evidence, and deployment context.
+4. Create a fresh backup, copy it off-server, run the backup freshness checker against both roots, and keep restore drill
+   pending until a staging or intentionally empty restore target exists.
+5. Run the public endpoint monitor probe with the chosen freshness policy, then configure external monitors and alert
+   delivery for health, readiness/freshness, stale data, collector failures, backup freshness, and Cloudflare Tunnel
+   health.
+6. Verify public-host privacy/terms/disclaimer copy, SEO/social metadata, browser/device smoke, and the remaining manual
+   accessibility limitations or accepted deferrals.
+7. Create and validate the final sanitized launch snapshot packet from already collected evidence.
+8. Run the operator-watched first traffic test only after the launch gates are completed or explicitly accepted.
 
 ## Product Surface
 
