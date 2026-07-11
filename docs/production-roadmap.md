@@ -146,13 +146,16 @@ Remaining production-pilot gaps:
   precomputed expensive payloads only if the first real user would still pay visible database/build cost after startup or
   nightly import;
 - decide whether to accept the current Cloudflare Free-plan subset for first traffic or upgrade/configure additional WAF,
-  bot protection, and broader API burst-rate-limit controls;
-- recurring daily backups, recurring off-server copies, production backup freshness monitoring, restore drill, and
-  monitoring alerts still need to be configured and verified; local checker tooling is implemented and tested, and the
-  2026-07-11 backup-gated update recorded one valid/fresh copied/off-server freshness/checksum check, but recurring
-  scheduling and monitor-provider evidence remain pending;
-- post-waitlist handling, GitHub-hosted Dependabot execution/first PR evidence, dependency/security maintenance, resource
-  monitoring, credential ownership, remaining manual accessibility evidence, data-source terms, external/manual
+  bot protection, and broader API burst-rate-limit controls; the 2026-07-11 operator decision register keeps this as a
+  pending first-traffic decision;
+- recurring daily backups, recurring off-server copies, production backup freshness monitoring, and monitoring alerts
+  still need to be configured and verified; local checker tooling is implemented and tested, and the 2026-07-11
+  backup-gated update recorded one valid/fresh copied/off-server freshness/checksum check, but recurring scheduling and
+  monitor-provider evidence remain pending; the restore drill is explicitly deferred until a staging or intentionally
+  empty restore target exists;
+- post-waitlist handling, support/contact identity, account recovery record status, GitHub-hosted Dependabot
+  execution/first PR evidence, dependency/security maintenance, resource monitoring, remaining manual accessibility
+  evidence or accepted limitations, data-source terms outcome, Cloudflare Free-plan decision, external/manual
   dependency-license confirmation, and incident response need a launch completeness pass;
 - full browser/device launch matrix, remaining cache-miss latency measurement, and first traffic test still need to run;
   the stale-data blocker and browser-like waitlist smoke are closed, but broader launch gates remain;

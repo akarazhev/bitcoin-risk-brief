@@ -146,6 +146,26 @@ External monitoring and alert delivery gate remains partial/blocked as of 2026-0
   Tunnel connector health notification availability/status, send and record a sanitized test alert, and keep final
   pre-traffic readiness fresh before any first traffic window.
 
+## Operator Launch Decision Register
+
+Recorded on 2026-07-11 from repository-visible evidence. No private operator contact list, account export, recovery
+path, source-terms text, dashboard URL, token, `.env` value, raw log, or raw waitlist contact was available or written.
+This register does not prove deployment, data refresh/import, cache warmup, waitlist submission, Cloudflare/routing
+change, monitor configuration, first traffic, commit, push, or tag.
+
+| Decision area | Sanitized status | Exact remaining operator decision |
+| --- | --- | --- |
+| Waitlist owner, cadence, retention, deletion, and unsubscribe | Pending operator decision. The public note describes current storage/log behavior but does not name an owner role, review cadence, retention period, deletion path, or unsubscribe path. | Choose the owner role only, choose the review cadence, choose a retention period or explicitly defer retention until the public pilot ends, and record deletion/unsubscribe handling status without private contact details. |
+| Support/contact identity | Partial. The public note states no paid support SLA; no public support/contact path is recorded. | Choose a public contact path or intentionally defer it. Keep the no-paid-SLA posture unless the operator explicitly creates a paid support promise. |
+| Credential/account ownership and recovery | Pending operator decision/evidence. The required account categories are documented, but no sanitized statement says an outside-Git owner/recovery record exists. | Confirm that an owner/recovery record exists outside Git, or leave it pending. Do not record holders, emails, account IDs, recovery paths, secret locations, or account details. |
+| Data-source terms and attribution | Pending operator decision/evidence. No completed CoinMarketCap public CSV/API usage review outcome is recorded. | Record a sanitized review status for CoinMarketCap public CSV and optional API usage as passed, accepted limitation, or pending, including any attribution limitation without private account terms or account details. |
+| Cloudflare Free-plan first-traffic decision | Pending first-traffic decision. Historical public snapshots used the documented Free-plan-compatible subset. | Accept the current Free-plan subset for an operator-watched first traffic window, or require an upgrade before first traffic. Record the limitation that managed WAF execution, broader `/api/*` burst limiting, multiple rate-limit rules, and longer rate-limit windows are not available in the current subset. |
+| Manual/native accessibility evidence | Pending accepted-limitation decision. Local automated axe, browser-profile, chart-alternative, live-region, and keyboard/focus evidence exists, but manual keyboard, screen-reader/assistive-tech, native/physical-device, and production-host accessibility evidence is not recorded. | Decide whether manual keyboard, screen-reader/assistive-tech, native-device, and production-host accessibility evidence is required before first traffic, or explicitly accept the missing evidence as a limitation for an operator-watched pilot. |
+| Restore drill | Accepted limitation/deferred. The current setup has only the live production server and no recorded staging or intentionally empty restore target. | Keep the restore drill deferred until a staging project or intentionally empty restore target exists. Do not run restore testing against live production; record the target type and readiness result after the drill. |
+
+Because several operator choices remain pending, launch governance remains partial/blocked and first traffic must not run
+until the pending choices are completed or explicitly accepted for an operator-watched pilot.
+
 ## Current Public Pilot Snapshot
 
 Recorded on 2026-07-01 for `https://bitcoinriskbrief.minihub.app`:

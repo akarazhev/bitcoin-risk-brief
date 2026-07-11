@@ -833,22 +833,28 @@ loops, Cloudflare Tunnel connector health, public hostname availability, and any
 
 ## Launch Governance Operating Notes
 
-Recorded on 2026-07-05 for the current production-pilot candidate:
+Recorded on 2026-07-05 for the current production-pilot candidate and updated on 2026-07-11 with the sanitized operator
+decision register in [Production Readiness](production-readiness.md):
 
 - Privacy/terms/disclaimer note: locally implemented on 2026-07-10 as compact public copy near the waitlist, with
-  production-host verification still pending. It documents no-advice/no-recommendation limits, sensitive-info caution,
-  implemented waitlist storage, operational log fields, no paid support SLA, and the current absence of app
-  product-analytics/tracking-cookie source code.
+  public-host smoke verification recorded in the 2026-07-11 update evidence. It documents
+  no-advice/no-recommendation limits, sensitive-info caution, implemented waitlist storage, operational log fields, no
+  paid support SLA, and the current absence of app product-analytics/tracking-cookie source code.
 - Waitlist lead owner and cadence: pending operator decision. Before active traffic, name one owner or owning role in an
-  operator-controlled record and choose a review cadence. A weekly manual review is sufficient for the first controlled
-  traffic test unless demand requires a faster cadence.
+  operator-controlled record and choose a review cadence. Do not treat a weekly or faster review cadence as recorded
+  until the operator explicitly chooses it.
+- Waitlist retention: pending operator decision. Choose a retention period or explicitly defer retention until the public
+  pilot ends. Record only the sanitized status in Git.
 - Deletion and unsubscribe path: pending operator decision. Use one operator-owned contact path for deletion,
   unsubscribe, product questions, bug reports, and professional/API/license interest. Keep the actual address or handle
   out of this repository unless the operator intentionally makes it public.
+- Support/contact identity: pending operator decision. Choose a public contact path or intentionally defer it. The current
+  public note records no paid support SLA; do not add an SLA unless the operator explicitly creates one.
 - Manual waitlist handling: review aggregate lead counts and source/locale values without copying contact values into
   general notes. Raw waitlist contacts should stay in the production database or another controlled operational system.
-- Credential/account ownership: track ownership and recovery for the categories in the resource checklist above, but do
-  not store secrets, account exports, personal account details, or private recovery paths in Git.
+- Credential/account ownership: pending outside-Git record evidence. Track ownership and recovery for the categories in
+  the resource checklist above, but do not store holders, emails, account IDs, secrets, account exports, personal account
+  details, secret locations, or private recovery paths in Git.
 - Dependency and security maintenance cadence: `.github/dependabot.yml` is configured locally for conservative monthly
   version-update checks across frontend npm, backend and collector pip requirements, GitHub Actions, Dockerfiles, and the
   root `docker-compose` ecosystem entry for Compose-style image references. GitHub-hosted Dependabot execution, first PR
@@ -856,12 +862,19 @@ Recorded on 2026-07-05 for the current production-pilot candidate:
   the monthly manual review for security advisories, vulnerability scan results if available, secret-scan output, Python
   transitive inventory, container image and OS package licenses, GitHub Actions/license posture, project license choice,
   and legal compatibility. Record only the date, scope, outcome, and required follow-up.
-- Data-source terms review: record the CoinMarketCap public CSV and optional API terms review outcome before broader
-  launch. For future methodology sources, record terms and attribution before the source becomes production-critical.
+- Data-source terms review: pending operator decision. Record the CoinMarketCap public CSV and optional API usage review
+  outcome as passed, accepted limitation, or pending before broader launch. For future methodology sources, record terms
+  and attribution before the source becomes production-critical.
+- Cloudflare Free-plan first-traffic decision: pending operator decision. Either accept the current Free-plan-compatible
+  subset for an operator-watched first traffic window or upgrade before first traffic for managed WAF execution, broader
+  `/api/*` burst limiting, multiple rate-limit rules, and longer rate-limit windows.
 - Accessibility and metadata pass: browser-capable public-hostname QA is recorded, and local focused accessibility,
   chart-alternative, waitlist live-region/keyboard, privacy/terms/disclaimer, and SEO/social metadata evidence exists.
-  Production-host verification, physical-device/native browser evidence, and manual assistive-tech evidence still need
-  operator evidence. Treat missing evidence as a launch limitation, not as a pass.
+  Production-host verification, physical-device/native browser evidence, manual keyboard evidence, and manual
+  assistive-tech evidence still need operator evidence unless explicitly accepted as limitations for an operator-watched
+  pilot. Treat missing evidence as a launch limitation, not as a pass.
+- Restore drill: accepted limitation/deferred until a staging project or intentionally empty restore target exists. Do not
+  run a restore drill against live production.
 - Feedback review path: after the first controlled traffic window, summarize waitlist conversion, repeat-use signals,
   direct questions, and requests for alerts, API access, agents, widgets, embeddings, or licensing into the production
   readiness or roadmap notes. Do not copy raw contacts into feedback summaries.
