@@ -159,6 +159,24 @@ completed evidence and does not close monitor/provider or alert-delivery blocker
   Tunnel connector health notification availability/status, send and record a sanitized test alert, and keep final
   pre-traffic readiness fresh before any first traffic window.
 
+Fresh public endpoint readiness probe recorded on 2026-07-11:
+
+- UTC check time: 2026-07-11T22:53:24Z.
+- Base URL: `https://bitcoinriskbrief.minihub.app`.
+- Probe command:
+  `python3 scripts/check_public_endpoints.py --base-url https://bitcoinriskbrief.minihub.app --max-data-age-days 2
+  --require-cache-header Cache-Control --require-cache-header ETag --require-cache-header X-Cache-Version
+  --require-cache-header X-Cache`.
+- Endpoints covered: `GET /api/health`, `GET /api/readiness`, and `GET /api/risk/latest`.
+- Freshness policy: latest public data age no more than 2 UTC days.
+- Sanitized result summary: probe passed; all covered public GET endpoints satisfied HTTP 200 assertions; readiness state
+  was `ready`; latest date was `2026-07-10`; rounded latest risk was `0.2616`; required cache headers `Cache-Control`,
+  `ETag`, `X-Cache-Version`, and `X-Cache` were present on readiness and latest-risk assertions. The probe output did
+  not emit a risk state value.
+- Limitation: this is a local/public GET-only probe. It does not prove external monitor provider configuration,
+  scheduled monitor execution, or alert delivery, and the external monitoring/alert-delivery gate remains
+  partial/blocked, not passed.
+
 ## Operator Launch Decision Register
 
 Recorded on 2026-07-11 from repository-visible evidence. No private operator contact list, account export, recovery
