@@ -7,9 +7,9 @@ Bitcoin Risk Brief is a standalone EN/RU mini-product for validating demand arou
 Bitcoin Risk Brief is implementation-complete in this repository for the current pre-traffic hardening items: scheduled
 public CoinMarketCap CSV refresh, public payload cache warmup, USB Update And Install Kit V2, first-viewport
 model-price/OHLC display polish, local SEO/social metadata, a local public privacy/terms/disclaimer note near the
-waitlist, and local public endpoint probe tooling for health/readiness/latest-risk assertions. Repository files, commits,
-local tags, and recorded checks are implementation evidence; production readiness
-depends on recorded operator and public-host evidence.
+waitlist, local public endpoint probe tooling for health/readiness/latest-risk assertions, and local launch snapshot
+packet tooling for the final pre-traffic evidence window. Repository files, commits, local tags, and recorded checks are
+implementation evidence; production readiness depends on recorded operator and public-host evidence.
 
 Repository-local bundled BTC CSV evidence recorded on 2026-07-11: commit
 `8cbc6998c757f1ca1716277104e099b4705dfba9` is tagged
@@ -55,6 +55,10 @@ External production tasks still required before treating the pilot as publicly l
   `sha256`, retrieval metadata, row count, covered range, expected tail, validation/readiness output, and cache evidence.
   The local `scripts/import_provenance_packet.py` helper is implemented/tested to build or validate sanitized manifests
   for future runs, but a real production packet and direct production validation/import metadata remain pending.
+- Use `scripts/launch_snapshot_packet.py` during the final pre-traffic window to create or validate a sanitized local
+  launch snapshot packet from already collected evidence. The helper is implemented/tested, but the actual launch
+  snapshot packet, current public readiness evidence, monitor/alert delivery proof, production import provenance,
+  production backup freshness evidence, operator decisions, and first traffic remain pending.
 - Verify the local privacy/terms/disclaimer note and SEO/social metadata on the public host, and complete launch
   governance, browser/device, accessibility, release-feedback, and operational evidence gates.
 - Decide whether the current Cloudflare Free-plan edge subset is enough for first traffic or whether to upgrade for

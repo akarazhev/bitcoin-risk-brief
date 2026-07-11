@@ -142,6 +142,10 @@ Remaining production-pilot gaps:
 - keep direct production import source/archive proof and production refresh/import verification pending; the local
   `scripts/import_provenance_packet.py` helper is implemented/tested for future sanitized manifests, but the 2026-07-11
   bundled CSV commit/tag evidence is supporting repository evidence only, not a production import evidence packet;
+- use the local `scripts/launch_snapshot_packet.py` helper during the final pre-traffic window to create or validate a
+  sanitized JSON packet from already collected evidence; the helper is implemented/tested, but the real final launch
+  snapshot packet, current public readiness evidence, monitor/alert delivery proof, production import provenance,
+  production backup freshness evidence, operator decisions, and first traffic remain pending;
 - post-launch learning cannot start until real usage evidence exists.
 
 ## Roadmap Phases

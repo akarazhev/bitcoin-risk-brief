@@ -448,6 +448,57 @@ public data for a launch snapshot.
 
 `POST /api/waitlist` must remain uncached. Confirm it returns `Cache-Control: no-store` during launch checks.
 
+## Launch Snapshot Packet
+
+Local launch snapshot packet tooling is available for the final pre-traffic evidence window:
+
+```bash
+python3 scripts/launch_snapshot_packet.py create \
+  --output "${ARCHIVE_DIR}/launch-snapshot-packet.json" \
+  --packet-created-at-utc "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+  --production-commit "$(git rev-parse HEAD)" \
+  --base-url https://bitcoinriskbrief.minihub.app \
+  --readiness-evidence "${ARCHIVE_DIR}/readiness-public.json" \
+  --readiness-status present \
+  --readiness-latest-date "${EXPECTED_LATEST_DATE}" \
+  --readiness-data-fresh true \
+  --latest-risk-evidence "${ARCHIVE_DIR}/risk-latest-public.json" \
+  --latest-risk-status present \
+  --latest-risk-timestamp "${LATEST_RISK_TIMESTAMP}" \
+  --latest-risk-state low \
+  --public-endpoint-monitor-probe-evidence "${ARCHIVE_DIR}/public-endpoint-probe.txt" \
+  --public-endpoint-monitor-probe-status present \
+  --public-endpoint-monitor-probe-summary "health readiness latest-risk assertions passed" \
+  --waitlist-smoke-status present \
+  --waitlist-smoke-summary "HTTP 201 no-store aggregate-only storage verification" \
+  --import-provenance-packet "${ARCHIVE_DIR}/import-provenance.json" \
+  --import-provenance-status present \
+  --backup-freshness-evidence "${ARCHIVE_DIR}/backup-freshness.txt" \
+  --backup-freshness-status present \
+  --accessibility-status pending \
+  --browser-status pending \
+  --metadata-status pending
+```
+
+Validate an existing packet without contacting the network:
+
+```bash
+python3 scripts/launch_snapshot_packet.py validate \
+  --packet "${ARCHIVE_DIR}/launch-snapshot-packet.json"
+```
+
+The helper stores evidence basenames, not full paths, and rejects unsafe packet values such as absolute/private paths,
+token-like strings, environment assignments, raw waitlist contacts, phone numbers, dashboard URLs, raw logs, and raw
+response dumps. Missing evidence categories are reported as pending gates rather than treated as passed. Operator
+decisions such as waitlist owner, review cadence, retention, deletion/unsubscribe path, support/contact identity,
+account ownership, and data-source terms remain pending unless supplied as sanitized status values with
+`--operator-decision name=status`.
+
+`first_traffic_status` defaults to `not_run`. Do not change it during the pre-traffic snapshot unless an operator has
+separate sanitized first-traffic evidence and intentionally supplies the explicit first-traffic fields. Creating or
+validating a packet does not prove the launch snapshot is complete, does not configure monitors or alerts, does not prove
+production import provenance or backup freshness, and does not run first traffic.
+
 ## Cloudflare Edge Rules
 
 Render the repo-managed Cloudflare WAF, rate-limit, cache, and waitlist bot-challenge rules:
