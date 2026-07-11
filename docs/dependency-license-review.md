@@ -3,6 +3,35 @@
 This file records local engineering evidence only. It is not legal advice, a full license compliance opinion, a
 vulnerability scan, or a production-launch approval.
 
+## 2026-07-10 Local Dependabot Configuration Pass
+
+Gate status: partial local evidence recorded, not launch-passed. `.github/dependabot.yml` was added locally at
+`68439864a46c5ffe49c6ae76cd925e67aaeb7fca`. The local evidence tag
+`privacy-terms-local-evidence-2026-07-10` was present. No deploy, data refresh/import, cache warmup, real waitlist POST,
+Cloudflare/routing change, commit, push, or tag was performed for this pass.
+
+Configured monthly Dependabot version-update sources:
+
+| Ecosystem | Directory | Local source |
+| --- | --- | --- |
+| `npm` | `/frontend` | `frontend/package.json`, `frontend/package-lock.json` |
+| `pip` | `/backend` | `backend/requirements.txt` |
+| `pip` | `/collector` | `collector/requirements.txt` |
+| `github-actions` | `/` | `.github/workflows/ci.yml` |
+| `docker` | `/backend` | `backend/Dockerfile` |
+| `docker` | `/collector` | `collector/Dockerfile` |
+| `docker` | `/frontend` | `frontend/Dockerfile` |
+| `docker-compose` | `/` | root Compose-style image references, including the Podman Compose files if GitHub's parser accepts those filenames |
+
+The configuration uses monthly schedules, modest open pull request limits, and one simple group per update source. It
+does not add private registries, secrets, reviewer handles, assignees, private URLs, account details, or environment
+values.
+
+Conservative finding: GitHub-hosted Dependabot execution, first PR evidence, and confirmation of root Podman Compose
+filename handling remain pending until this local config is merged/pushed and observed in GitHub. This pass does not
+claim vulnerability/advisory clearance, legal approval, license compatibility, full license compliance, container image
+license review, OS package license review, or CI action/license approval.
+
 ## 2026-07-10 Local Evidence Pass
 
 Gate status: partial, not launch-passed. Local dependency and container references were reviewed from repository files at
@@ -121,6 +150,8 @@ needed before making stronger license or compliance claims.
 
 ## Open Items
 
+- GitHub-hosted Dependabot execution and first PR evidence are pending until the local config is merged/pushed and
+  observed.
 - The project repository has no committed `LICENSE` file; do not claim open-source status unless a license is intentionally
   chosen.
 - Python dependency license metadata is unknown from repository files.
@@ -140,6 +171,7 @@ These commands use local files only:
 git status --short --branch
 git rev-parse HEAD
 git tag --list waitlist-accessibility-local-evidence-2026-07-10
+sed -n '1,120p' .github/dependabot.yml
 rg --files -g 'package.json' -g 'package-lock.json' -g 'requirements*.txt' -g 'pyproject.toml' -g 'poetry.lock' -g 'Pipfile' -g 'Pipfile.lock' -g 'Dockerfile*' -g 'Containerfile*' -g 'podman-compose*.yml'
 jq '.packages[""] | {dependencies,devDependencies}' frontend/package-lock.json
 jq -r '.packages as $p | $p[""] as $root | ((($root.dependencies // {}) | to_entries[] | {scope:"dependency", name:.key, declared:.value}), (($root.devDependencies // {}) | to_entries[] | {scope:"devDependency", name:.key, declared:.value})) | . as $d | ($p["node_modules/" + $d.name] // {}) as $pkg | [$d.scope, $d.name, $d.declared, ($pkg.version // "MISSING_LOCK_ENTRY"), ($pkg.license // "UNKNOWN_LICENSE")] | @tsv' frontend/package-lock.json

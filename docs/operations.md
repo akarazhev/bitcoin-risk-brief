@@ -658,10 +658,13 @@ Recorded on 2026-07-05 for the current production-pilot candidate:
   general notes. Raw waitlist contacts should stay in the production database or another controlled operational system.
 - Credential/account ownership: track ownership and recovery for the categories in the resource checklist above, but do
   not store secrets, account exports, personal account details, or private recovery paths in Git.
-- Dependency and security maintenance cadence: run a monthly manual review until automation is intentionally enabled.
-  Cover base images, Python dependencies, frontend npm dependencies, GitHub Actions versions, security advisories,
-  vulnerability scan results if available, and secret-scan output. Record only the date, scope, outcome, and required
-  follow-up.
+- Dependency and security maintenance cadence: `.github/dependabot.yml` is configured locally for conservative monthly
+  version-update checks across frontend npm, backend and collector pip requirements, GitHub Actions, Dockerfiles, and the
+  root `docker-compose` ecosystem entry for Compose-style image references. GitHub-hosted Dependabot execution, first PR
+  evidence, and Podman-specific filename handling remain pending until the config is merged/pushed and observed. Continue
+  the monthly manual review for security advisories, vulnerability scan results if available, secret-scan output, Python
+  transitive inventory, container image and OS package licenses, GitHub Actions/license posture, project license choice,
+  and legal compatibility. Record only the date, scope, outcome, and required follow-up.
 - Data-source terms review: record the CoinMarketCap public CSV and optional API terms review outcome before broader
   launch. For future methodology sources, record terms and attribution before the source becomes production-critical.
 - Accessibility and metadata pass: browser-capable public-hostname QA is recorded, and local focused accessibility,

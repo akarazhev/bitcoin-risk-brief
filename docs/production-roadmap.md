@@ -41,6 +41,10 @@ Already implemented:
 - Server-side waitlist storage with validation and rate limiting.
 - Public read endpoint caching for readiness, latest risk, history, levels, and brief responses, with validation-versioned
   refresh after successful imports.
+- Local Dependabot configuration for monthly dependency version-update PRs across frontend npm, backend and collector
+  pip requirements, GitHub Actions, Dockerfiles, and a root `docker-compose` ecosystem entry for Compose-style image
+  references. GitHub-hosted execution, first PR evidence, and Podman-specific filename handling remain pending until
+  merged/pushed and observed.
 - Local startup and operator public-cache warmup for the standard public read payloads, tagged
   `cache-warmup-local-complete-2026-07-05`; post-deploy public smoke on 2026-07-07 recorded fast repeated Cloudflare
   HIT behavior after warmup.
@@ -76,7 +80,7 @@ implementation evidence only; production status depends on the recorded operator
 | Phase 5: Performance, Caching, And Abuse Protection | Complete in repository; post-deploy Cloudflare HIT/fast repeat behavior verified for public smoke | `3c66df9`, `5bb179d`, `cache-warmup-local-complete-2026-07-05`, 2026-07-07 repeated public cache requests about `0.14s` to `0.22s` with Cloudflare `cf-cache-status: HIT`, `backend/app/public_cache.py`, `backend/app/main.py`, `scripts/cloudflare_edge_rules.py`, `backend/tests/test_cloudflare_edge_rules.py` |
 | Phase 6: Production Environment And Deployment | Verified for USB deploy and public freshness; closed as stale-data blocker | 2026-07-07 USB deploy verification passed; public `/api/readiness` returned HTTP 200 with `data_fresh: true`, `latest_date: 2026-07-06`, `covered_end: 2026-07-06`, and `data_age_days: 1`; selected path is USB deployment under `/srv/projects/bitcoin-risk-brief` |
 | Phase 7: Backups, Restore, And Monitoring | Partially verified; blocked by remaining operator action | One checksum-verified off-server USB backup copy is recorded for 2026-07-07, the 2026-07-10 public health/readiness/latest-risk checks were healthy and fresh, and the 2026-07-09 import provenance pass partially verified public data/readiness/cache alignment. Restore drill remains deferred because the current setup has only the live production server and no separate restore target; external monitor dashboard/alert delivery, backup freshness alert, collector failure alert, Cloudflare Tunnel health alert, direct production validation/import metadata, and exact import source path/category remain pending. |
-| Phase 8: Launch Checklist And First Traffic Test | Blocked by remaining operator evidence gates; freshness blocker closed, first traffic test not run | 2026-07-07 post-deploy snapshot recorded readiness 200/fresh, latest-risk 200, public desktop/mobile Playwright smoke passed, model-price/OHLC display verified, fast repeated Cloudflare HIT behavior after warmup, and one off-server backup copy; 2026-07-08 public checks again returned health/readiness/latest-risk 200, browser-like waitlist smoke closed, and 2026-07-10 public checks remained healthy with `data_fresh: true` for `2026-07-09`. The 2026-07-09 import provenance pass verified public data/cache consistency but left exact source-path proof pending. The 2026-07-10 launch governance gap pass classifies several owner/contact/account/source-review decisions as pending operator decisions. Local privacy/terms/disclaimer, dependency/license, accessibility, waitlist live-region, keyboard/focus, chart alternative, and SEO/social metadata evidence is recorded, but production-host verification or external/manual confirmation remains pending where noted. Manual keyboard, screen-reader/assistive-tech, native/physical-device, and production-host accessibility evidence remain pending. Restore drill, monitoring/alert evidence, backup freshness monitoring, direct import source/archive proof, broader launch-matrix/governance evidence, and first traffic remain pending. |
+| Phase 8: Launch Checklist And First Traffic Test | Blocked by remaining operator evidence gates; freshness blocker closed, first traffic test not run | 2026-07-07 post-deploy snapshot recorded readiness 200/fresh, latest-risk 200, public desktop/mobile Playwright smoke passed, model-price/OHLC display verified, fast repeated Cloudflare HIT behavior after warmup, and one off-server backup copy; 2026-07-08 public checks again returned health/readiness/latest-risk 200, browser-like waitlist smoke closed, and 2026-07-10 public checks remained healthy with `data_fresh: true` for `2026-07-09`. The 2026-07-09 import provenance pass verified public data/cache consistency but left exact source-path proof pending. The 2026-07-10 launch governance gap pass classifies several owner/contact/account/source-review decisions as pending operator decisions. Local privacy/terms/disclaimer, dependency/license, dependency update automation config, accessibility, waitlist live-region, keyboard/focus, chart alternative, and SEO/social metadata evidence is recorded, but GitHub-hosted Dependabot execution, first PR evidence, production-host verification, or external/manual confirmation remains pending where noted. Manual keyboard, screen-reader/assistive-tech, native/physical-device, and production-host accessibility evidence remain pending. Restore drill, monitoring/alert evidence, backup freshness monitoring, direct import source/archive proof, broader launch-matrix/governance evidence, and first traffic remain pending. |
 | Phase 9: Post-Launch Learning Loop | Pending | Starts after launch traffic creates usage evidence, including optional agent-access demand testing |
 | Phase 10: Risk Methodology Research | Pending | Starts only after launch evidence justifies method work; current production metric remains `crypto-scout-canonical-v1` |
 | Phase 11: Distribution Channel Research | Pending | Evaluates PWA, Telegram Mini App, browser extension, and other channel packaging after launch evidence |
@@ -116,10 +120,10 @@ Remaining production-pilot gaps:
 - recurring daily backups, recurring off-server copies, backup freshness monitoring, restore drill, and monitoring alerts
   still need to be configured and verified; one off-server USB backup copy was verified on 2026-07-07, but the
   2026-07-10 monitoring pass did not have current backup freshness or monitor-provider evidence;
-- production-host verification of the local privacy/terms/disclaimer note, post-waitlist handling, dependency/security
-  maintenance, resource monitoring, credential ownership, remaining manual accessibility evidence, public-host metadata
-  verification, data-source terms, external/manual dependency-license confirmation, and incident response need a launch
-  completeness pass;
+- production-host verification of the local privacy/terms/disclaimer note, post-waitlist handling, GitHub-hosted
+  Dependabot execution/first PR evidence, dependency/security maintenance, resource monitoring, credential ownership,
+  remaining manual accessibility evidence, public-host metadata verification, data-source terms, external/manual
+  dependency-license confirmation, and incident response need a launch completeness pass;
 - full browser/device launch matrix, remaining cache-miss latency measurement, and first traffic test still need to run;
   the stale-data blocker and browser-like waitlist smoke are closed, but broader launch gates remain;
 - tracked repository documentation and portfolio presentation work is locally complete as of 2026-07-06, but this does
@@ -380,10 +384,11 @@ submitting/success feedback, alert semantics for errors, and unit plus Playwrigh
 privacy/terms/disclaimer pass added compact public note copy near the waitlist with local unit/build/smoke verification.
 Native/manual browser-device, manual keyboard, screen-reader/assistive-tech, and production-host accessibility evidence
 remain pending. Privacy/terms/disclaimer copy and SEO/social metadata are implemented locally, but public-host
-verification remains pending until the deployed homepage serves them. The 2026-07-10 local dependency/license pass
-records npm lockfile license metadata, Python manifest gaps, container
-references, and CI references in [Dependency and License Review](dependency-license-review.md), while external/manual
-confirmation remains pending. The 2026-07-10 launch governance gap pass in
+verification remains pending until the deployed homepage serves them. The 2026-07-10 local dependency/license and
+dependency update automation passes record npm lockfile license metadata, Python manifest gaps, container references, CI
+references, and local Dependabot configuration in [Dependency and License Review](dependency-license-review.md), while
+GitHub-hosted Dependabot execution, first PR evidence, and external/manual confirmation remain pending. The 2026-07-10
+launch governance gap pass in
 [Production Readiness](production-readiness.md) is the current status checklist for accepted limitations, pending
 operator decisions, pending external evidence, and blocked launch items; first traffic must remain pending until those
 gates are completed or explicitly accepted.
@@ -462,8 +467,8 @@ Post-deploy snapshot recorded on 2026-07-07:
 Still pending for Phase 8: full browser/device launch matrix, manual keyboard/screen-reader/assistive-tech/native
 accessibility evidence, production-host accessibility evidence, localization add-on if accepted for pre-traffic scope,
 public-host privacy/terms/disclaimer verification, public-host SEO/social metadata verification,
-release/feedback/evidence checklist, external/manual dependency-license confirmation, data-correction/service-target
-evidence, direct import-provenance source archive and production
+release/feedback/evidence checklist, GitHub-hosted Dependabot execution and first PR evidence, external/manual
+dependency-license confirmation, data-correction/service-target evidence, direct import-provenance source archive and production
 validation/import metadata proof, external GitHub settings or sibling product-ideas updates if separately requested, any
 remaining endpoint cache-miss latency measurement not covered by the post-deploy smoke, and first traffic test. The
 tracked repository documentation and portfolio presentation pass is locally complete as of 2026-07-06. Do not mark the
