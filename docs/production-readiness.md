@@ -716,18 +716,20 @@ Monitoring, alerts, and single-server restore evidence pass recorded on 2026-07-
 
 Monitoring and first-response status recorded on 2026-07-05:
 
-- Overall monitoring status: blocked/accepted limitation for first traffic. The first-response runbook is documented in
-  [Operations](operations.md), and previous public smoke checks prove the public health/readiness paths exist, but this
-  agent session has no access to the production host, Cloudflare dashboard, or an external monitoring provider. No
-  monitor dashboard, alert delivery, backup freshness monitor, collector log alert, or Cloudflare Tunnel health alert
-  evidence was provided. Do not mark monitoring configured until an operator records redacted evidence.
+- Overall monitoring status: blocked pending operator evidence for first traffic. The earlier accepted-limitation wording
+  for this historical 2026-07-05 note is superseded by the current governance register. The first-response runbook is
+  documented in [Operations](operations.md), and previous public smoke checks prove the public health/readiness paths
+  exist, but this agent session has no access to the production host, Cloudflare dashboard, or an external monitoring
+  provider. No monitor dashboard, alert delivery, backup freshness monitor, collector log alert, or Cloudflare Tunnel
+  health alert evidence was provided. Do not mark monitoring configured or accepted for first traffic unless an operator
+  records a new explicit accepted-limitation decision.
 
 | Monitor area | Current status | Required operator action |
 | --- | --- | --- |
-| Public `/api/health` | Blocked/accepted limitation. Endpoint exists and has previous smoke evidence, but no external uptime monitor evidence is recorded. | Configure an HTTP monitor for `https://bitcoinriskbrief.minihub.app/api/health`, alert on non-200, timeout, or TLS failure, and record the provider/dashboard name plus alert channel without account details. |
-| Public `/api/readiness` | Blocked/accepted limitation. Endpoint exists and has previous smoke evidence, but no external readiness alert evidence is recorded. | Configure an HTTP monitor for `https://bitcoinriskbrief.minihub.app/api/readiness`, alert on non-200, and route the alert to the `/api/readiness` first-response entry in `docs/operations.md`. |
-| Stale readiness after nightly update window | Blocked/accepted limitation. No scheduled stale-data monitor evidence is recorded. | After the default 01:00 UTC collector window plus operator-defined grace period, check `/api/readiness`; alert if `status` is not `ready`, `latest_date`/`covered_end` is older than the last completed UTC day, or `data_age_days` exceeds `DATA_FRESHNESS_MAX_AGE_DAYS`. |
-| Collector refresh failure | Blocked/accepted limitation. The scheduled public-download-first path is documented, but no production log alert evidence is recorded. | Configure production log/container alerts for `scheduled_refresh_failed`, `public_cmc_download_failed`, API fallback failure, and repeated `data-collector` restarts; record the alert source and latest passing scheduled run. |
+| Public `/api/health` | Blocked pending evidence. Endpoint exists and has previous smoke evidence, but no external uptime monitor evidence is recorded. | Configure an HTTP monitor for `https://bitcoinriskbrief.minihub.app/api/health`, alert on non-200, timeout, or TLS failure, and record the provider/dashboard name plus alert channel without account details. |
+| Public `/api/readiness` | Blocked pending evidence. Endpoint exists and has previous smoke evidence, but no external readiness alert evidence is recorded. | Configure an HTTP monitor for `https://bitcoinriskbrief.minihub.app/api/readiness`, alert on non-200, and route the alert to the `/api/readiness` first-response entry in `docs/operations.md`. |
+| Stale readiness after nightly update window | Blocked pending evidence. No scheduled stale-data monitor evidence is recorded. | After the default 01:00 UTC collector window plus operator-defined grace period, check `/api/readiness`; alert if `status` is not `ready`, `latest_date`/`covered_end` is older than the last completed UTC day, or `data_age_days` exceeds `DATA_FRESHNESS_MAX_AGE_DAYS`. |
+| Collector refresh failure | Blocked pending evidence. The scheduled public-download-first path is documented, but no production log alert evidence is recorded. | Configure production log/container alerts for `scheduled_refresh_failed`, `public_cmc_download_failed`, API fallback failure, and repeated `data-collector` restarts; record the alert source and latest passing scheduled run. |
 | Backup freshness | Partially blocked. One checksum-verified off-server USB backup copy is recorded for 2026-07-07, but no restore drill or recurring backup freshness monitor evidence is recorded here. | Schedule `./scripts/backup.sh`, copy verified backups off-server, alert when no checksum-verified backup and off-server copy exists inside the chosen freshness window, run a restore drill only on staging or an intentionally empty restore target, and record redacted evidence from the production host. |
 | Cloudflare Tunnel health | Partially configured. The public hostname and Tunnel path have previous smoke evidence, but no Cloudflare connector health alert evidence is recorded. | In Cloudflare Zero Trust, enable or document Tunnel connector health notifications for the connector serving `bitcoinriskbrief.minihub.app`; also record whether production uses host-service `cloudflared` or compose-managed `cloudflared` and where operators check status. |
 
@@ -798,8 +800,8 @@ Import provenance and bad-data correction status recorded on 2026-07-05:
   session has no access to the production host at `/srv/projects/bitcoin-risk-brief`, no mounted outside-repository
   provenance archive, and no Cloudflare/production host evidence source. A workstation-local or repository-local sample
   would not prove production import provenance, so it should not be recorded as completion evidence.
-- Current accepted limitation: first traffic can only proceed as an operator-watched pilot if this missing evidence is
-  explicitly accepted. Do not mark provenance complete until a sanitized packet for a real production import exists
+- Potential accepted-limitation path: first traffic can only proceed as an operator-watched pilot if this missing evidence
+  is explicitly accepted. Do not mark provenance complete until a sanitized packet for a real production import exists
   outside the repository and references readiness and cache evidence.
 - Exact operator actions needed on the production host:
 
@@ -987,11 +989,13 @@ Task 10 launch snapshot recorded on 2026-07-05 at 11:37 UTC for `https://bitcoin
   production backup, off-server copy, restore drill, or backup freshness monitor was recorded. The 2026-07-07 evidence
   above supersedes the backup/off-server copy portion, while restore drill and backup freshness monitor evidence remain
   open.
-- Monitoring status: blocked/accepted limitation. Public endpoints exist, but no external monitor dashboard, alert
-  delivery, collector failure alert, backup freshness alert, or Cloudflare Tunnel health alert evidence is recorded.
+- Monitoring status for this historical snapshot: blocked pending operator evidence. Public endpoints exist, but no
+  external monitor dashboard, alert delivery, collector failure alert, backup freshness alert, or Cloudflare Tunnel health
+  alert evidence is recorded. Earlier accepted-limitation wording is superseded by the current governance register; first
+  traffic must not rely on monitoring acceptance unless a new explicit operator decision records it.
 - Import provenance status: blocked pending operator evidence. No sanitized production import evidence packet is recorded
   outside the repository.
-- Accepted limitations/blockers for this historical snapshot: Cloudflare remained on the documented Free-plan-compatible
+- Limitations/blockers for this historical snapshot: Cloudflare remained on the documented Free-plan-compatible
   subset; waitlist smoke, backup/off-server/restore, monitoring, production import provenance, physical/native browser
   QA, support/contact identity, dependency-license review, and focused accessibility/SEO metadata evidence were
   incomplete. The launch blocker for this snapshot was data freshness: readiness was HTTP 503 with `data_fresh: false`.
