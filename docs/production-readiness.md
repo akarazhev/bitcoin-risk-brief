@@ -204,6 +204,7 @@ Monitoring and alerts evidence pass recorded on 2026-07-10 at 06:13 UTC for
 
 | Evidence area | 2026-07-10 status | Exact remaining operator action |
 | --- | --- | --- |
+| Local public endpoint probe tooling | Implemented locally after the 2026-07-10 evidence pass. `scripts/check_public_endpoints.py` can validate public `GET /api/health`, `GET /api/readiness`, and `GET /api/risk/latest` with an explicit `--max-data-age-days` or `--expected-latest-date` freshness policy and optional cache-header assertions. Focused unit tests cover success, endpoint failures, stale readiness, missing readiness fields, malformed JSON/latest risk, date mismatch, cache-header requirements, handled network failure, and GET-only behavior. | Put the probe under cron, a synthetic monitor runner, or an external monitoring provider using a chosen freshness policy; record only sanitized latest status, assertion summary, interval/window, and delivery route. This does not replace provider/dashboard proof or alert-delivery evidence. |
 | External uptime monitor for `/api/health` | Blocked pending provider evidence. Public `/api/health` is currently HTTP 200, but no external uptime monitor dashboard/API proof was available. | Configure or show an external HTTP monitor for `https://bitcoinriskbrief.minihub.app/api/health`; alert on non-200, timeout, or TLS failure; record provider/dashboard name, sanitized check name, interval, latest check status, and delivery route without account details. |
 | External readiness/freshness monitor for `/api/readiness` | Blocked pending provider evidence. Public `/api/readiness` is currently HTTP 200 and fresh, but no monitor assertion or alert evidence was available. | Configure or show an external HTTP monitor for `https://bitcoinriskbrief.minihub.app/api/readiness`; alert when HTTP is non-200, `status` is not `ready`, or `checks.data_fresh` is not `true`; record sanitized assertion and latest check evidence. |
 | Stale-data alert | Blocked pending alert-rule evidence. Current public readiness is fresh, but no stale-data alert rule or delivery proof was available. | After the nightly collector window plus the operator-defined grace period, alert when readiness is HTTP 503, `data_age_days` exceeds `max_age_days`, or `latest_date`/`covered_end` is older than the last completed UTC day. |
@@ -212,10 +213,14 @@ Monitoring and alerts evidence pass recorded on 2026-07-10 at 06:13 UTC for
 | Cloudflare Tunnel connector health notification | Blocked pending Cloudflare dashboard evidence. Public endpoints prove the hostname path is currently serving, but no connector-down/flapping notification or connector status proof was available. | In Cloudflare Zero Trust, enable or document connector health notifications for the tunnel serving `bitcoinriskbrief.minihub.app`; record notification configured yes/no, connector status, and whether production uses host-service or compose-managed `cloudflared`, without private dashboard URLs or account IDs. |
 | Alert delivery channel | Blocked pending delivery evidence. No email, chat, pager, or other delivery-channel configuration/test proof was available. | Choose the pilot alert channel, send a test notification from the monitoring provider, and record channel type, test time, and delivered/not-delivered result without recipient addresses, handles, phone numbers, tokens, or private contacts. |
 
-- Monitoring/alerts gate status: partial/blocked, not passed. Public health, readiness, and latest-risk endpoints are
-  healthy and current, but provider/dashboard evidence and delivery evidence are missing for every monitor/alert gate.
-  Until these blocked items have operator evidence, broader traffic remains limited to an operator-watched pilot using
-  the first-response runbook in [Operations](operations.md).
+- Monitoring/alerts gate status: partial/blocked, not passed. Local public endpoint probe tooling is implemented and
+  tested, and previous public health, readiness, and latest-risk endpoint evidence was healthy/current, but
+  provider/dashboard evidence and delivery evidence are missing for every monitor/alert gate. Until these blocked items
+  have operator evidence, broader traffic remains limited to an operator-watched pilot using the first-response runbook
+  in [Operations](operations.md).
+- Local public endpoint probe status: implemented and covered by focused unit tests in this repository. This is local
+  tooling only; no external monitor provider, dashboard/API proof, alert rule, delivery channel, or current production
+  probe run evidence is recorded here.
 - Local backup freshness checker status: implemented and covered by focused unit tests in this repository. This is local
   tooling only; production backup scheduling, recurring off-server copies, external monitor execution, alert delivery,
   and current production evidence remain pending. No restore drill has been completed.

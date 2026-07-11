@@ -313,15 +313,44 @@ should be HTTP 200 before the refreshed data is trusted.
 
 ## Monitoring And Alerts
 
+Local public endpoint probe tooling is available for cron jobs, a synthetic monitor runner, or an external monitoring
+provider script step:
+
+```bash
+python3 scripts/check_public_endpoints.py \
+  --base-url https://bitcoinriskbrief.minihub.app \
+  --max-data-age-days 2
+```
+
+Use `--expected-latest-date YYYY-MM-DD` when the monitor should require one exact latest data date instead of, or in
+addition to, a maximum age. The probe intentionally has no default freshness policy; every cron or monitor invocation
+must provide `--max-data-age-days`, `--expected-latest-date`, or both. It checks only `GET /api/health`,
+`GET /api/readiness`, and `GET /api/risk/latest`, exits 0 only when the requested assertions pass, and prints concise
+sanitized status without raw response dumps.
+
+Optional cache-header assertions can be enabled for the cacheable public read endpoints:
+
+```bash
+python3 scripts/check_public_endpoints.py \
+  --base-url https://bitcoinriskbrief.minihub.app \
+  --max-data-age-days 2 \
+  --require-cache-header Cache-Control \
+  --require-cache-header ETag \
+  --require-cache-header X-Cache-Version \
+  --require-cache-header X-Cache
+```
+
 Before broader public traffic, configure and record redacted evidence for these monitors. Store provider names, sanitized
 check names, monitored paths, assertion summaries, intervals/windows, latest check status, and delivery-test status only;
 do not record tokens, account IDs, private dashboard URLs, recipient addresses, phone numbers, IPs, raw logs with PII, or
 secret values.
 
 - Health uptime: monitor `GET https://bitcoinriskbrief.minihub.app/api/health`; alert on HTTP non-200, timeout, or TLS
-  failure.
+  failure. The local probe can supply this assertion, but provider/dashboard evidence is still required before this gate
+  is treated as configured.
 - Readiness/freshness: monitor `GET https://bitcoinriskbrief.minihub.app/api/readiness`; alert on HTTP non-200,
-  `status` not `ready`, or `checks.data_fresh` not `true`.
+  `status` not `ready`, or `checks.data_fresh` not `true`. The local probe can also require an exact latest date or a
+  maximum data age and compare readiness with `/api/risk/latest`.
 - Stale data: after the nightly collector window plus the operator-defined grace period, alert when readiness is HTTP
   503, `data_age_days` exceeds `max_age_days`, or `latest_date`/`covered_end` is older than the last completed UTC day.
 - Collector failure: alert on `scheduled_refresh_failed`, `public_cmc_download_failed`, API fallback failure, missed

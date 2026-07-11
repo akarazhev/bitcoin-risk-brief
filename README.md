@@ -6,8 +6,9 @@ Bitcoin Risk Brief is a standalone EN/RU mini-product for validating demand arou
 
 Bitcoin Risk Brief is implementation-complete in this repository for the current pre-traffic hardening items: scheduled
 public CoinMarketCap CSV refresh, public payload cache warmup, USB Update And Install Kit V2, first-viewport
-model-price/OHLC display polish, local SEO/social metadata, and a local public privacy/terms/disclaimer note near the
-waitlist. Repository files, commits, local tags, and recorded checks are implementation evidence; production readiness
+model-price/OHLC display polish, local SEO/social metadata, a local public privacy/terms/disclaimer note near the
+waitlist, and local public endpoint probe tooling for health/readiness/latest-risk assertions. Repository files, commits,
+local tags, and recorded checks are implementation evidence; production readiness
 depends on recorded operator and public-host evidence.
 
 Repository-local bundled BTC CSV evidence recorded on 2026-07-11: commit
@@ -43,7 +44,9 @@ External production tasks still required before treating the pilot as publicly l
 - Keep USB deploy/update evidence current on future production updates, including project revision, health/readiness
   checks, and backup-gated mode when a fresh pre-update database dump is required.
 - Configure external monitors and alerts for `/api/health`, `/api/readiness`, stale data after the nightly update
-  window, collector failures, Cloudflare Tunnel health, and alert delivery.
+  window, collector failures, Cloudflare Tunnel health, and alert delivery. The local `scripts/check_public_endpoints.py`
+  probe is implemented and tested for health/readiness/latest-risk assertions, but no external monitor dashboard,
+  alert rule, or delivery evidence is recorded.
 - Configure recurring scheduled backups, recurring off-server copies, and backup freshness monitoring using the local
   `scripts/check_backup_freshness.py` checker; defer the restore drill until a separate staging or intentionally empty
   restore target exists. The checker is implemented and tested locally, but production scheduling, alert delivery, and
