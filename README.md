@@ -100,7 +100,9 @@ Recommended next production sequence before first traffic:
    health.
 6. Verify public-host privacy/terms/disclaimer copy, SEO/social metadata, browser/device smoke, and the remaining manual
    accessibility limitations or accepted deferrals.
-7. Create and validate the final sanitized launch snapshot packet from already collected evidence.
+7. Create and validate the final sanitized launch snapshot packet from already collected evidence. Use
+   [docs/launch-snapshot-evidence-packet-template.md](docs/launch-snapshot-evidence-packet-template.md) to prepare the
+   packet outside Git first, then copy only sanitized final evidence into launch docs.
 8. Run the operator-watched first traffic test only after the launch gates are completed or explicitly accepted.
 
 ## Product Surface

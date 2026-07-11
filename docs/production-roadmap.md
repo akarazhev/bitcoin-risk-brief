@@ -166,9 +166,11 @@ Remaining production-pilot gaps:
   `scripts/import_provenance_packet.py` helper is implemented/tested for future sanitized manifests, but the 2026-07-11
   bundled CSV commit/tag evidence is supporting repository evidence only, not a production import evidence packet;
 - use the local `scripts/launch_snapshot_packet.py` helper during the final pre-traffic window to create or validate a
-  sanitized JSON packet from already collected evidence; the helper is implemented/tested, but the real final launch
-  snapshot packet, final pre-traffic public readiness evidence, monitor/alert delivery proof, production import
-  provenance, recurring backup freshness evidence, operator decisions, and first traffic remain pending;
+  sanitized JSON packet from already collected evidence; use
+  [Launch Snapshot Evidence Packet Template](launch-snapshot-evidence-packet-template.md) to prepare the final packet
+  outside Git first; the helper is implemented/tested, but the real final launch snapshot packet, final pre-traffic
+  public readiness evidence, monitor/alert delivery proof, production import provenance, recurring backup freshness
+  evidence, operator decisions, and first traffic remain pending;
 - post-launch learning cannot start until real usage evidence exists.
 
 ## Roadmap Phases
@@ -432,7 +434,9 @@ GitHub-hosted Dependabot execution, first PR evidence, and external/manual confi
 launch governance gap pass in
 [Production Readiness](production-readiness.md) is the current status checklist for accepted limitations, pending
 operator decisions, pending external evidence, and blocked launch items; first traffic must remain pending until those
-gates are completed or explicitly accepted.
+gates are completed or explicitly accepted. Use
+[Launch Snapshot Evidence Packet Template](launch-snapshot-evidence-packet-template.md) for the final outside-Git
+snapshot collection before copying sanitized outcomes into launch docs.
 
 Goal: launch deliberately and measure product demand.
 

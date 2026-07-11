@@ -51,6 +51,8 @@ Production/operator evidence still pending before public launch:
 - Sanitized operator decisions for waitlist handling, support/contact identity, account recovery, source terms, launch
   limitations, and legal/license status.
 - Final launch snapshot packet and an operator-watched first traffic test.
+  Use [docs/launch-snapshot-evidence-packet-template.md](launch-snapshot-evidence-packet-template.md) to prepare the
+  final snapshot outside Git first; the template is not completed evidence and does not close this blocker by itself.
 
 External gates that cannot be closed from this local workspace include production host execution, Cloudflare or external
 monitor provider configuration, alert delivery tests, operator account/contact/retention/source-terms decisions,
@@ -71,7 +73,9 @@ Recommended next production sequence before first traffic:
    health.
 6. Verify public-host metadata, privacy/terms/disclaimer copy, browser/device smoke, and remaining accessibility
    limitations or accepted deferrals.
-7. Create and validate the final launch snapshot packet from already collected sanitized evidence.
+7. Create and validate the final launch snapshot packet from already collected sanitized evidence, using
+   [docs/launch-snapshot-evidence-packet-template.md](launch-snapshot-evidence-packet-template.md) as the outside-Git
+   collection template before copying final sanitized outcomes into launch docs.
 8. Run the operator-watched first traffic test only after freshness and all launch gates are completed or explicitly
    accepted.
 
