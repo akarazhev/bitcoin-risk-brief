@@ -275,6 +275,46 @@ alert-delivery, or restore-drill blockers by itself.
   register accepts only restore-drill deferral, not missing recurring backup, off-server copy, freshness monitoring, or
   alert delivery evidence.
 
+Production import provenance evidence gap pass recorded on 2026-07-12:
+
+Use [docs/import-provenance-evidence-packet-template.md](import-provenance-evidence-packet-template.md) to collect
+sanitized production import provenance outside Git before copying final outcomes into this gate. The template is not
+completed evidence and does not close source/archive, production import metadata, validation, or cache-linkage blockers
+by itself.
+
+- Scope/safety: documentation evidence plus local non-production helper validation. No deploy, refresh/import, cache
+  warmup command, waitlist POST, Cloudflare/routing change, production endpoint probe, production host command,
+  database query, source/archive collection, external monitor configuration, alert delivery test, first traffic, push, or
+  tag was performed. This note intentionally avoids private source/archive paths, private hostnames, usernames, account
+  IDs, tokens, raw headers, private URLs, raw logs, `.env` values, raw CSV contents, raw waitlist contacts, operator
+  contact details, and PII.
+- Operator-provided provenance evidence status: absent from the current repository and not provided during this pass. No
+  sanitized production import packet, source snapshot basename, source/archive reference, retrieval timestamp, source
+  checksum, source row count/range, expected tail date, production import command, direct validation/import table
+  metadata, database row count, risk recomputation proof, or operator/source-owner decision was available.
+- Existing supporting public consistency evidence: the 2026-07-12 monitoring/alert evidence gap pass recorded an
+  approved local public GET-only probe for `GET /api/health`, `GET /api/readiness`, and `GET /api/risk/latest`; sanitized
+  output was `latest_date=2026-07-11`, rounded risk `0.2190`, max data age 2 days, and required cache headers
+  `Cache-Control`, `ETag`, `X-Cache-Version`, and `X-Cache` present. This public consistency evidence supports current
+  public read behavior only. It is not direct source/archive proof and is not paired with a real production import
+  packet.
+- Existing supporting local repository data evidence: the bundled canonical CSV evidence through 2026-07-09 and local
+  incoming CoinMarketCap CSV hash recorded in repository docs support local repository history only. They do not prove
+  production host import execution, production database state, production source/archive provenance, or post-import
+  validation metadata.
+- Local helper validation: `python3 scripts/import_provenance_packet.py --help` completed successfully and showed the
+  local-only `create` and `validate` commands; `python3 -m unittest backend.tests.test_import_provenance_packet` passed
+  11 tests. This validates helper availability and safety behavior only. It did not create or validate a real production
+  packet and does not prove a source archive exists.
+
+| Import provenance area | 2026-07-12 sanitized status | Evidence / remaining proof |
+| --- | --- | --- |
+| Source/archive provenance | Blocked pending operator evidence. Source category remains unknown for the current production data from direct evidence; no public CoinMarketCap download, manual CSV, API fallback, restore, or correction packet was provided. | Capture the sanitized source type, source snapshot/archive basename or reference, retrieval method and timestamps, source `sha256`, byte size when available, row count, covered start/end, expected tail date, and operator/source-owner role from the real production import archive outside Git. |
+| Production import metadata | Blocked pending production-host or operator evidence. No import command/path, scheduler run, production validation/import table row, validation source, validation covered end/latest timestamp, database row count, risk recomputation result, or collector command evidence was available. | Record the import mode and command category, production revision, validation source/source strategy, validation row count and covered end, latest risk date, risk recomputation status, and database/cache evidence from the same production import. |
+| Public consistency evidence | Partial supporting evidence only. Historical and current public GET-only checks show healthy readiness/latest-risk behavior and cache headers, including the 2026-07-12 probe above, but public responses do not identify the exact production source archive or prove the production import command. | Pair public readiness/latest/cache headers with the real source/archive packet and direct production validation/import metadata before marking provenance passed. |
+| Local helper/tooling evidence | Passed for local helper availability only. `scripts/import_provenance_packet.py`, the packet template, and focused unittest coverage exist and the helper help/tests passed locally. | Run `create` and `validate` against the real production source snapshot, canonical output, and evidence-file basenames after an operator collects the outside-Git packet. Treat any local sample or repository CSV-only packet as non-production evidence. |
+| Gate status | Partial, not passed. Meaningful supporting public/local evidence exists, but direct sanitized source/archive provenance and production import metadata are missing. | First traffic remains blocked by this gate unless the operator supplies the missing packet/metadata or records an explicit sanitized accepted limitation. The current operator register accepts only restore-drill deferral. |
+
 ## Operator Launch Decision Register
 
 ### 2026-07-11 Operator Governance Pass
@@ -594,7 +634,7 @@ Launch governance gap pass recorded on 2026-07-10:
 | Dependency-license review | partial; local evidence recorded, external/manual confirmation pending | [Dependency and License Review](dependency-license-review.md) records the 2026-07-10 local inventory from npm lockfile, Python requirements, container references, CI workflow references, and local Dependabot configuration. Local npm lockfile entries all include license metadata, including `@axe-core/playwright` and `axe-core` as `MPL-2.0`; Python and container license metadata remain unknown from repository files. | Confirm GitHub-hosted Dependabot execution and first PR evidence, Python package metadata, transitive dependencies, container image and OS package licenses, CI action/license posture, vulnerability/advisory status, project license choice, and legal compatibility before broader portfolio sharing or commercial claims. |
 | Launch snapshot evidence | pending external evidence | The 2026-07-05 launch snapshot is historical and was blocked by stale readiness. Later public freshness evidence exists, including the 2026-07-11 update probe, and local launch snapshot packet tooling is implemented/tested, but no final launch snapshot/first-traffic evidence packet is recorded. | Use `scripts/launch_snapshot_packet.py` during the final pre-traffic window to create or validate a sanitized packet from already collected local evidence, then capture the launch commit, public hostname, readiness payload, cache headers, waitlist smoke, launch limitations, and related backup/restore/provenance references immediately before first traffic. |
 | External monitoring and alert delivery | partial; first traffic blocked | The 2026-07-12 monitoring/alert evidence gap pass recorded an approved local public GET-only probe for health, readiness, and latest-risk, but found no external monitor-provider dashboard/API proof, alert rules, Cloudflare connector notification evidence, recurring backup freshness alert proof, collector-failure alert proof, or delivery-test evidence. | Configure or show provider/dashboard evidence and alert delivery proof for health, readiness/freshness, stale data, collector failure, backup freshness, and Cloudflare Tunnel health, or record explicit sanitized accepted limitations before first traffic. |
-| Import provenance source archive and direct production metadata | pending external evidence | The 2026-07-09 pass publicly verified data/cache consistency but did not prove the exact source path/category, source archive, direct production validation/import table metadata, or collector command evidence. | Capture a sanitized production import evidence packet outside the repository with source snapshot, manifest, `sha256`, retrieval metadata, row counts/range, validation/readiness output, and cache evidence. |
+| Import provenance source archive and direct production metadata | partial supporting evidence; direct production evidence pending | The 2026-07-09 pass publicly verified data/cache consistency, and the 2026-07-12 import provenance gap pass verified local helper availability plus existing public/local supporting evidence. Neither pass proved the exact source path/category, source archive, direct production validation/import table metadata, or collector command evidence. | Capture a sanitized production import evidence packet outside the repository with source snapshot, manifest, `sha256`, retrieval metadata, row counts/range, validation/readiness output, and cache evidence, or record an explicit sanitized accepted limitation before first traffic. |
 | Restore drill | accepted limitation for operator-watched first traffic | Checksum-verified off-server USB backup copy evidence is recorded for 2026-07-07 and copied/off-server freshness/checksum checker evidence is recorded for timestamp `20260711T190355Z`, but the current setup has only the live production server and no staging or empty restore target. | Defer the drill until a separate target exists; do not run restore testing against live production. Record target type and readiness result after the drill. |
 | First traffic test | blocked | No first traffic window has run. Freshness, public metadata/privacy smoke, and waitlist smoke evidence exist, but launch governance, monitoring/alerts, provenance, recurring backup freshness monitoring, manual/native accessibility limitations, and final snapshot evidence remain incomplete or explicitly limited. | Run only after freshness is rechecked and all launch gates are either completed or explicitly accepted for an operator-watched first traffic window. |
 
