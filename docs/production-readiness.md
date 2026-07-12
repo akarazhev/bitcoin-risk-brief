@@ -31,7 +31,8 @@ Local pre-deployment tooling and evidence that is complete in the repository:
 Production/operator evidence still pending before public launch:
 
 - Final pre-traffic public readiness/freshness recheck. The 2026-07-11 backup-gated update evidence below records
-  update-time public readiness/latest/cache evidence, but freshness remains time-sensitive.
+  update-time public readiness/latest/cache evidence, and the 2026-07-12 monitoring/alert gap pass records a current
+  local public endpoint probe, but freshness remains time-sensitive.
 - Production import provenance packet for a real production refresh/import, including exact source/archive proof and
   direct validation/import metadata or accepted operator evidence. Use
   [docs/import-provenance-evidence-packet-template.md](import-provenance-evidence-packet-template.md) to collect a
@@ -176,6 +177,56 @@ Fresh public endpoint readiness probe recorded on 2026-07-11:
 - Limitation: this is a local/public GET-only probe. It does not prove external monitor provider configuration,
   scheduled monitor execution, or alert delivery, and the external monitoring/alert-delivery gate remains
   partial/blocked, not passed.
+
+External monitoring and alert delivery evidence gap pass recorded on 2026-07-12:
+
+Use [docs/monitoring-alert-evidence-packet-template.md](monitoring-alert-evidence-packet-template.md) to collect
+sanitized monitoring and alert evidence outside Git before copying final outcomes into this gate. The template is not
+completed evidence and does not close monitor/provider or alert-delivery blockers by itself.
+
+- Scope/safety: documentation evidence plus a public GET-only endpoint probe. No code, test, script, CSV data, config, or
+  lockfile changes were made; no deploy, refresh/import, cache warmup command, waitlist POST, Cloudflare/routing change,
+  external monitor configuration, alert delivery test, first traffic, push, or tag was performed. The sandboxed public
+  probe failed on network access, then the same GET-only probe was rerun with approved network access. This note
+  intentionally avoids secrets, tokens, private dashboard URLs, account IDs, recipient addresses, phone numbers, private
+  contacts, raw logs, `.env` values, raw waitlist contacts, raw backup contents, and private filesystem paths.
+- Operator-provided monitoring evidence status: absent from the current repository and not provided during this pass. No
+  sanitized external monitoring provider dashboard/API proof, alert rule proof, Cloudflare notification proof, backup
+  monitor/scheduler proof, or alert-delivery test evidence was available. Repository evidence remains limited to local
+  probe/checker tooling, templates, runbook expectations, and historical public/backup evidence notes.
+- Public endpoint probe date: 2026-07-12. The probe output does not emit an exact response timestamp. Local probe
+  command:
+  `python3 scripts/check_public_endpoints.py --base-url https://bitcoinriskbrief.minihub.app --max-data-age-days 2
+  --require-cache-header Cache-Control --require-cache-header ETag --require-cache-header X-Cache-Version
+  --require-cache-header X-Cache`.
+- Public endpoint probe result: passed. Sanitized output:
+  `OK public endpoints healthy latest_date=2026-07-11 risk=0.2190 freshness=max_data_age_days:2
+  cache_headers=Cache-Control,ETag,X-Cache-Version,X-Cache`. The probe covered `GET /api/health`, `GET /api/readiness`,
+  and `GET /api/risk/latest`; required cache headers were present for the cacheable readiness/latest-risk assertions. The
+  probe output did not emit `risk_state`, and this pass does not require `risk_state` from the probe.
+- Backup freshness/off-server copy evidence status: no new production-host, off-server scheduler, monitor, or alert
+  evidence was available. The latest recorded production update backup evidence remains the historical 2026-07-11
+  copied/off-server checker pass for timestamp basename `20260711T190355Z`; recurring backup scheduling, selected
+  freshness-window monitoring, off-server-root alerting, alert delivery, and restore-drill proof remain unverified. Do not
+  claim a restore drill passed unless a staging or intentionally empty restore target exists.
+
+| Required coverage | 2026-07-12 sanitized status | Evidence / remaining proof |
+| --- | --- | --- |
+| Uptime monitor for `GET /api/health` | Partial. The approved local public probe passed; no external provider monitor was configured or verified. | Local GET-only evidence supports HTTP 200/JSON health behavior. Still required: external monitor/dashboard or chosen scheduled runner proof, plus alerts on non-200, timeout, or TLS failure. |
+| Readiness/freshness monitor for `GET /api/readiness` | Partial. The approved local public probe passed with max data age 2 and required cache headers; no external provider JSON assertion, scheduled after-window run, or alert route evidence was available. | Still required: alert on non-200, `status` not `ready`, stale data after the nightly refresh window, and `data_age_days` exceeding `DATA_FRESHNESS_MAX_AGE_DAYS`. |
+| Latest-risk public endpoint probe for `GET /api/risk/latest` | Partial. The approved local public probe passed with `latest_date=2026-07-11`, rounded risk `0.2190`, readiness/latest-risk date alignment, and required cache headers. | Still required: provider/scheduler proof and alert behavior for timeout, non-200, malformed JSON, stale/mismatched date, nonnumeric risk, or missing required cache headers. |
+| Collector failure alert | Blocked. No production host, scheduler, service monitor, container restart, or log-alert evidence was available. | Configure and record sanitized alerts for `scheduled_refresh_failed`, `public_cmc_download_failed`, API fallback failure when configured, missed scheduled refresh evidence, and repeated `data-collector` restarts. |
+| Backup freshness/off-server copy alert | Blocked for recurring production monitoring. Historical copied/off-server checker evidence exists for `20260711T190355Z`, but no current scheduler/monitor or delivery proof was available. | Choose the freshness window, monitor checksum-verified local backup plus off-server copy presence inside that window, alert on missing/stale/malformed/checksum-invalid results, and record only sanitized timestamp basenames/status. |
+| Cloudflare Tunnel health notification | Blocked. No Cloudflare dashboard/API evidence, connector-down/flapping notification proof, or equivalent tunnel status alert evidence was available. | Enable or document connector health notifications for the tunnel serving `bitcoinriskbrief.minihub.app` and record sanitized status without account IDs, tunnel IDs, dashboard URLs, or tokens. |
+| Alert delivery channel | Blocked. No selected pilot channel type or provider test notification result was available. | Send a real test notification through the chosen monitoring or alert system and record only sanitized channel type, test time, delivered/not-delivered result, and covered rules. |
+
+- Monitoring/alert delivery gate status: partial, not passed. Current public health/readiness/latest-risk behavior is
+  supported by a local public GET-only probe, but external monitor/provider proof, alert rules, stale-data/readiness
+  after-window alert proof, collector-failure alert proof, recurring backup freshness/off-server alert proof, Cloudflare
+  Tunnel health notification proof, and alert-delivery test evidence remain missing.
+- First traffic remains blocked by this gate unless the operator either completes the missing evidence above or records
+  explicit sanitized accepted limitations. The current operator register accepts only the restore-drill deferral; it does
+  not accept missing external monitoring or alert delivery as a launch limitation.
 
 ## Operator Launch Decision Register
 
@@ -495,7 +546,7 @@ Launch governance gap pass recorded on 2026-07-10:
 | First-user feedback review path | passed with existing repo evidence | This document and [Operations](operations.md) define a post-window review path for waitlist conversion, repeat-use signals, direct questions, methodology confusion, and requests for alerts/API/agents/widgets/licensing. | Run the review only after first traffic creates evidence; do not copy raw waitlist contacts into summaries. |
 | Dependency-license review | partial; local evidence recorded, external/manual confirmation pending | [Dependency and License Review](dependency-license-review.md) records the 2026-07-10 local inventory from npm lockfile, Python requirements, container references, CI workflow references, and local Dependabot configuration. Local npm lockfile entries all include license metadata, including `@axe-core/playwright` and `axe-core` as `MPL-2.0`; Python and container license metadata remain unknown from repository files. | Confirm GitHub-hosted Dependabot execution and first PR evidence, Python package metadata, transitive dependencies, container image and OS package licenses, CI action/license posture, vulnerability/advisory status, project license choice, and legal compatibility before broader portfolio sharing or commercial claims. |
 | Launch snapshot evidence | pending external evidence | The 2026-07-05 launch snapshot is historical and was blocked by stale readiness. Later public freshness evidence exists, including the 2026-07-11 update probe, and local launch snapshot packet tooling is implemented/tested, but no final launch snapshot/first-traffic evidence packet is recorded. | Use `scripts/launch_snapshot_packet.py` during the final pre-traffic window to create or validate a sanitized packet from already collected local evidence, then capture the launch commit, public hostname, readiness payload, cache headers, waitlist smoke, launch limitations, and related backup/restore/provenance references immediately before first traffic. |
-| External monitoring and alert delivery | blocked | The 2026-07-10 monitoring pass found no monitor-provider dashboard/API proof, alert rules, Cloudflare connector notification evidence, or delivery-test evidence. | Configure or show provider/dashboard evidence and alert delivery proof for health, readiness/freshness, stale data, collector failure, backup freshness, and Cloudflare Tunnel health. |
+| External monitoring and alert delivery | partial; first traffic blocked | The 2026-07-12 monitoring/alert evidence gap pass recorded an approved local public GET-only probe for health, readiness, and latest-risk, but found no external monitor-provider dashboard/API proof, alert rules, Cloudflare connector notification evidence, recurring backup freshness alert proof, collector-failure alert proof, or delivery-test evidence. | Configure or show provider/dashboard evidence and alert delivery proof for health, readiness/freshness, stale data, collector failure, backup freshness, and Cloudflare Tunnel health, or record explicit sanitized accepted limitations before first traffic. |
 | Import provenance source archive and direct production metadata | pending external evidence | The 2026-07-09 pass publicly verified data/cache consistency but did not prove the exact source path/category, source archive, direct production validation/import table metadata, or collector command evidence. | Capture a sanitized production import evidence packet outside the repository with source snapshot, manifest, `sha256`, retrieval metadata, row counts/range, validation/readiness output, and cache evidence. |
 | Restore drill | accepted limitation for operator-watched first traffic | Checksum-verified off-server USB backup copy evidence is recorded for 2026-07-07 and copied/off-server freshness/checksum checker evidence is recorded for timestamp `20260711T190355Z`, but the current setup has only the live production server and no staging or empty restore target. | Defer the drill until a separate target exists; do not run restore testing against live production. Record target type and readiness result after the drill. |
 | First traffic test | blocked | No first traffic window has run. Freshness, public metadata/privacy smoke, and waitlist smoke evidence exist, but launch governance, monitoring/alerts, provenance, recurring backup freshness monitoring, manual/native accessibility limitations, and final snapshot evidence remain incomplete or explicitly limited. | Run only after freshness is rechecked and all launch gates are either completed or explicitly accepted for an operator-watched first traffic window. |

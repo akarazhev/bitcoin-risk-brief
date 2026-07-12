@@ -31,13 +31,14 @@ Repository-local bundled BTC CSV evidence recorded on 2026-07-11: commit
 does not prove a production deployment, production database import, public-host freshness after this commit, full
 production import provenance, launch readiness, or first traffic.
 
-The public pilot hostname exists at `https://bitcoinriskbrief.minihub.app` and has evidence through 2026-07-11. The
+The public pilot hostname exists at `https://bitcoinriskbrief.minihub.app` and has evidence through 2026-07-12. The
 2026-07-05 public `/api/readiness` HTTP 503 stale-data blocker is closed by later public evidence: 2026-07-07
 post-deploy checks returned public readiness HTTP 200/fresh, the 2026-07-10 monitoring evidence recorded public
 `/api/health`, `/api/readiness`, and `/api/risk/latest` healthy/current, and the 2026-07-11 backup-gated USB update
-evidence recorded public readiness/latest checks passed. Latest recorded public readiness evidence is from 2026-07-11:
-`data_fresh=True`, `latest_date=2026-07-10`, `row_count=5842`, latest risk `0.26161621315507155`, `risk_state=low`,
-and required cache headers present.
+evidence recorded public readiness/latest checks passed. Latest recorded local public GET-only probe evidence is from
+2026-07-12: public health/readiness/latest-risk checks passed with `latest_date=2026-07-11`, latest risk `0.2190`,
+freshness policy `max_data_age_days:2`, and required cache headers present. This public probe does not prove external
+monitor/provider configuration or alert delivery.
 
 Backup-gated USB production update evidence recorded on 2026-07-11 targets commit
 `86cb2dad889baf24a7464a105bbe2224f75b14ef` with evidence tag
@@ -64,8 +65,9 @@ Still external/operator before treating the pilot as publicly launched:
   checks, and backup-gated mode when a fresh pre-update database dump is required.
 - Configure external monitors and alerts for `/api/health`, `/api/readiness`, stale data after the nightly update
   window, collector failures, Cloudflare Tunnel health, and alert delivery. The local `scripts/check_public_endpoints.py`
-  probe is implemented and tested for health/readiness/latest-risk assertions, but no external monitor dashboard,
-  alert rule, or delivery evidence is recorded.
+  probe is implemented and tested for health/readiness/latest-risk assertions, and the 2026-07-12 approved GET-only
+  public probe passed, but no external monitor dashboard, alert rule, stale-data after-window alert, collector failure
+  alert, Cloudflare Tunnel health notification, backup freshness alert, or delivery evidence is recorded.
 - Configure recurring scheduled backups, recurring off-server copies, and backup freshness monitoring using the local
   `scripts/check_backup_freshness.py` checker; defer the restore drill until a separate staging or intentionally empty
   restore target exists. The checker is implemented and tested locally, and one backup-gated copied/off-server
