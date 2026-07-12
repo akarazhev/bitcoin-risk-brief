@@ -431,8 +431,11 @@ Additional public smoke evidence recorded on 2026-07-02 for `https://bitcoinrisk
 - `GET /api/risk/latest` returned 200 for timestamp `2026-06-30T00:00:00+00:00` with `Cache-Control: public,
   max-age=60, stale-while-revalidate=300`, `ETag: "a860789d405dbf015592328b"`, `X-Cache: MISS`, and
   `X-Cache-Version: validation:2026-07-02T01:00:05.718106+00:00:2026-06-30T00:00:00+00:00:5832:true`.
-- The Cloudflare Free-plan limitation remains accepted for this pilot snapshot: the public edge is still using the
-  Free-plan-compatible subset instead of managed WAF execution and broader API burst-rate-limit controls.
+- The Cloudflare Free-plan first-traffic decision remains pending under the current operator register. This historical
+  snapshot only shows the public edge used the Free-plan-compatible subset instead of managed WAF execution and broader
+  API burst-rate-limit controls; it does not accept that subset for first traffic. Managed WAF/additional rate limits
+  require explicit operator acceptance before first traffic if they remain deferred, and first traffic must not rely on
+  Cloudflare Free-plan acceptance without a new explicit operator decision.
 
 Deployment path decision status recorded on 2026-07-02:
 
