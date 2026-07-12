@@ -80,6 +80,59 @@ Recommended next production sequence before first traffic:
 8. Run the operator-watched first traffic test only after freshness and all launch gates are completed or explicitly
    accepted.
 
+Consolidated first-traffic blocker and acceptance register recorded on 2026-07-12:
+
+- Gate status: blocked, not passed. First traffic is not allowed by the current evidence. This register consolidates the
+  current launch-gate blockers and accepted limitations from repository-visible docs, existing dated evidence notes, and
+  the current operator objective. It does not create a launch snapshot packet, run first traffic, accept new
+  limitations, or close any gate by inference.
+- Scope/safety: documentation-only register pass. No deploy, refresh/import, production endpoint probe, waitlist POST,
+  Cloudflare/routing change, monitor configuration, alert delivery test, backup/off-server copy, restore drill, first
+  traffic, push, or tag was performed. At the start of this pass, local `HEAD` was `163d6bd`, the local tag at `HEAD`
+  was `launch-snapshot-blocked-evidence-2026-07-12`, and the local branch was `main...origin/main [ahead 7]`.
+- Accepted limitations: restore-drill deferral is the only accepted limitation. It remains accepted/deferred only because
+  no staging project or intentionally empty restore target is recorded; no live-production restore drill should be run.
+  No missing governance, monitoring, recurring-backup, import-provenance, accessibility/device, Cloudflare Free-plan, or
+  launch-snapshot evidence is accepted by this register.
+
+| Gate area | Consolidated status | Blocker or required acceptance before first traffic |
+| --- | --- | --- |
+| Waitlist governance | Blocked pending operator decision. | Record a sanitized owner role, review cadence, retention or explicit retention deferral, deletion/unsubscribe handling, operator access scope, and post-waitlist follow-up path. |
+| Support/contact path | Blocked pending operator decision. | Record a public or intentionally deferred contact path decision, covered request types, no-paid-SLA posture, escalation owner role, and readiness for first traffic without private contact details. |
+| Account recovery ownership | Blocked pending operator evidence. | Record sanitized outside-Git owner/recovery status for repository, Cloudflare, production environment values, server access, backup storage, optional data-source credentials, and domain ownership if used. |
+| Source terms and import governance owner | Blocked pending operator decision. | Record the source-terms owner role, CoinMarketCap public CSV and optional API usage status, attribution or usage limitation, and future source-review cadence. |
+| Dependency/security ownership and status | Partial local evidence; blocked for first-traffic acceptance. | Record the security/dependency owner role, hosted Dependabot or equivalent execution evidence, vulnerability/advisory posture, external/manual license confirmation, container/OS/CI action review, project license posture, and legal compatibility status. |
+| First-user feedback path | Partial runbook evidence; blocked pending operator decision and traffic. | Record the feedback collection paths, reviewer role, cadence, and sanitized evidence format. Post-traffic summaries cannot exist because first traffic has not run. |
+| External provider/dashboard monitoring proof | Blocked pending external evidence. | Configure or show sanitized monitor provider, dashboard, or scheduled-runner proof for the public health, readiness/freshness, and latest-risk checks. |
+| Health/readiness/stale-data alert rules | Blocked pending alert-rule evidence. | Record alert rules for health failures, readiness non-200 or non-ready status, stale data after the nightly update window, and freshness-policy failures. |
+| Collector failure alert | Blocked pending production log or service alert evidence. | Record sanitized alert coverage for scheduled refresh failures, public-download failures, optional API fallback failures, missed scheduled runs, and repeated collector restarts. |
+| Backup freshness alert | Blocked pending recurring monitor and alert evidence. | Record a chosen freshness window, scheduled checker or monitor execution, and alert behavior for missing, stale, malformed, checksum-invalid, or missing off-server backups. |
+| Cloudflare Tunnel health notification | Blocked pending Cloudflare or equivalent notification evidence. | Record sanitized connector health notification status or equivalent tunnel availability alert evidence without account, tunnel, dashboard, or routing details. |
+| Alert delivery test | Blocked pending delivery evidence. | Send and record a sanitized test alert through the chosen channel type, including covered rules and delivered/not-delivered result. |
+| Recurring production backup schedule | Blocked pending operator evidence. | Record scheduler category, cadence, owner role, latest scheduled run time, result, and failure behavior for production backups. |
+| Recurring off-server copy | Partial historical evidence only; blocked for recurring operation. | Record recurring copy job category, cadence, latest matching timestamp basename, destination category, and checksum result. Historical one-time copied/off-server evidence does not close recurring operation. |
+| Backup freshness monitor | Partial tooling evidence only; blocked for production monitoring. | Run and record the checker or equivalent monitor against production backup and off-server roots with the chosen freshness window, timestamp basename, result, runner category, and cadence. |
+| Backup alert delivery | Blocked pending delivery evidence. | Record backup freshness alert rule evaluation and delivered/not-delivered test result. |
+| Restore drill | Accepted limitation/deferred only. | Keep deferred until a safe restore target exists. This remains the only accepted limitation; when a safe target exists, record checksum verification, restore result, readiness, and cleanup status. |
+| Production import source/archive proof | Blocked pending operator evidence. | Capture the real production source snapshot or archive reference, retrieval method, retrieval timestamps, source type, source checksum, byte size if available, row count, covered range, and expected tail date. |
+| Production import metadata and validation | Blocked pending production-host or operator evidence. | Record import mode, command category, production revision, validation source strategy, validation row count, covered end, latest risk date, risk recomputation result, and direct database or validation-table metadata. |
+| Database row count and recomputation proof | Blocked pending production metadata. | Record direct row count and risk recomputation proof from the production import, paired with readiness/latest-risk/cache evidence from the same import. |
+| Source owner decision | Blocked pending operator decision. | Record the owner role for future source reviews and whether missing source/archive evidence is completed or explicitly accepted. No such acceptance is recorded now. |
+| Manual keyboard accessibility evidence | Blocked pending manual evidence or explicit accepted limitation. | Record a sanitized manual keyboard pass on the public/production-host surface, or an explicit operator accepted limitation. |
+| Screen-reader or assistive-tech evidence | Blocked pending manual evidence or explicit accepted limitation. | Record sanitized screen-reader/assistive-tech coverage, result, and follow-up owner role, or an explicit operator accepted limitation. |
+| Physical/native browser evidence | Blocked pending evidence or explicit accepted limitation. | Record physical-device/native desktop and mobile browser coverage required by the launch matrix, or an explicit operator accepted limitation. |
+| Full WCAG/legal accessibility status | Blocked pending evidence or explicit accepted limitation. | Record full accessibility/WCAG/legal review evidence, legal posture, or an explicit accepted limitation. Current automated axe and local/source evidence are partial only. |
+| Remaining cache-miss/edge-hit latency matrix | Partial historical evidence; blocked if still required by the launch matrix. | Record current endpoint-specific cache-miss and edge-hit timing for any public read endpoints not covered by current accepted evidence, or explicitly accept remaining latency limitations. |
+| Cloudflare Free-plan first-traffic decision | Pending/blocking. | Either explicitly accept the current Free-plan-compatible subset for one operator-watched first-traffic window, naming the missing controls, or upgrade/configure equivalent WAF/rate-limit controls before first traffic. No acceptance is recorded now. |
+| Fresh pre-traffic readiness evidence | Blocked pending final-window evidence. | Recheck public health, readiness, latest-risk, freshness, date alignment, and required cache headers immediately before first traffic. Prior public probes are supporting evidence only, not final-window evidence. |
+| Sanitized final launch snapshot packet | Blocked pending packet. | Create and validate a real sanitized launch snapshot packet from collected evidence outside Git, then copy only sanitized final status into launch docs. Do not treat templates or helper availability as a packet. |
+| Final operator acceptance | Blocked pending operator acceptance. | Record sanitized final operator acceptance only after all required gates are passed or explicitly accepted. No final acceptance is recorded now. |
+| Remote publication if required | Blocked/pending. | Publish the required evidence commits/tags only if the operator requires remote publication. This pass does not push, and local ahead-of-origin evidence remains local until an explicit push occurs. |
+
+- First traffic decision: not allowed now. The project remains not publicly launched, and first traffic must stay
+  `not_run` until every blocker above is completed or explicitly accepted in sanitized operator evidence and a final
+  launch snapshot packet is created from current evidence.
+
 Final launch snapshot readiness/gap pass recorded on 2026-07-12:
 
 - Gate status: blocked, not passed. No real sanitized final launch snapshot packet was provided or created from current
