@@ -315,6 +315,64 @@ by itself.
 | Local helper/tooling evidence | Passed for local helper availability only. `scripts/import_provenance_packet.py`, the packet template, and focused unittest coverage exist and the helper help/tests passed locally. | Run `create` and `validate` against the real production source snapshot, canonical output, and evidence-file basenames after an operator collects the outside-Git packet. Treat any local sample or repository CSV-only packet as non-production evidence. |
 | Gate status | Partial, not passed. Meaningful supporting public/local evidence exists, but direct sanitized source/archive provenance and production import metadata are missing. | First traffic remains blocked by this gate unless the operator supplies the missing packet/metadata or records an explicit sanitized accepted limitation. The current operator register accepts only restore-drill deferral. |
 
+Launch Matrix, accessibility, and public-host QA evidence pass recorded on 2026-07-12:
+
+- Scope/safety: evidence and documentation pass only. No deploy, refresh/import, cache warmup, waitlist POST, database
+  write, Cloudflare/routing change, external monitor configuration, alert delivery test, first traffic, push, or tag was
+  performed. Public checks were GET-only, browser checks did not submit forms, and the public browser/axe scripts
+  intercepted `/api/waitlist` so an unexpected waitlist request would fail the check instead of reaching production.
+  This note intentionally avoids private contacts, emails, account IDs, tokens, private URLs, raw headers, raw logs,
+  `.env` values, raw waitlist contacts, raw analytics, and PII.
+- Network and browser approvals: the sandboxed local Playwright smoke first failed on `listen EPERM: operation not
+  permitted 127.0.0.1:4173`; the same mocked/local smoke was rerun with approved local browser/server permissions and
+  passed. The sandboxed public endpoint probe first failed on `GET /api/health request failed`; the same GET-only probe
+  was rerun with approved network access and passed. Public API field reads, public homepage smoke, public-host axe, and
+  public metadata checks were also run with approved network/browser access.
+- Local frontend verification: `npm test --prefix frontend` passed 2 files / 27 tests; `npm run build --prefix frontend`
+  passed with `index` at 218.57 kB minified / 69.43 kB gzip and lazy `Chart` at 557.61 kB minified / 188.87 kB gzip;
+  `npm run smoke --prefix frontend` passed 25 Playwright checks after the approved rerun. The smoke suite uses mocked
+  API routes, covers Chromium, Firefox, WebKit, Pixel 5, and iPhone 13 profiles, includes nonblank chart canvas checks,
+  a focused axe scan, degraded/API-error states, and mocked waitlist keyboard/focus behavior.
+- Public GET endpoint evidence: `scripts/check_public_endpoints.py` passed for `GET /api/health`, `GET /api/readiness`,
+  and `GET /api/risk/latest` with max data age 2 days and required `Cache-Control`, `ETag`, `X-Cache-Version`, and
+  `X-Cache` headers present on cacheable assertions. Sanitized API state from the approved GET-only checks:
+  `/api/readiness` returned `status=ready`, `latest_date=2026-07-11`, `covered_end=2026-07-11`, `data_age_days=1`,
+  `max_age_days=2`, `source=coinmarketcap_csv`, `row_count=5843`, `methodology_version=crypto-scout-canonical-v1`, and
+  `data_fresh=true`; `/api/risk/latest` returned timestamp `2026-07-11T00:00:00+00:00`, risk
+  `0.2190062736405601`, and `risk_state=low`. This is current public GET evidence only; it does not prove external
+  monitor/provider configuration, scheduled monitor execution, stale-data alerting, collector-failure alerting, backup
+  freshness alerting, Cloudflare Tunnel notification, or alert delivery.
+- Public homepage smoke: approved Playwright Chromium checks passed for desktop `1440x1000` and mobile `390x844`.
+  The homepage returned HTTP 200; the H1/product signal, current risk, latest date `2026-07-11`, and
+  privacy/terms/disclaimer note were visible; EN/RU toggle behavior worked; no obvious horizontal overflow was observed
+  (`overflow=0` for both profiles); both chart canvases were nonblank. Desktop chart canvases were `537x360`; mobile
+  chart canvases were `324x360`. No console errors, page errors, failed same-origin app/API requests, or waitlist
+  requests were observed in the passing smoke.
+- Public-host accessibility automation: approved public-host axe scans passed with zero violations in desktop Chromium
+  and mobile Chromium after the charts rendered. No waitlist requests were observed during these scans. This is automated
+  public-host DOM evidence only; it is not a manual keyboard pass, screen-reader/assistive-tech pass,
+  physical-device/native browser pass, full WCAG conformance audit, legal accessibility approval, or proof that
+  canvas-drawn chart internals are directly accessible without the implemented non-canvas alternatives.
+- Physical/native device evidence: no new physical device, native branded desktop browser, iOS Safari, Android Chrome, or
+  manual device lab evidence was performed or provided. This evidence remains pending unless an operator records a
+  sanitized accepted limitation for the controlled pilot.
+- Public metadata/privacy evidence: the live public homepage returned HTTP 200 with `title`, meta description, canonical
+  URL, Open Graph `type`, `title`, `description`, `url`, and `site_name`, plus Twitter `card`, `title`, and
+  `description`. `og:image` and `twitter:image` remain absent as expected because no real repo-served production image
+  asset exists. The privacy/terms/disclaimer note was verified as visible by the public homepage smoke; this does not
+  resolve waitlist owner, retention, deletion/unsubscribe, support/contact, legal approval, or full privacy/terms
+  decisions.
+- Cache/latency evidence: this pass verified public cache-header presence for readiness and latest-risk. It did not run a
+  new cache-miss/edge-hit latency matrix for all public read endpoints. Existing 2026-07-05 and 2026-07-07 latency/cache
+  evidence remains historical; unmeasured or stale endpoint-specific cache-miss/edge-hit latency evidence stays pending.
+- Launch Matrix / Accessibility / Public-Host QA gate status: partial, not passed. Current public endpoint freshness,
+  public homepage desktop/mobile Chromium smoke, public metadata/privacy smoke, local browser-profile smoke, local axe,
+  local mocked keyboard/focus, and public-host axe evidence are recorded. First traffic remains blocked because external
+  monitoring/alert delivery, recurring backup/off-server freshness monitoring and alert delivery, direct production
+  import provenance, pending operator governance decisions, manual/native accessibility and device decisions, final
+  launch snapshot, and first traffic itself remain incomplete or unaccepted. The only accepted limitation recorded in the
+  operator register remains restore-drill deferral.
+
 ## Operator Launch Decision Register
 
 ### 2026-07-11 Operator Governance Pass
@@ -336,7 +394,7 @@ decision by itself.
 | Data-source terms and import governance | Pending operator decision/evidence. No completed CoinMarketCap public-download/manual CSV terms review, optional CoinMarketCap API usage review, attribution outcome, or accepted limitation is recorded. Production import provenance remains separate and still requires a real source/archive packet after production imports. No owner role for future source review is recorded. | Record a sanitized status for CoinMarketCap public CSV and optional API usage as passed, accepted limitation, or pending; record any attribution or usage limitation; choose the owner role for future source review; and keep private source terms, account details, raw CSV rows, and private archive paths out of Git. |
 | Dependency, security, and license posture | Partial local evidence. `.github/dependabot.yml` is configured locally for conservative monthly version-update checks across frontend npm, backend and collector pip requirements, GitHub Actions, Dockerfiles, and a root `docker-compose` ecosystem entry. The dependency/license review records local npm lockfile license metadata and known gaps. GitHub-hosted Dependabot execution, first PR evidence, vulnerability/advisory clearance, external/manual license confirmation, container/OS package license review, project license choice, and legal approval remain pending. A monthly manual review cadence is documented, but the owner role for security updates is not recorded. | Choose the owner role for dependency/security updates, keep or revise the monthly cadence, record GitHub-hosted Dependabot execution and first PR evidence when available, complete or explicitly defer vulnerability/advisory, credential-scan, license, container image, OS package, CI action, and legal compatibility review, and record only date/scope/outcome/follow-up. |
 | Cloudflare Free-plan first-traffic decision | Pending first-traffic decision. Historical public snapshots used the documented Free-plan-compatible subset, but no operator decision accepts that subset for first traffic or requires an upgrade. Managed WAF execution, broader `/api/*` burst limiting, multiple rate-limit rules, and longer rate-limit windows are not proven active in the current subset. | Accept the current Free-plan subset for one operator-watched first traffic window, or require an upgrade/equivalent controls before first traffic. Record the accepted limitation or blocker without Cloudflare account IDs, zone IDs, tunnel IDs, rule IDs, dashboard URLs, credential values, private event logs, or routing details. |
-| Accessibility and device evidence | Pending accepted-limitation decision. Local automated axe, browser-profile, chart-alternative, live-region, and keyboard/focus evidence exists, and public-host browser smoke is recorded. Manual keyboard, screen-reader/assistive-tech, physical-device/native browser, production-host accessibility, full accessibility/WCAG, and legal approval evidence are not recorded. | Decide whether manual keyboard, screen-reader/assistive-tech, native-device, and production-host accessibility evidence is required before first traffic, or explicitly accept the missing evidence as a limitation for an operator-watched pilot. Record only sanitized status and follow-up owner role. |
+| Accessibility and device evidence | Pending accepted-limitation decision. Local automated axe, browser-profile, chart-alternative, live-region, and keyboard/focus evidence exists. Public-host desktop/mobile Chromium smoke and public-host automated axe evidence are recorded through 2026-07-12. Manual keyboard, screen-reader/assistive-tech, physical-device/native browser, full accessibility/WCAG, and legal approval evidence are not recorded. | Decide whether manual keyboard, screen-reader/assistive-tech, native-device, and broader production-host accessibility evidence is required before first traffic, or explicitly accept the missing evidence as a limitation for an operator-watched pilot. Record only sanitized status and follow-up owner role. |
 | Resource monitoring and incident response | Partial runbook evidence. The operations runbook documents local/public readiness checks, logs to inspect, backup checks, Cloudflare Tunnel checks, disk/database pressure checks, cache-stale handling, bad-data correction steps, pause/take-down conditions, and rollback-style recovery through known-good CSV/import/backup paths. External monitor/dashboard proof and alert delivery remain blocked. No operator role is recorded for watching CPU, disk, memory, logs, container restarts, backup freshness, or Cloudflare Tunnel health during the pilot; no first-response owner role or incident communication path is recorded. | Choose who watches CPU/disk/memory/logs and related resource signals during the pilot, choose the first-response owner role, record the incident communication path and rollback/take-down decision owner, configure or accept limitations for external monitors and alert delivery, and record sanitized evidence only. |
 | Release feedback and first-user feedback | Partial/pending. The runbook says that after the first controlled traffic window, operators should summarize waitlist conversion, repeat-use signals, direct questions, and requests for alerts, API access, agents, widgets, embeddings, or licensing into readiness or roadmap notes without raw contacts. First traffic has not run, no reviewer role is recorded, and no post-traffic evidence exists. | Choose the first-user feedback collection paths, reviewer role, review cadence, and sanitized evidence format. After first traffic, record aggregate waitlist/source/locale/repeat-use/request evidence and direct-question themes without raw contacts, private messages, raw analytics, or personal details. |
 | Accepted launch limitations and hard blockers | Partial. The restore drill is explicitly accepted/deferred until a staging project or intentionally empty restore target exists, and no live-production restore drill should be run. Other gaps may be accepted only if the operator records a sanitized accepted limitation. Current hard blockers before first traffic include final pre-traffic public readiness/freshness recheck, real production import provenance when a production refresh/import runs, recurring backup/off-server monitoring and alert delivery, external monitor/provider and alert proof, pending operator governance decisions above, remaining accessibility/device decision, final launch snapshot packet, and the first traffic test itself. | Keep the restore drill deferred until a safe target exists. Complete each hard blocker or record an explicit accepted limitation for an operator-watched pilot where acceptable. Do not mark the project publicly launched until all required gates are closed or explicitly accepted and first traffic evidence exists. |

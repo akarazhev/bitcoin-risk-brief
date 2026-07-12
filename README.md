@@ -40,6 +40,12 @@ evidence recorded public readiness/latest checks passed. Latest recorded local p
 freshness policy `max_data_age_days:2`, and required cache headers present. This public probe does not prove external
 monitor/provider configuration or alert delivery.
 
+The 2026-07-12 Launch Matrix / Accessibility / Public-Host QA pass recorded public desktop/mobile Chromium homepage
+smoke, public-host axe automation, public metadata checks, visible privacy/disclaimer copy, and no waitlist POST. The
+gate remains partial: manual keyboard, screen-reader/assistive-tech, physical-device/native browser, full WCAG/legal
+accessibility, broader latency, external monitoring/alert, recurring backup, direct import provenance, launch snapshot,
+and first-traffic evidence remain pending or unaccepted.
+
 Backup-gated USB production update evidence recorded on 2026-07-11 targets commit
 `86cb2dad889baf24a7464a105bbe2224f75b14ef` with evidence tag
 `predeployment-readiness-reconciled-2026-07-11`. The server-reported update exit code was 0; the copied/off-server backup

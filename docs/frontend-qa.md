@@ -238,11 +238,35 @@ Privacy/terms/disclaimer local implementation recorded on 2026-07-10:
 - Limitations: this is local automated/source evidence. It is not production-host verification, legal approval, a full
   privacy policy, a terms-of-service page, a support process, or a promise of deletion/unsubscribe handling.
 
+Launch Matrix, accessibility, and public-host QA evidence recorded on 2026-07-12:
+
+- Local checks: `npm test --prefix frontend` passed 2 files / 27 tests; `npm run build --prefix frontend` passed;
+  `npm run smoke --prefix frontend` first hit sandboxed `listen EPERM` on `127.0.0.1:4173`, then passed 25 Playwright
+  checks after an approved local browser/server rerun. The smoke suite remained local/mocked and did not touch the
+  production waitlist.
+- Public endpoint state: the approved GET-only public probe passed for health, readiness, and latest-risk with
+  `latest_date=2026-07-11`, risk `0.2190`, max data age 2 days, and required cache headers present. A sanitized public
+  API read recorded readiness `status=ready`, `data_age_days=1`, `max_age_days=2`, `source=coinmarketcap_csv`,
+  `row_count=5843`, methodology `crypto-scout-canonical-v1`, and latest-risk `risk_state=low`.
+- Public homepage smoke: approved Playwright Chromium checks passed for desktop `1440x1000` and mobile `390x844`.
+  H1/product signal, current risk, latest date `2026-07-11`, and the privacy/terms/disclaimer note were visible; charts
+  were nonblank; EN/RU toggle behavior worked; horizontal overflow was `0`; no console or page errors were observed; and
+  no waitlist request occurred.
+- Public-host accessibility automation: approved public-host axe scans passed with zero violations in desktop Chromium
+  and mobile Chromium after chart rendering. The check intercepted `/api/waitlist`; no waitlist request occurred.
+- Public metadata: live public HTML included title, meta description, canonical URL, Open Graph
+  type/title/description/url/site name, and Twitter card/title/description. `og:image` and `twitter:image` remained
+  absent because no real repo-served production image asset exists.
+- Limitations: this pass does not claim a manual keyboard pass, screen-reader/assistive-tech pass,
+  physical-device/native browser pass, full WCAG conformance audit, legal accessibility approval, cache-miss/edge-hit
+  latency matrix, first traffic, or any waitlist submission.
+
 Overall browser/device/accessibility/metadata/privacy launch-gate status: partial/blocked. Automated Playwright smoke,
 the local axe scan, source inspection, local chart data alternative, local waitlist live-region/keyboard smoke, local
-SEO/social metadata implementation, local privacy/terms/disclaimer note, and 2026-07-11 public-host metadata/privacy
-smoke provide useful evidence. The full native/manual browser-device matrix, manual keyboard/screen-reader/assistive-tech
-evidence, production-host accessibility evidence, first traffic, and full WCAG/accessibility compliance remain not
+SEO/social metadata implementation, local privacy/terms/disclaimer note, 2026-07-11 public-host metadata/privacy smoke,
+and 2026-07-12 public-host desktop/mobile Chromium smoke plus public-host axe provide useful evidence. The full
+native/manual browser-device matrix, manual keyboard/screen-reader/assistive-tech evidence, broader production-host
+accessibility beyond the automated axe scan, first traffic, and full WCAG/accessibility compliance remain not
 launch-passed.
 
 ## Reproducing Locally
