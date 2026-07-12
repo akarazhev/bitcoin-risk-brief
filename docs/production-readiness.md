@@ -228,6 +228,53 @@ completed evidence and does not close monitor/provider or alert-delivery blocker
   explicit sanitized accepted limitations. The current operator register accepts only the restore-drill deferral; it does
   not accept missing external monitoring or alert delivery as a launch limitation.
 
+Recurring backup, off-server copy, and backup freshness evidence gap pass recorded on 2026-07-12:
+
+Use [docs/backup-restore-evidence-packet-template.md](backup-restore-evidence-packet-template.md) to collect sanitized
+recurring backup, off-server copy, backup freshness, alert, and restore-drill evidence outside Git before copying final
+outcomes into this gate. The template is not completed evidence and does not close scheduler, copy, freshness-monitor,
+alert-delivery, or restore-drill blockers by itself.
+
+- Scope/safety: documentation evidence plus local non-production helper validation. No code, script, CSV data, config, or
+  lockfile changes were made; no deploy, refresh/import, cache warmup command, waitlist POST, Cloudflare/routing change,
+  production backup command, production scheduler change, off-server copy, external monitor configuration, alert
+  delivery test, restore drill, first traffic, push, or tag was performed. This note intentionally avoids secrets, raw
+  backup manifests, raw checksum files, raw logs, account details, private backup roots, private off-server destinations,
+  private scheduler identifiers, contact details, `.env` values, raw waitlist contacts, and private filesystem paths.
+- Operator-provided recurring backup evidence status: absent from the current repository and not provided during this
+  pass. No sanitized cron, systemd timer, external scheduler, synthetic runner, production-host schedule, operator/owner
+  role, recurring copy job, chosen off-server destination category, current freshness-window execution, backup freshness
+  alert rule, or alert-delivery test evidence was available.
+- Historical/supporting one-time evidence remains recorded but does not close recurring operations:
+  - 2026-07-07: one checksum-verified off-server USB backup copy was verified for timestamp basename
+    `20260707T111928Z`, with PostgreSQL dump, canonical BTC CSV, manifest, and checksum categories present.
+  - 2026-07-11: the backup-gated USB update recorded copied/off-server freshness/checksum checker status valid and fresh
+    for timestamp basename `20260711T190355Z`, age `0.28h <= max 30h`, with expected PostgreSQL dump, BTC CSV, manifest,
+    and checksum categories present.
+- Local helper validation: `python3 scripts/check_backup_freshness.py --help` completed successfully and showed the
+  expected non-mutating checker interface: `--backup-root`, required `--max-age-hours` or
+  `BACKUP_FRESHNESS_MAX_AGE_HOURS`, and optional `--off-server-root` or `OFFSERVER_BACKUP_ROOT`. This validates helper
+  availability only; it is not a production backup, scheduler, off-server copy, freshness-window pass, or alert-delivery
+  proof.
+- Restore drill status: accepted limitation/deferred only. No staging project or intentionally empty restore target
+  evidence was available, and no live-production restore drill was attempted or should be counted as launch evidence.
+
+| Required backup coverage | 2026-07-12 sanitized status | Evidence / remaining proof |
+| --- | --- | --- |
+| Recurring production backup schedule for `./scripts/backup.sh` or equivalent | Blocked pending operator evidence. The backup script exists and historical manual/update-time backup evidence exists, but no recurring production cron, systemd timer, external scheduler, synthetic runner, cadence, latest scheduled run, or owner/operator role is recorded. | Choose and record the sanitized scheduler category, cadence, owner role, latest scheduled run UTC time, result, and failure behavior. Do not record private cron files, service account names, private paths, job IDs, account IDs, or raw logs. |
+| Recurring off-server copy | Partial historical evidence only. One 2026-07-07 USB off-server copy and one 2026-07-11 copied/off-server checker pass exist, but no recurring copy job, cadence, destination category for recurring operation, latest recurring copy timestamp, or recurring checksum-verification evidence is recorded. | Configure and record recurring copy to a sanitized destination category such as mounted removable media, mounted remote storage, or an operator-controlled archive. Record matching timestamp basename, category presence, checksum result, latest copied-check UTC time, and cadence only. |
+| Backup freshness monitoring | Partial tooling evidence; blocked for production monitoring. `scripts/check_backup_freshness.py` exists, is covered by local tests, and its help output was validated locally. No chosen production freshness window, scheduled checker runner, current production-host checker result, or off-server-root monitoring proof was available. | Choose the freshness window, run the checker against the local backup root and required off-server root from the production host or selected scheduler, and record timestamp basename, pass/fail, checksum result, latest check UTC time, runner category, and cadence. |
+| Backup freshness alert delivery | Blocked. No backup freshness alert rule, route type, latest alert-rule evaluation, or delivery-test evidence was available. | Alert when no checksum-verified local backup plus off-server copy exists inside the chosen window, and cover missing backup, stale backup, malformed timestamp, missing artifact categories, checksum failure, missing off-server copy, and runner failure. Record only sanitized channel type, evaluation time, and delivered/not-delivered result. |
+| Restore drill | Accepted limitation/deferred. The only accepted limitation remains the absence of a staging or intentionally empty restore target. | Keep the drill deferred until a safe target exists. When available, record target type, timestamp basename, checksum verification, restore command result, post-restore readiness, and cleanup/teardown status without private paths or raw restore logs. |
+
+- Backup/off-server/freshness gate status: partial/blocked, not passed. Historical one-time backup and copied/off-server
+  freshness evidence supports recoverability planning, but recurring production backup scheduling, recurring off-server
+  copy, scheduled freshness monitoring, freshness alert delivery, and restore-drill proof are still missing.
+- First traffic remains blocked unless the operator completes the missing recurring backup/off-server/freshness/alert
+  evidence or records explicit sanitized accepted limitations for an operator-watched pilot. The current operator
+  register accepts only restore-drill deferral, not missing recurring backup, off-server copy, freshness monitoring, or
+  alert delivery evidence.
+
 ## Operator Launch Decision Register
 
 ### 2026-07-11 Operator Governance Pass
