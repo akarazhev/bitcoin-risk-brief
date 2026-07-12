@@ -45,11 +45,47 @@ Sanitized support/contact and account recovery readiness evidence recorded on 20
   founder/operator. Do not record account holders, account IDs, private recovery paths, secret locations, or recovery
   text in Git.
 
+AI-resolvable pre-traffic readiness sweep recorded on 2026-07-12:
+
+- Gate status: AI-resolvable sweep completed; overall launch gate remains blocked, not passed. First traffic is not
+  allowed now because the remaining blockers require operator/manual or external-provider evidence.
+- Scope/safety: local verification, docs reconciliation, git-state inspection, and public GET-only endpoint validation
+  only. No deploy, refresh/import, cache warmup, waitlist POST to production, Cloudflare/routing change, external provider
+  configuration, alert delivery test, backup/off-server copy, restore drill, first traffic, raw SQL output capture,
+  private contact capture, or production mutation was performed.
+- Starting git state for the sweep: local `HEAD` was `bbb5147`, `origin/main` was `08ff527`, and
+  `git rev-list --left-right --count origin/main...HEAD` returned `0 2`. The local tag
+  `support-recovery-ready-evidence-2026-07-12` pointed at `HEAD`; the two unpushed evidence commits were
+  `68b8e02 docs: record operator decision resolution status` and
+  `bbb5147 docs: record support recovery readiness status`.
+- Public GET-only endpoint probe: the sandboxed first attempt failed before receiving `/api/health` because network
+  access was unavailable. The same approved GET-only command then passed:
+  `python3 scripts/check_public_endpoints.py --base-url https://bitcoinriskbrief.minihub.app --max-data-age-days 2
+  --require-cache-header Cache-Control --require-cache-header ETag --require-cache-header X-Cache-Version
+  --require-cache-header X-Cache`. Sanitized result:
+  `OK public endpoints healthy latest_date=2026-07-11 risk=0.2190 freshness=max_data_age_days:2
+  cache_headers=Cache-Control,ETag,X-Cache-Version,X-Cache`.
+- Local frontend verification: `npm test --prefix frontend` passed 2 test files and 27 tests;
+  `npm run build --prefix frontend` passed with `dist/index.html` at 1.36 kB gzip 0.46 kB, `index` JS at
+  218.57 kB gzip 69.43 kB, and lazy `Chart` JS at 557.61 kB gzip 188.87 kB; `npm run smoke --prefix frontend` was
+  confirmed safe/non-mutating because it uses a local preview server and mocked API routes, including the waitlist route.
+  The sandboxed smoke attempt was blocked by `listen EPERM` on `127.0.0.1:4173`; the approved local rerun passed 25
+  Playwright checks.
+- Remaining true manual/external blockers after this sweep: external `/api/health` and `/api/readiness` monitors/alerts
+  plus alert delivery test; fresh manual backup plus off-server copy; manual keyboard, screen-reader/assistive-tech, and
+  physical/native browser checks unless explicitly accepted later; sanitized production import/data-refresh proof if not
+  derivable from public checks; final launch snapshot packet after manual blockers are complete; and the operator-watched
+  first traffic run.
+- First traffic decision: not allowed now. Keep `first_traffic_status` at `not_run` until the manual/external blockers
+  above are completed or explicitly accepted, the final launch snapshot exists, and the operator separately approves the
+  first traffic run.
+
 Production/operator evidence still pending before public launch:
 
 - Final pre-traffic public readiness/freshness recheck. The 2026-07-11 backup-gated update evidence below records
-  update-time public readiness/latest/cache evidence, and the 2026-07-12 monitoring/alert gap pass records a current
-  local public endpoint probe, but freshness remains time-sensitive.
+  update-time public readiness/latest/cache evidence, and the 2026-07-12 monitoring/alert gap pass plus the later
+  2026-07-12 AI-resolvable sweep record current local public GET-only endpoint probes, but freshness remains
+  time-sensitive.
 - Production import provenance packet for a real production refresh/import, including sanitized source category,
   retrieval/import timestamp, row count/range, readiness/latest-risk output, and checksum if available. The operator has
   confirmed that the refresh/import workflow is complete and operational for the small operator-watched pilot, but the

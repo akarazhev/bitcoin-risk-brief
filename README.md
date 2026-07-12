@@ -40,6 +40,14 @@ evidence recorded public readiness/latest checks passed. Latest recorded local p
 freshness policy `max_data_age_days:2`, and required cache headers present. This public probe does not prove external
 monitor/provider configuration or alert delivery.
 
+The 2026-07-12 AI-resolvable pre-traffic readiness sweep completed the remaining local/GET-only checks available from
+this workspace without mutating production. Frontend unit tests passed 27 tests, the frontend production build passed,
+the safe local mocked Playwright smoke passed 25 tests after local preview-server bind approval, and the approved public
+GET-only probe passed for `/api/health`, `/api/readiness`, and `/api/risk/latest` with `latest_date=2026-07-11`, latest
+risk `0.2190`, freshness policy `max_data_age_days:2`, and required cache headers present. The sweep did not deploy,
+refresh/import data, call waitlist POST, change Cloudflare/routing, configure external providers, run first traffic, or
+mutate production state.
+
 The 2026-07-12 Launch Matrix / Accessibility / Public-Host QA pass recorded public desktop/mobile Chromium homepage
 smoke, public-host axe automation, public metadata checks, visible privacy/disclaimer copy, and no waitlist POST. The
 gate remains partial: manual keyboard, screen-reader/assistive-tech, physical-device/native browser, full WCAG/legal
