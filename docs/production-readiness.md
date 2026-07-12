@@ -28,15 +28,28 @@ Local pre-deployment tooling and evidence that is complete in the repository:
 - Dependabot configuration, local dependency/license inventory evidence, local accessibility improvements/evidence,
   local waitlist live-region/keyboard evidence, and local public privacy/terms/disclaimer evidence.
 
+Sanitized support/contact and account recovery readiness evidence recorded on 2026-07-12:
+
+- Gate status: partial, not passed. The support/contact blocker and account recovery blocker are completed for
+  first-traffic readiness, but first traffic remains blocked by the remaining evidence gates below.
+- Scope/safety: documentation-only evidence update. No deploy, push, tag, refresh/import, waitlist POST,
+  Cloudflare/routing change, alert configuration, backup/off-server copy, first traffic, or production mutation was
+  performed. Exact support addresses, provider details, account IDs, usernames, recovery text, private URLs, tokens,
+  passwords, raw headers, and secrets remain outside Git.
+- Support/contact readiness: support email status is created and ready. The contact category is a dedicated support
+  mailbox with a project-domain alias; exact addresses are kept outside Git. The support path was checked by the
+  founder/operator. Deletion and unsubscribe handling is a manual request through the dedicated support contact path,
+  with the exact address kept outside Git. No paid support SLA is claimed.
+- Account recovery readiness: the account recovery record is created outside Git and current. GitHub owner role,
+  Cloudflare/domain owner role, server owner role, secrets/.env owner role, and backups owner role are all
+  founder/operator. Do not record account holders, account IDs, private recovery paths, secret locations, or recovery
+  text in Git.
+
 Production/operator evidence still pending before public launch:
 
 - Final pre-traffic public readiness/freshness recheck. The 2026-07-11 backup-gated update evidence below records
   update-time public readiness/latest/cache evidence, and the 2026-07-12 monitoring/alert gap pass records a current
   local public endpoint probe, but freshness remains time-sensitive.
-- Dedicated support email creation/confirmation for pilot support, deletion, and unsubscribe requests. The support path
-  category is recorded below, but mailbox readiness is still pending before first traffic.
-- Account recovery record outside Git for the required ownership categories. Owner roles are recorded below, but the
-  outside-Git recovery record is still pending before first traffic.
 - Production import provenance packet for a real production refresh/import, including sanitized source category,
   retrieval/import timestamp, row count/range, readiness/latest-risk output, and checksum if available. The operator has
   confirmed that the refresh/import workflow is complete and operational for the small operator-watched pilot, but the
@@ -65,14 +78,14 @@ Production/operator evidence still pending before public launch:
   final snapshot outside Git first; the template is not completed evidence and does not close this blocker by itself.
 
 External gates that cannot be closed from this local workspace include production host execution, Cloudflare or external
-monitor provider configuration, alert delivery tests, support mailbox creation, outside-Git account recovery records,
-production backup/off-server execution, restore target provisioning, legal/license approval, and first traffic.
+monitor provider configuration, alert delivery tests, production backup/off-server execution, restore target
+provisioning, legal/license approval, and first traffic.
 
 Recommended next production sequence before first traffic:
 
-1. Complete the remaining operator-owned setup from the 2026-07-12 decision pass: support mailbox, outside-Git account
-   recovery record, external health/readiness alerts with delivery test, fresh backup/off-server copy, manual/native
-   accessibility checks, sanitized import proof, final public readiness/latest-risk checks, and final launch snapshot.
+1. Complete the remaining operator-owned setup from the 2026-07-12 decision pass: external health/readiness alerts with
+   delivery test, fresh backup/off-server copy, manual/native accessibility checks, sanitized import proof, final public
+   readiness/latest-risk checks, and final launch snapshot.
 2. Deploy or update the selected production path and record project revision, health/readiness, public-host
    privacy/metadata/accessibility smoke, and selected Cloudflare edge posture.
 3. Run the production refresh/import path and create the production import provenance packet from the real source,
@@ -93,10 +106,11 @@ Recommended next production sequence before first traffic:
 Consolidated first-traffic blocker and acceptance register recorded on 2026-07-12:
 
 - Gate status: partial/blocked, not passed. First traffic is not allowed by the current evidence. This register
-  consolidates the current launch-gate blockers, newly recorded sanitized operator decisions, and accepted limitations
-  from repository-visible docs, existing dated evidence notes, and the 2026-07-12 operator decision resolution pass. It
-  does not create a launch snapshot packet, run first traffic, deploy, push, tag, refresh/import data, configure alerts,
-  or close any gate by inference.
+  consolidates the current launch-gate blockers, newly recorded sanitized operator decisions, the 2026-07-12
+  support/contact and account recovery readiness evidence, and accepted limitations from repository-visible docs,
+  existing dated evidence notes, and the 2026-07-12 operator decision resolution pass. It does not create a launch
+  snapshot packet, run first traffic, deploy, push, tag, refresh/import data, configure alerts, or close any gate by
+  inference.
 - Scope/safety: documentation-only register update. No deploy, refresh/import, production endpoint probe, waitlist POST,
   Cloudflare/routing change, monitor configuration, alert delivery test, backup/off-server copy, restore drill, first
   traffic, push, or tag was performed. At the start of this operator-decision pass, local `HEAD` and `origin/main` were
@@ -106,15 +120,15 @@ Consolidated first-traffic blocker and acceptance register recorded on 2026-07-1
   current Cloudflare Free-plan-compatible subset for a small operator-watched pilot only; recurring backup automation and
   backup freshness alerting deferred until after the initial pilot only if a fresh manual backup plus off-server copy
   passes before traffic; and CoinMarketCap/source-terms commercial or paid-plan decision deferred only for commercial
-  claims, paid beta, or broader distribution. Missing external health/readiness alerts, support mailbox readiness,
-  account recovery record, fresh backup/off-server copy, sanitized import proof, final readiness/latest-risk checks,
-  launch snapshot, and accessibility manual/native checks are not accepted limitations.
+  claims, paid beta, or broader distribution. Missing external health/readiness alerts, fresh backup/off-server copy,
+  sanitized import proof, final readiness/latest-risk checks, launch snapshot, and accessibility manual/native checks are
+  not accepted limitations.
 
 | Gate area | Consolidated status | Blocker or required acceptance before first traffic |
 | --- | --- | --- |
-| Waitlist governance | Partial/resolved for sanitized first-traffic decision; support path still affects deletion/unsubscribe handling. | Owner role is founder/operator; review cadence is several times per week during pilot; review method is a manual operator-run database query or script; pilot contacts are retained until beta ends and deleted earlier on operator-approved request; deletion/unsubscribe requests use the pilot support/contact path kept outside Git; follow-up is manual founder/operator follow-up only, with no automated newsletter. Dedicated support email creation remains pending before first traffic. |
-| Support/contact path | Partial/blocking. | Support/contact path category is a dedicated support email kept outside Git. Mailbox creation/confirmation remains pending before first traffic; deletion/unsubscribe requests will use that dedicated support email after creation. No paid support SLA is claimed. |
-| Account recovery ownership | Partial/blocking. | GitHub, Cloudflare/domain, server, secrets/.env, and backups owner role is founder/operator. The account recovery record outside Git remains pending before first traffic. Do not record account IDs, holders, recovery paths, or secret locations in Git. |
+| Waitlist governance | Resolved for sanitized first-traffic decision; support path is ready for manual requests. | Owner role is founder/operator; review cadence is several times per week during pilot; review method is a manual operator-run database query or script; pilot contacts are retained until beta ends and deleted earlier on operator-approved request; deletion/unsubscribe requests use the dedicated support contact path kept outside Git; follow-up is manual founder/operator follow-up only, with no automated newsletter. |
+| Support/contact path | Completed for first-traffic readiness. | Support email status is created and ready. The contact category is a dedicated support mailbox with a project-domain alias; exact addresses and provider details are kept outside Git. The support path was checked by the founder/operator. Deletion/unsubscribe requests use a manual request through the dedicated support contact path. No paid support SLA is claimed. |
+| Account recovery ownership | Completed for first-traffic readiness. | The account recovery record is created outside Git and current. GitHub, Cloudflare/domain, server, secrets/.env, and backups owner role is founder/operator. Do not record account IDs, holders, recovery paths, recovery text, private URLs, or secret locations in Git. |
 | Source terms and import governance owner | Partial with accepted pilot limitation. | Current product status is unpaid/non-commercial pilot. Source terms owner role is founder/operator. If interest or paid/commercial use appears, the operator intends to buy the appropriate plan or make the required terms/plan decision. Terms review or paid plan remains required before commercial claims, paid beta, or broader distribution. This is acceptable only for a small operator-watched pilot and is not legal approval or commercial readiness. |
 | Dependency/security ownership and status | Partial. | Dependency/security owner role is founder/operator with monthly review cadence during pilot. GitHub-hosted Dependabot execution/first PR evidence remains pending; dependency/license external confirmation remains pending before broader commercial launch. No vulnerability clearance, legal approval, or full license compliance is claimed. |
 | First-user feedback path | Partial/resolved for planned path; post-traffic evidence pending. | Feedback channels are waitlist notes and direct support-email replies with no raw contacts in Git. Reviewer role is founder/operator. Review cadence is after the first traffic window and several times per week during pilot. Evidence summaries must be aggregate/sanitized only, with no raw contacts or message text. |
@@ -172,12 +186,12 @@ Final launch snapshot readiness/gap pass recorded on 2026-07-12:
   passed with `latest_date=2026-07-11`, rounded latest risk `0.2190`, `risk_state=low` where captured by the
   launch-matrix pass, and required `Cache-Control`, `ETag`, `X-Cache-Version`, and `X-Cache` headers present. This is
   supporting current public evidence, not final pre-traffic evidence, because upstream launch gates remain incomplete.
-- Required evidence reference status: operator governance remains partial after the 2026-07-12 operator decision
-  resolution pass; external monitoring and alert delivery remain partial/blocked; recurring backup/off-server
-  copy/freshness automation is deferred only after a fresh manual backup/off-server copy passes before traffic;
-  production import provenance remains partial pending sanitized final proof; launch matrix/accessibility/public-host QA
-  remains partial; restore-drill deferral and the Cloudflare Free-plan subset are accepted only for the small
-  operator-watched pilot under the limitations recorded in the current blocker register.
+- Required evidence reference status: support/contact and account recovery readiness are completed by the later
+  2026-07-12 sanitized evidence note; external monitoring and alert delivery remain partial/blocked; recurring
+  backup/off-server copy/freshness automation is deferred only after a fresh manual backup/off-server copy passes before
+  traffic; production import provenance remains partial pending sanitized final proof;
+  launch matrix/accessibility/public-host QA remains partial; restore-drill deferral and the Cloudflare Free-plan subset
+  are accepted only for the small operator-watched pilot under the limitations recorded in the current blocker register.
 - Launch snapshot helper status: `scripts/launch_snapshot_packet.py` and
   [Launch Snapshot Evidence Packet Template](launch-snapshot-evidence-packet-template.md) were inspected. The helper
   exposes local-only `create` and `validate` modes, stores evidence basenames instead of full paths, rejects unsafe
@@ -185,12 +199,12 @@ Final launch snapshot readiness/gap pass recorded on 2026-07-12:
   `python3 scripts/launch_snapshot_packet.py --help` completed successfully, and
   `python3 -m unittest backend.tests.test_launch_snapshot_packet` passed 12 tests. This validates helper availability
   only; it does not create a final packet or close launch evidence gaps.
-- Blockers preventing a true final launch snapshot: support mailbox creation/confirmation; outside-Git account recovery
-  record; external monitor/provider evidence and alert-delivery proof; fresh manual backup plus off-server copy;
-  sanitized production import source/import proof; manual keyboard, screen-reader/assistive-tech, physical-device/native
-  browser, production-host accessibility, and full WCAG/legal accessibility evidence; remaining cache-miss/edge-hit
-  latency matrix if still required; final pre-traffic public readiness evidence; final first-traffic operator acceptance;
-  first traffic itself; and remote publication of the current local evidence commit if remote publication is required.
+- Blockers preventing a true final launch snapshot: external monitor/provider evidence and alert-delivery proof; fresh
+  manual backup plus off-server copy; sanitized production import source/import proof; manual keyboard,
+  screen-reader/assistive-tech, physical-device/native browser, production-host accessibility, and full WCAG/legal
+  accessibility evidence; remaining cache-miss/edge-hit latency matrix if still required; final pre-traffic public
+  readiness evidence; final first-traffic operator acceptance; first traffic itself; and remote publication of the current
+  local evidence commit if remote publication is required.
 - First traffic remains blocked. Do not treat the final launch snapshot gate as closed until a real sanitized packet is
   created from current evidence, all required blockers are completed, the only remaining limitations are the accepted
   limitations listed in the 2026-07-12 decision pass, and first traffic is separately approved and recorded.
@@ -483,9 +497,9 @@ Launch Matrix, accessibility, and public-host QA evidence pass recorded on 2026-
 - Launch Matrix / Accessibility / Public-Host QA gate status: partial, not passed. Current public endpoint freshness,
   public homepage desktop/mobile Chromium smoke, public metadata/privacy smoke, local browser-profile smoke, local axe,
   local mocked keyboard/focus, and public-host axe evidence are recorded. First traffic remains blocked because external
-  monitoring/alert delivery, fresh backup/off-server evidence, direct production import proof, support/account recovery
-  setup, manual/native accessibility and device checks, final launch snapshot, and first traffic itself remain incomplete.
-  The accessibility gap is not accepted as a limitation.
+  monitoring/alert delivery, fresh backup/off-server evidence, direct production import proof, manual/native
+  accessibility and device checks, final launch snapshot, and first traffic itself remain incomplete. The accessibility
+  gap is not accepted as a limitation.
 
 ## Operator Launch Decision Register
 
@@ -499,16 +513,17 @@ monitoring, send alerts, run backups, run first traffic, or mutate production st
 `HEAD` and `origin/main` were `08ff527`, the local tag at `HEAD` was
 `first-traffic-blocked-evidence-2026-07-12`, and the local branch was `main...origin/main`.
 
-Gate status: partial, not passed. Operator decisions are substantially recorded, but they are not fully resolved because
-support mailbox readiness, the outside-Git account recovery record, external health/readiness alerts and delivery test,
-fresh backup/off-server copy, manual/native accessibility checks, sanitized import proof, final readiness/latest-risk
-checks, final launch snapshot, and first traffic remain pending. First traffic remains blocked and `not_run`.
+Gate status: partial, not passed. Operator decisions are substantially recorded, and the support/contact and account
+recovery blockers are now completed by the later 2026-07-12 sanitized readiness evidence. External health/readiness
+alerts and delivery test, fresh backup/off-server copy, manual/native accessibility checks, sanitized import proof, final
+readiness/latest-risk checks, final launch snapshot, and first traffic remain pending. First traffic remains blocked and
+`not_run`.
 
 | Decision area | Sanitized status | Recorded decision and remaining action |
 | --- | --- | --- |
-| Waitlist handling | Partial/resolved for sanitized governance; support path still pending. | Owner role is founder/operator. Review cadence is several times per week during pilot. Review method is a manual operator-run database query or script. Pilot contacts are retained until beta ends and deleted earlier on operator-approved request. Deletion/unsubscribe requests use the pilot support/contact path kept outside Git. Follow-up is manual founder/operator follow-up only; no automated newsletter is planned. Do not commit raw contacts, raw output, private paths, or query details. |
-| Support/contact | Partial/blocker. | Support/contact path category is a dedicated support email kept outside Git. Mailbox creation/confirmation is pending before first traffic. Deletion/unsubscribe requests will use that dedicated support email after mailbox creation. No paid support SLA or public address value is recorded here. |
-| Account and credential ownership/recovery | Partial/blocker. | GitHub owner role, Cloudflare/domain owner role, server owner role, secrets/.env owner role, and backups owner role are founder/operator. The account recovery record outside Git is pending before first traffic. |
+| Waitlist handling | Resolved for sanitized governance; support path ready. | Owner role is founder/operator. Review cadence is several times per week during pilot. Review method is a manual operator-run database query or script. Pilot contacts are retained until beta ends and deleted earlier on operator-approved request. Deletion/unsubscribe requests use the dedicated support contact path kept outside Git. Follow-up is manual founder/operator follow-up only; no automated newsletter is planned. Do not commit raw contacts, raw output, private paths, or query details. |
+| Support/contact | Completed for first-traffic readiness. | Support email status is created and ready. The support/contact path category is a dedicated support mailbox with a project-domain alias; exact addresses and provider details are kept outside Git. The support path was checked by the founder/operator. Deletion/unsubscribe requests use manual requests through the dedicated support contact path. No paid support SLA or public address value is recorded here. |
+| Account and credential ownership/recovery | Completed for first-traffic readiness. | GitHub owner role, Cloudflare/domain owner role, server owner role, secrets/.env owner role, and backups owner role are founder/operator. The account recovery record is created outside Git and current. |
 | CoinMarketCap/source terms | Accepted pilot limitation; commercial/broader launch blocked pending terms/plan decision. | Current product status is unpaid/non-commercial pilot. If demonstrated interest or paid/commercial use appears, the operator will buy the appropriate plan or make the required terms/plan decision. Source terms owner role is founder/operator. Terms review or paid plan is required before commercial claims, paid beta, or broader distribution. This is acceptable only for a small operator-watched pilot; do not claim legal approval or commercial readiness. |
 | Dependency/security | Partial. | Dependency/security owner role is founder/operator. Security review cadence is monthly during pilot. Dependency/license external confirmation remains pending before broader commercial launch. GitHub-hosted Dependabot execution and first PR evidence remain pending until observed. |
 | Cloudflare Free-plan posture | Accepted limitation for small operator-watched pilot only. | The current Free-plan-compatible subset is accepted for a small operator-watched pilot. Managed WAF and additional rate-limit controls are deferred until broader traffic or observed abuse risk. Do not claim broader Cloudflare security readiness. |
@@ -530,8 +545,6 @@ Accepted limitations after this pass:
 
 Actions still pending before first traffic:
 
-- Create/confirm the dedicated support email.
-- Create the account recovery record outside Git.
 - Configure simple external `/api/health` and `/api/readiness` alerts and run an alert delivery test to the dedicated
   pilot channel.
 - Perform a fresh manual backup plus off-server copy.
@@ -556,9 +569,9 @@ decision by itself.
 
 | Decision area | Sanitized status | Exact remaining operator decision |
 | --- | --- | --- |
-| Waitlist handling: owner, review cadence, retention, deletion/unsubscribe, and post-waitlist follow-up | Pending operator decision. The public note describes current server-side storage and operational log behavior. `docs/waitlist.md` records that the waitlist stores leads only and does not send email, Telegram messages, or daily alerts. No owner role, review cadence, retention period or deferral, deletion path, unsubscribe path, manual outreach path, or post-waitlist follow-up path is recorded. | Choose the owner role only, choose the review cadence, choose a retention period or explicitly defer retention until the public pilot ends, record deletion/unsubscribe handling status, and record the post-waitlist follow-up path without private contact details or raw waitlist contacts. |
-| Support/contact identity | Partial. The public note states no paid support SLA; no public or pilot contact path is recorded and no first-traffic contact-readiness decision is recorded. | Choose a public contact path or intentionally defer it for the operator-watched pilot. Record whether that path is ready for first traffic. Keep actual private addresses, handles, names, recipient lists, routing details, inbox URLs, account IDs, credential values, and support messages out of Git unless the operator intentionally publishes a public contact value. |
-| Credential/account ownership and recovery | Pending operator decision/evidence. The required categories are documented: Cloudflare account/tunnel/zone/API credential access, server login or physical access, GitHub repository access, production environment values, backup storage, optional data-source credentials, and domain registration if used. No sanitized statement says an outside-Git owner/recovery record exists for Cloudflare, server access, GitHub, or the other categories. | Confirm that an owner/recovery record exists outside Git for the required account categories, or leave each category pending. Do not record holders, personal contacts, account IDs, dashboard URLs, recovery paths, credential locations, credential values, or account details. |
+| Waitlist handling: owner, review cadence, retention, deletion/unsubscribe, and post-waitlist follow-up | Superseded/resolved by later 2026-07-12 evidence. The public note describes current server-side storage and operational log behavior. Later sanitized evidence records the founder/operator owner role, review cadence, retention policy, manual deletion/unsubscribe path through the dedicated support contact path, and manual founder/operator follow-up only. | Keep private contact details and raw waitlist contacts out of Git. |
+| Support/contact identity | Superseded/completed by later 2026-07-12 evidence. The public note states no paid support SLA, and the later sanitized readiness evidence records a dedicated support mailbox with project-domain alias as created and ready. | Keep actual private addresses, handles, names, recipient lists, routing details, inbox URLs, account IDs, credential values, and support messages out of Git unless the operator intentionally publishes a public contact value. |
+| Credential/account ownership and recovery | Superseded/completed by later 2026-07-12 evidence. Required ownership categories are documented, owner roles are founder/operator, and the later sanitized readiness evidence records the outside-Git account recovery record as created and current. | Keep holders, personal contacts, account IDs, dashboard URLs, recovery paths, credential locations, credential values, and account details out of Git. |
 | Data-source terms and import governance | Pending operator decision/evidence. No completed CoinMarketCap public-download/manual CSV terms review, optional CoinMarketCap API usage review, attribution outcome, or accepted limitation is recorded. Production import provenance remains separate and still requires a real source/archive packet after production imports. No owner role for future source review is recorded. | Record a sanitized status for CoinMarketCap public CSV and optional API usage as passed, accepted limitation, or pending; record any attribution or usage limitation; choose the owner role for future source review; and keep private source terms, account details, raw CSV rows, and private archive paths out of Git. |
 | Dependency, security, and license posture | Partial local evidence. `.github/dependabot.yml` is configured locally for conservative monthly version-update checks across frontend npm, backend and collector pip requirements, GitHub Actions, Dockerfiles, and a root `docker-compose` ecosystem entry. The dependency/license review records local npm lockfile license metadata and known gaps. GitHub-hosted Dependabot execution, first PR evidence, vulnerability/advisory clearance, external/manual license confirmation, container/OS package license review, project license choice, and legal approval remain pending. A monthly manual review cadence is documented, but the owner role for security updates is not recorded. | Choose the owner role for dependency/security updates, keep or revise the monthly cadence, record GitHub-hosted Dependabot execution and first PR evidence when available, complete or explicitly defer vulnerability/advisory, credential-scan, license, container image, OS package, CI action, and legal compatibility review, and record only date/scope/outcome/follow-up. |
 | Cloudflare Free-plan first-traffic decision | Pending first-traffic decision. Historical public snapshots used the documented Free-plan-compatible subset, but no operator decision accepts that subset for first traffic or requires an upgrade. Managed WAF execution, broader `/api/*` burst limiting, multiple rate-limit rules, and longer rate-limit windows are not proven active in the current subset. | Accept the current Free-plan subset for one operator-watched first traffic window, or require an upgrade/equivalent controls before first traffic. Record the accepted limitation or blocker without Cloudflare account IDs, zone IDs, tunnel IDs, rule IDs, dashboard URLs, credential values, private event logs, or routing details. |
@@ -801,8 +814,8 @@ Monitoring and alerts evidence pass recorded on 2026-07-10 at 06:13 UTC for
   evidence window, stores evidence basenames instead of full paths, keeps missing categories as pending gates, and keeps
   `first_traffic_status` at `not_run` unless explicit first-traffic evidence fields are deliberately supplied. This is
   local tooling only; the actual final launch snapshot packet, final pre-traffic public readiness evidence,
-  monitor/alert delivery proof, sanitized import proof, fresh backup/off-server evidence, support mailbox, account
-  recovery record, manual/native accessibility checks, and first traffic remain pending.
+  monitor/alert delivery proof, sanitized import proof, fresh backup/off-server evidence, manual/native accessibility
+  checks, and first traffic remain pending.
 
 Bundled canonical CSV repository evidence recorded on 2026-07-11:
 
@@ -846,10 +859,10 @@ Launch governance gap pass recorded on 2026-07-10:
 | --- | --- | --- | --- |
 | Public freshness and latest-risk launch evidence | passed with current update evidence | The 2026-07-11 backup-gated update evidence records public readiness/latest checks passed with `latest_date=2026-07-10`, `row_count=5842`, `data_fresh=True`, `risk=0.26161621315507155`, `risk_state=low`, and required cache headers present. | Recheck public `/api/readiness` immediately before any first traffic window because freshness is time-sensitive. |
 | Browser-like waitlist smoke | passed with existing repo evidence | The 2026-07-08 browser-like smoke records HTTP 201, `Cache-Control: no-store`, `Pragma: no-cache`, expected JSON shape, and aggregate-only storage verification. | Keep raw contacts out of repo notes; rerun only with an operator-approved test contact when a new launch snapshot needs fresh evidence. |
-| Privacy, terms, and disclaimer posture | public-host smoke verified; sanitized operator decisions partial | The 2026-07-11 desktop/mobile browser smoke observed the privacy/disclaimer note on the public page and no waitlist POSTs. The source still contains the compact public privacy/terms/disclaimer note near the waitlist with no-advice, no sensitive-info, waitlist storage, operational-log, no recommendation, no paid-SLA, and current no product analytics/tracking-cookie source-code statements. The 2026-07-12 operator decision pass records waitlist handling and support-path category, but support mailbox readiness, legal approval, full privacy policy, and terms-of-service decisions remain incomplete. | Keep the public note current after future deployments. Keep private contacts, raw waitlist data, and support address values out of Git. |
-| Waitlist contact handling owner, review cadence, retention, deletion, and unsubscribe path | partial/resolved for sanitized governance; support mailbox still pending | Owner role is founder/operator. Review cadence is several times per week during pilot. Retention lasts until beta ends, with earlier operator-approved deletion on request. Follow-up is manual founder/operator only; no automated newsletter is planned. | Create/confirm the dedicated support email used for deletion/unsubscribe requests. Do not commit private contact details, raw contacts, raw output, or query details. |
-| Support/contact identity for questions, deletion, unsubscribe, API, and license interest | partial/blocking | Support/contact path category is a dedicated support email kept outside Git. No paid support SLA is implied. | Create/confirm the mailbox before first traffic; keep the actual address, routing, inbox URLs, account IDs, and support messages out of Git unless intentionally published. |
-| Credential/account ownership and recovery record | partial/blocking | Required ownership categories are documented, and the 2026-07-12 pass records founder/operator as the owner role for GitHub, Cloudflare/domain, server, secrets/.env, and backups. Actual owners/recovery paths are intentionally absent from the repository. | Create the outside-Git recovery record before first traffic; record only sanitized completion status in Git if needed. |
+| Privacy, terms, and disclaimer posture | public-host smoke verified; sanitized operator decisions partial | The 2026-07-11 desktop/mobile browser smoke observed the privacy/disclaimer note on the public page and no waitlist POSTs. The source still contains the compact public privacy/terms/disclaimer note near the waitlist with no-advice, no sensitive-info, waitlist storage, operational-log, no recommendation, no paid-SLA, and current no product analytics/tracking-cookie source-code statements. The 2026-07-12 operator decision pass records waitlist handling and support-path category, and the later 2026-07-12 support readiness evidence records mailbox readiness. Legal approval, full privacy policy, and terms-of-service decisions remain incomplete. | Keep the public note current after future deployments. Keep private contacts, raw waitlist data, and support address values out of Git. |
+| Waitlist contact handling owner, review cadence, retention, deletion, and unsubscribe path | resolved for sanitized governance; support path ready | Owner role is founder/operator. Review cadence is several times per week during pilot. Retention lasts until beta ends, with earlier operator-approved deletion on request. Follow-up is manual founder/operator only; no automated newsletter is planned. Deletion/unsubscribe requests use manual requests through the dedicated support contact path kept outside Git. | Do not commit private contact details, raw contacts, raw output, or query details. |
+| Support/contact identity for questions, deletion, unsubscribe, API, and license interest | completed for first-traffic readiness | Support email status is created and ready. Support/contact path category is a dedicated support mailbox with a project-domain alias, exact addresses and provider details kept outside Git. No paid support SLA is implied. | Keep the actual address, routing, inbox URLs, account IDs, and support messages out of Git unless intentionally published. |
+| Credential/account ownership and recovery record | completed for first-traffic readiness | Required ownership categories are documented, the 2026-07-12 pass records founder/operator as the owner role for GitHub, Cloudflare/domain, server, secrets/.env, and backups, and the account recovery record is created outside Git and current. Actual owners/recovery paths are intentionally absent from the repository. | Keep private recovery details outside Git; record only sanitized completion status in Git if needed. |
 | Data-source terms and attribution review | accepted limitation for unpaid pilot; commercial/broader launch pending | The 2026-07-12 pass records unpaid/non-commercial pilot status and founder/operator as source terms owner. | Terms review or paid plan remains required before commercial claims, paid beta, or broader distribution. Do not claim legal approval or commercial readiness. |
 | Dependency/security maintenance cadence | partial; owner/cadence recorded and GitHub execution pending | [Security and Privacy](security-and-privacy.md), [Operations](operations.md), and `.github/dependabot.yml` record a conservative monthly Dependabot version-update configuration for frontend npm, backend and collector pip requirements, GitHub Actions, Dockerfiles, and a root `docker-compose` ecosystem entry for Compose-style image references. The 2026-07-12 pass records founder/operator ownership and monthly security review cadence during pilot. | Observe the first GitHub-hosted Dependabot run or PRs and continue manual checks for advisories, vulnerability scans, secret-scan output, Python transitive inventory, container image/OS package licenses, CI action/license posture, project license choice, and legal compatibility. |
 | Accessibility pass evidence | partial/blocking; accessibility gap not accepted | Browser-capable public-hostname QA, source inspection, the 2026-07-10 focused local axe pass, local chart data alternative implementation, and local waitlist live-region/keyboard smoke are recorded. `@axe-core/playwright` is in the Playwright smoke suite, the chart panels expose a screen-reader-only current summary plus recent history/threshold tables, waitlist submit feedback exposes status/alert semantics, and `npm run smoke --prefix frontend` passed 25 checks outside the sandbox across Chromium, Firefox, WebKit, Pixel 5, and iPhone 13 profiles with no axe violations reported. | Run and record manual keyboard, screen-reader/assistive-tech, physical-device/native browser, and production-host accessibility evidence before first traffic. Do not claim full WCAG/legal accessibility compliance. |
@@ -862,7 +875,7 @@ Launch governance gap pass recorded on 2026-07-10:
 | External monitoring and alert delivery | partial; first traffic blocked | The 2026-07-12 monitoring/alert evidence gap pass recorded an approved local public GET-only probe for health, readiness, and latest-risk, but found no external monitor-provider dashboard/API proof, alert rules, Cloudflare connector notification evidence, recurring backup freshness alert proof, collector-failure alert proof, or delivery-test evidence. | Configure or show provider/dashboard evidence and alert delivery proof for the required `/api/health` and `/api/readiness` alerts before first traffic. Missing broader monitors are not accepted unless explicitly decided later. |
 | Import provenance source archive and direct production metadata | partial supporting evidence; direct production evidence pending | The 2026-07-09 pass publicly verified data/cache consistency, and the 2026-07-12 import provenance gap pass verified local helper availability plus existing public/local supporting evidence. Neither pass proved the exact source path/category, source archive, direct production validation/import table metadata, or collector command evidence. | Capture sanitized production import proof outside the repository before or during the final launch snapshot with source category, retrieval/import timestamp, row counts/range, validation/readiness output, latest-risk output, and checksum if available. No accepted limitation is intended for the refresh workflow. |
 | Restore drill | accepted limitation for operator-watched first traffic | Checksum-verified off-server USB backup copy evidence is recorded for 2026-07-07 and copied/off-server freshness/checksum checker evidence is recorded for timestamp `20260711T190355Z`, but the current setup has only the live production server and no staging or empty restore target. | Defer the drill until a separate target exists; do not run restore testing against live production. Record target type and readiness result after the drill. |
-| First traffic test | blocked | No first traffic window has run. Freshness, public metadata/privacy smoke, and waitlist smoke evidence exist, but monitoring/alerts, sanitized import proof, fresh backup/off-server evidence, manual/native accessibility checks, support/account recovery setup, and final snapshot evidence remain incomplete. | Run only after freshness is rechecked, all required blockers are completed, the final launch snapshot exists, and the only remaining limitations are the accepted limitations listed in the 2026-07-12 operator decision pass. |
+| First traffic test | blocked | No first traffic window has run. Freshness, public metadata/privacy smoke, waitlist smoke evidence, support/contact readiness, and account recovery readiness exist, but monitoring/alerts, sanitized import proof, fresh backup/off-server evidence, manual/native accessibility checks, and final snapshot evidence remain incomplete. | Run only after freshness is rechecked, all required blockers are completed, the final launch snapshot exists, and the only remaining limitations are the accepted limitations listed in the 2026-07-12 operator decision pass. |
 
 Browser/device/accessibility/metadata gap pass recorded on 2026-07-10:
 
@@ -1307,9 +1320,9 @@ Launch governance and release evidence status recorded on 2026-07-05:
   repeat-use signals, direct questions, methodology confusion, and requests for alerts, daily briefs, API access,
   agents, embeddings, widgets, or commercial reuse into this document or [Production Roadmap](production-roadmap.md).
   Do not copy raw waitlist contacts into feedback notes.
-- Support/contact identity status: superseded by the 2026-07-12 operator decision pass. A dedicated support email path
-  category is recorded, mailbox creation/confirmation remains pending before first traffic, and no public support portal,
-  paid SLA, or guaranteed response time is implied for the first pilot.
+- Support/contact identity status: superseded by the 2026-07-12 support/contact readiness evidence. A dedicated support
+  mailbox with a project-domain alias is created and ready, exact addresses are kept outside Git, and no public support
+  portal, paid SLA, or guaranteed response time is implied for the first pilot.
 - Dependency-license review status: superseded by the 2026-07-10 local evidence pass above. Local npm lockfile license
   metadata, Python manifest gaps, container references, and CI references are now recorded in
   [Dependency and License Review](dependency-license-review.md). External/manual confirmation and project license choice
@@ -1675,9 +1688,9 @@ Still required before treating the pilot as publicly launched:
   including manual keyboard, screen-reader/assistive-tech, and physical-device/native browser checks. The accessibility
   gap is not accepted as a limitation before first traffic.
 - Complete the remaining launch operations and governance checklist: keep public-host privacy/terms/disclaimer and
-  SEO/social metadata verification current after future deployments; create/confirm the support mailbox; create the
-  outside-Git account recovery record; record resource monitoring, dependency/security, data-source terms, accessibility,
-  and incident response status according to the 2026-07-12 decision pass.
+  SEO/social metadata verification current after future deployments; keep the sanitized support/contact and account
+  recovery evidence current without recording private details; record resource monitoring, dependency/security,
+  data-source terms, accessibility, and incident response status according to the 2026-07-12 decision pass.
 - Complete the remaining release feedback and operational evidence checklist: release notes or decision log, first-user
   feedback path after traffic, dependency-license review external/manual confirmation before broader commercial launch,
   final launch evidence, and restore-drill evidence after a safe target exists.

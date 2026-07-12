@@ -52,15 +52,16 @@ It summarizes the implemented waitlist behavior: the app stores the submitted co
 type, locale, source, status, and timestamps. It also states that operational logs may include request method, path,
 status, client key, Cloudflare ray ID, cache status, and timing.
 
-The public note does not publish a support address or promise a response time. The 2026-07-12 operator decision pass
-records sanitized waitlist owner, cadence, retention, deletion/unsubscribe category, and manual follow-up decisions, but
-support mailbox creation/confirmation remains pending before first traffic. The 2026-07-11 desktop/mobile public smoke
-observed the note on the public host without any waitlist POSTs.
+The public note does not publish a support address or promise a response time. The 2026-07-12 operator decision pass and
+later 2026-07-12 support readiness evidence record sanitized waitlist owner, cadence, retention,
+deletion/unsubscribe category, manual follow-up decisions, and support mailbox readiness. Exact support addresses and
+provider details stay outside Git. The 2026-07-11 desktop/mobile public smoke observed the note on the public host
+without any waitlist POSTs.
 
 The product currently has no authentication and no user accounts. Waitlist contacts are operational lead data and should be handled as PII.
 
-Before active traffic, create/confirm the dedicated support email for deletion and unsubscribe requests. If the project
-adds email or Telegram delivery later, update this section before sending recurring messages.
+The dedicated support contact path for deletion and unsubscribe requests is created and ready, with exact addresses kept
+outside Git. If the project adds email or Telegram delivery later, update this section before sending recurring messages.
 
 Before recurring email or Telegram delivery, also complete the deferred email/outreach readiness gate: opt-in source,
 sender or bot ownership, unsubscribe or stop handling, provider recovery, no-advice framing, and delivery privacy copy.
@@ -78,20 +79,20 @@ evidence.
 
 | Area | Status classification | Notes |
 | --- | --- | --- |
-| Privacy, terms, and disclaimer posture | public-host smoke verified; sanitized operator decisions partial | The frontend includes a compact public privacy/terms/disclaimer note near the waitlist with no-advice, no sensitive-info, waitlist storage, operational-log, no recommendation, no paid-SLA, and current no product analytics/tracking-cookie source-code statements. The 2026-07-11 desktop/mobile public smoke observed the privacy/disclaimer note and no waitlist POSTs. The 2026-07-12 operator decision pass records waitlist handling and support-path category, but support mailbox readiness, legal approval, full privacy policy, and terms-of-service decisions remain incomplete. |
-| Waitlist owner, cadence, retention, deletion, and unsubscribe path | partial; sanitized decisions recorded | Waitlist contacts remain server-side operational lead data in PostgreSQL. Owner role is founder/operator, review cadence is several times per week during pilot, retention lasts until beta ends with earlier operator-approved deletion on request, and follow-up is manual founder/operator only. Deletion/unsubscribe requests use the dedicated support email path kept outside Git after mailbox creation. Do not commit personal contact details, raw contacts, raw output, or query details. |
-| Support/contact identity | partial/blocker; contact path category recorded | The support/contact path category is a dedicated support email kept outside Git. Mailbox creation/confirmation remains pending before first traffic. No public support SLA, help center, or paid-user support process is implied. |
-| Credential and account ownership | partial; outside-Git recovery record pending | GitHub, Cloudflare/domain, server, secrets/.env, and backups owner role is founder/operator. Actual account holders, recovery channels, secret locations, account IDs, and private recovery paths must stay in an operator-controlled record outside this repository. The outside-Git recovery record remains pending before first traffic. |
+| Privacy, terms, and disclaimer posture | public-host smoke verified; sanitized operator decisions partial | The frontend includes a compact public privacy/terms/disclaimer note near the waitlist with no-advice, no sensitive-info, waitlist storage, operational-log, no recommendation, no paid-SLA, and current no product analytics/tracking-cookie source-code statements. The 2026-07-11 desktop/mobile public smoke observed the privacy/disclaimer note and no waitlist POSTs. The 2026-07-12 operator decision pass records waitlist handling and support-path category, and the later 2026-07-12 support readiness evidence records support mailbox readiness; legal approval, full privacy policy, and terms-of-service decisions remain incomplete. |
+| Waitlist owner, cadence, retention, deletion, and unsubscribe path | resolved for sanitized pilot governance | Waitlist contacts remain server-side operational lead data in PostgreSQL. Owner role is founder/operator, review cadence is several times per week during pilot, retention lasts until beta ends with earlier operator-approved deletion on request, and follow-up is manual founder/operator only. Deletion/unsubscribe requests use manual requests through the dedicated support contact path kept outside Git. Do not commit personal contact details, raw contacts, raw output, or query details. |
+| Support/contact identity | completed for first-traffic readiness | The support/contact path category is a dedicated support mailbox with a project-domain alias; exact addresses and provider details are kept outside Git. The support path was checked by the founder/operator. No public support SLA, help center, or paid-user support process is implied. |
+| Credential and account ownership | completed for first-traffic readiness | GitHub, Cloudflare/domain, server, secrets/.env, and backups owner role is founder/operator. The account recovery record is created outside Git and current. Actual account holders, recovery channels, secret locations, account IDs, and private recovery paths must stay in an operator-controlled record outside this repository. |
 | Data-source terms and attribution review | accepted limitation for unpaid pilot; commercial/broader launch pending | Current product status is unpaid/non-commercial pilot. Source terms owner role is founder/operator. If demonstrated interest or paid/commercial use appears, the operator will buy the appropriate plan or make the required terms/plan decision. Terms review or paid plan remains required before commercial claims, paid beta, or broader distribution; this is not legal approval or commercial readiness. |
 | Dependency and security maintenance cadence | partial; owner/cadence recorded, external evidence pending | `.github/dependabot.yml` is now present with conservative monthly version-update checks for frontend npm, backend and collector pip requirements, GitHub Actions, Dockerfiles, and a root `docker-compose` ecosystem entry for Compose-style image references. Dependency/security owner role is founder/operator, with monthly review cadence during pilot. GitHub-hosted Dependabot execution, first PR evidence, external dependency/license confirmation, vulnerability/advisory clearance, and legal compatibility remain pending. [Dependency and License Review](dependency-license-review.md) records the 2026-07-10 local inventory and the local automation configuration limits. |
 | Accessibility and metadata evidence | partial/blocker; accessibility gap not accepted | Browser-capable public-hostname QA and the 2026-07-10 local Playwright profile smoke are recorded with limitations. `@axe-core/playwright` is integrated into the smoke suite, and the focused local axe scan passed across Chromium, Firefox, WebKit, Pixel 5, and iPhone 13 profiles with no reported violations. Manual keyboard, screen-reader/assistive-tech, native/physical-device, production-host accessibility, and full compliance evidence remain pending and are required before first traffic. Public metadata verification on 2026-07-11 found title, description, canonical URL, Open Graph type/title/description/url/site name, and Twitter card/title/description, with image metadata intentionally omitted because no real repo-served production image asset exists. |
 
-Pre-traffic gate boundary after the 2026-07-12 operator decision pass: public-host privacy/disclaimer smoke and metadata
-verification are recorded, and sanitized waitlist/support/account/source/dependency decisions are partial. They do not
-prove legal approval, commercial readiness, full license compliance, full accessibility/WCAG conformance,
-production-host accessibility, external/manual dependency-license confirmation, support mailbox readiness, or the
-outside-Git account recovery record. Record only sanitized operator decisions and keep private contacts, account
-details, tokens, `.env` values, raw logs, dashboard URLs, and raw waitlist contacts out of repository notes.
+Pre-traffic gate boundary after the 2026-07-12 operator decision pass and later support/recovery readiness evidence:
+public-host privacy/disclaimer smoke and metadata verification are recorded, and sanitized waitlist/support/account
+decisions are completed for first-traffic readiness. They do not prove legal approval, commercial readiness, full license
+compliance, full accessibility/WCAG conformance, production-host accessibility, or external/manual dependency-license
+confirmation. Record only sanitized operator decisions and keep private contacts, account details, tokens, `.env` values,
+raw logs, dashboard URLs, and raw waitlist contacts out of repository notes.
 
 ## Product Analytics Privacy
 

@@ -81,6 +81,6 @@ The waitlist stores leads only. It does not send emails, Telegram messages, or d
 
 The 2026-07-12 operator decision pass records the waitlist owner role as founder/operator, review cadence as several
 times per week during pilot, retention through beta end with earlier operator-approved deletion on request, and manual
-founder/operator follow-up only. Deletion and unsubscribe requests use the dedicated support email path kept outside Git
-after that mailbox is created/confirmed. Do not commit raw contacts, raw review output, private contact values, or query
-details.
+founder/operator follow-up only. Deletion and unsubscribe requests use manual requests through the dedicated support
+contact path kept outside Git; the support mailbox with project-domain alias is created and ready, and exact addresses
+stay outside Git. Do not commit raw contacts, raw review output, private contact values, or query details.

@@ -58,6 +58,12 @@ shape, and aggregate-only server-side storage verification. The 2026-07-09 impor
 passed: public data/readiness/cache consistency aligned, but direct production source/archive proof and validation/import
 metadata remain pending.
 
+The 2026-07-12 sanitized support/contact and account recovery readiness evidence records the support email as created
+and ready, the support contact category as a dedicated support mailbox with project-domain alias, deletion/unsubscribe
+handling as manual requests through that dedicated support path, and the account recovery record as created outside Git
+and current. Exact support addresses, provider details, account IDs, recovery text, private URLs, and secrets remain
+outside Git.
+
 The project is still not publicly launched. Launch remains blocked by external/operational evidence gates, and public
 readiness must be rechecked before any first traffic window because freshness is time-sensitive. Production host access
 is unavailable from this workspace; future production updates still require operator deployment or update verification on
@@ -85,8 +91,7 @@ Still external/operator before treating the pilot as publicly launched:
 - Use `scripts/launch_snapshot_packet.py` during the final pre-traffic window to create or validate a sanitized local
   launch snapshot packet from already collected evidence. The helper is implemented/tested, but the actual launch
   snapshot packet, final pre-traffic public readiness evidence, monitor/alert delivery proof, production import provenance,
-  fresh backup/off-server evidence, support mailbox, account recovery record, manual/native accessibility evidence, and
-  first traffic remain pending.
+  fresh backup/off-server evidence, manual/native accessibility evidence, and first traffic remain pending.
 - Keep public-host privacy/terms/disclaimer and SEO/social metadata verification current after future deployments, and
   complete launch governance, browser/device, accessibility, release-feedback, and operational evidence gates.
 - Keep the current Cloudflare Free-plan-compatible subset limited to a small operator-watched pilot; defer managed WAF
@@ -95,9 +100,9 @@ Still external/operator before treating the pilot as publicly launched:
 
 Recommended next production sequence before first traffic:
 
-1. Complete the remaining operator-owned setup from the 2026-07-12 decision pass: support mailbox, outside-Git account
-   recovery record, external health/readiness alerts with delivery test, fresh backup/off-server copy, manual/native
-   accessibility checks, sanitized import proof, final public readiness/latest-risk checks, and final launch snapshot.
+1. Complete the remaining operator-owned setup from the 2026-07-12 decision pass: external health/readiness alerts with
+   delivery test, fresh backup/off-server copy, manual/native accessibility checks, sanitized import proof, final public
+   readiness/latest-risk checks, and final launch snapshot.
 2. Deploy or update the selected production path, then record project revision, service status, health/readiness, and
    public-host metadata/privacy/accessibility smoke evidence.
 3. Run the production refresh/import path and create the production import provenance packet from the real source,

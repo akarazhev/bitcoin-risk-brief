@@ -516,9 +516,9 @@ evidence: status, dates, commit IDs, timestamp basenames, check names, and pass/
 tokens, `.env` values, raw waitlist contacts, private account details, raw logs, dashboard URLs, private contacts, or
 private filesystem paths.
 
-1. Complete the remaining operator-owned setup from the 2026-07-12 decision pass: support mailbox, outside-Git account
-   recovery record, external health/readiness alerts with delivery test, fresh backup/off-server copy, manual/native
-   accessibility checks, sanitized import proof, final public readiness/latest-risk checks, and final launch snapshot.
+1. Complete the remaining operator-owned setup from the 2026-07-12 decision pass: external health/readiness alerts with
+   delivery test, fresh backup/off-server copy, manual/native accessibility checks, sanitized import proof, final public
+   readiness/latest-risk checks, and final launch snapshot.
 2. Deploy or update the selected production path. Record the project revision, selected deployment path, service status,
    local health/readiness, public readiness, and whether the current Cloudflare Free-plan edge subset is accepted or an
    upgraded edge posture is configured.
@@ -860,18 +860,18 @@ decision register in [Production Readiness](production-readiness.md):
   output, private paths, or query details in Git.
 - Waitlist retention: partial/resolved for pilot. Retain pilot contacts until beta ends; delete earlier on
   operator-approved request. Record only sanitized status in Git.
-- Deletion and unsubscribe path: partial/blocking. Use the dedicated support email path kept outside Git after mailbox
-  creation for deletion, unsubscribe, product questions, bug reports, and professional/API/license interest. Keep the
-  actual address or handle out of this repository unless the operator intentionally makes it public.
-- Support/contact identity: partial/blocking. The path category is a dedicated support email kept outside Git, and no
-  paid support SLA is recorded. Create/confirm the mailbox before first traffic; do not add an SLA unless the operator
-  explicitly creates one.
+- Deletion and unsubscribe path: completed for first-traffic readiness. Use manual requests through the dedicated support
+  contact path kept outside Git for deletion, unsubscribe, product questions, bug reports, and professional/API/license
+  interest. Keep the actual address or handle out of this repository unless the operator intentionally makes it public.
+- Support/contact identity: completed for first-traffic readiness. The path category is a dedicated support mailbox with
+  a project-domain alias, exact addresses and provider details are kept outside Git, and no paid support SLA is recorded.
+  Do not add an SLA unless the operator explicitly creates one.
 - Manual waitlist handling: review aggregate lead counts and source/locale values without copying contact values into
   general notes. Raw waitlist contacts should stay in the production database or another controlled operational system.
-- Credential/account ownership: partial, with outside-Git recovery record evidence still pending. Owner role for GitHub,
-  Cloudflare/domain, server, secrets/.env, and backups is founder/operator. Track recovery for the categories in the
-  resource checklist above, but do not store holders, emails, account IDs, secrets, account exports, personal account
-  details, secret locations, or private recovery paths in Git.
+- Credential/account ownership: completed for first-traffic readiness. Owner role for GitHub, Cloudflare/domain, server,
+  secrets/.env, and backups is founder/operator, and the account recovery record is created outside Git and current. Track
+  recovery for the categories in the resource checklist above, but do not store holders, emails, account IDs, secrets,
+  account exports, personal account details, secret locations, or private recovery paths in Git.
 - Dependency and security maintenance cadence: `.github/dependabot.yml` is configured locally for conservative monthly
   version-update checks across frontend npm, backend and collector pip requirements, GitHub Actions, Dockerfiles, and the
   root `docker-compose` ecosystem entry for Compose-style image references. GitHub-hosted Dependabot execution, first PR
