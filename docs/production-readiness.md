@@ -80,6 +80,51 @@ Recommended next production sequence before first traffic:
 8. Run the operator-watched first traffic test only after freshness and all launch gates are completed or explicitly
    accepted.
 
+Final launch snapshot readiness/gap pass recorded on 2026-07-12:
+
+- Gate status: blocked, not passed. No real sanitized final launch snapshot packet was provided or created from current
+  evidence, and no final first-traffic operator acceptance is recorded. The project remains not publicly launched.
+- Scope/safety: documentation/evidence pass only. This pass inspected current repository docs, the launch snapshot packet
+  template, `scripts/launch_snapshot_packet.py`, helper tests, local branch state, and the read-only remote `main` ref.
+  No deploy, refresh/import, cache warmup, waitlist POST, Cloudflare/routing change, production host command, external
+  monitor configuration, alert delivery test, backup/off-server copy, restore drill, first traffic, push, or tag was
+  performed. No new public GET endpoint checks were run during this pass.
+- Launch revision state before this documentation edit was committed: local HEAD was
+  `32d55da2f334d7e0766bc699cb2399494432c716` (`32d55da`). The only local tag pointing at that launch-candidate HEAD was
+  `launch-matrix-qa-partial-evidence-2026-07-12`. The local branch was `main...origin/main [ahead 5]`; `origin/main` and
+  read-only `git ls-remote origin refs/heads/main` both resolved to `fe20c6ed2bcbb71772c066f27f50fe2b7b3d5b9a`.
+  Therefore the five evidence commits listed by
+  `git log --oneline --decorate origin/main..HEAD` were not published to remote `main` at the time of this pass.
+- Supporting public-host evidence: no fresh public GET checks were run for this snapshot pass. Existing 2026-07-12
+  public GET-only evidence in this document supports current public behavior only: health/readiness/latest-risk checks
+  passed with `latest_date=2026-07-11`, rounded latest risk `0.2190`, `risk_state=low` where captured by the
+  launch-matrix pass, and required `Cache-Control`, `ETag`, `X-Cache-Version`, and `X-Cache` headers present. This is
+  supporting current public evidence, not final pre-traffic evidence, because upstream launch gates remain incomplete.
+- Required evidence reference status: operator governance remains partial; external monitoring and alert delivery remain
+  partial/blocked; recurring backup/off-server copy/freshness monitoring remains partial/blocked; production import
+  provenance remains partial pending direct source/archive and production metadata; launch matrix/accessibility/public-host
+  QA remains partial; restore-drill deferral remains the only accepted limitation; and the Cloudflare Free-plan
+  first-traffic decision remains pending operator acceptance or upgrade.
+- Launch snapshot helper status: `scripts/launch_snapshot_packet.py` and
+  [Launch Snapshot Evidence Packet Template](launch-snapshot-evidence-packet-template.md) were inspected. The helper
+  exposes local-only `create` and `validate` modes, stores evidence basenames instead of full paths, rejects unsafe
+  values, keeps missing categories pending, and defaults `first_traffic_status` to `not_run`. Local helper validation
+  `python3 scripts/launch_snapshot_packet.py --help` completed successfully, and
+  `python3 -m unittest backend.tests.test_launch_snapshot_packet` passed 12 tests. This validates helper availability
+  only; it does not create a final packet or close launch evidence gaps.
+- Blockers preventing a true final launch snapshot: remaining operator decisions for waitlist handling, support/contact,
+  account recovery, source terms, legal/license/dependency posture, launch limitations, and feedback ownership; external
+  monitor/provider evidence and alert-delivery proof; recurring backup/off-server scheduling, freshness monitoring, and
+  backup alert delivery; direct production import source/archive provenance and production validation/import metadata;
+  manual keyboard, screen-reader/assistive-tech, physical-device/native browser, production-host accessibility, full
+  WCAG/legal accessibility evidence, or explicit accepted limitations; remaining cache-miss/edge-hit latency matrix if
+  still required; Cloudflare Free-plan first-traffic acceptance or upgraded controls; final pre-traffic public readiness
+  evidence; final first-traffic operator acceptance; first traffic itself; and remote publication of the five local
+  evidence commits if remote publication is required.
+- First traffic remains blocked. Do not treat the final launch snapshot gate as closed until a real sanitized packet is
+  created from current evidence, all required gates are completed or explicitly accepted, and first traffic is separately
+  approved and recorded.
+
 Backup-gated USB production update evidence recorded on 2026-07-11:
 
 - Scope/safety: documentation-only evidence note for existing operator/public evidence. During this docs update, no code,
