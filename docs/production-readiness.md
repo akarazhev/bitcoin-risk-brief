@@ -95,6 +95,9 @@ Final launch snapshot readiness/gap pass recorded on 2026-07-12:
   read-only `git ls-remote origin refs/heads/main` both resolved to `fe20c6ed2bcbb71772c066f27f50fe2b7b3d5b9a`.
   Therefore the five evidence commits listed by
   `git log --oneline --decorate origin/main..HEAD` were not published to remote `main` at the time of this pass.
+  After this documentation edit was committed, current local `HEAD` is
+  `70020e30eb18edf26f8c2cd41b30384fa8bd606f` (`70020e3`), the local branch is
+  `main...origin/main [ahead 6]` while remote `main` remains `fe20c6e`, and no local tag points at `HEAD`.
 - Supporting public-host evidence: no fresh public GET checks were run for this snapshot pass. Existing 2026-07-12
   public GET-only evidence in this document supports current public behavior only: health/readiness/latest-risk checks
   passed with `latest_date=2026-07-11`, rounded latest risk `0.2190`, `risk_state=low` where captured by the
@@ -119,8 +122,8 @@ Final launch snapshot readiness/gap pass recorded on 2026-07-12:
   manual keyboard, screen-reader/assistive-tech, physical-device/native browser, production-host accessibility, full
   WCAG/legal accessibility evidence, or explicit accepted limitations; remaining cache-miss/edge-hit latency matrix if
   still required; Cloudflare Free-plan first-traffic acceptance or upgraded controls; final pre-traffic public readiness
-  evidence; final first-traffic operator acceptance; first traffic itself; and remote publication of the five local
-  evidence commits if remote publication is required.
+  evidence; final first-traffic operator acceptance; first traffic itself; and remote publication of the six current
+  local commits, including this documentation commit, if remote publication is required.
 - First traffic remains blocked. Do not treat the final launch snapshot gate as closed until a real sanitized packet is
   created from current evidence, all required gates are completed or explicitly accepted, and first traffic is separately
   approved and recorded.
