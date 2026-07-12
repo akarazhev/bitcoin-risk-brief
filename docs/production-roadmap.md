@@ -101,7 +101,7 @@ external monitor/alert setup, restore drill, final launch snapshot, or first tra
 | Phase 5: Performance, Caching, And Abuse Protection | Complete in repository; post-deploy Cloudflare HIT/fast repeat behavior verified for public smoke | `3c66df9`, `5bb179d`, `cache-warmup-local-complete-2026-07-05`, 2026-07-07 repeated public cache requests about `0.14s` to `0.22s` with Cloudflare `cf-cache-status: HIT`, `backend/app/public_cache.py`, `backend/app/main.py`, `scripts/cloudflare_edge_rules.py`, `backend/tests/test_cloudflare_edge_rules.py` |
 | Phase 6: Production Environment And Deployment | Verified for USB deploy/update and public freshness; closed as stale-data blocker | 2026-07-11 backup-gated USB update passed for commit `86cb2dad889baf24a7464a105bbe2224f75b14ef` with server-reported exit code 0; public readiness/latest checks passed with `latest_date=2026-07-10`, `row_count=5842`, `data_fresh=True`, and required cache headers present. |
 | Phase 7: Backups, Restore, And Monitoring | Partially verified; blocked by remaining operator action | One checksum-verified off-server USB backup copy is recorded for 2026-07-07, and the 2026-07-11 backup-gated USB update records copied/off-server freshness/checksum checker status valid and fresh for `20260711T190355Z` with expected PostgreSQL dump, BTC CSV, manifest, and checksum artifacts present. The local backup freshness/off-server copy checker and public endpoint probe are implemented and tested, and the latest public readiness/latest-risk checks were healthy and fresh. Restore drill remains deferred because the current setup has only the live production server and no separate restore target; recurring production backup scheduling/off-server-copy evidence, external monitor dashboard/alert delivery, backup freshness alert, collector failure alert, Cloudflare Tunnel health alert, direct production validation/import metadata, and exact import source path/category remain pending. |
-| Phase 8: Launch Checklist And First Traffic Test | Blocked by remaining operator evidence gates; freshness blocker closed, first traffic test not run | 2026-07-11 backup-gated update evidence records public readiness/latest fresh for `2026-07-10`, required cache headers present, public metadata present, privacy/disclaimer note present, desktop/mobile browser smoke passed, and no waitlist POSTs observed. The 2026-07-08 browser-like waitlist smoke is closed. The 2026-07-09 import provenance pass verified public data/cache consistency but left exact source-path proof pending. The 2026-07-10 launch governance gap pass classifies several owner/contact/account/source-review decisions as pending operator decisions. Manual keyboard, screen-reader/assistive-tech, native/physical-device, and production-host accessibility evidence remain pending. Restore drill, monitoring/alert evidence, recurring backup freshness monitoring, direct import source/archive proof, broader launch-matrix/governance evidence, final launch snapshot, and first traffic remain pending. |
+| Phase 8: Launch Checklist And First Traffic Test | Blocked by remaining operator evidence gates; freshness blocker closed, first traffic test not run | 2026-07-11 backup-gated update evidence records public readiness/latest fresh for `2026-07-10`, required cache headers present, public metadata present, privacy/disclaimer note present, desktop/mobile browser smoke passed, and no waitlist POSTs observed. The 2026-07-08 browser-like waitlist smoke is closed. The 2026-07-09 import provenance pass verified public data/cache consistency but left exact source-path proof pending. The 2026-07-12 operator decision pass records sanitized waitlist/support/account/source/dependency/Cloudflare/backup/feedback decisions as partial or accepted limitations where applicable. Support mailbox readiness, outside-Git account recovery, external health/readiness alerts and delivery test, fresh backup/off-server copy, manual keyboard/screen-reader/physical/native checks, sanitized import proof, final launch snapshot, and first traffic remain pending. |
 | Phase 9: Post-Launch Learning Loop | Pending | Starts after launch traffic creates usage evidence, including optional agent-access demand testing |
 | Phase 10: Risk Methodology Research | Pending | Starts only after launch evidence justifies method work; current production metric remains `crypto-scout-canonical-v1` |
 | Phase 11: Distribution Channel Research | Pending | Evaluates PWA, Telegram Mini App, browser extension, and other channel packaging after launch evidence |
@@ -145,18 +145,17 @@ Remaining production-pilot gaps:
 - continue cache-miss/edge-hit latency measurement for any endpoint not covered by the 2026-07-07 post-deploy smoke; add
   precomputed expensive payloads only if the first real user would still pay visible database/build cost after startup or
   nightly import;
-- decide whether to accept the current Cloudflare Free-plan subset for first traffic or upgrade/configure additional WAF,
-  bot protection, and broader API burst-rate-limit controls; the 2026-07-11 operator decision register keeps this as a
-  pending first-traffic decision;
-- recurring daily backups, recurring off-server copies, production backup freshness monitoring, and monitoring alerts
-  still need to be configured and verified; local checker tooling is implemented and tested, and the 2026-07-11
-  backup-gated update recorded one valid/fresh copied/off-server freshness/checksum check, but recurring scheduling and
-  monitor-provider evidence remain pending; the restore drill is explicitly deferred until a staging or intentionally
-  empty restore target exists;
-- post-waitlist handling, support/contact identity, account recovery record status, GitHub-hosted Dependabot
-  execution/first PR evidence, dependency/security maintenance, resource monitoring, remaining manual accessibility
-  evidence or accepted limitations, data-source terms outcome, Cloudflare Free-plan decision, external/manual
-  dependency-license confirmation, and incident response need a launch completeness pass;
+- keep the current Cloudflare Free-plan-compatible subset limited to a small operator-watched pilot; managed WAF, bot
+  protection upgrades, and broader API burst-rate-limit controls are deferred until broader traffic or observed abuse
+  risk;
+- create a fresh manual backup plus off-server copy before first traffic; recurring daily backups, recurring off-server
+  copies, production backup freshness monitoring, and backup freshness alerts are deferred until after the initial
+  operator-watched pilot, conditional on that fresh manual backup/off-server copy passing before traffic; the restore
+  drill is explicitly deferred until a staging or intentionally empty restore target exists;
+- complete the remaining operator-owned first-traffic blockers from the 2026-07-12 decision pass: support mailbox,
+  outside-Git account recovery record, external health/readiness alerts and delivery test, manual keyboard,
+  screen-reader/assistive-tech and physical/native browser checks, sanitized import proof, final readiness/latest-risk
+  checks, and final launch snapshot;
 - full browser/device launch matrix, remaining cache-miss latency measurement, and first traffic test still need to run;
   the stale-data blocker and browser-like waitlist smoke are closed, but broader launch gates remain;
 - tracked repository documentation and portfolio presentation work is locally complete as of 2026-07-06, but this does
@@ -169,8 +168,8 @@ Remaining production-pilot gaps:
   sanitized JSON packet from already collected evidence; use
   [Launch Snapshot Evidence Packet Template](launch-snapshot-evidence-packet-template.md) to prepare the final packet
   outside Git first; the helper is implemented/tested, but the real final launch snapshot packet, final pre-traffic
-  public readiness evidence, monitor/alert delivery proof, production import provenance, recurring backup freshness
-  evidence, operator decisions, and first traffic remain pending;
+  public readiness evidence, monitor/alert delivery proof, sanitized import proof, fresh backup/off-server evidence,
+  support/account recovery setup, manual/native accessibility checks, and first traffic remain pending;
 - post-launch learning cannot start until real usage evidence exists.
 
 ## Roadmap Phases
@@ -281,8 +280,9 @@ smoke checks and 304 for conditional `/api/risk/latest` revalidation with `X-Cac
 
 The active Cloudflare plan is using the Free-plan-compatible subset: custom waitlist bot challenge, one waitlist
 rate-limit rule with `period=10` and `mitigation_timeout=10`, waitlist cache bypass, and origin-header-respecting cache
-rules for public read endpoints. Managed WAF execution and the broader `/api/*` burst limit remain launch-risk items
-unless the Cloudflare plan is upgraded or the limitation is explicitly accepted for first traffic.
+rules for public read endpoints. The 2026-07-12 operator decision pass accepts this subset only for a small
+operator-watched pilot; managed WAF execution and the broader `/api/*` burst limit remain deferred until broader traffic
+or observed abuse risk.
 
 Goal: make the public page fast enough for first traffic and resistant to simple bot or abuse traffic.
 
@@ -432,9 +432,9 @@ dependency update automation passes record npm lockfile license metadata, Python
 references, and local Dependabot configuration in [Dependency and License Review](dependency-license-review.md), while
 GitHub-hosted Dependabot execution, first PR evidence, and external/manual confirmation remain pending. The 2026-07-10
 launch governance gap pass in
-[Production Readiness](production-readiness.md) is the current status checklist for accepted limitations, pending
-operator decisions, pending external evidence, and blocked launch items; first traffic must remain pending until those
-gates are completed or explicitly accepted. Use
+[Production Readiness](production-readiness.md) is the current status checklist for accepted limitations, partial
+operator decisions, pending external evidence, and blocked launch items; first traffic must remain pending until the
+required blockers are completed, the final launch snapshot exists, and only the recorded accepted limitations remain. Use
 [Launch Snapshot Evidence Packet Template](launch-snapshot-evidence-packet-template.md) for the final outside-Git
 snapshot collection before copying sanitized outcomes into launch docs.
 
@@ -516,8 +516,8 @@ dependency-license confirmation, data-correction/service-target evidence, direct
 validation/import metadata proof, external GitHub settings or sibling product-ideas updates if separately requested, any
 remaining endpoint cache-miss latency measurement not covered by the post-deploy smoke, and first traffic test. The
 tracked repository documentation and portfolio presentation pass is locally complete as of 2026-07-06. Do not mark the
-first traffic test complete until the required launch gates are completed or explicitly accepted and the traffic window
-actually runs.
+first traffic test complete until the required blockers are completed, the final launch snapshot exists, only the
+recorded accepted limitations remain, and the traffic window actually runs.
 
 Acceptance criteria:
 
@@ -699,7 +699,7 @@ The project is ready for a first public production pilot when:
 - browser/device QA has been completed for the launch matrix;
 - project documentation has been cleaned up and matches the launch configuration;
 - the private or portfolio repository presentation has been reviewed if the project will be shown to external reviewers;
-- launch operations and governance checklist items are either completed or explicitly accepted as limitations;
+- launch operations and governance checklist items are completed except for the recorded accepted limitations;
 - a rollback path has been verified or rehearsed.
 
 ## Related Docs

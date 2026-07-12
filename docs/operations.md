@@ -500,8 +500,9 @@ The helper stores evidence basenames, not full paths, and rejects unsafe packet 
 token-like strings, environment assignments, raw waitlist contacts, phone numbers, dashboard URLs, raw logs, and raw
 response dumps. Missing evidence categories are reported as pending gates rather than treated as passed. Operator
 decisions such as waitlist owner, review cadence, retention, deletion/unsubscribe path, support/contact identity,
-account ownership, and data-source terms remain pending unless supplied as sanitized status values with
-`--operator-decision name=status`.
+account ownership, and data-source terms must be supplied to the packet only as sanitized status values with
+`--operator-decision name=status`. The current sanitized decision status is recorded in
+[Production Readiness](production-readiness.md); the helper still treats any omitted packet category as pending.
 
 `first_traffic_status` defaults to `not_run`. Do not change it during the pre-traffic snapshot unless an operator has
 separate sanitized first-traffic evidence and intentionally supplies the explicit first-traffic fields. Creating or
@@ -515,9 +516,9 @@ evidence: status, dates, commit IDs, timestamp basenames, check names, and pass/
 tokens, `.env` values, raw waitlist contacts, private account details, raw logs, dashboard URLs, private contacts, or
 private filesystem paths.
 
-1. Record operator decisions outside Git, then add only sanitized status here if needed: waitlist owner/review cadence,
-   retention/deletion/unsubscribe path, support/contact identity, account recovery, source-terms review, legal/license
-   status, dependency/security review status, and accepted launch limitations.
+1. Complete the remaining operator-owned setup from the 2026-07-12 decision pass: support mailbox, outside-Git account
+   recovery record, external health/readiness alerts with delivery test, fresh backup/off-server copy, manual/native
+   accessibility checks, sanitized import proof, final public readiness/latest-risk checks, and final launch snapshot.
 2. Deploy or update the selected production path. Record the project revision, selected deployment path, service status,
    local health/readiness, public readiness, and whether the current Cloudflare Free-plan edge subset is accepted or an
    upgraded edge posture is configured.
@@ -530,12 +531,13 @@ private filesystem paths.
 5. Run `scripts/check_public_endpoints.py` against the public hostname with the chosen freshness policy. Configure
    external monitors and alert delivery for health, readiness/freshness, stale data after the nightly update window,
    collector failures, backup freshness, and Cloudflare Tunnel connector health.
-6. Verify public-host privacy/terms/disclaimer copy, SEO/social metadata, browser/device smoke, and the remaining manual
-   accessibility evidence or accepted limitations.
+6. Verify public-host privacy/terms/disclaimer copy, SEO/social metadata, browser/device smoke, and the required manual
+   keyboard, screen-reader/assistive-tech, and physical/native browser checks.
 7. Create and validate the final launch snapshot packet from already collected sanitized evidence. Missing categories
    must remain pending; do not mark first traffic as run in the packet unless separate first-traffic evidence exists.
-8. Run the operator-watched first traffic test only after freshness is current and all launch gates are completed or
-   explicitly accepted.
+8. Run the operator-watched first traffic test only after freshness is current, all required blockers are completed, the
+   final launch snapshot exists, and the only remaining limitations are the accepted limitations listed in the 2026-07-12
+   decision pass.
 
 ## Cloudflare Edge Rules
 
@@ -846,27 +848,29 @@ loops, Cloudflare Tunnel connector health, public hostname availability, and any
 
 ## Launch Governance Operating Notes
 
-Recorded on 2026-07-05 for the current production-pilot candidate and updated on 2026-07-11 with the sanitized operator
+Recorded on 2026-07-05 for the current production-pilot candidate and updated on 2026-07-12 with the sanitized operator
 decision register in [Production Readiness](production-readiness.md):
 
 - Privacy/terms/disclaimer note: locally implemented on 2026-07-10 as compact public copy near the waitlist, with
   public-host smoke verification recorded in the 2026-07-11 update evidence. It documents
   no-advice/no-recommendation limits, sensitive-info caution, implemented waitlist storage, operational log fields, no
   paid support SLA, and the current absence of app product-analytics/tracking-cookie source code.
-- Waitlist lead owner and cadence: pending operator decision. Before active traffic, name one owner or owning role in an
-  operator-controlled record and choose a review cadence. Do not treat a weekly or faster review cadence as recorded
-  until the operator explicitly chooses it.
-- Waitlist retention: pending operator decision. Choose a retention period or explicitly defer retention until the public
-  pilot ends. Record only the sanitized status in Git.
-- Deletion and unsubscribe path: pending operator decision. Use one operator-owned contact path for deletion,
-  unsubscribe, product questions, bug reports, and professional/API/license interest. Keep the actual address or handle
-  out of this repository unless the operator intentionally makes it public.
-- Support/contact identity: pending operator decision. Choose a public contact path or intentionally defer it. The current
-  public note records no paid support SLA; do not add an SLA unless the operator explicitly creates one.
+- Waitlist lead owner and cadence: partial/resolved for pilot. Owner role is founder/operator, with review several times
+  per week during the pilot through a manual operator-run database query or script. Do not record raw contacts, raw
+  output, private paths, or query details in Git.
+- Waitlist retention: partial/resolved for pilot. Retain pilot contacts until beta ends; delete earlier on
+  operator-approved request. Record only sanitized status in Git.
+- Deletion and unsubscribe path: partial/blocking. Use the dedicated support email path kept outside Git after mailbox
+  creation for deletion, unsubscribe, product questions, bug reports, and professional/API/license interest. Keep the
+  actual address or handle out of this repository unless the operator intentionally makes it public.
+- Support/contact identity: partial/blocking. The path category is a dedicated support email kept outside Git, and no
+  paid support SLA is recorded. Create/confirm the mailbox before first traffic; do not add an SLA unless the operator
+  explicitly creates one.
 - Manual waitlist handling: review aggregate lead counts and source/locale values without copying contact values into
   general notes. Raw waitlist contacts should stay in the production database or another controlled operational system.
-- Credential/account ownership: pending outside-Git record evidence. Track ownership and recovery for the categories in
-  the resource checklist above, but do not store holders, emails, account IDs, secrets, account exports, personal account
+- Credential/account ownership: partial, with outside-Git recovery record evidence still pending. Owner role for GitHub,
+  Cloudflare/domain, server, secrets/.env, and backups is founder/operator. Track recovery for the categories in the
+  resource checklist above, but do not store holders, emails, account IDs, secrets, account exports, personal account
   details, secret locations, or private recovery paths in Git.
 - Dependency and security maintenance cadence: `.github/dependabot.yml` is configured locally for conservative monthly
   version-update checks across frontend npm, backend and collector pip requirements, GitHub Actions, Dockerfiles, and the
@@ -875,17 +879,17 @@ decision register in [Production Readiness](production-readiness.md):
   the monthly manual review for security advisories, vulnerability scan results if available, secret-scan output, Python
   transitive inventory, container image and OS package licenses, GitHub Actions/license posture, project license choice,
   and legal compatibility. Record only the date, scope, outcome, and required follow-up.
-- Data-source terms review: pending operator decision. Record the CoinMarketCap public CSV and optional API usage review
-  outcome as passed, accepted limitation, or pending before broader launch. For future methodology sources, record terms
-  and attribution before the source becomes production-critical.
-- Cloudflare Free-plan first-traffic decision: pending operator decision. Either accept the current Free-plan-compatible
-  subset for an operator-watched first traffic window or upgrade before first traffic for managed WAF execution, broader
-  `/api/*` burst limiting, multiple rate-limit rules, and longer rate-limit windows.
+- Data-source terms review: accepted limitation for the unpaid/non-commercial pilot only. Record the CoinMarketCap public
+  CSV and optional API usage terms/plan outcome before commercial claims, paid beta, or broader distribution. For future
+  methodology sources, record terms and attribution before the source becomes production-critical.
+- Cloudflare Free-plan first-traffic decision: accepted limitation for a small operator-watched pilot only. Managed WAF
+  execution, broader `/api/*` burst limiting, multiple rate-limit rules, and longer rate-limit windows remain deferred
+  until broader traffic or observed abuse risk.
 - Accessibility and metadata pass: browser-capable public-hostname QA is recorded, and local focused accessibility,
   chart-alternative, waitlist live-region/keyboard, privacy/terms/disclaimer, and SEO/social metadata evidence exists.
   Production-host verification, physical-device/native browser evidence, manual keyboard evidence, and manual
-  assistive-tech evidence still need operator evidence unless explicitly accepted as limitations for an operator-watched
-  pilot. Treat missing evidence as a launch limitation, not as a pass.
+  assistive-tech evidence still need operator evidence before first traffic. The accessibility gap is not accepted as a
+  limitation.
 - Restore drill: accepted limitation/deferred until a staging project or intentionally empty restore target exists. Do not
   run a restore drill against live production.
 - Feedback review path: after the first controlled traffic window, summarize waitlist conversion, repeat-use signals,

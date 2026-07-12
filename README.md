@@ -43,8 +43,8 @@ monitor/provider configuration or alert delivery.
 The 2026-07-12 Launch Matrix / Accessibility / Public-Host QA pass recorded public desktop/mobile Chromium homepage
 smoke, public-host axe automation, public metadata checks, visible privacy/disclaimer copy, and no waitlist POST. The
 gate remains partial: manual keyboard, screen-reader/assistive-tech, physical-device/native browser, full WCAG/legal
-accessibility, broader latency, external monitoring/alert, recurring backup, direct import provenance, launch snapshot,
-and first-traffic evidence remain pending or unaccepted.
+accessibility, broader latency, external monitoring/alert, fresh backup/off-server copy, direct import proof, launch
+snapshot, and first-traffic evidence remain pending or unaccepted.
 
 Backup-gated USB production update evidence recorded on 2026-07-11 targets commit
 `86cb2dad889baf24a7464a105bbe2224f75b14ef` with evidence tag
@@ -74,11 +74,10 @@ Still external/operator before treating the pilot as publicly launched:
   probe is implemented and tested for health/readiness/latest-risk assertions, and the 2026-07-12 approved GET-only
   public probe passed, but no external monitor dashboard, alert rule, stale-data after-window alert, collector failure
   alert, Cloudflare Tunnel health notification, backup freshness alert, or delivery evidence is recorded.
-- Configure recurring scheduled backups, recurring off-server copies, and backup freshness monitoring using the local
-  `scripts/check_backup_freshness.py` checker; defer the restore drill until a separate staging or intentionally empty
-  restore target exists. The checker is implemented and tested locally, and one backup-gated copied/off-server
-  freshness/checksum checker pass is recorded for 2026-07-11, but production scheduling, recurring off-server-copy
-  evidence, and alert delivery remain pending.
+- Create a fresh manual backup plus off-server copy before first traffic. Recurring scheduled backups, recurring
+  off-server copies, and backup freshness monitoring are deferred until after the initial operator-watched pilot,
+  conditional on the fresh manual backup/off-server copy passing before traffic. Restore drill remains deferred until a
+  separate staging or intentionally empty restore target exists.
 - Capture direct production import source/archive provenance outside the repository, including source snapshot, manifest,
   `sha256`, retrieval metadata, row count, covered range, expected tail, validation/readiness output, and cache evidence.
   The local `scripts/import_provenance_packet.py` helper is implemented/tested to build or validate sanitized manifests
@@ -86,17 +85,19 @@ Still external/operator before treating the pilot as publicly launched:
 - Use `scripts/launch_snapshot_packet.py` during the final pre-traffic window to create or validate a sanitized local
   launch snapshot packet from already collected evidence. The helper is implemented/tested, but the actual launch
   snapshot packet, final pre-traffic public readiness evidence, monitor/alert delivery proof, production import provenance,
-  recurring backup freshness evidence, operator decisions, and first traffic remain pending.
+  fresh backup/off-server evidence, support mailbox, account recovery record, manual/native accessibility evidence, and
+  first traffic remain pending.
 - Keep public-host privacy/terms/disclaimer and SEO/social metadata verification current after future deployments, and
   complete launch governance, browser/device, accessibility, release-feedback, and operational evidence gates.
-- Decide whether the current Cloudflare Free-plan edge subset is enough for first traffic or whether to upgrade for
-  managed WAF and broader API burst-rate-limit entitlement.
+- Keep the current Cloudflare Free-plan-compatible subset limited to a small operator-watched pilot; defer managed WAF
+  and broader API burst-rate-limit controls until broader traffic or observed abuse risk.
 - Capture the launch snapshot and run the first traffic test only after freshness and accepted launch gates allow it.
 
 Recommended next production sequence before first traffic:
 
-1. Record sanitized operator decisions for waitlist owner/cadence/retention/deletion/unsubscribe, support/contact
-   identity, account recovery, source-terms status, dependency/license/legal status, and accepted launch limitations.
+1. Complete the remaining operator-owned setup from the 2026-07-12 decision pass: support mailbox, outside-Git account
+   recovery record, external health/readiness alerts with delivery test, fresh backup/off-server copy, manual/native
+   accessibility checks, sanitized import proof, final public readiness/latest-risk checks, and final launch snapshot.
 2. Deploy or update the selected production path, then record project revision, service status, health/readiness, and
    public-host metadata/privacy/accessibility smoke evidence.
 3. Run the production refresh/import path and create the production import provenance packet from the real source,
@@ -106,12 +107,13 @@ Recommended next production sequence before first traffic:
 5. Run the public endpoint monitor probe with the chosen freshness policy, then configure external monitors and alert
    delivery for health, readiness/freshness, stale data, collector failures, backup freshness, and Cloudflare Tunnel
    health.
-6. Verify public-host privacy/terms/disclaimer copy, SEO/social metadata, browser/device smoke, and the remaining manual
-   accessibility limitations or accepted deferrals.
+6. Verify public-host privacy/terms/disclaimer copy, SEO/social metadata, browser/device smoke, and the required manual
+   keyboard, screen-reader/assistive-tech, and physical/native browser checks.
 7. Create and validate the final sanitized launch snapshot packet from already collected evidence. Use
    [docs/launch-snapshot-evidence-packet-template.md](docs/launch-snapshot-evidence-packet-template.md) to prepare the
    packet outside Git first, then copy only sanitized final evidence into launch docs.
-8. Run the operator-watched first traffic test only after the launch gates are completed or explicitly accepted.
+8. Run the operator-watched first traffic test only after all required blockers are completed, the final launch snapshot
+   exists, and the only remaining limitations are the accepted limitations listed in the 2026-07-12 decision pass.
 
 ## Product Surface
 

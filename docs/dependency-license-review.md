@@ -158,8 +158,9 @@ needed before making stronger license or compliance claims.
 - Python transitive dependencies are not locked in the repository.
 - Container base images, OS packages, Cloudflare tunnel image contents, TimescaleDB image contents, CI actions, and
   Playwright browser/dependency bundles require external/manual confirmation.
-- Data-source terms and attribution review remains separate from this dependency inventory and is still pending in
-  [Production Readiness](production-readiness.md).
+- Data-source terms and attribution review remains separate from this dependency inventory. [Production
+  Readiness](production-readiness.md) records an accepted limitation for the unpaid/non-commercial pilot only; terms
+  review or a paid-plan decision remains pending before commercial claims, paid beta, or broader distribution.
 - This pass did not run networked registry checks, install packages, vulnerability scans, secret scans over the full
   repository, or legal review.
 
