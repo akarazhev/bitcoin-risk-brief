@@ -5,7 +5,7 @@ import re
 
 EMAIL_RE = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
 TELEGRAM_RE = re.compile(r"^@[A-Za-z0-9_]{5,32}$")
-VALID_LOCALES = {"en", "ru"}
+VALID_LOCALES = {"en", "ru", "zh", "de", "fr", "es", "ar"}
 VALID_SOURCE_RE = re.compile(r"^[A-Za-z0-9_.:-]{1,64}$")
 
 
