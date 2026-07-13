@@ -3,6 +3,7 @@ import '@testing-library/jest-dom'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import App from './App'
+import type { RiskPoint } from './types'
 
 const chartMocks = vi.hoisted(() => ({
   resize: vi.fn(),
@@ -85,6 +86,24 @@ async function findPriceMetric(title = 'BTC price model input') {
   return within(metric as HTMLElement)
 }
 
+async function findModelDriverSection(title = 'Model drivers') {
+  const titleElement = await screen.findByRole('heading', { name: title })
+  const section = titleElement.closest('.model-drivers')
+  expect(section).not.toBeNull()
+  return section as HTMLElement
+}
+
+async function findModelDrivers(title = 'Model drivers') {
+  return within(await findModelDriverSection(title))
+}
+
+function getDriverCard(section: HTMLElement, label: string) {
+  const labelElement = within(section).getByText(label)
+  const card = labelElement.closest('.driver-card')
+  expect(card).not.toBeNull()
+  return within(card as HTMLElement)
+}
+
 function deferred<T>() {
   let resolve: (value: T) => void = () => {}
   let reject: (error: Error) => void = () => {}
@@ -95,10 +114,31 @@ function deferred<T>() {
   return { promise, resolve, reject }
 }
 
+function latestRisk(overrides: Partial<RiskPoint> = {}): RiskPoint {
+  return {
+    timestamp: '2026-06-26T00:00:00Z',
+    price_usd: 100000,
+    model_price_usd: 100000,
+    low_usd: 96500,
+    high_usd: 104250,
+    risk: 0.7,
+    score: 1,
+    risk_state: 'high',
+    trend_dev: 1,
+    vol_regime: 0.1,
+    turnover: null,
+    z_trend_dev: 1,
+    z_vol_regime: 1,
+    z_turnover: null,
+    turnover_enabled: false,
+    ...overrides,
+  }
+}
+
 beforeEach(() => {
   chartMocks.resize.mockClear()
   apiMocks.fetchLatestRisk.mockReset()
-  apiMocks.fetchLatestRisk.mockResolvedValue({ data: { timestamp: '2026-06-26T00:00:00Z', price_usd: 100000, model_price_usd: 100000, low_usd: 96500, high_usd: 104250, risk: 0.7, score: 1, risk_state: 'high', trend_dev: 1, vol_regime: 0.1, turnover: null, z_trend_dev: 1, z_vol_regime: 1, z_turnover: null, turnover_enabled: false } })
+  apiMocks.fetchLatestRisk.mockResolvedValue({ data: latestRisk() })
   apiMocks.fetchRiskHistory.mockReset()
   apiMocks.fetchRiskHistory.mockResolvedValue({ data: [
     { timestamp: '2026-06-24T00:00:00Z', price_usd: 98000, risk: 0.52, score: 0.52, risk_state: 'neutral', trend_dev: 1, vol_regime: 0.1, turnover: null, z_trend_dev: 1, z_vol_regime: 1, z_turnover: null, turnover_enabled: false },
@@ -388,6 +428,74 @@ test('renders model price, low, and high when latest risk includes OHLC fields',
   expect(priceMetric.getByText('$104,250')).toBeInTheDocument()
 })
 
+test('renders localized model drivers from latest risk component directions', async () => {
+  apiMocks.fetchLatestRisk.mockResolvedValueOnce({
+    data: latestRisk({
+      turnover: -10.1,
+      z_trend_dev: 0.8,
+      z_vol_regime: -0.7,
+      z_turnover: 0.05,
+      turnover_enabled: true,
+    }),
+  })
+
+  render(<App />)
+
+  const driverSection = await findModelDriverSection()
+  const drivers = within(driverSection)
+  const trendDriver = getDriverCard(driverSection, 'Trend')
+  const volatilityDriver = getDriverCard(driverSection, 'Volatility')
+  const activityDriver = getDriverCard(driverSection, 'Activity')
+
+  expect(drivers.getByText("Plain-language directions behind today's risk, based on the latest validated daily data.")).toBeInTheDocument()
+  expect(trendDriver.getByText('Price vs long-term baseline')).toBeInTheDocument()
+  expect(trendDriver.getByText('Raises risk')).toBeInTheDocument()
+  expect(volatilityDriver.getByText('Recent price swings')).toBeInTheDocument()
+  expect(volatilityDriver.getByText('Lowers risk')).toBeInTheDocument()
+  expect(activityDriver.getByText('Trading activity adjusted for market size')).toBeInTheDocument()
+  expect(activityDriver.getByText('Neutral')).toBeInTheDocument()
+  expect(drivers.queryByText('-10.1')).not.toBeInTheDocument()
+  expect(drivers.queryByText('0.05')).not.toBeInTheDocument()
+
+  fireEvent.click(screen.getByRole('button', { name: /ru/i }))
+
+  const ruDriverSection = await findModelDriverSection('Драйверы модели')
+  const ruDrivers = within(ruDriverSection)
+  const ruTrendDriver = getDriverCard(ruDriverSection, 'Тренд')
+  const ruVolatilityDriver = getDriverCard(ruDriverSection, 'Волатильность')
+  const ruActivityDriver = getDriverCard(ruDriverSection, 'Активность')
+
+  expect(ruDrivers.getByText('Понятные направления за сегодняшним риском по последним валидированным дневным данным.')).toBeInTheDocument()
+  expect(ruTrendDriver.getByText('Цена относительно долгосрочной базы')).toBeInTheDocument()
+  expect(ruTrendDriver.getByText('Повышает риск')).toBeInTheDocument()
+  expect(ruVolatilityDriver.getByText('Недавние колебания цены')).toBeInTheDocument()
+  expect(ruVolatilityDriver.getByText('Снижает риск')).toBeInTheDocument()
+  expect(ruActivityDriver.getByText('Торговая активность с учетом размера рынка')).toBeInTheDocument()
+  expect(ruActivityDriver.getByText('Нейтрально')).toBeInTheDocument()
+})
+
+test('marks trading activity unavailable when turnover is disabled', async () => {
+  apiMocks.fetchLatestRisk.mockResolvedValueOnce({
+    data: latestRisk({
+      turnover: null,
+      z_trend_dev: 0.1,
+      z_vol_regime: 0.1,
+      z_turnover: null,
+      turnover_enabled: false,
+    }),
+  })
+
+  render(<App />)
+
+  const drivers = await findModelDrivers()
+
+  expect(drivers.getByText('Activity')).toBeInTheDocument()
+  expect(drivers.getByText('Unavailable')).toBeInTheDocument()
+  expect(drivers.getByText('Market-adjusted activity unavailable')).toBeInTheDocument()
+  expect(drivers.queryByText('0')).not.toBeInTheDocument()
+  expect(drivers.queryByText('0%')).not.toBeInTheDocument()
+})
+
 test('hides low and high labels when the matching OHLCV values are missing', async () => {
   apiMocks.fetchLatestRisk.mockResolvedValueOnce({
     data: {
@@ -444,6 +552,17 @@ test('defines a stable responsive grid for the price input group', () => {
   expect(css).toContain('grid-template-columns: repeat(3, minmax(0, 1fr))')
   expect(css).toContain('@media (max-width: 560px)')
   expect(css).toContain('.price-input-grid')
+})
+
+test('defines a stable responsive layout for model drivers', () => {
+  const css = readFileSync(resolve(process.cwd(), 'src/App.css'), 'utf8')
+
+  expect(css).toContain('.model-drivers')
+  expect(css).toContain('grid-template-columns: minmax(220px, 0.65fr) minmax(0, 1fr)')
+  expect(css).toContain('.driver-list')
+  expect(css).toContain('grid-template-columns: repeat(3, minmax(0, 1fr))')
+  expect(css).toContain('.driver-card.unavailable strong')
+  expect(css).toContain('@media (max-width: 900px)')
 })
 
 test('places the waitlist call to action before the charts', async () => {

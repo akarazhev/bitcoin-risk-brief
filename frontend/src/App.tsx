@@ -6,6 +6,14 @@ import type { BriefPayload, ReadinessPayload, RiskLevel, RiskPoint } from './typ
 
 type Locale = 'en' | 'ru'
 type ThresholdCallout = { risk: number; label: string; price: string; text: string }
+type DriverStatus = 'raises' | 'neutral' | 'lowers' | 'unavailable'
+type ModelDriver = {
+  id: 'trend' | 'volatility' | 'activity'
+  label: string
+  description: string
+  status: DriverStatus
+  statusLabel: string
+}
 type ChartLoadState<T> = {
   status: 'idle' | 'loading' | 'loaded' | 'error'
   data: T
@@ -13,6 +21,7 @@ type ChartLoadState<T> = {
 }
 const COMPACT_CHART_QUERY = '(max-width: 640px)'
 const ACCESSIBLE_HISTORY_POINTS = 6
+const DRIVER_NEUTRAL_BAND = 0.25
 const AUTO_CHART_SIZE = { width: 'auto', height: 'auto' } as const
 const Chart = lazy(() => import('./Chart'))
 
@@ -29,6 +38,19 @@ const copy = {
     high: 'High',
     riskChange: 'Risk change',
     riskChangeContext: 'vs previous observation',
+    modelDrivers: 'Model drivers',
+    modelDriversBody: "Plain-language directions behind today's risk, based on the latest validated daily data.",
+    driverTrend: 'Trend',
+    driverTrendDetail: 'Price vs long-term baseline',
+    driverVolatility: 'Volatility',
+    driverVolatilityDetail: 'Recent price swings',
+    driverActivity: 'Activity',
+    driverActivityDetail: 'Trading activity adjusted for market size',
+    driverActivityUnavailableDetail: 'Market-adjusted activity unavailable',
+    driverRaises: 'Raises risk',
+    driverNeutral: 'Neutral',
+    driverLowers: 'Lowers risk',
+    driverUnavailable: 'Unavailable',
     riskZones: ['Low / Neutral', 'Neutral / High'],
     readinessReady: 'Readiness ready',
     readinessDegraded: 'Readiness degraded',
@@ -101,6 +123,19 @@ const copy = {
     high: 'Макс.',
     riskChange: 'Изменение риска',
     riskChangeContext: 'к прошлому наблюдению',
+    modelDrivers: 'Драйверы модели',
+    modelDriversBody: 'Понятные направления за сегодняшним риском по последним валидированным дневным данным.',
+    driverTrend: 'Тренд',
+    driverTrendDetail: 'Цена относительно долгосрочной базы',
+    driverVolatility: 'Волатильность',
+    driverVolatilityDetail: 'Недавние колебания цены',
+    driverActivity: 'Активность',
+    driverActivityDetail: 'Торговая активность с учетом размера рынка',
+    driverActivityUnavailableDetail: 'Активность с учетом размера рынка недоступна',
+    driverRaises: 'Повышает риск',
+    driverNeutral: 'Нейтрально',
+    driverLowers: 'Снижает риск',
+    driverUnavailable: 'Недоступно',
     riskZones: ['Низкий / Нейтральный', 'Нейтральный / Высокий'],
     readinessReady: 'Готовность подтверждена',
     readinessDegraded: 'Готовность снижена',
@@ -185,6 +220,55 @@ function stateLabel(state: string, locale: Locale) {
     ru: { low: 'Низкий', neutral: 'Нейтральный', high: 'Высокий' },
   }
   return labels[locale][state as 'low' | 'neutral' | 'high'] ?? state
+}
+
+function driverStatusFromZScore(value: number | null | undefined): DriverStatus {
+  if (typeof value !== 'number' || !Number.isFinite(value)) return 'unavailable'
+  if (value > DRIVER_NEUTRAL_BAND) return 'raises'
+  if (value < -DRIVER_NEUTRAL_BAND) return 'lowers'
+  return 'neutral'
+}
+
+function driverStatusLabel(status: DriverStatus, labels: typeof copy[Locale]) {
+  if (status === 'raises') return labels.driverRaises
+  if (status === 'lowers') return labels.driverLowers
+  if (status === 'unavailable') return labels.driverUnavailable
+  return labels.driverNeutral
+}
+
+function buildModelDrivers(latest: RiskPoint, labels: typeof copy[Locale]): ModelDriver[] {
+  const activityAvailable = latest.turnover_enabled
+    && typeof latest.turnover === 'number'
+    && Number.isFinite(latest.turnover)
+    && typeof latest.z_turnover === 'number'
+    && Number.isFinite(latest.z_turnover)
+  const activityStatus = activityAvailable ? driverStatusFromZScore(latest.z_turnover) : 'unavailable'
+
+  const drivers: Array<Omit<ModelDriver, 'statusLabel'>> = [
+    {
+      id: 'trend',
+      label: labels.driverTrend,
+      description: labels.driverTrendDetail,
+      status: driverStatusFromZScore(latest.z_trend_dev),
+    },
+    {
+      id: 'volatility',
+      label: labels.driverVolatility,
+      description: labels.driverVolatilityDetail,
+      status: driverStatusFromZScore(latest.z_vol_regime),
+    },
+    {
+      id: 'activity',
+      label: labels.driverActivity,
+      description: activityAvailable ? labels.driverActivityDetail : labels.driverActivityUnavailableDetail,
+      status: activityStatus,
+    },
+  ]
+
+  return drivers.map((driver) => ({
+    ...driver,
+    statusLabel: driverStatusLabel(driver.status, labels),
+  }))
 }
 
 function formatTrustValue(label: string, value: string | null) {
@@ -390,6 +474,7 @@ export default function App() {
     formatUsd(modelPriceUsd),
     hasDailyRange ? t.chartCurrentRange(formatUsd(latest.low_usd as number), formatUsd(latest.high_usd as number)) : '',
   )
+  const modelDrivers = buildModelDrivers(latest, t)
 
   return (
     <main className="shell">
@@ -459,6 +544,22 @@ export default function App() {
         <article className="brief-panel"><h3>{t.changed}</h3><p>{briefSection.what_changed}</p></article>
         <article className="brief-panel"><h3>{t.avoid}</h3><p>{briefSection.avoid_now}</p></article>
         <article className="brief-panel"><h3>{t.confirm}</h3><p>{briefSection.confirm_next}</p></article>
+      </section>
+
+      <section className="model-drivers" aria-labelledby="model-drivers-heading">
+        <div className="model-drivers-copy">
+          <h2 id="model-drivers-heading">{t.modelDrivers}</h2>
+          <p>{t.modelDriversBody}</p>
+        </div>
+        <div className="driver-list">
+          {modelDrivers.map((driver) => (
+            <article className={`driver-card ${driver.status}`} key={driver.id}>
+              <span>{driver.label}</span>
+              <strong>{driver.statusLabel}</strong>
+              <p>{driver.description}</p>
+            </article>
+          ))}
+        </div>
       </section>
 
       <section id="methodology" className="trust-layer" aria-label={t.methodology}>

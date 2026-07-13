@@ -81,6 +81,26 @@ h1 { margin: 0; font-size: clamp(3rem, 9vw, 7rem); line-height: 0.9; letter-spac
 .brief-panel h2, .brief-panel h3, .chart-panel h2, .waitlist h2, .trust-panel h2 { margin: 0 0 12px; }
 .brief-panel p, .waitlist p, .empty-state p, .trust-panel p { color: #b2ada5; line-height: 1.55; margin: 0; }
 .lead-panel { background: #1b1812; border-color: #5b4630; }
+.model-drivers {
+  max-width: 1180px;
+  margin: 0 auto 28px;
+  display: grid;
+  grid-template-columns: minmax(220px, 0.65fr) minmax(0, 1fr);
+  gap: 14px;
+  align-items: stretch;
+}
+.model-drivers-copy { display: grid; align-content: center; gap: 8px; min-width: 0; }
+.model-drivers-copy h2 { margin: 0; font-size: 1.2rem; }
+.model-drivers-copy p { margin: 0; color: #b2ada5; line-height: 1.45; }
+.driver-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; min-width: 0; }
+.driver-card { border: 1px solid #30343b; border-radius: 8px; background: #111316; padding: 14px; display: grid; gap: 6px; min-width: 0; }
+.driver-card span { color: #8d948f; font-size: 0.78rem; }
+.driver-card strong { font-size: 0.95rem; overflow-wrap: anywhere; }
+.driver-card p { margin: 0; color: #b2ada5; font-size: 0.85rem; line-height: 1.4; }
+.driver-card.raises strong { color: #ffb15f; }
+.driver-card.lowers strong { color: #5bd687; }
+.driver-card.neutral strong { color: #f4f0e8; }
+.driver-card.unavailable strong { color: #8d948f; }
 .trust-layer { max-width: 1180px; margin: 0 auto 28px; }
 .trust-panel { display: grid; gap: 14px; }
 .trust-panel dl { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 0; }
@@ -138,6 +158,7 @@ h1 { margin: 0; font-size: clamp(3rem, 9vw, 7rem); line-height: 0.9; letter-spac
   .topbar { margin-bottom: 34px; }
   .top-actions { gap: 8px; }
   .hero, .brief-grid, .charts, .waitlist { grid-template-columns: 1fr; }
+  .model-drivers, .driver-list { grid-template-columns: 1fr; }
   .metrics-strip { grid-template-columns: 1fr; }
   .metrics-strip > div { border-right: 0; border-bottom: 1px solid #2c3037; }
   .metrics-strip > div:last-child { border-bottom: 0; }
@@ -158,7 +179,7 @@ h1 { margin: 0; font-size: clamp(3rem, 9vw, 7rem); line-height: 0.9; letter-spac
   .subtitle { font-size: 1rem; }
   .risk-dial { padding: 20px; }
   .risk-dial strong { font-size: 3.6rem; }
-  .brief-panel, .chart-panel, .waitlist, .empty-state, .trust-panel { padding: 18px; }
+  .brief-panel, .chart-panel, .waitlist, .empty-state, .trust-panel, .driver-card { padding: 18px; }
   .metrics-strip strong { font-size: 1.25rem; overflow-wrap: anywhere; }
   .price-input-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
