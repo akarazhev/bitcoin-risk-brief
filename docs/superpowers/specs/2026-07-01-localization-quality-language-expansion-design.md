@@ -16,11 +16,9 @@ risk product.
 This belongs in Phase 8: Launch Checklist And First Traffic Test.
 
 It should happen before active traffic if time allows, because language quality affects trust, waitlist conversion, and
-how clearly users understand the no-advice framing. It should not pull Arabic, Chinese, country-specific compliance, or
-platform localization into the Phase 8 gate.
-
-Arabic and Chinese remain candidates for Phase 11 distribution or localization research after source, locale, or channel
-analytics show demand.
+how clearly users understand the no-advice framing. This historical design kept Arabic, Chinese, country-specific
+compliance, and platform localization outside its Phase 8 gate; GitHub issue #28 supersedes that scope for Arabic and
+Simplified Chinese while still leaving country-specific compliance and platform localization outside this issue.
 
 ## Current Constraints
 
@@ -121,15 +119,16 @@ Before active traffic, verify every enabled locale across:
 - methodology/disclaimer copy;
 - no overlapping UI at target viewport widths.
 
-Arabic and Chinese should not be enabled until their own QA needs are documented. Arabic requires right-to-left layout
-checks. Chinese requires a Simplified/Traditional decision and platform/context review.
+Under GitHub issue #28, Arabic and Chinese are enabled in the product scope. Arabic requires documented right-to-left
+layout checks, waitlist locale attribution, and readable chart data, USD prices, percentages, and ISO dates. Chinese is
+implemented as Simplified Chinese under locale code `zh`.
 
 ## Non-Goals
 
 This design does not include:
 
-- enabling Arabic before RTL support and QA are designed;
-- enabling Chinese before Simplified/Traditional and channel strategy are chosen;
+- country-specific compliance localization;
+- platform-specific localization for channels such as Telegram Mini Apps or browser extensions;
 - machine-translating all docs;
 - translating operational docs;
 - country-specific legal or investment disclaimers;
@@ -142,9 +141,8 @@ This design does not include:
 This work is successful when:
 
 - English and Russian launch copy is clearer and more trustworthy;
-- Spanish and German can be selected in the public UI;
+- Spanish, German, French, Simplified Chinese, and Arabic can be selected in the public UI;
 - waitlist submissions can carry the selected enabled locale;
 - all enabled locales pass mobile and desktop QA without clipped or overlapping text;
 - no-advice and methodology framing remains consistent across locales;
-- Arabic and Chinese are explicitly deferred until analytics or distribution strategy justifies the extra QA and
-  platform work.
+- Arabic passes RTL checks while chart data, USD prices, percentages, and ISO dates remain readable.

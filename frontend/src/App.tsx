@@ -1,4 +1,5 @@
 import { Suspense, lazy, useEffect, useMemo, useState } from 'react'
+import type { FormEvent, ReactNode } from 'react'
 import type { EChartsOption } from 'echarts'
 import { Bell, CheckCircle2, ExternalLink, Languages, Radio, Send, ShieldAlert, TriangleAlert } from 'lucide-react'
 import { fetchBrief, fetchLatestRisk, fetchReadiness, fetchRiskHistory, fetchRiskLevels, joinWaitlist } from './api'
@@ -43,6 +44,35 @@ function formatUsd(value: number) {
 
 function formatDateLabel(timestamp: string, compact: boolean) {
   return compact ? timestamp.slice(5, 10) : timestamp.slice(0, 10)
+}
+
+function NumericValue({ children }: { children: ReactNode }) {
+  return <bdi className="numeric-value" dir="ltr">{children}</bdi>
+}
+
+function TrustValue({ label, value, unavailable }: { label: string; value: string | null; unavailable: string }) {
+  return (
+    <>
+      {label}: {value ? <NumericValue>{value}</NumericValue> : unavailable}
+    </>
+  )
+}
+
+function LocalizedPriceText({ text, price }: { text: string; price: string }) {
+  return <LocalizedIsolatedText text={text} value={price} />
+}
+
+function LocalizedIsolatedText({ text, value }: { text: string; value: string }) {
+  const [prefix, ...suffixParts] = text.split(value)
+  if (suffixParts.length === 0) return <>{text}</>
+
+  return (
+    <>
+      {prefix}
+      <NumericValue>{value}</NumericValue>
+      {suffixParts.join(value)}
+    </>
+  )
 }
 
 function driverStatusFromZScore(value: number | null | undefined): DriverStatus {
@@ -94,14 +124,19 @@ function buildModelDrivers(latest: RiskPoint, labels: typeof copy[Locale]): Mode
   }))
 }
 
-function formatTrustValue(label: string, value: string | null, unavailable: string) {
-  return `${label}: ${value ?? unavailable}`
-}
-
 function readinessFreshnessText(readiness: ReadinessPayload, labels: ReadinessLabels) {
   return readiness.checks.data_fresh
     ? labels.freshnessCurrent
     : labels.staleAge(readiness.data.data_age_days)
+}
+
+function ReadinessFreshnessValue({ readiness, labels }: { readiness: ReadinessPayload; labels: ReadinessLabels }) {
+  if (readiness.checks.data_fresh || readiness.data.data_age_days === null) {
+    return <>{readinessFreshnessText(readiness, labels)}</>
+  }
+
+  const days = String(readiness.data.data_age_days)
+  return <LocalizedIsolatedText text={labels.staleAge(readiness.data.data_age_days)} value={days} />
 }
 
 function validationPassed(readiness: ReadinessPayload) {
@@ -261,7 +296,7 @@ export default function App() {
   }, [levels, t])
   const accessibleHistory = useMemo(() => history.slice(-ACCESSIBLE_HISTORY_POINTS), [history])
 
-  async function submitWaitlist(event: React.FormEvent<HTMLFormElement>) {
+  async function submitWaitlist(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const value = lead.trim()
     if (!value || joining) return
@@ -343,7 +378,7 @@ export default function App() {
         </div>
         <div className={`risk-dial ${latest.risk_state}`}>
           <span>{t.currentRisk}</span>
-          <strong>{formatPercent(latest.risk)}</strong>
+          <strong><NumericValue>{formatPercent(latest.risk)}</NumericValue></strong>
           <em>{state}</em>
         </div>
       </section>
@@ -354,17 +389,17 @@ export default function App() {
           <div className={`price-input-grid ${hasDailyRange ? 'with-range' : 'model-only'}`}>
             <div className="price-input-value">
               <em>{t.modelPrice}</em>
-              <strong>{formatUsd(modelPriceUsd)}</strong>
+              <strong><NumericValue>{formatUsd(modelPriceUsd)}</NumericValue></strong>
             </div>
             {hasDailyRange && (
               <>
                 <div className="price-input-value">
                   <em>{t.low}</em>
-                  <strong>{formatUsd(latest.low_usd as number)}</strong>
+                  <strong><NumericValue>{formatUsd(latest.low_usd as number)}</NumericValue></strong>
                 </div>
                 <div className="price-input-value">
                   <em>{t.high}</em>
-                  <strong>{formatUsd(latest.high_usd as number)}</strong>
+                  <strong><NumericValue>{formatUsd(latest.high_usd as number)}</NumericValue></strong>
                 </div>
               </>
             )}
@@ -372,17 +407,23 @@ export default function App() {
         </div>
         <div className="freshness-metric">
           <span>{ready && readiness.checks.data_fresh ? t.currentThrough : t.updated}</span>
-          <strong>{latest.timestamp.slice(0, 10)}</strong>
+          <strong><NumericValue>{latest.timestamp.slice(0, 10)}</NumericValue></strong>
           <p className={`readiness-badge ${readiness.status}`}>
             {ready ? <CheckCircle2 size={15} /> : <TriangleAlert size={15} />}
             {ready ? t.readinessReady : t.readinessDegraded}
           </p>
           <em>{validationOk ? t.validationPassed : t.validationNeedsAttention}</em>
-          <em>{formatTrustValue(t.latestCompletedDay, readiness.data.latest_date, t.unavailable)}</em>
-          <em>{readinessFreshnessText(readiness, t)}</em>
-          <em>{formatTrustValue(t.coverageThrough, readiness.data.covered_end, t.unavailable)}</em>
+          <em><TrustValue label={t.latestCompletedDay} value={readiness.data.latest_date} unavailable={t.unavailable} /></em>
+          <em><ReadinessFreshnessValue readiness={readiness} labels={t} /></em>
+          <em><TrustValue label={t.coverageThrough} value={readiness.data.covered_end} unavailable={t.unavailable} /></em>
         </div>
-        <div><span>{t.riskChange}</span><strong className={brief.delta_risk >= 0 ? 'up' : 'down'}>{brief.delta_risk >= 0 ? '+' : ''}{formatPercent(brief.delta_risk)}</strong><em>{t.riskChangeContext}</em></div>
+        <div>
+          <span>{t.riskChange}</span>
+          <strong className={brief.delta_risk >= 0 ? 'up' : 'down'}>
+            <NumericValue>{brief.delta_risk >= 0 ? '+' : ''}{formatPercent(brief.delta_risk)}</NumericValue>
+          </strong>
+          <em>{t.riskChangeContext}</em>
+        </div>
       </section>
 
       <section className="brief-grid">
@@ -417,8 +458,8 @@ export default function App() {
           <p>{t.methodologyBody}</p>
           <dl>
             <div><dt>{t.methodologyVersion}</dt><dd>{methodologyVersion}</dd></div>
-            <div><dt>{t.latestCompletedDay}</dt><dd>{readiness.data.latest_date ?? t.unavailable}</dd></div>
-            <div><dt>{t.coverageThrough}</dt><dd>{readiness.data.covered_end ?? t.unavailable}</dd></div>
+            <div><dt>{t.latestCompletedDay}</dt><dd>{readiness.data.latest_date ? <NumericValue>{readiness.data.latest_date}</NumericValue> : t.unavailable}</dd></div>
+            <div><dt>{t.coverageThrough}</dt><dd>{readiness.data.covered_end ? <NumericValue>{readiness.data.covered_end}</NumericValue> : t.unavailable}</dd></div>
           </dl>
           <p className="disclaimer">{t.disclaimer}</p>
         </article>
@@ -480,7 +521,11 @@ export default function App() {
           </div>
           {thresholdCallouts.length > 0 && (
             <div className="threshold-callouts" aria-label={t.thresholdCallouts}>
-              {thresholdCallouts.map((callout) => <span key={callout.risk}>{callout.text}</span>)}
+              {thresholdCallouts.map((callout) => (
+                <span key={callout.risk}>
+                  <LocalizedPriceText text={callout.text} price={callout.price} />
+                </span>
+              ))}
             </div>
           )}
           <section className="sr-only" aria-labelledby="risk-history-alternative-heading">

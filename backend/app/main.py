@@ -56,7 +56,7 @@ async def lifespan(_app: FastAPI):
 
 class WaitlistRequest(BaseModel):
     contact: str = Field(min_length=3, max_length=254)
-    locale: str = Field(default="en", max_length=8)
+    locale: str = Field(default="en")
     source: str = Field(default="landing", max_length=64)
 
 

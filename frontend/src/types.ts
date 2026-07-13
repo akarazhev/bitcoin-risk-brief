@@ -1,4 +1,6 @@
-export type Locale = 'en' | 'ru' | 'zh' | 'de' | 'fr' | 'es' | 'ar'
+import type { Locale } from './locales'
+
+export type { Locale }
 export type RiskState = 'low' | 'neutral' | 'high'
 
 export interface RiskPoint {

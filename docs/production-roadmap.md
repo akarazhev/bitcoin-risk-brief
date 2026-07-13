@@ -448,9 +448,9 @@ Deliverables:
 - Check the launch browser/device matrix and record any accepted limitations.
 - Deploy and verify the first-viewport price input polish before traffic: show `Model price`, `Low`, and `High` for the
   latest completed daily candle without implying that HLC3 is a live spot or close-only price.
-- Complete the Phase 8 localization add-on if it is still in scope before active traffic: polish EN/RU copy, prepare the
-  frontend for more than two locales, add ES/DE UI copy, and keep AR/ZH deferred until dedicated RTL, platform, and
-  channel research justify them.
+- Complete the issue #28 localization expansion if it is still in scope before active traffic: support English, Russian,
+  Simplified Chinese, German, French, Spanish, and Arabic; verify Arabic right-to-left layout; and keep chart data, USD
+  prices, percentages, and ISO dates readable.
 - Complete the Launch Operations And Governance checklist: keep public-host privacy/terms/disclaimer and SEO/social
   metadata verification current after future updates, complete post-waitlist workflow, data-source terms and attribution,
   accessibility pass, and launch incident response notes.

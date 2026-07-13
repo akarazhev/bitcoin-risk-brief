@@ -8,6 +8,7 @@ import unittest
 
 sys.modules.setdefault("asyncpg", types.SimpleNamespace(Pool=object, Record=dict))
 
+from app.main import WaitlistRequest
 from app.repository import upsert_waitlist_lead
 from app.waitlist import InvalidWaitlistContact, normalize_locale, normalize_waitlist_contact
 
@@ -59,6 +60,17 @@ class WaitlistValidationTest(unittest.TestCase):
         self.assertEqual(normalize_locale("it"), "en")
         self.assertEqual(normalize_locale(""), "en")
         self.assertEqual(normalize_locale(None), "en")
+
+
+class WaitlistRequestModelTest(unittest.TestCase):
+    def test_model_allows_long_unsupported_locale_for_storage_normalization(self) -> None:
+        payload = WaitlistRequest(
+            contact="user@example.com",
+            locale="unsupported-locale-value",
+            source="landing",
+        )
+
+        self.assertEqual(payload.locale, "unsupported-locale-value")
 
 
 class WaitlistSchemaTest(unittest.TestCase):

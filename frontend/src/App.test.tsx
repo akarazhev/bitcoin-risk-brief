@@ -104,6 +104,10 @@ function getDriverCard(section: HTMLElement, label: string) {
   return within(card as HTMLElement)
 }
 
+function textContentMatcher(text: string) {
+  return (_: string, element: Element | null) => element?.textContent === text
+}
+
 function deferred<T>() {
   let resolve: (value: T) => void = () => {}
   let reject: (error: Error) => void = () => {}
@@ -238,9 +242,9 @@ test('renders ready daily data as current through the latest completed day', asy
   expect(screen.getAllByText('2026-06-26').length).toBeGreaterThan(0)
   expect(screen.getByText('Readiness ready')).toBeInTheDocument()
   expect(screen.getByText('Validation passed')).toBeInTheDocument()
-  expect(screen.getByText('Latest completed day: 2026-06-26')).toBeInTheDocument()
+  expect(screen.getByText(textContentMatcher('Latest completed day: 2026-06-26'))).toBeInTheDocument()
   expect(screen.getByText('Freshness: current')).toBeInTheDocument()
-  expect(screen.getByText('Coverage through: 2026-06-26')).toBeInTheDocument()
+  expect(screen.getByText(textContentMatcher('Coverage through: 2026-06-26'))).toBeInTheDocument()
   expect(screen.queryByText('Fresh: 1 day old')).not.toBeInTheDocument()
   expect(screen.queryByText('Data is 1 day old')).not.toBeInTheDocument()
 })
@@ -273,9 +277,9 @@ test('renders degraded readiness copy without hiding the latest risk', async () 
   expect(await screen.findByText('Current risk')).toBeInTheDocument()
   expect(screen.getByText('Readiness degraded')).toBeInTheDocument()
   expect(screen.getByText('Validation needs attention')).toBeInTheDocument()
-  expect(screen.getByText('Latest completed day: 2026-06-20')).toBeInTheDocument()
-  expect(screen.getByText('Stale: 6 days behind')).toBeInTheDocument()
-  expect(screen.getByText('Coverage through: 2026-06-19')).toBeInTheDocument()
+  expect(screen.getByText(textContentMatcher('Latest completed day: 2026-06-20'))).toBeInTheDocument()
+  expect(screen.getByText(textContentMatcher('Stale: 6 days behind'))).toBeInTheDocument()
+  expect(screen.getByText(textContentMatcher('Coverage through: 2026-06-19'))).toBeInTheDocument()
   expect(screen.queryByText('Data is 6 days old')).not.toBeInTheDocument()
 })
 
@@ -654,8 +658,8 @@ test('uses accessible risk threshold labels outside the chart canvas', async () 
   const visibleThresholds = within(await screen.findByLabelText('Risk threshold'))
   expect(visibleThresholds.getByText('Low / Neutral')).toBeInTheDocument()
   expect(visibleThresholds.getByText('Neutral / High')).toBeInTheDocument()
-  expect(await screen.findByText('Low / Neutral near $82,000')).toBeInTheDocument()
-  expect(await screen.findByText('Neutral / High near $118,000')).toBeInTheDocument()
+  expect(await screen.findByText(textContentMatcher('Low / Neutral near $82,000'))).toBeInTheDocument()
+  expect(await screen.findByText(textContentMatcher('Neutral / High near $118,000'))).toBeInTheDocument()
 
   const riskChart = await screen.findByTestId('chart-risk')
   const riskOption = JSON.parse(riskChart.dataset.option ?? '{}')
@@ -736,6 +740,84 @@ test('offers all issue 28 languages and applies document language metadata', asy
   expect(await screen.findByText('المخاطر الحالية')).toBeInTheDocument()
   expect(document.documentElement).toHaveAttribute('lang', 'ar')
   expect(document.documentElement).toHaveAttribute('dir', 'rtl')
+})
+
+test('isolates visible Arabic numeric, date, and currency values as LTR', async () => {
+  render(<App />)
+
+  const selector = await screen.findByRole('combobox', { name: /select language/i })
+  fireEvent.change(selector, { target: { value: 'ar' } })
+
+  const metrics = document.querySelector('.metrics-strip')
+  expect(metrics).not.toBeNull()
+  const metricValues = within(metrics as HTMLElement).getAllByText((_, element) => element?.classList.contains('numeric-value') ?? false)
+  expect(metricValues.map((element) => element.textContent)).toEqual(expect.arrayContaining([
+    '$100,000',
+    '$96,500',
+    '$104,250',
+    '2026-06-26',
+    '+10%',
+  ]))
+  for (const value of metricValues) {
+    expect(value).toHaveAttribute('dir', 'ltr')
+  }
+
+  const thresholdValues = document.querySelectorAll('.threshold-callouts .numeric-value')
+  expect(Array.from(thresholdValues).map((element) => element.textContent)).toEqual(expect.arrayContaining([
+    '$82,000',
+    '$118,000',
+  ]))
+  for (const value of thresholdValues) {
+    expect(value).toHaveAttribute('dir', 'ltr')
+  }
+
+  const trustValues = document.querySelectorAll('.trust-panel .numeric-value')
+  expect(Array.from(trustValues).map((element) => element.textContent)).toEqual(expect.arrayContaining([
+    '2026-06-26',
+  ]))
+  for (const value of trustValues) {
+    expect(value).toHaveAttribute('dir', 'ltr')
+  }
+})
+
+test('isolates visible Arabic degraded freshness counts as LTR', async () => {
+  apiMocks.fetchReadiness.mockResolvedValueOnce({
+    status: 'degraded',
+    checks: {
+      risk_data_available: true,
+      validation_available: true,
+      risk_range_ok: false,
+      validation_has_rows: true,
+      latest_matches_validation_end: false,
+      source_is_canonical: true,
+      data_fresh: false,
+    },
+    data: {
+      latest_date: '2026-06-20',
+      covered_end: '2026-06-19',
+      data_age_days: 6,
+      max_age_days: 2,
+      source: 'coinmarketcap_csv',
+      row_count: 5827,
+      methodology_version: 'crypto-scout-canonical-v1',
+    },
+  })
+
+  render(<App />)
+
+  const selector = await screen.findByRole('combobox', { name: /select language/i })
+  fireEvent.change(selector, { target: { value: 'ar' } })
+
+  const freshnessValues = document.querySelectorAll('.freshness-metric .numeric-value')
+  expect(Array.from(freshnessValues).map((element) => element.textContent)).toEqual(expect.arrayContaining([
+    '2026-06-26',
+    '2026-06-20',
+    '2026-06-19',
+    '6',
+  ]))
+  for (const value of freshnessValues) {
+    expect(value).toHaveAttribute('dir', 'ltr')
+  }
 })
 
 test('submits the selected expanded locale to the waitlist API', async () => {

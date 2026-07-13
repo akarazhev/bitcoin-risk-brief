@@ -181,6 +181,25 @@ test('renders desktop and mobile layouts with non-empty chart canvases', async (
   await expectNonBlankCharts(page, testInfo.project.name.startsWith('mobile') ? 280 : 440)
 })
 
+test('keeps Arabic RTL layout numeric data isolated and readable', async ({ page }, testInfo) => {
+  await mockApi(page, degradedReadiness)
+
+  await page.goto('/')
+  await page.getByRole('combobox', { name: /select language/i }).selectOption('ar')
+
+  await expect(page.locator('html')).toHaveAttribute('lang', 'ar')
+  await expect(page.locator('html')).toHaveAttribute('dir', 'rtl')
+  await expect(page.locator('.numeric-value', { hasText: '$100,000' }).first()).toHaveAttribute('dir', 'ltr')
+  await expect(page.locator('.numeric-value', { hasText: '70%' }).first()).toHaveAttribute('dir', 'ltr')
+  await expect(page.locator('.numeric-value', { hasText: '2026-06-26' }).first()).toHaveAttribute('dir', 'ltr')
+  await expect(page.locator('.freshness-metric .numeric-value', { hasText: /^6$/ })).toHaveAttribute('dir', 'ltr')
+  await expect(page.locator('.trust-panel .numeric-value', { hasText: '2026-06-20' })).toHaveAttribute('dir', 'ltr')
+  await expect(page.locator('.trust-panel .numeric-value', { hasText: '2026-06-19' })).toHaveAttribute('dir', 'ltr')
+  await expect(page.locator('.threshold-callouts .numeric-value', { hasText: '$118,000' })).toHaveAttribute('dir', 'ltr')
+  await expectNoHorizontalOverflow(page)
+  await expectNonBlankCharts(page, testInfo.project.name.startsWith('mobile') ? 280 : 440)
+})
+
 test('passes a focused axe accessibility scan on the rendered page', async ({ page }, testInfo) => {
   await mockApi(page)
 
