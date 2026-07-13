@@ -37,7 +37,7 @@ export async function fetchBrief() {
 }
 
 export async function fetchReadiness() {
-  const response = await fetch('/api/readiness')
+  const response = await fetch('/api/readiness', { cache: 'no-store' })
   const payload = (await response.json()) as ReadinessPayload
   if (!response.ok && response.status !== 503) {
     throw new Error(`Request failed: ${response.status}`)
