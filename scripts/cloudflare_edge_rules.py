@@ -14,8 +14,9 @@ CLOUDFLARE_API_BASE = "https://api.cloudflare.com/client/v4"
 CLOUDFLARE_MANAGED_RULESET_ID = "efb7b8c949ac4650a09736fc376e9aee"
 OWNED_RULE_PREFIX = "bitcoin-risk-brief:"
 
+READINESS_PATH = "/api/readiness"
+
 PUBLIC_READ_PATHS = (
-    "/api/readiness",
     "/api/risk/latest",
     "/api/risk/history",
     "/api/risk/levels",
@@ -39,6 +40,13 @@ def _waitlist_expression(hostname: str) -> str:
     return (
         f"({_host_expression(hostname)} and http.request.method eq \"POST\" "
         'and http.request.uri.path eq "/api/waitlist")'
+    )
+
+
+def _readiness_expression(hostname: str) -> str:
+    return (
+        f"({_host_expression(hostname)} and http.request.method eq \"GET\" "
+        f'and http.request.uri.path eq "{READINESS_PATH}")'
     )
 
 
@@ -184,8 +192,16 @@ def build_edge_ruleset_plan(
                     "action_parameters": {"cache": False},
                 },
                 {
+                    "ref": f"{OWNED_RULE_PREFIX}readiness-cache-bypass",
+                    "description": "Bypass cache for readiness status",
+                    "enabled": True,
+                    "expression": _readiness_expression(hostname),
+                    "action": "set_cache_settings",
+                    "action_parameters": {"cache": False},
+                },
+                {
                     "ref": f"{OWNED_RULE_PREFIX}public-api-origin-cache",
-                    "description": "Respect origin cache headers for public read endpoints",
+                    "description": "Respect origin cache headers for cacheable public read endpoints",
                     "enabled": True,
                     "expression": _public_read_expression(hostname),
                     "action": "set_cache_settings",

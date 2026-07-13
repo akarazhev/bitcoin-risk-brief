@@ -48,11 +48,29 @@ class CloudflareEdgeRulesPlanTest(unittest.TestCase):
         self.assertIn('starts_with(http.request.uri.path, "/api/")', rate_rules[1]["expression"])
 
         cache_rules = plan["http_request_cache_settings"]["rules"]
+        self.assertEqual(
+            [rule["ref"] for rule in cache_rules],
+            [
+                "bitcoin-risk-brief:waitlist-cache-bypass",
+                "bitcoin-risk-brief:readiness-cache-bypass",
+                "bitcoin-risk-brief:public-api-origin-cache",
+            ],
+        )
         self.assertFalse(cache_rules[0]["action_parameters"]["cache"])
         self.assertIn('http.request.uri.path eq "/api/waitlist"', cache_rules[0]["expression"])
-        self.assertTrue(cache_rules[1]["action_parameters"]["cache"])
-        self.assertEqual(cache_rules[1]["action_parameters"]["edge_ttl"]["mode"], "respect_origin")
-        self.assertIn('http.request.uri.path eq "/api/risk/latest"', cache_rules[1]["expression"])
+        self.assertFalse(cache_rules[1]["action_parameters"]["cache"])
+        self.assertIn('http.request.uri.path eq "/api/readiness"', cache_rules[1]["expression"])
+        self.assertTrue(cache_rules[2]["action_parameters"]["cache"])
+        self.assertEqual(cache_rules[2]["action_parameters"]["edge_ttl"]["mode"], "respect_origin")
+        self.assertIn('http.request.uri.path eq "/api/risk/latest"', cache_rules[2]["expression"])
+        self.assertNotIn('http.request.uri.path eq "/api/readiness"', cache_rules[2]["expression"])
+
+    def test_public_read_cache_paths_exclude_readiness(self) -> None:
+        self.assertNotIn("/api/readiness", cloudflare_edge_rules.PUBLIC_READ_PATHS)
+        self.assertIn("/api/risk/latest", cloudflare_edge_rules.PUBLIC_READ_PATHS)
+        self.assertIn("/api/risk/history", cloudflare_edge_rules.PUBLIC_READ_PATHS)
+        self.assertIn("/api/risk/levels", cloudflare_edge_rules.PUBLIC_READ_PATHS)
+        self.assertIn("/api/brief/latest", cloudflare_edge_rules.PUBLIC_READ_PATHS)
 
     def test_plan_escapes_hostname_for_rules_language(self) -> None:
         plan = cloudflare_edge_rules.build_edge_ruleset_plan('risk."example".com')
