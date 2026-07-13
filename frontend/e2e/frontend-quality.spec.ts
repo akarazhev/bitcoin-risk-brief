@@ -167,9 +167,9 @@ test('renders desktop and mobile layouts with non-empty chart canvases', async (
   await expect(page.getByRole('heading', { name: 'Bitcoin Risk Brief' })).toBeVisible()
   await expect(page.getByText('Readiness ready')).toBeVisible()
   const currentState = page.locator('.metrics-strip')
-  await expect(currentState.getByText('Model price')).toBeVisible()
-  await expect(currentState.getByText('Low')).toBeVisible()
-  await expect(currentState.getByText('High')).toBeVisible()
+  await expect(currentState.getByText('Model price', { exact: true })).toBeVisible()
+  await expect(currentState.getByText('Low', { exact: true })).toBeVisible()
+  await expect(currentState.getByText('High', { exact: true })).toBeVisible()
   await expect(currentState.getByText('$96,500')).toBeVisible()
   await expect(currentState.getByText('$104,250')).toBeVisible()
   await expect(page.getByText('Low / Neutral near $82,000')).toBeVisible()
@@ -214,7 +214,7 @@ test('supports keyboard focus navigation through public controls with mocked wai
 
   await expect(page.getByRole('heading', { name: 'Bitcoin Risk Brief' })).toBeVisible()
   const methodologyLink = page.getByRole('link', { name: /methodology/i })
-  const languageButton = page.getByRole('button', { name: 'RU' })
+  const languageSelector = page.getByRole('combobox', { name: /select language/i })
   const waitlistInput = page.getByLabel('email or @telegram')
   const submitButton = page.getByRole('button', { name: /join waitlist/i })
 
@@ -222,7 +222,7 @@ test('supports keyboard focus navigation through public controls with mocked wai
   if (await isFocused(methodologyLink)) {
     await pressTab()
   }
-  await expect(languageButton).toBeFocused()
+  await expect(languageSelector).toBeFocused()
   await pressTab()
   await expect(waitlistInput).toBeFocused()
   await page.keyboard.type('keyboard@example.invalid')
