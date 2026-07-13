@@ -98,6 +98,10 @@ raw logs, dashboard URLs, and raw waitlist contacts out of repository notes.
 
 As of the 2026-07-10 local source inspection, frontend and backend application code did not contain product analytics or
 tracking-cookie code. Future source changes must recheck this before making any public no-analytics or no-cookie claim.
+Cloudflare Web Analytics automatic setup and Beacon injection are intentionally disabled for the production pilot. The
+frontend CSP must not allow `static.cloudflareinsights.com` unless a later analytics/privacy design updates the public UI
+copy, retention rules, and operator runbooks. Static frontend responses include `Cache-Control` directives with
+`no-transform` so the Cloudflare proxy should not rewrite the HTML to inject third-party scripts.
 
 Future persisted product analytics should collect only the fields needed to understand demand and abuse patterns. The
 current backend access logs are operational logs; a product analytics table or aggregate should be designed separately
