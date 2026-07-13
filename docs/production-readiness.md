@@ -190,7 +190,7 @@ Consolidated first-traffic blocker and acceptance register recorded on 2026-07-1
 | Full WCAG/legal accessibility status | Blocked pending evidence. | Do not claim full WCAG/legal accessibility compliance. Manual/native checks remain required before first traffic, and legal accessibility approval is not claimed. |
 | Remaining cache-miss/edge-hit latency matrix | Partial historical evidence; blocked if still required by the launch matrix. | Record current endpoint-specific cache-miss and edge-hit timing for any public read endpoints not covered by current accepted evidence, or explicitly accept remaining latency limitations. |
 | Cloudflare Free-plan first-traffic decision | Accepted limitation for small operator-watched pilot only. | The current Free-plan-compatible subset is accepted for a small operator-watched pilot. Managed WAF/additional rate-limit controls are deferred until broader traffic or observed abuse risk. Do not claim broader Cloudflare security readiness. |
-| Fresh pre-traffic readiness evidence | Blocked pending final-window evidence. | Recheck public health, readiness, latest-risk, freshness, date alignment, and required cache headers immediately before first traffic. Prior public probes are supporting evidence only, not final-window evidence. |
+| Fresh pre-traffic readiness evidence | Blocked pending final-window evidence. | Recheck public health, readiness, latest-risk, freshness, date alignment, readiness `no-store`, and required cache headers on cacheable product endpoints immediately before first traffic. Prior public probes are supporting evidence only, not final-window evidence. |
 | Sanitized final launch snapshot packet | Blocked pending packet. | Create and validate a real sanitized launch snapshot packet from collected evidence outside Git, then copy only sanitized final status into launch docs. Do not treat templates or helper availability as a packet. |
 | Final operator acceptance | Blocked pending operator acceptance. | Record sanitized final operator acceptance only after all required gates are completed, the launch snapshot exists, and the only remaining limitations are the accepted limitations listed in this register. No final acceptance is recorded now. |
 | Remote publication if required | Not blocking in current local state. | Local `HEAD` and `origin/main` both resolved to `08ff527` at the start of the decision pass. This pass does not push or tag. |
@@ -220,8 +220,8 @@ Final launch snapshot readiness/gap pass recorded on 2026-07-12:
 - Supporting public-host evidence: no fresh public GET checks were run for this snapshot pass. Existing 2026-07-12
   public GET-only evidence in this document supports current public behavior only: health/readiness/latest-risk checks
   passed with `latest_date=2026-07-11`, rounded latest risk `0.2190`, `risk_state=low` where captured by the
-  launch-matrix pass, and required `Cache-Control`, `ETag`, `X-Cache-Version`, and `X-Cache` headers present. This is
-  supporting current public evidence, not final pre-traffic evidence, because upstream launch gates remain incomplete.
+  launch-matrix pass, and product cache headers were present where checked. This is supporting current public evidence,
+  not final pre-traffic evidence, because upstream launch gates remain incomplete.
 - Required evidence reference status: support/contact and account recovery readiness are completed by the later
   2026-07-12 sanitized evidence note; external monitoring and alert delivery remain partial/blocked; recurring
   backup/off-server copy/freshness automation is deferred only after a fresh manual backup/off-server copy passes before
@@ -299,8 +299,8 @@ completed evidence and does not close monitor/provider or alert-delivery blocker
   --require-cache-header X-Cache`.
 - Public endpoint probe result: passed. Assertions covered `GET /api/health` HTTP 200 with `status: ok`,
   `GET /api/readiness` HTTP 200 with `status: ready`, all required readiness checks true including `data_fresh`, matching
-  readiness/latest-risk dates, latest data age no more than 2 UTC days, and required cache headers on readiness and latest
-  risk. Sanitized summary: `latest_date=2026-07-10`, `risk=0.2616`, cache headers present.
+  readiness/latest-risk dates, latest data age no more than 2 UTC days, and required cache headers on cacheable product
+  responses. Sanitized summary: `latest_date=2026-07-10`, `risk=0.2616`, cache headers present.
 - Backup freshness checker result from this workstation: failed/stale for local backup timestamp basename
   `20260626T165423Z` with a 30-hour freshness window. This is not production-host or off-server scheduler evidence. The
   latest recorded production update backup evidence remains the historical 2026-07-11 copied/off-server checker pass for
@@ -310,7 +310,7 @@ completed evidence and does not close monitor/provider or alert-delivery blocker
 | Required coverage | 2026-07-11 sanitized status | Assertion type / limitation |
 | --- | --- | --- |
 | Uptime monitor for `GET /api/health` | Partial. Local public probe passed; no external provider monitor was configured or verified. | HTTP 200 and JSON `status: ok` assertion proven by local probe only. |
-| Readiness/freshness monitor for `GET /api/readiness` | Partial. Local public probe passed; no external provider JSON assertion evidence was available. | HTTP 200, JSON `status: ready`, required readiness checks, `data_fresh`, date match, max age, and cache headers proven by local probe only. If the selected provider cannot assert JSON, use this probe from cron or a synthetic runner and record that limitation. |
+| Readiness/freshness monitor for `GET /api/readiness` | Partial. Local public probe passed; no external provider JSON assertion evidence was available. | HTTP 200, JSON `status: ready`, required readiness checks, `data_fresh`, date match, max age, and readiness `no-store` proven by local probe only. If the selected provider cannot assert JSON, use this probe from cron or a synthetic runner and record that limitation. |
 | Latest-risk monitor for `GET /api/risk/latest` | Partial. Local public probe passed; no external provider monitor evidence was available. | HTTP 200, parseable timestamp date matching readiness, numeric risk in range, freshness, and cache headers proven by local probe only. |
 | Backup freshness monitor | Blocked for production monitoring. Workstation-local checker failed stale; production/off-server scheduler evidence was unavailable. | Record only timestamp basename plus pass/fail from the production host or selected scheduler with off-server root when available. |
 | Cloudflare Tunnel connector health notification | Blocked. No Cloudflare dashboard/API evidence or current plan notification evidence was available. | Public endpoints prove the hostname path served during the probe, but not connector-down/flapping notification coverage. |
@@ -336,9 +336,9 @@ Fresh public endpoint readiness probe recorded on 2026-07-11:
 - Endpoints covered: `GET /api/health`, `GET /api/readiness`, and `GET /api/risk/latest`.
 - Freshness policy: latest public data age no more than 2 UTC days.
 - Sanitized result summary: probe passed; all covered public GET endpoints satisfied HTTP 200 assertions; readiness state
-  was `ready`; latest date was `2026-07-10`; rounded latest risk was `0.2616`; required cache headers `Cache-Control`,
-  `ETag`, `X-Cache-Version`, and `X-Cache` were present on readiness and latest-risk assertions. The probe output did
-  not emit a risk state value.
+  was `ready`; latest date was `2026-07-10`; rounded latest risk was `0.2616`; readiness freshness was validated and
+  required cache headers `Cache-Control`, `ETag`, `X-Cache-Version`, and `X-Cache` were present on cacheable product
+  assertions. The probe output did not emit a risk state value.
 - Limitation: this is a local/public GET-only probe. It does not prove external monitor provider configuration,
   scheduled monitor execution, or alert delivery, and the external monitoring/alert-delivery gate remains
   partial/blocked, not passed.
@@ -367,8 +367,8 @@ completed evidence and does not close monitor/provider or alert-delivery blocker
 - Public endpoint probe result: passed. Sanitized output:
   `OK public endpoints healthy latest_date=2026-07-11 risk=0.2190 freshness=max_data_age_days:2
   cache_headers=Cache-Control,ETag,X-Cache-Version,X-Cache`. The probe covered `GET /api/health`, `GET /api/readiness`,
-  and `GET /api/risk/latest`; required cache headers were present for the cacheable readiness/latest-risk assertions. The
-  probe output did not emit `risk_state`, and this pass does not require `risk_state` from the probe.
+  and `GET /api/risk/latest`; readiness freshness and latest-risk cache headers were validated. The probe output did not
+  emit `risk_state`, and this pass does not require `risk_state` from the probe.
 - Backup freshness/off-server copy evidence status: no new production-host, off-server scheduler, monitor, or alert
   evidence was available. The latest recorded production update backup evidence remains the historical 2026-07-11
   copied/off-server checker pass for timestamp basename `20260711T190355Z`; recurring backup scheduling, selected
@@ -378,7 +378,7 @@ completed evidence and does not close monitor/provider or alert-delivery blocker
 | Required coverage | 2026-07-12 sanitized status | Evidence / remaining proof |
 | --- | --- | --- |
 | Uptime monitor for `GET /api/health` | Partial. The approved local public probe passed; no external provider monitor was configured or verified. | Local GET-only evidence supports HTTP 200/JSON health behavior. Still required: external monitor/dashboard or chosen scheduled runner proof, plus alerts on non-200, timeout, or TLS failure. |
-| Readiness/freshness monitor for `GET /api/readiness` | Partial. The approved local public probe passed with max data age 2 and required cache headers; no external provider JSON assertion, scheduled after-window run, or alert route evidence was available. | Still required: alert on non-200, `status` not `ready`, stale data after the nightly refresh window, and `data_age_days` exceeding `DATA_FRESHNESS_MAX_AGE_DAYS`. |
+| Readiness/freshness monitor for `GET /api/readiness` | Partial. The approved local public probe passed with max data age 2 and readiness freshness checks; no external provider JSON assertion, scheduled after-window run, or alert route evidence was available. | Still required: alert on non-200, `status` not `ready`, stale data after the nightly refresh window, and `data_age_days` exceeding `DATA_FRESHNESS_MAX_AGE_DAYS`. |
 | Latest-risk public endpoint probe for `GET /api/risk/latest` | Partial. The approved local public probe passed with `latest_date=2026-07-11`, rounded risk `0.2190`, readiness/latest-risk date alignment, and required cache headers. | Still required: provider/scheduler proof and alert behavior for timeout, non-200, malformed JSON, stale/mismatched date, nonnumeric risk, or missing required cache headers. |
 | Collector failure alert | Blocked. No production host, scheduler, service monitor, container restart, or log-alert evidence was available. | Configure and record sanitized alerts for `scheduled_refresh_failed`, `public_cmc_download_failed`, API fallback failure when configured, missed scheduled refresh evidence, and repeated `data-collector` restarts. |
 | Backup freshness/off-server copy alert | Blocked for recurring production monitoring. Historical copied/off-server checker evidence exists for `20260711T190355Z`, but no current scheduler/monitor or delivery proof was available. | Choose the freshness window, monitor checksum-verified local backup plus off-server copy presence inside that window, alert on missing/stale/malformed/checksum-invalid results, and record only sanitized timestamp basenames/status. |
@@ -476,7 +476,7 @@ by itself.
 | --- | --- | --- |
 | Source/archive provenance | Blocked pending operator evidence. Source category remains unknown for the current production data from direct evidence; no public CoinMarketCap download, manual CSV, API fallback, restore, or correction packet was provided. | Capture the sanitized source type, source snapshot/archive basename or reference, retrieval method and timestamps, source `sha256`, byte size when available, row count, covered start/end, expected tail date, and operator/source-owner role from the real production import archive outside Git. |
 | Production import metadata | Blocked pending production-host or operator evidence. No import command/path, scheduler run, production validation/import table row, validation source, validation covered end/latest timestamp, database row count, risk recomputation result, or collector command evidence was available. | Record the import mode and command category, production revision, validation source/source strategy, validation row count and covered end, latest risk date, risk recomputation status, and database/cache evidence from the same production import. |
-| Public consistency evidence | Partial supporting evidence only. Historical and current public GET-only checks show healthy readiness/latest-risk behavior and cache headers, including the 2026-07-12 probe above, but public responses do not identify the exact production source archive or prove the production import command. | Pair public readiness/latest/cache headers with the real source/archive packet and direct production validation/import metadata before marking provenance passed. |
+| Public consistency evidence | Partial supporting evidence only. Historical and current public GET-only checks show healthy readiness/latest-risk behavior and product cache headers, including the 2026-07-12 probe above, but public responses do not identify the exact production source archive or prove the production import command. | Pair public readiness/latest/product-cache headers with the real source/archive packet and direct production validation/import metadata before marking provenance passed. |
 | Local helper/tooling evidence | Passed for local helper availability only. `scripts/import_provenance_packet.py`, the packet template, and focused unittest coverage exist and the helper help/tests passed locally. | Run `create` and `validate` against the real production source snapshot, canonical output, and evidence-file basenames after an operator collects the outside-Git packet. Treat any local sample or repository CSV-only packet as non-production evidence. |
 | Gate status | Partial, not passed. Meaningful supporting public/local evidence exists, and the operator now confirms the refresh/import workflow is operational for the small pilot, but sanitized final source/import proof is still missing. | First traffic remains blocked by this gate until the final snapshot records source category, retrieval/import timestamp, row count/range, readiness/latest-risk output, and checksum if available. No accepted limitation is intended for the refresh workflow. |
 
@@ -527,9 +527,10 @@ Launch Matrix, accessibility, and public-host QA evidence pass recorded on 2026-
   asset exists. The privacy/terms/disclaimer note was verified as visible by the public homepage smoke; this does not
   resolve waitlist owner, retention, deletion/unsubscribe, support/contact, legal approval, or full privacy/terms
   decisions.
-- Cache/latency evidence: this pass verified public cache-header presence for readiness and latest-risk. It did not run a
-  new cache-miss/edge-hit latency matrix for all public read endpoints. Existing 2026-07-05 and 2026-07-07 latency/cache
-  evidence remains historical; unmeasured or stale endpoint-specific cache-miss/edge-hit latency evidence stays pending.
+- Cache/latency evidence: this pass verified public readiness/latest-risk behavior and latest-risk cache-header presence.
+  It did not run a new cache-miss/edge-hit latency matrix for all public product read endpoints. Existing 2026-07-05 and
+  2026-07-07 latency/cache evidence remains historical; unmeasured or stale endpoint-specific cache-miss/edge-hit latency
+  evidence stays pending.
 - Launch Matrix / Accessibility / Public-Host QA gate status: partial, not passed. Current public endpoint freshness,
   public homepage desktop/mobile Chromium smoke, public metadata/privacy smoke, local browser-profile smoke, local axe,
   local mocked keyboard/focus, and public-host axe evidence are recorded. First traffic remains blocked because external
@@ -809,7 +810,9 @@ Monitoring and alerts evidence pass recorded on 2026-07-10 at 06:13 UTC for
   headers were `Cache-Control: public, max-age=60, stale-while-revalidate=300`, `ETag: "2982cd45d5bc626fecfb86c4"`,
   `X-Cache: MISS`, `X-Cache-Version` marker
   `validation:2026-07-10T01:00:06.300719+00:00:2026-07-09T00:00:00+00:00:5841:true`, and
-  `cf-cache-status: EXPIRED`.
+  `cf-cache-status: EXPIRED`. This readiness cache-header observation is historical and predates the live-readiness
+  no-store policy; current `/api/readiness` must return `Cache-Control: no-store`, and cache-header assertions apply to
+  cacheable product endpoints only.
 - Latest risk: `GET /api/risk/latest` returned HTTP 200 for timestamp `2026-07-09T00:00:00+00:00` with
   `risk_state: low`, risk approximately `0.2494`, `model_price_usd: 62753.94724853333`,
   `low_usd: 61645.7524817`, and `high_usd: 63422.9415885`. The latest risk date matches readiness `covered_end`.
@@ -824,7 +827,7 @@ Monitoring and alerts evidence pass recorded on 2026-07-10 at 06:13 UTC for
 
 | Evidence area | 2026-07-10 status | Exact remaining operator action |
 | --- | --- | --- |
-| Local public endpoint probe tooling | Implemented locally after the 2026-07-10 evidence pass. `scripts/check_public_endpoints.py` can validate public `GET /api/health`, `GET /api/readiness`, and `GET /api/risk/latest` with an explicit `--max-data-age-days` or `--expected-latest-date` freshness policy and optional cache-header assertions. Focused unit tests cover success, endpoint failures, stale readiness, missing readiness fields, malformed JSON/latest risk, date mismatch, cache-header requirements, handled network failure, and GET-only behavior. | Put the probe under cron, a synthetic monitor runner, or an external monitoring provider using a chosen freshness policy; record only sanitized latest status, assertion summary, interval/window, and delivery route. This does not replace provider/dashboard proof or alert-delivery evidence. |
+| Local public endpoint probe tooling | Implemented locally after the 2026-07-10 evidence pass. `scripts/check_public_endpoints.py` can validate public `GET /api/health`, `GET /api/readiness`, and `GET /api/risk/latest` with an explicit `--max-data-age-days` or `--expected-latest-date` freshness policy, readiness `no-store`, and optional cache-header assertions for cacheable product responses. Focused unit tests cover success, endpoint failures, stale readiness, missing readiness fields, malformed JSON/latest risk, date mismatch, readiness no-store, cache-header requirements, handled network failure, and GET-only behavior. | Put the probe under cron, a synthetic monitor runner, or an external monitoring provider using a chosen freshness policy; record only sanitized latest status, assertion summary, interval/window, and delivery route. This does not replace provider/dashboard proof or alert-delivery evidence. |
 | External uptime monitor for `/api/health` | Blocked pending provider evidence. Public `/api/health` is currently HTTP 200, but no external uptime monitor dashboard/API proof was available. | Configure or show an external HTTP monitor for `https://bitcoinriskbrief.minihub.app/api/health`; alert on non-200, timeout, or TLS failure; record provider/dashboard name, sanitized check name, interval, latest check status, and delivery route without account details. |
 | External readiness/freshness monitor for `/api/readiness` | Blocked pending provider evidence. Public `/api/readiness` is currently HTTP 200 and fresh, but no monitor assertion or alert evidence was available. | Configure or show an external HTTP monitor for `https://bitcoinriskbrief.minihub.app/api/readiness`; alert when HTTP is non-200, `status` is not `ready`, or `checks.data_fresh` is not `true`; record sanitized assertion and latest check evidence. |
 | Stale-data alert | Blocked pending alert-rule evidence. Current public readiness is fresh, but no stale-data alert rule or delivery proof was available. | After the nightly collector window plus the operator-defined grace period, alert when readiness is HTTP 503, `data_age_days` exceeds `max_age_days`, or `latest_date`/`covered_end` is older than the last completed UTC day. |
@@ -893,7 +896,7 @@ Launch governance gap pass recorded on 2026-07-10:
 
 | Checklist item | Status classification | Current evidence | Exact remaining action |
 | --- | --- | --- | --- |
-| Public freshness and latest-risk launch evidence | passed with current update evidence | The 2026-07-11 backup-gated update evidence records public readiness/latest checks passed with `latest_date=2026-07-10`, `row_count=5842`, `data_fresh=True`, `risk=0.26161621315507155`, `risk_state=low`, and required cache headers present. | Recheck public `/api/readiness` immediately before any first traffic window because freshness is time-sensitive. |
+| Public freshness and latest-risk launch evidence | passed with current update evidence | The 2026-07-11 backup-gated update evidence records public readiness/latest checks passed with `latest_date=2026-07-10`, `row_count=5842`, `data_fresh=True`, `risk=0.26161621315507155`, `risk_state=low`, and required product cache headers present. | Recheck public `/api/readiness` immediately before any first traffic window because freshness is time-sensitive. |
 | Browser-like waitlist smoke | passed with existing repo evidence | The 2026-07-08 browser-like smoke records HTTP 201, `Cache-Control: no-store`, `Pragma: no-cache`, expected JSON shape, and aggregate-only storage verification. | Keep raw contacts out of repo notes; rerun only with an operator-approved test contact when a new launch snapshot needs fresh evidence. |
 | Privacy, terms, and disclaimer posture | public-host smoke verified; sanitized operator decisions partial | The 2026-07-11 desktop/mobile browser smoke observed the privacy/disclaimer note on the public page and no waitlist POSTs. The source still contains the compact public privacy/terms/disclaimer note near the waitlist with no-advice, no sensitive-info, waitlist storage, operational-log, no recommendation, no paid-SLA, and current no product analytics/tracking-cookie source-code statements. The 2026-07-12 operator decision pass records waitlist handling and support-path category, and the later 2026-07-12 support readiness evidence records mailbox readiness. Legal approval, full privacy policy, and terms-of-service decisions remain incomplete. | Keep the public note current after future deployments. Keep private contacts, raw waitlist data, and support address values out of Git. |
 | Waitlist contact handling owner, review cadence, retention, deletion, and unsubscribe path | resolved for sanitized governance; support path ready | Owner role is founder/operator. Review cadence is several times per week during pilot. Retention lasts until beta ends, with earlier operator-approved deletion on request. Follow-up is manual founder/operator only; no automated newsletter is planned. Deletion/unsubscribe requests use manual requests through the dedicated support contact path kept outside Git. | Do not commit private contact details, raw contacts, raw output, or query details. |
@@ -1171,9 +1174,9 @@ Production import provenance evidence pass recorded on 2026-07-09 from 16:19 to 
   `risk_state: low`, risk approximately `0.2536`, `model_price_usd: 62485.70392776667`, `low_usd: 61492.6501591`, and
   `high_usd: 63706.8859194`. The latest risk date matches readiness `covered_end`.
 - Validation/import metadata summary: direct production `psql` metadata queries were not available because this session
-  has no production host/project access. Public readiness and cache-version metadata consistently expose validation
-  marker `validation:2026-07-09T01:00:06.303623+00:00:2026-07-08T00:00:00+00:00:5840:true`, which corresponds to
-  computed validation time `2026-07-09T01:00:06.303623+00:00`, validation `covered_end`
+  has no production host/project access. Public readiness payload data and product cache-version metadata consistently
+  exposed validation marker `validation:2026-07-09T01:00:06.303623+00:00:2026-07-08T00:00:00+00:00:5840:true`, which
+  corresponds to computed validation time `2026-07-09T01:00:06.303623+00:00`, validation `covered_end`
   `2026-07-08T00:00:00+00:00`, row count `5840`, and `risk_range_ok: true`. This public metadata aligns with readiness
   and latest risk, but it is not a substitute for a direct production validation-table query.
 - Source path/category: partially verified only. The public payloads prove the current validation source is
@@ -1181,6 +1184,8 @@ Production import provenance evidence pass recorded on 2026-07-09 from 16:19 to 
   command evidence were unavailable. Therefore this pass does not prove whether the latest data was produced by the
   scheduled public CoinMarketCap refresh, manual `download-cmc-csv`, manual `import-cmc-csv`, `run-now` existing CSV
   import, optional API fallback, restore, or correction.
+- Historical public cache evidence from this pass predates the live-readiness no-store policy. Current readiness should
+  return `Cache-Control: no-store`; cache headers below are retained only as historical evidence.
 - Public cache evidence: all checked public read endpoints returned HTTP 200 with `Cache-Control: public, max-age=60,
   stale-while-revalidate=300`, an `ETag`, `X-Cache: MISS`, and the same validation-versioned `X-Cache-Version`.
   Cloudflare cache status on repeat requests was `HIT` for `/api/readiness`, `/api/risk/latest`,
@@ -1381,11 +1386,13 @@ Task 10 launch snapshot recorded on 2026-07-05 at 11:37 UTC for `https://bitcoin
 - Latest BTC data and risk: `GET /api/risk/latest` returned HTTP 200 for timestamp `2026-06-30T00:00:00+00:00` with
   `risk_state: low` and risk approximately `0.2860`. At the time, the latest BTC data date remained `2026-06-30`, so
   production data freshness blocked launch for this snapshot.
-- Cache headers: public readiness and latest-risk responses included `Cache-Control: public, max-age=60,
-  stale-while-revalidate=300`, `ETag`, `X-Cache`, and `X-Cache-Version`. The readiness response used
+- Cache headers: this historical snapshot predates the live-readiness no-store policy. Current `/api/readiness` must
+  return `Cache-Control: no-store`; cacheable product responses such as latest risk should carry `Cache-Control`, `ETag`,
+  `X-Cache`, and `X-Cache-Version`. At the time, the readiness response used
   `ETag: "e794a17b08b6404888453563"`, `X-Cache: MISS`,
   `X-Cache-Version: validation:2026-07-04T01:00:05.639122+00:00:2026-06-30T00:00:00+00:00:5832:true`, and
-  `cf-cache-status: STALE`. The latest-risk response used `ETag: "0b452ec072778d840d5ed64d"`, `X-Cache: MISS`,
+  `cf-cache-status: STALE`. The latest-risk response used `Cache-Control: public, max-age=60, stale-while-revalidate=300`,
+  `ETag: "0b452ec072778d840d5ed64d"`, `X-Cache: MISS`,
   `X-Cache-Version: validation:2026-07-05T01:00:05.626717+00:00:2026-06-30T00:00:00+00:00:5832:true`, and
   `cf-cache-status: UPDATING`.
 - Waitlist smoke status: blocked/not collected. No operator-controlled test contact was available, no public waitlist
@@ -1444,8 +1451,9 @@ Task 11 cache latency measurement recorded on 2026-07-05 from 12:15 to 12:17 UTC
   503 with
   `status: degraded`, `data_fresh: false`, `latest_date: 2026-06-30`, `covered_end: 2026-06-30`, `data_age_days: 4`,
   `max_age_days: 2`, `source: coinmarketcap_csv`, and `row_count: 5832`. This measurement is useful for cache-latency
-  evidence, but it did not close the launch blocker at the time. The 2026-07-07 post-deploy evidence above closes the
-  freshness blocker and records fast repeated Cloudflare HIT behavior after warmup.
+  evidence, but it did not close the launch blocker at the time. The readiness cache headers in this table predate the
+  live-readiness no-store policy. The 2026-07-07 post-deploy evidence above closes the freshness blocker and records fast
+  repeated Cloudflare HIT behavior after warmup.
 - Commands used `curl -sS -D - -o /tmp/... -w 'time_total=%{time_total}\n'` against the public hostname. Initial sandbox
   DNS resolution failed, so the public curl checks were rerun with network access for the measurement.
 
@@ -1464,20 +1472,20 @@ Task 11 cache latency measurement recorded on 2026-07-05 from 12:15 to 12:17 UTC
   public cache warmup was later deployed through USB, healthy readiness was restored, and the 2026-07-07 public evidence
   recorded fast repeated Cloudflare HIT behavior after warmup. Continue to measure any endpoint not covered by the
   post-deploy smoke before broader traffic.
-- Cache warmup remains a pre-traffic production operation: warm `/api/readiness`, `/api/risk/latest`,
+- Cache warmup remains a pre-traffic production operation: check `/api/readiness` first, then warm `/api/risk/latest`,
   `/api/risk/history?limit=2000`, `/api/risk/levels`, and `/api/brief/latest` after backend startup and after successful
   import/validation-version changes. Warmup must not hide stale readiness, and it must preserve `X-Cache-Version`
-  invalidation.
+  invalidation for cacheable product payloads.
 
 Task 4 local public-cache warmup command implementation recorded on 2026-07-05:
 
-- Startup warmup is implemented in the backend after the database pool is ready. It warms the standard public read keys
-  only when validation exists and readiness is HTTP 200; missing validation, readiness probe failures, and degraded
-  readiness are logged and skipped so stale production data is not hidden.
+- Startup warmup is implemented in the backend after the database pool is ready. It checks readiness first and warms the
+  standard product public read keys only when validation exists and readiness is HTTP 200; missing validation, readiness
+  probe failures, and degraded readiness are logged and skipped so stale production data is not hidden.
 - The operator command is `PUBLIC_BASE_URL=http://127.0.0.1:3001 ./scripts/manage.sh warm-public-cache`. It calls normal
-  public GET routes for `/api/readiness`, `/api/risk/latest`, `/api/risk/history?limit=2000`, `/api/risk/levels`, and
-  `/api/brief/latest` against a local/private origin. It uses `curl -fsS`, so readiness 503 or any later non-success
-  response fails the command. No public admin endpoint is added.
+  public GET routes against a local/private origin: `/api/readiness` is a `curl -fsS` gate, then `/api/risk/latest`,
+  `/api/risk/history?limit=2000`, `/api/risk/levels`, and `/api/brief/latest` are warmed. Readiness 503 or any later
+  non-success response fails the command. No public admin endpoint is added.
 - `POST /api/waitlist` remains outside the public read cache contract and must continue to return `Cache-Control:
   no-store`.
 - Local implementation and documentation are complete, and production benefit for the public smoke path is supported by
@@ -1627,16 +1635,17 @@ A non-200 readiness response should block deploy promotion and should alert in p
 
 Before public traffic, verify the implemented cache policy for public read endpoints:
 
+- readiness;
 - latest risk;
 - risk history;
 - risk levels;
-- daily brief;
-- readiness.
+- daily brief.
 
-These endpoints should return `Cache-Control`, `ETag`, `X-Cache`, and `X-Cache-Version`. Backend cache invalidation is
-versioned from `btc_risk_validation`; after a successful import, the collector rewrites validation and the next backend
-read rebuilds against the new version unless startup or operator warmup has already rebuilt the standard key.
-`POST /api/waitlist` must return `Cache-Control: no-store` and must not be cached by Cloudflare.
+Readiness should return `Cache-Control: no-store`. Cacheable product endpoints should return `Cache-Control`, `ETag`,
+`X-Cache`, and `X-Cache-Version`. Backend cache invalidation is versioned from `btc_risk_validation`; after a successful
+import, the collector rewrites validation and the next backend product read rebuilds against the new version unless
+startup or operator warmup has already rebuilt the standard key. `POST /api/waitlist` must return
+`Cache-Control: no-store` and must not be cached by Cloudflare.
 
 Before active traffic, measure first-load latency for both backend `X-Cache: MISS` and `X-Cache: HIT` responses on the
 public hostname. Use startup warmup and the local-origin `warm-public-cache` operator command for the standard endpoint

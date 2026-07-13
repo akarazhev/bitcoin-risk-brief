@@ -212,9 +212,11 @@ flow before expanding traffic.
 
 ## Caching Safety
 
-The backend caches these public read endpoints:
+`GET /api/readiness` is the live freshness/status endpoint and is intentionally uncached with `Cache-Control: no-store`
+and `Pragma: no-cache`.
 
-- `/api/readiness`
+The backend caches these public product read endpoints:
+
 - `/api/risk/latest`
 - `/api/risk/history`
 - `/api/risk/levels`

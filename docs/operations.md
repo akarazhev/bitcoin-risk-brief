@@ -375,9 +375,11 @@ final outcomes into launch docs. The template is not provider evidence and does 
 
 ## Cache Verification
 
-Public read endpoints are cacheable at the backend and edge:
+Readiness is intentionally not cacheable. `GET /api/readiness` should return `Cache-Control: no-store` and should be
+used as the live freshness/status check before trusting public risk payloads.
 
-- `/api/readiness`
+Public product read endpoints are cacheable at the backend and edge:
+
 - `/api/risk/latest`
 - `/api/risk/history`
 - `/api/risk/levels`
@@ -396,17 +398,18 @@ Expected headers include `Cache-Control`, `ETag`, `X-Cache`, and `X-Cache-Versio
 curl -sD - -o /tmp/bitcoin-risk-latest.json http://localhost:3001/api/risk/latest
 ```
 
-The backend warms standard public payloads during startup after the database pool is ready and readiness is healthy. If
-validation data is missing, readiness cannot be probed, or readiness returns a non-200 status, startup warmup is skipped
-and logged so degraded or stale data is not hidden.
+The backend warms standard public product payloads during startup after the database pool is ready and readiness is
+healthy. If validation data is missing, readiness cannot be probed, or readiness returns a non-200 status, startup
+warmup is skipped and logged so degraded or stale data is not hidden.
 
-Warm the same standard public payloads after manual or scheduled imports before active traffic:
+Warm the standard public product payloads after manual or scheduled imports before active traffic:
 
-- `/api/readiness`
 - `/api/risk/latest`
 - `/api/risk/history?limit=2000`
 - `/api/risk/levels`
 - `/api/brief/latest`
+
+The warmup script checks readiness first as a `curl -f` gate, but does not warm readiness as a cached payload.
 
 For the normal local production import flow:
 
@@ -582,8 +585,9 @@ curl -sD - -o /tmp/bitcoin-risk-readiness.json https://risk.example.com/api/read
 curl -sD - -o /tmp/bitcoin-risk-latest.json https://risk.example.com/api/risk/latest
 ```
 
-Public read responses should include `Cache-Control`, `ETag`, and `X-Cache-Version`. Waitlist submissions should still
-work for normal users and return `Cache-Control: no-store`.
+Readiness should return `Cache-Control: no-store`. Cacheable product read responses should include `Cache-Control`,
+`ETag`, and `X-Cache-Version`. Waitlist submissions should still work for normal users and return
+`Cache-Control: no-store`.
 
 ## Backups
 
@@ -1073,11 +1077,13 @@ curl -sD - -o /tmp/bitcoin-risk-latest.json "${PUBLIC_BASE_URL}/api/risk/latest"
 curl -sD - -o /tmp/bitcoin-risk-levels.json "${PUBLIC_BASE_URL}/api/risk/levels"
 ```
 
-Expected public read headers include `Cache-Control`, `ETag`, `X-Cache`, and `X-Cache-Version`; the latest timestamp
-should match readiness `covered_end`.
+Expected readiness headers include `Cache-Control: no-store`. Expected cacheable public read headers include
+`Cache-Control`, `ETag`, `X-Cache`, and `X-Cache-Version`; the latest timestamp should match readiness `covered_end`.
 
-- First safe action: wait for `PUBLIC_CACHE_MAX_AGE_SECONDS` or purge the single public hostname/API cache in Cloudflare
-  if an immediate launch snapshot is required. Do not rerun imports solely to clear a stale edge cache.
+- First safe action: purge the single public hostname/API cache in Cloudflare when a previous product API response may
+  already be cached at the edge. If readiness appears cached, treat that as an edge/origin configuration fault, correct
+  the rule or header behavior, and recheck that `/api/readiness` is `no-store`. After purge, compare readiness with
+  `/api/risk/latest`. Do not rerun imports solely to clear a stale edge cache.
 - Pause promotion or take public traffic down: pause promotion if public `covered_end`, latest risk timestamp, or
   `X-Cache-Version` still points to the old validation marker after the cache window or a targeted purge. Take public
   traffic down if stale cache could show known-wrong data after a correction.

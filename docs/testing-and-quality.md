@@ -60,9 +60,9 @@ Backend tests cover:
 - canonical CSV source loading and risk dataset construction;
 - repository full-history behavior;
 - readiness payload rules;
-- public read cache headers, ETags, and no-store waitlist headers;
+- cacheable public read cache headers, ETags, no-store readiness headers, and no-store waitlist headers;
 - public payload cache warmup behavior, including warmed cache-key reuse, validation-version invalidation, and no-store
-  waitlist isolation;
+  readiness and waitlist isolation;
 - security headers;
 - waitlist validation and upsert behavior;
 - fixed-window rate limiter behavior;
