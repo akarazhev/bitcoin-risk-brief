@@ -8,6 +8,13 @@ import unittest
 ROOT = Path(__file__).resolve().parents[2]
 NGINX_CONF = ROOT / "frontend" / "nginx.conf"
 
+EXPECTED_FRONTEND_SECURITY_HEADERS = {
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY",
+    "Referrer-Policy": "strict-origin-when-cross-origin",
+    "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+}
+
 
 def _read_nginx_conf() -> str:
     return NGINX_CONF.read_text()
@@ -56,6 +63,18 @@ def _assert_strict_csp(test_case: unittest.TestCase, csp: str) -> None:
     test_case.assertNotIn("cloudflareinsights.com", csp)
 
 
+def _assert_security_headers_repeated(
+    test_case: unittest.TestCase, config: str, location: str
+) -> None:
+    block = _location_block(config, location)
+    for header_name, expected_value in EXPECTED_FRONTEND_SECURITY_HEADERS.items():
+        test_case.assertEqual(
+            [expected_value],
+            _add_header_values(block, header_name),
+            f"{location} {header_name}",
+        )
+
+
 class FrontendSecurityHeaderTests(unittest.TestCase):
     def test_all_frontend_csp_headers_keep_scripts_self_only(self) -> None:
         config = _read_nginx_conf()
@@ -69,6 +88,12 @@ class FrontendSecurityHeaderTests(unittest.TestCase):
         self.assertGreaterEqual(len(headers), 1)
         for csp in headers:
             _assert_strict_csp(self, csp)
+
+    def test_static_frontend_locations_repeat_security_headers(self) -> None:
+        config = _read_nginx_conf()
+
+        for location in ("/assets/", "/"):
+            _assert_security_headers_repeated(self, config, location)
 
     def test_static_frontend_responses_prevent_edge_script_injection(self) -> None:
         config = _read_nginx_conf()
