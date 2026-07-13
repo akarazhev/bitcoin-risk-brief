@@ -245,7 +245,7 @@ test('renders degraded readiness as a visible degraded state', async ({ page }) 
 
   await expect(page.getByText('Readiness degraded')).toBeVisible()
   await expect(page.getByText('Validation needs attention')).toBeVisible()
-  await expect(page.getByText('Data is 6 days old')).toBeVisible()
+  await expect(page.getByText('Stale: 6 days behind')).toBeVisible()
   await expect(page.getByText('Readiness ready')).toHaveCount(0)
 })
 
