@@ -560,6 +560,16 @@ python3 scripts/cloudflare_edge_rules.py apply \
   --hostname risk.example.com
 ```
 
+To update only the cache settings rules for the production pilot hostname, use the narrower helper. It preserves unrelated
+Cloudflare rules and only changes the repo-managed cache settings entrypoint. Add `--purge` to purge
+`https://bitcoinriskbrief.minihub.app/api/readiness` immediately after the rule update:
+
+```bash
+export CLOUDFLARE_ZONE_ID=replace-with-zone-id
+export CLOUDFLARE_API_TOKEN=replace-with-api-token
+scripts/apply-cloudflare-cache-rules.sh --purge
+```
+
 For a Cloudflare Free plan that is not entitled to execute the managed WAF ruleset, create more than one rate-limit rule,
 or use 60-second rate-limit windows, apply the current public-pilot subset instead:
 

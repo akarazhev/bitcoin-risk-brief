@@ -186,6 +186,87 @@ class CloudflareEdgeRulesPlanTest(unittest.TestCase):
         self.assertIn("created http_request_firewall_managed", operations[0])
         self.assertIn("updated http_ratelimit", " ".join(operations))
 
+    def test_apply_cache_plan_updates_only_cache_settings_entrypoint(self) -> None:
+        class FakeClient:
+            def __init__(self) -> None:
+                self.requested_phases = []
+                self.updated = []
+
+            def get_phase_entrypoint(self, zone_id, phase):
+                self.zone_id = zone_id
+                self.requested_phases.append(phase)
+                return {
+                    "id": "cache-ruleset-id",
+                    "rules": [
+                        {
+                            "ref": "customer-cache-rule",
+                            "description": "preserve",
+                            "action": "set_cache_settings",
+                            "expression": "true",
+                            "action_parameters": {"cache": False},
+                        }
+                    ],
+                }
+
+            def create_ruleset(self, zone_id, payload):
+                raise AssertionError("existing cache entrypoint should be updated")
+
+            def update_ruleset(self, zone_id, ruleset_id, rules):
+                self.updated.append((zone_id, ruleset_id, rules))
+
+        fake_client = FakeClient()
+
+        operations = cloudflare_edge_rules.apply_cache_plan("zone-123", "risk.example.com", fake_client)
+
+        self.assertEqual(fake_client.requested_phases, ["http_request_cache_settings"])
+        self.assertEqual(len(fake_client.updated), 1)
+        zone_id, ruleset_id, rules = fake_client.updated[0]
+        self.assertEqual(zone_id, "zone-123")
+        self.assertEqual(ruleset_id, "cache-ruleset-id")
+        self.assertEqual(rules[0]["ref"], "customer-cache-rule")
+        self.assertEqual(
+            [rule["ref"] for rule in rules[1:]],
+            [
+                "bitcoin-risk-brief:waitlist-cache-bypass",
+                "bitcoin-risk-brief:readiness-cache-bypass",
+                "bitcoin-risk-brief:public-api-origin-cache",
+            ],
+        )
+        self.assertEqual(
+            operations,
+            ["updated http_request_cache_settings entrypoint with 3 managed rules"],
+        )
+
+    def test_purge_cache_sends_readiness_url_to_cloudflare(self) -> None:
+        class RecordingClient(cloudflare_edge_rules.CloudflareApiClient):
+            def __init__(self) -> None:
+                super().__init__("test-token")
+                self.requests = []
+
+            def request_json(self, method, path, payload=None, *, allow_404=False):
+                self.requests.append((method, path, payload, allow_404))
+                return {"id": "purge-request-id"}
+
+        client = RecordingClient()
+
+        result = client.purge_cache(
+            "zone-123",
+            ["https://risk.example.com/api/readiness"],
+        )
+
+        self.assertEqual(result, {"id": "purge-request-id"})
+        self.assertEqual(
+            client.requests,
+            [
+                (
+                    "POST",
+                    "/zones/zone-123/purge_cache",
+                    {"files": ["https://risk.example.com/api/readiness"]},
+                    False,
+                )
+            ],
+        )
+
     def test_apply_plan_can_skip_managed_waf_for_free_plan_zones(self) -> None:
         class FakeClient:
             def __init__(self) -> None:

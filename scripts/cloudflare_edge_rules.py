@@ -313,6 +313,9 @@ class CloudflareApiClient:
     def update_ruleset(self, zone_id: str, ruleset_id: str, rules: list[dict[str, Any]]) -> dict[str, Any] | None:
         return self.request_json("PUT", f"/zones/{zone_id}/rulesets/{ruleset_id}", {"rules": rules})
 
+    def purge_cache(self, zone_id: str, urls: list[str]) -> dict[str, Any] | None:
+        return self.request_json("POST", f"/zones/{zone_id}/purge_cache", {"files": urls})
+
 
 def apply_edge_plan(
     zone_id: str,
@@ -343,6 +346,29 @@ def apply_edge_plan(
             client.create_ruleset(zone_id, payload)
             operations.append(f"created {phase} entrypoint with {len(desired_ruleset['rules'])} managed rules")
     return operations
+
+
+def apply_cache_plan(
+    zone_id: str,
+    hostname: str,
+    client: CloudflareApiClient,
+) -> list[str]:
+    phase = "http_request_cache_settings"
+    desired_ruleset = build_edge_ruleset_plan(
+        hostname,
+        include_managed_waf=False,
+        include_api_rate_limit=False,
+    )[phase]
+    existing = client.get_phase_entrypoint(zone_id, phase)
+    rules = merge_rules(existing, desired_ruleset)
+    if existing and existing.get("id"):
+        client.update_ruleset(zone_id, str(existing["id"]), rules)
+        return [f"updated {phase} entrypoint with {len(desired_ruleset['rules'])} managed rules"]
+
+    payload = dict(desired_ruleset)
+    payload["rules"] = rules
+    client.create_ruleset(zone_id, payload)
+    return [f"created {phase} entrypoint with {len(desired_ruleset['rules'])} managed rules"]
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -405,6 +431,31 @@ def main(argv: list[str] | None = None) -> int:
         help="Cloudflare API token; defaults to CLOUDFLARE_API_TOKEN",
     )
 
+    apply_cache_parser = subparsers.add_parser(
+        "apply-cache",
+        help="Apply only Cloudflare cache settings rules, with optional readiness purge.",
+    )
+    apply_cache_parser.add_argument(
+        "--hostname",
+        default=os.getenv("CLOUDFLARE_HOSTNAME", "bitcoinriskbrief.minihub.app"),
+        help="Public hostname; defaults to CLOUDFLARE_HOSTNAME or bitcoinriskbrief.minihub.app",
+    )
+    apply_cache_parser.add_argument(
+        "--zone-id",
+        default=os.getenv("CLOUDFLARE_ZONE_ID"),
+        help="Cloudflare zone ID; defaults to CLOUDFLARE_ZONE_ID",
+    )
+    apply_cache_parser.add_argument(
+        "--api-token",
+        default=os.getenv("CLOUDFLARE_API_TOKEN"),
+        help="Cloudflare API token; defaults to CLOUDFLARE_API_TOKEN",
+    )
+    apply_cache_parser.add_argument(
+        "--purge",
+        action="store_true",
+        help="Purge https://<hostname>/api/readiness after applying cache rules.",
+    )
+
     args = parser.parse_args(argv)
     if args.command == "render":
         print(
@@ -416,6 +467,23 @@ def main(argv: list[str] | None = None) -> int:
                 rate_limit_mitigation_timeout_seconds=args.rate_limit_mitigation_timeout,
             )
         )
+        return 0
+
+    if args.command == "apply-cache":
+        if not args.zone_id:
+            print("CLOUDFLARE_ZONE_ID or --zone-id is required for apply-cache", file=sys.stderr)
+            return 2
+        if not args.api_token:
+            print("CLOUDFLARE_API_TOKEN or --api-token is required for apply-cache", file=sys.stderr)
+            return 2
+
+        client = CloudflareApiClient(args.api_token)
+        for operation in apply_cache_plan(args.zone_id, args.hostname, client):
+            print(operation)
+        if args.purge:
+            url = f"https://{args.hostname}{READINESS_PATH}"
+            client.purge_cache(args.zone_id, [url])
+            print(f"purged {url}")
         return 0
 
     if not args.api_token:
