@@ -126,14 +126,15 @@ Required sanitized fields:
 - Public base hostname or public endpoint category.
 - Checked public endpoints.
 - HTTP status summary.
-- Required cache/header summary: `Cache-Control`, `ETag`, `X-Cache`, and `X-Cache-Version`.
+- Required readiness header summary: `Cache-Control: no-store`.
+- Required product cache/header summary: `Cache-Control`, `ETag`, `X-Cache`, and `X-Cache-Version`.
 - Whether public latest-risk date matches readiness covered end.
 - Cloudflare or edge cache status summary when available.
 - Evidence basenames for public payload/header captures, if stored outside Git.
 
 Acceptable sanitized wording examples:
 
-- `Status: passed. Public readiness and latest-risk returned HTTP 200; latest risk date matched readiness covered_end YYYY-MM-DD; Cache-Control, ETag, X-Cache, and X-Cache-Version were present.`
+- `Status: passed. Public readiness and latest-risk returned HTTP 200; readiness returned Cache-Control: no-store; latest risk date matched readiness covered_end YYYY-MM-DD; product Cache-Control, ETag, X-Cache, and X-Cache-Version were present.`
 - `Edge cache summary: repeat public read returned Cloudflare HIT; app X-Cache nuance remained documented.`
 - `Status: partial. Public headers were captured, but edge repeat-cache behavior was not checked before the evidence window ended.`
 

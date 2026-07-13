@@ -194,7 +194,8 @@ Recommended initial settings:
   - `POST /api/waitlist`: 5 requests per minute per IP, managed challenge or block repeated offenders.
   - `/api/*`: 120 requests per minute per IP, managed challenge or throttle bursts.
 - Cache:
-  - respect origin `Cache-Control` for `GET /api/readiness`, `/api/risk/latest`, `/api/risk/history`,
+  - bypass cache for `GET /api/readiness`;
+  - respect origin `Cache-Control` for cacheable product reads: `GET /api/risk/latest`, `/api/risk/history`,
     `/api/risk/levels`, and `/api/brief/latest`;
   - bypass cache for `POST /api/waitlist`;
   - purge the hostname after a production import only when the public result must update before the short origin
@@ -207,7 +208,8 @@ curl -sD - -o /tmp/bitcoin-risk-latest.json https://risk.example.com/api/risk/la
 curl -sD - -o /tmp/bitcoin-risk-readiness.json https://risk.example.com/api/readiness
 ```
 
-Both public read responses should include `Cache-Control`, `ETag`, and `X-Cache-Version`.
+Readiness should include `Cache-Control: no-store`. Cacheable product read responses should include `Cache-Control`,
+`ETag`, and `X-Cache-Version`.
 
 The repository includes a repeatable Rulesets API helper for the WAF, custom waitlist bot challenge, rate limits, and
 cache settings. Render the exact payload before applying it:
@@ -248,7 +250,8 @@ manages:
 - `POST /api/waitlist` rate limiting at 5 requests per minute per IP;
 - `/api/*` burst limiting at 120 requests per minute per IP, excluding the waitlist rule above;
 - cache bypass for `POST /api/waitlist`;
-- origin-header-respecting cache behavior for the public read endpoints.
+- cache bypass for `GET /api/readiness`;
+- origin-header-respecting cache behavior for cacheable product read endpoints.
 
 When the Free-plan subset flags are used, the managed WAF and `/api/*` burst limiting bullets above are intentionally
 skipped. Record that limitation in the launch snapshot or upgrade the Cloudflare plan before broader traffic.

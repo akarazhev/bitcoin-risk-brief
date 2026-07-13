@@ -1,15 +1,17 @@
 # Public Payload Cache Warmup And Precompute Design
 
-> Status: future-facing performance hardening. Last reviewed 2026-07-01. This extends the existing public endpoint cache
-> before active traffic if first-load latency remains too high.
+> Status: future-facing performance hardening. Last reviewed 2026-07-13 for live readiness semantics. This extends the
+> existing public endpoint cache before active traffic if first-load latency remains too high. `GET /api/readiness` is
+> intentionally live/no-store and is a warmup gate, not a warmed cache payload.
 
 ## Goal
 
 Make the first public page load fast after backend startup and after the nightly data import.
 
-The current backend already caches public read endpoints with `Cache-Control`, `ETag`, `X-Cache`, and
+The current backend already caches public product read endpoints with `Cache-Control`, `ETag`, `X-Cache`, and
 `X-Cache-Version`. The cache is validation-versioned, but it is lazy: the first request for a cache key after startup,
-TTL expiry, or a new validation marker still reads from TimescaleDB and builds the response payload.
+TTL expiry, or a new validation marker still reads from TimescaleDB and builds the response payload. Readiness is
+separate: it returns `Cache-Control: no-store` and should be built live on each request.
 
 The product should avoid making the first real user pay that cache-miss cost.
 
@@ -23,7 +25,8 @@ The likely first-load costs are:
 
 - `/api/risk/history?limit=2000` reads and serializes a large history payload;
 - `/api/risk/levels` reads full OHLCV history and builds the risk-level table on a cache miss;
-- `/api/brief/latest`, `/api/risk/latest`, and `/api/readiness` are smaller but still miss until warmed;
+- `/api/brief/latest` and `/api/risk/latest` are smaller but still miss until warmed;
+- `/api/readiness` is a live no-store status endpoint and should be checked before warming product payloads;
 - the frontend requests several endpoints at once;
 - the chart bundle is lazy-loaded separately by the frontend.
 
@@ -53,9 +56,8 @@ This distinguishes backend payload cost from frontend bundle/render cost.
 
 ### Stage 2: Warm In-Process Public Cache
 
-Add a backend warmup routine that builds the standard public payloads:
+Add a backend warmup routine that checks readiness first, then builds the standard public product payloads:
 
-- `/api/readiness`;
 - `/api/risk/latest`;
 - `/api/risk/history?limit=2000`;
 - `/api/risk/levels`;
@@ -68,8 +70,9 @@ Warmup should run:
   a lightweight operational command;
 - after detecting a new validation version, if lazy refresh is still needed as a fallback.
 
-Warmup must use the same serialization and cache-key behavior as normal public requests so `ETag`, `X-Cache-Version`, and
-response shapes stay identical.
+Warmup must use the same serialization and cache-key behavior as normal product public requests so `ETag`,
+`X-Cache-Version`, and response shapes stay identical. Readiness should keep returning live `Cache-Control: no-store`
+responses and should not be inserted into the public cache.
 
 ### Stage 3: Precompute Expensive Payloads If Needed
 
@@ -79,7 +82,10 @@ Candidates:
 
 - risk levels payload, because it currently reads full OHLCV history and builds levels on cache miss;
 - default risk history payload for the launch chart;
-- latest/readiness/brief bundle if the frontend later moves to a combined bootstrap endpoint.
+- latest/brief bundle if the frontend later moves to a combined bootstrap endpoint.
+
+Readiness can still be checked before serving a combined bootstrap response, but it should remain live/no-store and
+should not be stored as a cached or precomputed payload.
 
 Precomputed payloads must be derived from the same validation version as the latest risk data. They should be replaced
 after successful imports and ignored when validation is missing or stale.
