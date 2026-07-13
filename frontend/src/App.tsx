@@ -7,6 +7,10 @@ import type { BriefPayload, ReadinessPayload, RiskLevel, RiskPoint } from './typ
 type Locale = 'en' | 'ru'
 type ThresholdCallout = { risk: number; label: string; price: string; text: string }
 type DriverStatus = 'raises' | 'neutral' | 'lowers' | 'unavailable'
+type ReadinessLabels = {
+  freshnessCurrent: string
+  staleAge: (days: number | null) => string
+}
 type ModelDriver = {
   id: 'trend' | 'volatility' | 'activity'
   label: string
@@ -56,10 +60,11 @@ const copy = {
     readinessDegraded: 'Readiness degraded',
     validationPassed: 'Validation passed',
     validationNeedsAttention: 'Validation needs attention',
-    latestDate: 'Latest date',
-    coveredEnd: 'Covered end',
-    freshAge: (days: number | null) => (days === null ? 'Freshness unknown' : `Fresh: ${days} ${days === 1 ? 'day' : 'days'} old`),
-    staleAge: (days: number | null) => (days === null ? 'Data age unavailable' : `Data is ${days} ${days === 1 ? 'day' : 'days'} old`),
+    currentThrough: 'Current through',
+    latestCompletedDay: 'Latest completed day',
+    coverageThrough: 'Coverage through',
+    freshnessCurrent: 'Freshness: current',
+    staleAge: (days: number | null) => (days === null ? 'Staleness unavailable' : `Stale: ${days} ${days === 1 ? 'day' : 'days'} behind`),
     methodology: 'Methodology',
     methodologyLink: 'View methodology',
     methodologyVersion: 'Methodology version',
@@ -141,10 +146,11 @@ const copy = {
     readinessDegraded: 'Готовность снижена',
     validationPassed: 'Валидация пройдена',
     validationNeedsAttention: 'Валидация требует внимания',
-    latestDate: 'Последняя дата',
-    coveredEnd: 'Покрыто до',
-    freshAge: (days: number | null) => (days === null ? 'Свежесть неизвестна' : `Свежесть: ${days} дн.`),
-    staleAge: (days: number | null) => (days === null ? 'Возраст данных неизвестен' : `Данным ${days} дн.`),
+    currentThrough: 'Актуально по',
+    latestCompletedDay: 'Последний завершенный день',
+    coverageThrough: 'Покрытие по',
+    freshnessCurrent: 'Свежесть: актуально',
+    staleAge: (days: number | null) => (days === null ? 'Отставание данных неизвестно' : `Отставание: ${days} дн.`),
     methodology: 'Методология',
     methodologyLink: 'Методология',
     methodologyVersion: 'Версия методологии',
@@ -273,6 +279,12 @@ function buildModelDrivers(latest: RiskPoint, labels: typeof copy[Locale]): Mode
 
 function formatTrustValue(label: string, value: string | null) {
   return `${label}: ${value ?? 'unavailable'}`
+}
+
+function readinessFreshnessText(readiness: ReadinessPayload, labels: ReadinessLabels) {
+  return readiness.checks.data_fresh
+    ? labels.freshnessCurrent
+    : labels.staleAge(readiness.data.data_age_days)
 }
 
 function validationPassed(readiness: ReadinessPayload) {
@@ -522,16 +534,16 @@ export default function App() {
           </div>
         </div>
         <div className="freshness-metric">
-          <span>{t.updated}</span>
+          <span>{ready && readiness.checks.data_fresh ? t.currentThrough : t.updated}</span>
           <strong>{latest.timestamp.slice(0, 10)}</strong>
           <p className={`readiness-badge ${readiness.status}`}>
             {ready ? <CheckCircle2 size={15} /> : <TriangleAlert size={15} />}
             {ready ? t.readinessReady : t.readinessDegraded}
           </p>
           <em>{validationOk ? t.validationPassed : t.validationNeedsAttention}</em>
-          <em>{formatTrustValue(t.latestDate, readiness.data.latest_date)}</em>
-          <em>{ready && readiness.checks.data_fresh ? t.freshAge(readiness.data.data_age_days) : t.staleAge(readiness.data.data_age_days)}</em>
-          <em>{formatTrustValue(t.coveredEnd, readiness.data.covered_end)}</em>
+          <em>{formatTrustValue(t.latestCompletedDay, readiness.data.latest_date)}</em>
+          <em>{readinessFreshnessText(readiness, t)}</em>
+          <em>{formatTrustValue(t.coverageThrough, readiness.data.covered_end)}</em>
         </div>
         <div><span>{t.riskChange}</span><strong className={brief.delta_risk >= 0 ? 'up' : 'down'}>{brief.delta_risk >= 0 ? '+' : ''}{formatPercent(brief.delta_risk)}</strong><em>{t.riskChangeContext}</em></div>
       </section>
@@ -568,8 +580,8 @@ export default function App() {
           <p>{t.methodologyBody}</p>
           <dl>
             <div><dt>{t.methodologyVersion}</dt><dd>{methodologyVersion}</dd></div>
-            <div><dt>{t.latestDate}</dt><dd>{readiness.data.latest_date ?? 'unavailable'}</dd></div>
-            <div><dt>{t.coveredEnd}</dt><dd>{readiness.data.covered_end ?? 'unavailable'}</dd></div>
+            <div><dt>{t.latestCompletedDay}</dt><dd>{readiness.data.latest_date ?? 'unavailable'}</dd></div>
+            <div><dt>{t.coverageThrough}</dt><dd>{readiness.data.covered_end ?? 'unavailable'}</dd></div>
           </dl>
           <p className="disclaimer">{t.disclaimer}</p>
         </article>

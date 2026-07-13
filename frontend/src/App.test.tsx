@@ -228,17 +228,19 @@ test('chart request failures do not hide the current risk', async () => {
   expect(screen.queryByText('Risk data is temporarily unavailable')).not.toBeInTheDocument()
 })
 
-test('renders readiness freshness and validation near the latest data date', async () => {
+test('renders ready daily data as current through the latest completed day', async () => {
   render(<App />)
 
   expect(apiMocks.fetchReadiness).toHaveBeenCalled()
-  expect(await screen.findByText('Updated')).toBeInTheDocument()
+  expect(await screen.findByText('Current through')).toBeInTheDocument()
   expect(screen.getAllByText('2026-06-26').length).toBeGreaterThan(0)
   expect(screen.getByText('Readiness ready')).toBeInTheDocument()
   expect(screen.getByText('Validation passed')).toBeInTheDocument()
-  expect(screen.getByText('Latest date: 2026-06-26')).toBeInTheDocument()
-  expect(screen.getByText('Fresh: 1 day old')).toBeInTheDocument()
-  expect(screen.getByText('Covered end: 2026-06-26')).toBeInTheDocument()
+  expect(screen.getByText('Latest completed day: 2026-06-26')).toBeInTheDocument()
+  expect(screen.getByText('Freshness: current')).toBeInTheDocument()
+  expect(screen.getByText('Coverage through: 2026-06-26')).toBeInTheDocument()
+  expect(screen.queryByText('Fresh: 1 day old')).not.toBeInTheDocument()
+  expect(screen.queryByText('Data is 1 day old')).not.toBeInTheDocument()
 })
 
 test('renders degraded readiness copy without hiding the latest risk', async () => {
@@ -269,8 +271,10 @@ test('renders degraded readiness copy without hiding the latest risk', async () 
   expect(await screen.findByText('Current risk')).toBeInTheDocument()
   expect(screen.getByText('Readiness degraded')).toBeInTheDocument()
   expect(screen.getByText('Validation needs attention')).toBeInTheDocument()
-  expect(screen.getByText('Data is 6 days old')).toBeInTheDocument()
-  expect(screen.getByText('Covered end: 2026-06-19')).toBeInTheDocument()
+  expect(screen.getByText('Latest completed day: 2026-06-20')).toBeInTheDocument()
+  expect(screen.getByText('Stale: 6 days behind')).toBeInTheDocument()
+  expect(screen.getByText('Coverage through: 2026-06-19')).toBeInTheDocument()
+  expect(screen.queryByText('Data is 6 days old')).not.toBeInTheDocument()
 })
 
 test('renders a distinct API unavailable state when risk data cannot load', async () => {
