@@ -218,8 +218,8 @@ Verify that the public frontend keeps the strict CSP and that Cloudflare did not
 
 ```bash
 curl -sD /tmp/bitcoin-risk-root.headers -o /tmp/bitcoin-risk-root.html https://risk.example.com/
-rg -i "^content-security-policy:|^cache-control:" /tmp/bitcoin-risk-root.headers
-if rg -q "static\\.cloudflareinsights\\.com|beacon\\.min\\.js" /tmp/bitcoin-risk-root.html; then
+grep -Ei "^(content-security-policy|cache-control):" /tmp/bitcoin-risk-root.headers
+if grep -Eq "static\\.cloudflareinsights\\.com|beacon\\.min\\.js" /tmp/bitcoin-risk-root.html; then
   echo "unexpected Cloudflare Web Analytics beacon"
   exit 1
 fi
