@@ -180,7 +180,6 @@ async def _produce_brief_latest_payload() -> tuple[dict[str, Any], int]:
 
 def _standard_public_cache_warmup_targets() -> tuple[PublicCacheWarmupTarget, ...]:
     return (
-        PublicCacheWarmupTarget("GET /api/readiness", _produce_readiness_payload),
         PublicCacheWarmupTarget("GET /api/risk/latest", _produce_risk_latest_payload),
         PublicCacheWarmupTarget("GET /api/risk/history?limit=2000", _risk_history_producer(limit=2000)),
         PublicCacheWarmupTarget("GET /api/risk/levels", _produce_risk_levels_payload),
@@ -271,8 +270,9 @@ async def health() -> dict[str, str]:
 
 
 @app.get("/api/readiness")
-async def readiness(request: Request) -> Response:
-    return await _cached_public_json_response(request, _produce_readiness_payload)
+async def readiness() -> Response:
+    payload, status_code = await _produce_readiness_payload()
+    return JSONResponse(status_code=status_code, content=payload, headers=no_store_headers())
 
 
 @app.get("/api/risk/latest")

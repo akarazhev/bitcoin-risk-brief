@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from types import SimpleNamespace
 import unittest
 
@@ -34,7 +35,6 @@ class StandardPublicWarmupTargetTest(MainPatchMixin, unittest.IsolatedAsyncioTes
         self.assertEqual(
             [target.key for target in targets],
             [
-                "GET /api/readiness",
                 "GET /api/risk/latest",
                 "GET /api/risk/history?limit=2000",
                 "GET /api/risk/levels",
@@ -85,6 +85,28 @@ class WarmedEndpointResponseTest(MainPatchMixin, unittest.IsolatedAsyncioTestCas
         self.assertEqual(response.headers["x-cache"], "HIT")
         self.assertEqual(response.headers["x-cache-version"], "validation:ready")
         self.assertEqual(calls, 1)
+
+    async def test_readiness_handler_returns_no_store_without_public_cache_headers(self) -> None:
+        payload = {
+            "status": "degraded",
+            "checks": {"data_fresh": False},
+            "data": {"latest_date": "2026-06-30", "data_age_days": 6},
+        }
+
+        async def fake_readiness():
+            return payload, 503
+
+        self.patch_main("_produce_readiness_payload", fake_readiness)
+
+        response = await main.readiness()
+
+        self.assertEqual(response.status_code, 503)
+        self.assertEqual(response.headers["cache-control"], "no-store")
+        self.assertEqual(response.headers["pragma"], "no-cache")
+        self.assertNotIn("etag", response.headers)
+        self.assertNotIn("x-cache", response.headers)
+        self.assertNotIn("x-cache-version", response.headers)
+        self.assertEqual(json.loads(response.body), payload)
 
 
 class WaitlistNoStoreRegressionTest(MainPatchMixin, unittest.IsolatedAsyncioTestCase):
