@@ -1,3 +1,4 @@
+export type Locale = 'en' | 'ru' | 'zh' | 'de' | 'fr' | 'es' | 'ar'
 export type RiskState = 'low' | 'neutral' | 'high'
 
 export interface RiskPoint {
@@ -32,7 +33,7 @@ export interface BriefPayload {
   risk_state: RiskState
   price_usd: number
   delta_risk: number
-  sections: Record<'en' | 'ru', BriefSection>
+  sections: Partial<Record<Locale, BriefSection>> & Record<'en', BriefSection>
 }
 
 export interface RiskLevel {
@@ -68,12 +69,12 @@ export interface ReadinessPayload {
 
 export interface WaitlistRequest {
   contact: string
-  locale: 'en' | 'ru'
+  locale: Locale
   source: string
 }
 
 export interface WaitlistResponse {
   contact_type: 'email' | 'telegram'
-  locale: 'en' | 'ru'
+  locale: Locale
   created: boolean
 }

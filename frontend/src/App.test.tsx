@@ -79,7 +79,7 @@ function setCompactViewport(matches: boolean) {
   })
 }
 
-async function findPriceMetric(title = 'BTC price model input') {
+async function findPriceMetric(title = 'BTC model price input') {
   const titleElement = await screen.findByText(title)
   const metric = titleElement.closest('.price-metric')
   expect(metric).not.toBeNull()
@@ -136,6 +136,8 @@ function latestRisk(overrides: Partial<RiskPoint> = {}): RiskPoint {
 }
 
 beforeEach(() => {
+  document.documentElement.lang = 'en'
+  document.documentElement.dir = 'ltr'
   chartMocks.resize.mockClear()
   apiMocks.fetchLatestRisk.mockReset()
   apiMocks.fetchLatestRisk.mockResolvedValue({ data: latestRisk() })
@@ -305,7 +307,41 @@ test('renders methodology reference and no-advice disclaimer', async () => {
   expect(await screen.findByText('Methodology')).toBeInTheDocument()
   expect(screen.getByText('crypto-scout-canonical-v1')).toBeInTheDocument()
   expect(screen.getByRole('link', { name: /methodology/i })).toHaveAttribute('href', '#methodology')
-  expect(screen.getByText('Risk levels are scenario outputs, not financial advice or trading instructions.')).toBeInTheDocument()
+  expect(screen.getByText('Risk levels are scenario outputs for research. They are not financial advice or trading instructions.')).toBeInTheDocument()
+})
+
+test('localizes accessible chart labels and unavailable methodology metadata', async () => {
+  apiMocks.fetchReadiness.mockResolvedValueOnce({
+    status: 'degraded',
+    checks: {
+      risk_data_available: true,
+      validation_available: true,
+      risk_range_ok: true,
+      validation_has_rows: true,
+      latest_matches_validation_end: false,
+      source_is_canonical: true,
+      data_fresh: false,
+    },
+    data: {
+      latest_date: null,
+      covered_end: null,
+      data_age_days: null,
+      max_age_days: 2,
+      source: 'coinmarketcap_csv',
+      row_count: 5827,
+      methodology_version: null,
+    },
+  })
+
+  render(<App />)
+
+  const languageSelector = await screen.findByRole('combobox', { name: /select language/i })
+  fireEvent.change(languageSelector, { target: { value: 'ru' } })
+
+  expect(await screen.findByLabelText('Текущий риск')).toBeInTheDocument()
+  expect(screen.getByLabelText('Порог риска')).toBeInTheDocument()
+  expect(screen.queryByText('unknown')).not.toBeInTheDocument()
+  expect(screen.getAllByText('недоступно')).toHaveLength(3)
 })
 
 test('renders an expandable privacy terms and disclaimer note near the waitlist', async () => {
@@ -334,7 +370,8 @@ test('renders an expandable privacy terms and disclaimer note near the waitlist'
 test('localizes the privacy terms and disclaimer note', async () => {
   render(<App />)
 
-  fireEvent.click(await screen.findByRole('button', { name: /ru/i }))
+  const languageSelector = await screen.findByRole('combobox', { name: /select language/i })
+  fireEvent.change(languageSelector, { target: { value: 'ru' } })
 
   const summary = await screen.findByText('Приватность, условия и дисклеймер')
   const note = summary.closest('details')
@@ -451,7 +488,7 @@ test('renders localized model drivers from latest risk component directions', as
   const volatilityDriver = getDriverCard(driverSection, 'Volatility')
   const activityDriver = getDriverCard(driverSection, 'Activity')
 
-  expect(drivers.getByText("Plain-language directions behind today's risk, based on the latest validated daily data.")).toBeInTheDocument()
+  expect(drivers.getByText('Plain-language direction of each model component from the latest validated daily data.')).toBeInTheDocument()
   expect(trendDriver.getByText('Price vs long-term baseline')).toBeInTheDocument()
   expect(trendDriver.getByText('Raises risk')).toBeInTheDocument()
   expect(volatilityDriver.getByText('Recent price swings')).toBeInTheDocument()
@@ -461,7 +498,8 @@ test('renders localized model drivers from latest risk component directions', as
   expect(drivers.queryByText('-10.1')).not.toBeInTheDocument()
   expect(drivers.queryByText('0.05')).not.toBeInTheDocument()
 
-  fireEvent.click(screen.getByRole('button', { name: /ru/i }))
+  const languageSelector = screen.getByRole('combobox', { name: /select language/i })
+  fireEvent.change(languageSelector, { target: { value: 'ru' } })
 
   const ruDriverSection = await findModelDriverSection('Драйверы модели')
   const ruDrivers = within(ruDriverSection)
@@ -469,7 +507,7 @@ test('renders localized model drivers from latest risk component directions', as
   const ruVolatilityDriver = getDriverCard(ruDriverSection, 'Волатильность')
   const ruActivityDriver = getDriverCard(ruDriverSection, 'Активность')
 
-  expect(ruDrivers.getByText('Понятные направления за сегодняшним риском по последним валидированным дневным данным.')).toBeInTheDocument()
+  expect(ruDrivers.getByText('Понятное направление каждого компонента модели по последним валидированным дневным данным.')).toBeInTheDocument()
   expect(ruTrendDriver.getByText('Цена относительно долгосрочной базы')).toBeInTheDocument()
   expect(ruTrendDriver.getByText('Повышает риск')).toBeInTheDocument()
   expect(ruVolatilityDriver.getByText('Недавние колебания цены')).toBeInTheDocument()
@@ -540,7 +578,8 @@ test('preserves English and Russian labels for the price input group', async () 
   expect(priceMetric.getByText('Low')).toBeInTheDocument()
   expect(priceMetric.getByText('High')).toBeInTheDocument()
 
-  fireEvent.click(screen.getByRole('button', { name: /ru/i }))
+  const languageSelector = screen.getByRole('combobox', { name: /select language/i })
+  fireEvent.change(languageSelector, { target: { value: 'ru' } })
 
   priceMetric = await findPriceMetric('Цена BTC в модели')
 
@@ -612,7 +651,7 @@ test('lets ECharts derive chart dimensions from the rendered container', async (
 test('uses accessible risk threshold labels outside the chart canvas', async () => {
   render(<App />)
 
-  const visibleThresholds = within(await screen.findByLabelText('Risk thresholds'))
+  const visibleThresholds = within(await screen.findByLabelText('Risk threshold'))
   expect(visibleThresholds.getByText('Low / Neutral')).toBeInTheDocument()
   expect(visibleThresholds.getByText('Neutral / High')).toBeInTheDocument()
   expect(await screen.findByText('Low / Neutral near $82,000')).toBeInTheDocument()
@@ -656,10 +695,78 @@ test('renders screen-reader chart data alternatives for current risk, recent his
 test('defines visible keyboard focus states for interactive controls', () => {
   const css = readFileSync(resolve(process.cwd(), 'src/App.css'), 'utf8')
 
-  expect(css).toContain('.lang:focus-visible')
+  expect(css).toContain('.language-select select:focus-visible')
   expect(css).toContain('.lead-form input:focus-visible')
   expect(css).toContain('.lead-form button:focus-visible')
   expect(css).toContain('.privacy-note summary:focus-visible')
+})
+
+test('offers all issue 28 languages and applies document language metadata', async () => {
+  render(<App />)
+
+  const selector = await screen.findByRole('combobox', { name: /select language/i })
+  expect(within(selector).getAllByRole('option').map((option) => option.getAttribute('value'))).toEqual([
+    'en',
+    'ru',
+    'zh',
+    'de',
+    'fr',
+    'es',
+    'ar',
+  ])
+
+  fireEvent.change(selector, { target: { value: 'de' } })
+  expect(await screen.findByText('Aktuelles Risiko')).toBeInTheDocument()
+  expect(document.documentElement).toHaveAttribute('lang', 'de')
+  expect(document.documentElement).toHaveAttribute('dir', 'ltr')
+
+  fireEvent.change(selector, { target: { value: 'fr' } })
+  expect(await screen.findByText('Risque actuel')).toBeInTheDocument()
+  expect(document.documentElement).toHaveAttribute('lang', 'fr')
+
+  fireEvent.change(selector, { target: { value: 'es' } })
+  expect(await screen.findByText('Riesgo actual')).toBeInTheDocument()
+  expect(document.documentElement).toHaveAttribute('lang', 'es')
+
+  fireEvent.change(selector, { target: { value: 'zh' } })
+  expect(await screen.findByText('当前风险')).toBeInTheDocument()
+  expect(document.documentElement).toHaveAttribute('lang', 'zh-CN')
+
+  fireEvent.change(selector, { target: { value: 'ar' } })
+  expect(await screen.findByText('المخاطر الحالية')).toBeInTheDocument()
+  expect(document.documentElement).toHaveAttribute('lang', 'ar')
+  expect(document.documentElement).toHaveAttribute('dir', 'rtl')
+})
+
+test('submits the selected expanded locale to the waitlist API', async () => {
+  render(<App />)
+
+  const selector = await screen.findByRole('combobox', { name: /select language/i })
+  fireEvent.change(selector, { target: { value: 'fr' } })
+  fireEvent.change(await screen.findByPlaceholderText('email ou @telegram'), { target: { value: 'USER@example.com' } })
+  fireEvent.click(screen.getByRole('button', { name: /rejoindre la liste/i }))
+
+  await waitFor(() => {
+    expect(apiMocks.joinWaitlist).toHaveBeenCalledWith({ contact: 'USER@example.com', locale: 'fr', source: 'landing' })
+  })
+})
+
+test('falls back to the English generated brief when selected locale is absent from an old snapshot', async () => {
+  render(<App />)
+
+  const selector = await screen.findByRole('combobox', { name: /select language/i })
+  fireEvent.change(selector, { target: { value: 'de' } })
+
+  expect(await screen.findByText('Heutiger Brief')).toBeInTheDocument()
+  expect(screen.getByText('Risk elevated')).toBeInTheDocument()
+})
+
+test('defines RTL layout rules for Arabic locale', () => {
+  const css = readFileSync(resolve(process.cwd(), 'src/App.css'), 'utf8')
+
+  expect(css).toContain('[dir="rtl"] .topbar')
+  expect(css).toContain('[dir="rtl"] .top-actions')
+  expect(css).toContain('[dir="rtl"] .chart-visual')
 })
 
 test('defines a standard screen-reader-only utility for hidden chart data', () => {
