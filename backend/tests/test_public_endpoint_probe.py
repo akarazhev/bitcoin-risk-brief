@@ -71,6 +71,10 @@ class PublicEndpointProbeTests(unittest.TestCase):
             "X-Cache-Version": "validation:2026-07-10",
             "X-Cache": "HIT",
         }
+        readiness_headers = {
+            "Cache-Control": "no-store",
+            "Pragma": "no-cache",
+        }
         return {
             "/api/health": FakeResponse(200, {"status": "ok"}),
             "/api/readiness": FakeResponse(
@@ -96,7 +100,7 @@ class PublicEndpointProbeTests(unittest.TestCase):
                         "methodology_version": "crypto-scout-canonical-v1",
                     },
                 },
-                headers=cache_headers,
+                headers=readiness_headers,
             ),
             "/api/risk/latest": FakeResponse(
                 200,
@@ -353,6 +357,40 @@ class PublicEndpointProbeTests(unittest.TestCase):
         self.assertNotEqual(0, status)
         self.assertEqual("", stdout)
         self.assertIn("GET /api/risk/latest missing X-Cache", stderr)
+
+        responses = self._healthy_responses()
+        responses["/api/readiness"] = FakeResponse(
+            200,
+            responses["/api/readiness"]._body,
+            headers={"Cache-Control": "no-store"},
+        )
+        status, stdout, stderr, _opener = self._run_probe(
+            responses,
+            "--expected-latest-date",
+            "2026-07-10",
+            "--require-cache-header",
+            "X-Cache",
+        )
+        self.assertEqual(0, status, stderr)
+        self.assertIn("cache_headers=X-Cache", stdout)
+
+    def test_readiness_must_be_no_store(self) -> None:
+        responses = self._healthy_responses()
+        responses["/api/readiness"] = FakeResponse(
+            200,
+            responses["/api/readiness"]._body,
+            headers={"Cache-Control": "public, max-age=60"},
+        )
+
+        status, stdout, stderr, _opener = self._run_probe(
+            responses,
+            "--expected-latest-date",
+            "2026-07-10",
+        )
+
+        self.assertNotEqual(0, status)
+        self.assertEqual("", stdout)
+        self.assertIn("GET /api/readiness Cache-Control must include no-store", stderr)
 
     def test_timeout_failure_returns_nonzero_without_traceback(self) -> None:
         responses: dict[str, FakeResponse | BaseException] = self._healthy_responses()

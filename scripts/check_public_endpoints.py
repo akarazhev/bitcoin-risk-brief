@@ -20,7 +20,6 @@ PUBLIC_ENDPOINTS = (
     "/api/risk/latest",
 )
 CACHEABLE_ENDPOINTS = (
-    "/api/readiness",
     "/api/risk/latest",
 )
 REQUIRED_READINESS_CHECKS = (
@@ -272,6 +271,17 @@ def validate_readiness(payload: dict[str, Any]) -> ReadinessInfo:
     )
 
 
+def validate_readiness_cache_headers(result: EndpointResult) -> None:
+    cache_control = result.headers.get("cache-control", "")
+    directives = {
+        directive.strip().lower()
+        for directive in cache_control.split(",")
+        if directive.strip()
+    }
+    if "no-store" not in directives:
+        raise ProbeError("GET /api/readiness Cache-Control must include no-store")
+
+
 def validate_latest_risk(payload: dict[str, Any]) -> LatestRiskInfo:
     data = payload.get("data")
     if not isinstance(data, dict):
@@ -387,7 +397,8 @@ def build_parser() -> argparse.ArgumentParser:
         choices=SUPPORTED_CACHE_HEADERS,
         default=[],
         help=(
-            "Require a cache header on /api/readiness and /api/risk/latest. "
+            "Require a cache header on cacheable public API responses. "
+            "Readiness is expected to return Cache-Control: no-store. "
             "Repeat for multiple headers. Choices: %(choices)s."
         ),
     )
@@ -408,6 +419,7 @@ def run_check(args: argparse.Namespace, *, opener: Callable[..., Any] | None, no
 
     validate_health(results["/api/health"].payload)
     readiness = validate_readiness(results["/api/readiness"].payload)
+    validate_readiness_cache_headers(results["/api/readiness"])
     latest = validate_latest_risk(results["/api/risk/latest"].payload)
     validate_freshness_policy(
         readiness,
