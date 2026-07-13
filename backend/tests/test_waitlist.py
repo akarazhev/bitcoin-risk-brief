@@ -75,7 +75,7 @@ class WaitlistSchemaTest(unittest.TestCase):
         self.assert_schema_accepts_issue_28_waitlist_locales("migrations/001_initial_schema.sql")
 
     def test_existing_schema_migration_accepts_issue_28_waitlist_locales(self) -> None:
-        self.assert_schema_accepts_issue_28_waitlist_locales("migrations/002_expand_waitlist_locales.sql")
+        self.assert_schema_accepts_issue_28_waitlist_locales("migrations/003_expand_waitlist_locales.sql")
 
 
 class WaitlistRepositoryTest(unittest.IsolatedAsyncioTestCase):
