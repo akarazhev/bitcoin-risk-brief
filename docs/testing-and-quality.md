@@ -205,9 +205,10 @@ The check should cover:
 Automated smoke checks should cover the highest-risk layout and chart failures. Manual QA can cover browser-specific
 visual polish until the project has a broader e2e suite.
 
-If Phase 8 localization expansion is implemented before active traffic, run the launch matrix for English, Russian,
-Spanish, and German. Do not enable Arabic until right-to-left behavior is explicitly tested. Do not enable Chinese until
-the Simplified/Traditional scope and channel strategy are decided.
+If issue #28 localization expansion is enabled before active traffic, repeat the launch pass for English, Russian,
+Simplified Chinese (`zh`), German, French, Spanish, and Arabic. Check long localized labels in buttons, badges, chart
+labels, waitlist states, degraded/error states, and mobile layouts. Arabic requires explicit `dir="rtl"` verification;
+charts and numeric data should remain readable and not be visually reversed.
 
 Current frontend QA results are recorded in [Frontend QA](frontend-qa.md).
 

@@ -1,8 +1,7 @@
 # Localization Quality And Language Expansion Design
 
-> Status: future-facing Phase 8 add-on. Last reviewed 2026-07-01. This is intended before active traffic, but it should
-> stay scoped so it does not delay production operations, backups, readiness checks, or the first traffic test
-> indefinitely.
+> Status: superseded in scope by GitHub issue #28 as of 2026-07-13. The earlier recommendation deferred Arabic and
+> Chinese; issue #28 accepts the larger scope and requires Chinese, German, French, Spanish, and Arabic support.
 
 ## Goal
 
@@ -59,6 +58,9 @@ Pre-traffic scope:
 - German: second added language because it is left-to-right and useful for higher-intent European audiences.
 
 Deferred scope:
+
+GitHub issue #28 intentionally promotes Arabic and Chinese into implementation scope. Arabic must include RTL QA, and
+Chinese is implemented as Simplified Chinese under locale code `zh`.
 
 - Arabic: valuable later, but requires right-to-left layout support, `dir="rtl"`, chart/form QA, and mixed BTC/USD text
   checks.

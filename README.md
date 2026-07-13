@@ -136,7 +136,7 @@ Recommended next production sequence before first traffic:
 - Risk-level price ladder at `0.025` risk increments.
 - Latest completed daily candle context: `Model price` is the HLC3 value; `Low` and `High` are daily candle values when
   the matching OHLCV row exists. These fields are not live spot-price ticks or close-only pricing.
-- Daily brief payload in English and Russian.
+- Daily brief payload in English, Russian, Simplified Chinese, German, French, Spanish, and Arabic.
 - Waitlist form for email or Telegram handles.
 - Compact privacy/terms/disclaimer note near the waitlist, verified in the 2026-07-11 public browser smoke.
 - Readiness endpoint for deployment probes and alerts.
