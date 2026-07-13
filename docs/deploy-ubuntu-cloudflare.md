@@ -190,6 +190,9 @@ Recommended initial settings:
 - HTTP Strict Transport Security: enable after the hostname is confirmed stable.
 - WAF managed rules: enabled for the hostname.
 - Bot/spam controls: enable the Cloudflare bot protection available on the active plan and start in a low-friction mode.
+- Web Analytics automatic setup: disabled for this hostname unless a separate analytics/privacy design has been approved.
+  In Cloudflare Web Analytics > Manage site, set automatic setup to `Disable` or use manual JS snippet installation with
+  no snippet installed. Do not use automatic Beacon injection for the production pilot.
 - Rate limiting:
   - `POST /api/waitlist`: 5 requests per minute per IP, managed challenge or block repeated offenders.
   - `/api/*`: 120 requests per minute per IP, managed challenge or throttle bursts.
@@ -210,6 +213,20 @@ curl -sD - -o /tmp/bitcoin-risk-readiness.json https://risk.example.com/api/read
 
 Readiness should include `Cache-Control: no-store`. Cacheable product read responses should include `Cache-Control`,
 `ETag`, and `X-Cache-Version`.
+
+Verify that the public frontend keeps the strict CSP and that Cloudflare did not inject the Web Analytics Beacon:
+
+```bash
+curl -sD /tmp/bitcoin-risk-root.headers -o /tmp/bitcoin-risk-root.html https://risk.example.com/
+rg -i "^content-security-policy:|^cache-control:" /tmp/bitcoin-risk-root.headers
+if rg -q "static\\.cloudflareinsights\\.com|beacon\\.min\\.js" /tmp/bitcoin-risk-root.html; then
+  echo "unexpected Cloudflare Web Analytics beacon"
+  exit 1
+fi
+```
+
+The root headers should include `script-src 'self'` and a `Cache-Control` value with `no-transform`. The Beacon check
+should exit successfully with no match.
 
 The repository includes a repeatable Rulesets API helper for the WAF, custom waitlist bot challenge, rate limits, and
 cache settings. Render the exact payload before applying it:
