@@ -4,8 +4,11 @@ set -euo pipefail
 base_url="${PUBLIC_BASE_URL:-http://localhost:3001}"
 base_url="${base_url%/}"
 
+readiness_path="/api/readiness"
+curl -fsS -o /dev/null "${base_url}${readiness_path}"
+echo "readiness ok ${base_url}${readiness_path}"
+
 paths=(
-  "/api/readiness"
   "/api/risk/latest"
   "/api/risk/history?limit=2000"
   "/api/risk/levels"
