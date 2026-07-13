@@ -161,6 +161,10 @@ are not part of `/api/risk/history`.
 
 Returns target risk levels and solved BTC prices.
 
+`/api/risk/levels` returns the latest persisted collector-generated risk-level snapshot under normal production
+operation. If the snapshot is missing in local/dev data, the backend may fall back to computing the compatible payload
+from the available OHLCV history.
+
 Response shape:
 
 ```json

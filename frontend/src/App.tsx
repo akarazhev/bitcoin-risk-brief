@@ -6,6 +6,11 @@ import type { BriefPayload, ReadinessPayload, RiskLevel, RiskPoint } from './typ
 
 type Locale = 'en' | 'ru'
 type ThresholdCallout = { risk: number; label: string; price: string; text: string }
+type ChartLoadState<T> = {
+  status: 'idle' | 'loading' | 'loaded' | 'error'
+  data: T
+  error: string | null
+}
 const COMPACT_CHART_QUERY = '(max-width: 640px)'
 const ACCESSIBLE_HISTORY_POINTS = 6
 const AUTO_CHART_SIZE = { width: 'auto', height: 'auto' } as const
@@ -81,6 +86,8 @@ const copy = {
     chartLoading: 'Loading chart...',
     historyEmpty: 'Risk history is unavailable until observations are loaded.',
     levelsEmpty: 'Risk levels are unavailable until the latest model input is ready.',
+    historyError: 'Risk history is temporarily unavailable.',
+    levelsError: 'Risk levels are temporarily unavailable.',
   },
   ru: {
     eyebrow: 'Ежедневный BTC риск-сигнал',
@@ -151,6 +158,8 @@ const copy = {
     chartLoading: 'Загружаю график...',
     historyEmpty: 'История риска недоступна, пока наблюдения не загружены.',
     levelsEmpty: 'Уровни риска недоступны, пока нет последнего входа модели.',
+    historyError: 'История риска временно недоступна.',
+    levelsError: 'Уровни риска временно недоступны.',
   },
 } as const
 
@@ -216,8 +225,16 @@ function resizeChartWhenReady(chart: { resize: (opts?: typeof AUTO_CHART_SIZE) =
 export default function App() {
   const [locale, setLocale] = useState<Locale>('en')
   const [latest, setLatest] = useState<RiskPoint | null>(null)
-  const [history, setHistory] = useState<RiskPoint[]>([])
-  const [levels, setLevels] = useState<RiskLevel[]>([])
+  const [historyState, setHistoryState] = useState<ChartLoadState<RiskPoint[]>>({
+    status: 'idle',
+    data: [],
+    error: null,
+  })
+  const [levelsState, setLevelsState] = useState<ChartLoadState<RiskLevel[]>>({
+    status: 'idle',
+    data: [],
+    error: null,
+  })
   const [brief, setBrief] = useState<BriefPayload | null>(null)
   const [readiness, setReadiness] = useState<ReadinessPayload | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -227,17 +244,17 @@ export default function App() {
   const [joining, setJoining] = useState(false)
   const [compactCharts, setCompactCharts] = useState(getCompactChartPreference)
   const t = copy[locale]
+  const history = historyState.data
+  const levels = levelsState.data
   const waitlistStatusId = 'waitlist-status'
   const waitlistErrorId = 'waitlist-error'
 
   useEffect(() => {
     let active = true
-    Promise.all([fetchLatestRisk(), fetchRiskHistory(), fetchRiskLevels(), fetchBrief(), fetchReadiness()])
-      .then(([latestResponse, historyResponse, levelsResponse, briefResponse, readinessResponse]) => {
+    Promise.all([fetchLatestRisk(), fetchBrief(), fetchReadiness()])
+      .then(([latestResponse, briefResponse, readinessResponse]) => {
         if (!active) return
         setLatest(latestResponse.data)
-        setHistory(historyResponse.data)
-        setLevels(levelsResponse.data)
         setBrief(briefResponse.data)
         setReadiness(readinessResponse)
       })
@@ -248,6 +265,37 @@ export default function App() {
       active = false
     }
   }, [])
+
+  useEffect(() => {
+    if (!latest || !brief || !readiness) return
+    let active = true
+
+    setHistoryState({ status: 'loading', data: [], error: null })
+    fetchRiskHistory()
+      .then((historyResponse) => {
+        if (!active) return
+        setHistoryState({ status: 'loaded', data: historyResponse.data, error: null })
+      })
+      .catch((err: Error) => {
+        if (!active) return
+        setHistoryState({ status: 'error', data: [], error: err.message })
+      })
+
+    setLevelsState({ status: 'loading', data: [], error: null })
+    fetchRiskLevels()
+      .then((levelsResponse) => {
+        if (!active) return
+        setLevelsState({ status: 'loaded', data: levelsResponse.data, error: null })
+      })
+      .catch((err: Error) => {
+        if (!active) return
+        setLevelsState({ status: 'error', data: [], error: err.message })
+      })
+
+    return () => {
+      active = false
+    }
+  }, [latest, brief, readiness])
 
   useEffect(() => {
     if (!window.matchMedia) return
@@ -515,7 +563,11 @@ export default function App() {
               </>
             )}
           </section>
-          {history.length > 0 ? (
+          {historyState.status === 'loading' || historyState.status === 'idle' ? (
+            <div className="chart-placeholder" role="status">{t.chartLoading}</div>
+          ) : historyState.status === 'error' ? (
+            <div className="chart-empty chart-error" role="alert">{t.historyError}</div>
+          ) : history.length > 0 ? (
             <div className="chart-visual" role="img" aria-labelledby="risk-history-heading" aria-describedby="risk-history-chart-summary risk-history-chart-note">
               <Suspense fallback={<div className="chart-placeholder" role="status">{t.chartLoading}</div>}>
                 <Chart option={riskOption} notMerge opts={AUTO_CHART_SIZE} onChartReady={resizeChartWhenReady} style={{ height: 360, width: '100%' }} />
@@ -552,7 +604,11 @@ export default function App() {
               </table>
             </section>
           )}
-          {levels.length > 0 ? (
+          {levelsState.status === 'loading' || levelsState.status === 'idle' ? (
+            <div className="chart-placeholder" role="status">{t.chartLoading}</div>
+          ) : levelsState.status === 'error' ? (
+            <div className="chart-empty chart-error" role="alert">{t.levelsError}</div>
+          ) : levels.length > 0 ? (
             <div className="chart-visual" role="img" aria-labelledby="risk-levels-heading" aria-describedby="risk-levels-chart-summary">
               <Suspense fallback={<div className="chart-placeholder" role="status">{t.chartLoading}</div>}>
                 <Chart option={levelsOption} notMerge opts={AUTO_CHART_SIZE} onChartReady={resizeChartWhenReady} style={{ height: 360, width: '100%' }} />

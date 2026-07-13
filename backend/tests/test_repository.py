@@ -7,7 +7,12 @@ from datetime import datetime, timezone
 
 sys.modules.setdefault("asyncpg", types.SimpleNamespace(Record=dict, Pool=object))
 
-from app.repository import fetch_latest_risk, fetch_ohlcv_history, fetch_public_data_version
+from app.repository import (
+    fetch_latest_risk,
+    fetch_latest_risk_level_snapshot,
+    fetch_ohlcv_history,
+    fetch_public_data_version,
+)
 
 
 class FakePool:
@@ -44,6 +49,18 @@ class FakeVersionPool:
 
 
 class FakeLatestRiskPool:
+    def __init__(self, row) -> None:
+        self.row = row
+        self.query = ""
+        self.params = ()
+
+    async def fetchrow(self, query: str, *params):
+        self.query = query
+        self.params = params
+        return self.row
+
+
+class FakeSnapshotPool:
     def __init__(self, row) -> None:
         self.row = row
         self.query = ""
@@ -139,6 +156,20 @@ class PublicDataVersionRepositoryTest(unittest.IsolatedAsyncioTestCase):
         version = await fetch_public_data_version(pool)
 
         self.assertEqual(version, "validation:empty")
+
+
+class RiskLevelSnapshotRepositoryTest(unittest.IsolatedAsyncioTestCase):
+    async def test_fetch_latest_risk_level_snapshot_is_bounded_by_validation_coverage(self) -> None:
+        pool = FakeSnapshotPool({"payload_json": {"data": [], "meta": {"source_row_count": 2}}})
+
+        snapshot = await fetch_latest_risk_level_snapshot(pool)
+
+        self.assertEqual(snapshot, {"data": [], "meta": {"source_row_count": 2}})
+        self.assertIn("btc_risk_validation", pool.query)
+        self.assertIn("validation_key = 'latest'", pool.query)
+        self.assertIn("s.as_of <= v.covered_end", pool.query)
+        self.assertIn("ORDER BY s.as_of DESC", pool.query)
+        self.assertEqual(pool.params, ())
 
 
 if __name__ == "__main__":

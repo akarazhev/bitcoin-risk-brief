@@ -17,6 +17,7 @@ from app.db import connect, disconnect, get_pool
 from app.repository import (
     fetch_latest_brief,
     fetch_latest_risk,
+    fetch_latest_risk_level_snapshot,
     fetch_latest_validation,
     fetch_ohlcv_history,
     fetch_previous_risk,
@@ -35,8 +36,7 @@ from app.public_cache import (
 )
 from app.rate_limit import FixedWindowRateLimiter
 from app.readiness import build_readiness_payload
-from app.risk import METHODOLOGY_VERSION
-from app.risk_levels import build_risk_levels
+from app.risk_levels import build_risk_levels, build_risk_levels_public_payload
 from app.security import build_security_headers
 from app.waitlist import InvalidWaitlistContact
 
@@ -148,6 +148,10 @@ def _risk_history_producer(
 
 async def _produce_risk_levels_payload() -> tuple[dict[str, Any], int]:
     pool = get_pool()
+    persisted = await fetch_latest_risk_level_snapshot(pool)
+    if persisted is not None:
+        return persisted, 200
+
     latest = await fetch_latest_risk(pool)
     source_rows = await fetch_ohlcv_history(pool)
     if latest is None or len(source_rows) < 2:
@@ -155,22 +159,11 @@ async def _produce_risk_levels_payload() -> tuple[dict[str, Any], int]:
 
     turnover_enabled = bool(latest["turnover_enabled"])
     levels = build_risk_levels(source_rows, {"turnover_enabled": turnover_enabled})
-    return {
-        "data": [
-            {"risk": row["risk"], "price_usd": round(row["price"], 2)}
-            for row in levels["risk_level_rows"]
-        ],
-        "meta": {
-            "base": latest,
-            "methodology_version": METHODOLOGY_VERSION,
-            "evaluation_date": levels["evaluation_date"].isoformat(),
-            "current_price": levels["current_price"],
-            "current_risk": levels["current_risk"],
-            "turnover_enabled": levels["turnover_enabled"],
-            "risk_step": 0.025,
-            "source_row_count": len(source_rows),
-        },
-    }, 200
+    return build_risk_levels_public_payload(
+        latest=latest,
+        levels=levels,
+        source_row_count=len(source_rows),
+    ), 200
 
 
 async def _produce_brief_latest_payload() -> tuple[dict[str, Any], int]:

@@ -199,6 +199,23 @@ async def fetch_latest_brief(pool: asyncpg.Pool) -> dict[str, Any] | None:
     return json.loads(payload) if isinstance(payload, str) else dict(payload)
 
 
+async def fetch_latest_risk_level_snapshot(pool: asyncpg.Pool) -> dict[str, Any] | None:
+    row = await pool.fetchrow(
+        """
+        SELECT s.payload_json
+        FROM risk_level_snapshots s
+        JOIN btc_risk_validation v ON v.validation_key = 'latest'
+        WHERE s.as_of <= v.covered_end
+        ORDER BY s.as_of DESC
+        LIMIT 1
+        """
+    )
+    if not row:
+        return None
+    payload = row["payload_json"]
+    return json.loads(payload) if isinstance(payload, str) else dict(payload)
+
+
 async def upsert_waitlist_lead(
     pool: asyncpg.Pool,
     *,

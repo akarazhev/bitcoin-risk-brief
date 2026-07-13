@@ -49,6 +49,7 @@ docs/                    Product, operations, methodology, API, and deployment d
 | `btc_risk_daily` | One computed risk row per canonical source date. |
 | `btc_risk_validation` | Latest validation summary and JSON diagnostics. |
 | `brief_snapshots` | Latest daily brief payloads. |
+| `risk_level_snapshots` | Latest persisted public risk-level payloads served by `/api/risk/levels`. |
 | `waitlist_leads` | Normalized email or Telegram waitlist contacts. |
 
 `btc_ohlcv_daily` and `btc_risk_daily` are TimescaleDB hypertables keyed by `timestamp`.

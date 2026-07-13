@@ -25,6 +25,7 @@ async def import_csv_once(pool: Any, *, refresh_remote: bool, now: datetime | No
         delete_rows_after_csv_end,
         write_brief,
         write_ohlcv_rows,
+        write_risk_level_snapshot,
         write_risk_rows,
         write_validation,
     )
@@ -43,6 +44,9 @@ async def import_csv_once(pool: Any, *, refresh_remote: bool, now: datetime | No
     dataset = build_csv_risk_dataset(BTC_CSV_PATH)
     ohlcv_count = await write_ohlcv_rows(pool, dataset["source_rows"])
     risk_count = await write_risk_rows(pool, dataset["risk_points"])
+    deleted_counts = await delete_rows_after_csv_end(pool, dataset["source_rows"][-1]["date"])
+    await write_risk_level_snapshot(pool, dataset["source_rows"], dataset["risk_points"])
+    await write_brief(pool, dataset["risk_points"])
     await write_validation(
         pool,
         dataset["risk_points"],
@@ -51,8 +55,6 @@ async def import_csv_once(pool: Any, *, refresh_remote: bool, now: datetime | No
         validation=dataset["validation"],
         validation_summary=dataset["validation_summary"],
     )
-    await write_brief(pool, dataset["risk_points"])
-    deleted_counts = await delete_rows_after_csv_end(pool, dataset["source_rows"][-1]["date"])
     logger.info(
         "CSV import complete: %d refreshed CSV rows, %d ohlcv rows, %d risk rows, deleted stale rows=%s",
         refreshed_count,

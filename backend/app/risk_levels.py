@@ -238,3 +238,27 @@ def build_risk_levels(rows: list[dict[str, Any]], stitch_validation: dict[str, A
         "price_level_rows": price_level_rows,
         "risk_level_rows": risk_level_rows,
     }
+
+
+def build_risk_levels_public_payload(
+    *,
+    latest: dict[str, Any],
+    levels: dict[str, Any],
+    source_row_count: int,
+) -> dict[str, Any]:
+    return {
+        "data": [
+            {"risk": row["risk"], "price_usd": round(row["price"], 2)}
+            for row in levels["risk_level_rows"]
+        ],
+        "meta": {
+            "base": latest,
+            "methodology_version": METHODOLOGY_VERSION,
+            "evaluation_date": levels["evaluation_date"].isoformat(),
+            "current_price": levels["current_price"],
+            "current_risk": levels["current_risk"],
+            "turnover_enabled": levels["turnover_enabled"],
+            "risk_step": RISK_STEP,
+            "source_row_count": source_row_count,
+        },
+    }

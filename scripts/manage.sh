@@ -10,7 +10,12 @@ case "${1:-help}" in
     echo "compose config ok"
     ;;
   migrate)
-    ${COMPOSE} -f "${COMPOSE_FILE}" exec timescaledb psql -U postgres -d bitcoin_risk_brief -f /docker-entrypoint-initdb.d/001_initial_schema.sql
+    for migration in migrations/*.sql; do
+      name="$(basename "${migration}")"
+      ${COMPOSE} -f "${COMPOSE_FILE}" exec timescaledb \
+        psql -U postgres -d bitcoin_risk_brief \
+        -f "/docker-entrypoint-initdb.d/${name}"
+    done
     ;;
   start)
     ${COMPOSE} -f "${COMPOSE_FILE}" up -d --build

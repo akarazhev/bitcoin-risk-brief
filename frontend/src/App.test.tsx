@@ -85,6 +85,16 @@ async function findPriceMetric(title = 'BTC price model input') {
   return within(metric as HTMLElement)
 }
 
+function deferred<T>() {
+  let resolve: (value: T) => void = () => {}
+  let reject: (error: Error) => void = () => {}
+  const promise = new Promise<T>((promiseResolve, promiseReject) => {
+    resolve = promiseResolve
+    reject = promiseReject
+  })
+  return { promise, resolve, reject }
+}
+
 beforeEach(() => {
   chartMocks.resize.mockClear()
   apiMocks.fetchLatestRisk.mockReset()
@@ -139,6 +149,43 @@ test('renders a loading state while risk data is pending', () => {
   render(<App />)
 
   expect(screen.getByText('Loading risk data...')).toBeInTheDocument()
+})
+
+test('does not request chart data until core page data is available', () => {
+  apiMocks.fetchLatestRisk.mockReturnValueOnce(new Promise(() => {}))
+
+  render(<App />)
+
+  expect(screen.getByText('Loading risk data...')).toBeInTheDocument()
+  expect(apiMocks.fetchRiskHistory).not.toHaveBeenCalled()
+  expect(apiMocks.fetchRiskLevels).not.toHaveBeenCalled()
+})
+
+test('renders main content while chart requests are still pending', async () => {
+  const historyRequest = deferred<{ data: []; meta: { returned_points: number } }>()
+  const levelsRequest = deferred<{ data: []; meta: { base: object } }>()
+  apiMocks.fetchRiskHistory.mockReturnValueOnce(historyRequest.promise)
+  apiMocks.fetchRiskLevels.mockReturnValueOnce(levelsRequest.promise)
+
+  render(<App />)
+
+  expect(await screen.findByText('Current risk')).toBeInTheDocument()
+  expect(screen.getByText('Risk elevated')).toBeInTheDocument()
+  expect(screen.queryByText('Loading risk data...')).not.toBeInTheDocument()
+  expect(screen.getAllByText('Loading chart...')).toHaveLength(2)
+})
+
+test('chart request failures do not hide the current risk', async () => {
+  apiMocks.fetchRiskHistory.mockRejectedValueOnce(new Error('history failed'))
+  apiMocks.fetchRiskLevels.mockRejectedValueOnce(new Error('levels failed'))
+
+  render(<App />)
+
+  expect(await screen.findByText('Current risk')).toBeInTheDocument()
+  expect(screen.getByText('Risk elevated')).toBeInTheDocument()
+  expect(await screen.findByText('Risk history is temporarily unavailable.')).toBeInTheDocument()
+  expect(await screen.findByText('Risk levels are temporarily unavailable.')).toBeInTheDocument()
+  expect(screen.queryByText('Risk data is temporarily unavailable')).not.toBeInTheDocument()
 })
 
 test('renders readiness freshness and validation near the latest data date', async () => {
@@ -445,8 +492,8 @@ test('uses accessible risk threshold labels outside the chart canvas', async () 
   const visibleThresholds = within(await screen.findByLabelText('Risk thresholds'))
   expect(visibleThresholds.getByText('Low / Neutral')).toBeInTheDocument()
   expect(visibleThresholds.getByText('Neutral / High')).toBeInTheDocument()
-  expect(screen.getByText('Low / Neutral near $82,000')).toBeInTheDocument()
-  expect(screen.getByText('Neutral / High near $118,000')).toBeInTheDocument()
+  expect(await screen.findByText('Low / Neutral near $82,000')).toBeInTheDocument()
+  expect(await screen.findByText('Neutral / High near $118,000')).toBeInTheDocument()
 
   const riskChart = await screen.findByTestId('chart-risk')
   const riskOption = JSON.parse(riskChart.dataset.option ?? '{}')

@@ -6,7 +6,8 @@ from typing import Any
 import asyncpg
 
 from app.brief import build_brief
-from app.risk import RiskPoint, classify_risk
+from app.risk import METHODOLOGY_VERSION, RiskPoint, classify_risk
+from app.risk_levels import build_risk_levels, build_risk_levels_public_payload
 from collector.records import as_timestamp, build_ohlcv_records, build_validation_payload
 
 
@@ -102,10 +103,18 @@ async def delete_rows_after_csv_end(pool: asyncpg.Pool, latest_day) -> dict[str,
         """,
         cutoff,
     )
+    levels_status = await pool.execute(
+        """
+        DELETE FROM risk_level_snapshots
+        WHERE as_of > $1
+        """,
+        cutoff,
+    )
     return {
         "ohlcv": _parse_delete_count(ohlcv_status),
         "risk": _parse_delete_count(risk_status),
         "brief": _parse_delete_count(brief_status),
+        "levels": _parse_delete_count(levels_status),
     }
 
 
@@ -231,4 +240,53 @@ async def write_brief(pool: asyncpg.Pool, points: list[RiskPoint]) -> None:
         as_timestamp(latest.day),
         brief["snapshot_version"],
         json.dumps(brief),
+    )
+
+
+def _risk_point_public_payload(point: RiskPoint, source_row: dict[str, Any] | None) -> dict[str, Any]:
+    return {
+        "timestamp": as_timestamp(point.day).isoformat(),
+        "price_usd": point.price_hlc3,
+        "model_price_usd": point.price_hlc3,
+        "low_usd": float(source_row["low"]) if source_row and "low" in source_row else None,
+        "high_usd": float(source_row["high"]) if source_row and "high" in source_row else None,
+        "risk": point.risk,
+        "score": point.score,
+        "risk_state": classify_risk(point.risk),
+        "trend_dev": point.trend_dev,
+        "vol_regime": point.vol_regime,
+        "turnover": point.turnover,
+        "z_trend_dev": point.z_trend_dev,
+        "z_vol_regime": point.z_vol_regime,
+        "z_turnover": point.z_turnover,
+        "turnover_enabled": point.turnover_enabled,
+    }
+
+
+async def write_risk_level_snapshot(
+    pool: asyncpg.Pool,
+    source_rows: list[dict[str, Any]],
+    points: list[RiskPoint],
+) -> None:
+    if len(source_rows) < 2 or not points:
+        return
+    latest = points[-1]
+    latest_source_row = source_rows[-1] if source_rows else None
+    levels = build_risk_levels(source_rows, {"turnover_enabled": latest.turnover_enabled})
+    payload = build_risk_levels_public_payload(
+        latest=_risk_point_public_payload(latest, latest_source_row),
+        levels=levels,
+        source_row_count=len(source_rows),
+    )
+    await pool.execute(
+        """
+        INSERT INTO risk_level_snapshots (as_of, snapshot_version, payload_json)
+        VALUES ($1, $2, $3::jsonb)
+        ON CONFLICT (as_of, snapshot_version) DO UPDATE SET
+          payload_json = EXCLUDED.payload_json,
+          created_at = now()
+        """,
+        as_timestamp(latest.day),
+        METHODOLOGY_VERSION,
+        json.dumps(payload, default=str),
     )

@@ -1,13 +1,18 @@
 from __future__ import annotations
 
 import tempfile
+import sys
+import types
 import unittest
 from datetime import date, datetime, timezone
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, patch
 
+sys.modules.setdefault("asyncpg", types.SimpleNamespace(Pool=object))
+
 from app.risk_sources import write_btc_usd_daily_csv
+import collector.db_writer as collector_db_writer
 import collector.main as collector_main
 
 
@@ -128,6 +133,59 @@ class ScheduledPublicCmcRefreshTest(unittest.IsolatedAsyncioTestCase):
                 await collector_main.scheduled_refresh_once(pool, now=now)
 
         import_csv.assert_awaited_once_with(pool, refresh_remote=True, now=now)
+
+    async def test_import_csv_once_writes_risk_level_snapshot_after_recompute(self) -> None:
+        pool = object()
+        risk_point = SimpleNamespace(
+            day=date(2026, 6, 26),
+            price_hlc3=100.0,
+            risk=0.7,
+            score=1.0,
+            trend_dev=0.2,
+            vol_regime=0.1,
+            turnover=None,
+            z_trend_dev=1.0,
+            z_vol_regime=0.5,
+            z_turnover=None,
+            turnover_enabled=False,
+        )
+        dataset = {
+            "source_rows": [daily_row(date(2026, 6, 26), 100.0)],
+            "risk_points": [risk_point],
+            "validation": {"turnover_enabled": False},
+            "validation_summary": "ok",
+        }
+        write_order: list[str] = []
+
+        def record_write(name: str, return_value=None):
+            write_order.append(name)
+            return return_value
+
+        write_ohlcv = AsyncMock(side_effect=lambda *_args, **_kwargs: record_write("ohlcv", 1))
+        write_risk = AsyncMock(side_effect=lambda *_args, **_kwargs: record_write("risk", 1))
+        write_validation = AsyncMock(side_effect=lambda *_args, **_kwargs: record_write("validation"))
+        write_brief = AsyncMock(side_effect=lambda *_args, **_kwargs: record_write("brief"))
+        write_levels = AsyncMock(side_effect=lambda *_args, **_kwargs: record_write("levels"))
+        delete_stale = AsyncMock(
+            side_effect=lambda *_args, **_kwargs: record_write(
+                "delete",
+                {"ohlcv": 0, "risk": 0, "brief": 0, "levels": 0},
+            )
+        )
+
+        with (
+            patch.object(collector_main, "build_csv_risk_dataset", return_value=dataset),
+            patch.object(collector_db_writer, "write_ohlcv_rows", write_ohlcv),
+            patch.object(collector_db_writer, "write_risk_rows", write_risk),
+            patch.object(collector_db_writer, "write_validation", write_validation),
+            patch.object(collector_db_writer, "write_brief", write_brief),
+            patch.object(collector_db_writer, "write_risk_level_snapshot", write_levels),
+            patch.object(collector_db_writer, "delete_rows_after_csv_end", delete_stale),
+        ):
+            await collector_main.import_csv_once(pool, refresh_remote=False)
+
+        write_levels.assert_awaited_once_with(pool, dataset["source_rows"], dataset["risk_points"])
+        self.assertEqual(write_order, ["ohlcv", "risk", "delete", "levels", "brief", "validation"])
 
 
 if __name__ == "__main__":

@@ -203,9 +203,15 @@ Each import writes:
 - all OHLCV source rows into `btc_ohlcv_daily`;
 - all computed risk rows into `btc_risk_daily`;
 - latest validation metadata into `btc_risk_validation`;
-- latest brief payload into `brief_snapshots`.
+- latest brief payload into `brief_snapshots`;
+- latest risk-level payload into `risk_level_snapshots`.
 
-Rows after the CSV tail are deleted from `btc_ohlcv_daily`, `btc_risk_daily`, and `brief_snapshots` so older mixed-source data cannot remain visible.
+After each successful CSV import/recompute, the collector persists a `risk_level_snapshots` row for the latest
+observation. The public `/api/risk/levels` endpoint reads this snapshot so cold public requests do not run the expensive
+level solver on the backend request path.
+
+Rows after the CSV tail are deleted from `btc_ohlcv_daily`, `btc_risk_daily`, `brief_snapshots`, and
+`risk_level_snapshots` so older mixed-source data cannot remain visible.
 
 ## Readiness Relationship
 

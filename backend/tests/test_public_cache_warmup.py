@@ -191,6 +191,9 @@ class PublicPayloadSchemaRegressionTest(MainPatchMixin, unittest.IsolatedAsyncio
         async def fake_source_rows(_pool):
             return source_rows
 
+        async def no_snapshot(_pool):
+            return None
+
         def fake_levels(_rows, _validation):
             return {
                 "risk_level_rows": [
@@ -204,6 +207,7 @@ class PublicPayloadSchemaRegressionTest(MainPatchMixin, unittest.IsolatedAsyncio
             }
 
         self.patch_main("get_pool", lambda: object())
+        self.patch_main("fetch_latest_risk_level_snapshot", no_snapshot)
         self.patch_main("fetch_latest_risk", fake_latest)
         self.patch_main("fetch_ohlcv_history", fake_source_rows)
         self.patch_main("build_risk_levels", fake_levels)
@@ -230,6 +234,36 @@ class PublicPayloadSchemaRegressionTest(MainPatchMixin, unittest.IsolatedAsyncio
         )
         self.assertEqual(payload["meta"]["base"], latest)
         self.assertEqual(payload["meta"]["source_row_count"], 2)
+
+    async def test_risk_levels_payload_uses_persisted_snapshot_without_solver(self) -> None:
+        snapshot = {
+            "data": [{"risk": 0.35, "price_usd": 82000.0}],
+            "meta": {
+                "base": {"timestamp": "2026-06-26T00:00:00+00:00", "risk": 0.7},
+                "methodology_version": "crypto-scout-canonical-v1",
+                "evaluation_date": "2026-06-26",
+                "current_price": 100000.0,
+                "current_risk": 0.7,
+                "turnover_enabled": False,
+                "risk_step": 0.025,
+                "source_row_count": 5827,
+            },
+        }
+
+        async def fake_snapshot(_pool):
+            return snapshot
+
+        def fail_solver(_rows, _validation):
+            raise AssertionError("request path must not call build_risk_levels when a snapshot exists")
+
+        self.patch_main("get_pool", lambda: object())
+        self.patch_main("fetch_latest_risk_level_snapshot", fake_snapshot)
+        self.patch_main("build_risk_levels", fail_solver)
+
+        payload, status = await main._produce_risk_levels_payload()
+
+        self.assertEqual(status, 200)
+        self.assertEqual(payload, snapshot)
 
 
 if __name__ == "__main__":
