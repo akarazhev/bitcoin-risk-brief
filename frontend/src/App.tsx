@@ -29,6 +29,10 @@ const ACCESSIBLE_HISTORY_POINTS = 6
 const DRIVER_NEUTRAL_BAND = 0.25
 const AUTO_CHART_SIZE = { width: 'auto', height: 'auto' } as const
 const COINMARKETCAP_HISTORICAL_DATA_URL = 'https://coinmarketcap.com/currencies/bitcoin/historical-data/'
+const SUPPORT_EMAIL = 'support@minihub.app'
+const SUPPORT_EMAIL_URL = `mailto:${SUPPORT_EMAIL}`
+const MINIHUB_URL = 'https://minihub.app'
+const COPYRIGHT_YEAR = '2026'
 const Chart = lazy(() => import('./Chart'))
 
 function formatPercent(value: number) {
@@ -639,6 +643,18 @@ export default function App() {
           )}
         </article>
       </section>
+      <footer className="bottom-panel" aria-label={t.footerAriaLabel}>
+        <a className="bottom-panel-link footer-token" href={SUPPORT_EMAIL_URL} dir="ltr">
+          {SUPPORT_EMAIL}
+        </a>
+        <span className="footer-legal">
+          &copy; <NumericValue>{COPYRIGHT_YEAR}</NumericValue> Minihub
+        </span>
+        <a className="bottom-panel-link footer-token" href={MINIHUB_URL} target="_blank" rel="noreferrer" dir="ltr">
+          {MINIHUB_URL}
+          <ExternalLink size={14} aria-hidden="true" />
+        </a>
+      </footer>
     </main>
   )
 }
