@@ -19,6 +19,7 @@ type Copy = {
   title: string
   subtitle: string
   updated: string
+  reportDate: string
   currentRisk: string
   price: string
   modelPrice: string
@@ -143,6 +144,7 @@ export const copy: Record<Locale, Copy> = {
     title: 'Bitcoin Risk Brief',
     subtitle: 'A concise daily read on whether BTC risk looks elevated, balanced, or washed out.',
     updated: 'Updated',
+    reportDate: 'Report date',
     currentRisk: 'Current risk',
     price: 'BTC model price input',
     modelPrice: 'Model price',
@@ -232,6 +234,7 @@ export const copy: Record<Locale, Copy> = {
     title: 'Bitcoin Risk Brief',
     subtitle: 'Короткий ежедневный обзор: риск BTC повышен, сбалансирован или близок к зоне дисконта.',
     updated: 'Обновлено',
+    reportDate: 'Дата выпуска',
     currentRisk: 'Текущий риск',
     price: 'Цена BTC в модели',
     modelPrice: 'Цена модели',
@@ -321,6 +324,7 @@ export const copy: Record<Locale, Copy> = {
     title: 'Bitcoin Risk Brief',
     subtitle: '每日简明判断 BTC 风险处于偏高、均衡，还是接近折价区域。',
     updated: '已更新',
+    reportDate: '报告日期',
     currentRisk: '当前风险',
     price: 'BTC 模型价格输入',
     modelPrice: '模型价格',
@@ -410,6 +414,7 @@ export const copy: Record<Locale, Copy> = {
     title: 'Bitcoin Risk Brief',
     subtitle: 'Ein kurzer täglicher Blick darauf, ob das BTC-Risiko erhöht, ausgeglichen oder ausgewaschen wirkt.',
     updated: 'Aktualisiert',
+    reportDate: 'Berichtsdatum',
     currentRisk: 'Aktuelles Risiko',
     price: 'BTC-Modellpreis-Eingabe',
     modelPrice: 'Modellpreis',
@@ -499,6 +504,7 @@ export const copy: Record<Locale, Copy> = {
     title: 'Bitcoin Risk Brief',
     subtitle: 'Une lecture quotidienne concise pour savoir si le risque BTC paraît élevé, équilibré ou décoté.',
     updated: 'Mis à jour',
+    reportDate: 'Date du rapport',
     currentRisk: 'Risque actuel',
     price: 'Entrée de prix BTC du modèle',
     modelPrice: 'Prix du modèle',
@@ -588,6 +594,7 @@ export const copy: Record<Locale, Copy> = {
     title: 'Bitcoin Risk Brief',
     subtitle: 'Una lectura diaria breve sobre si el riesgo de BTC parece elevado, equilibrado o descontado.',
     updated: 'Actualizado',
+    reportDate: 'Fecha del informe',
     currentRisk: 'Riesgo actual',
     price: 'Entrada de precio BTC del modelo',
     modelPrice: 'Precio del modelo',
@@ -677,6 +684,7 @@ export const copy: Record<Locale, Copy> = {
     title: 'Bitcoin Risk Brief',
     subtitle: 'قراءة يومية موجزة لما إذا كانت مخاطر BTC مرتفعة أو متوازنة أو قريبة من منطقة خصم.',
     updated: 'آخر تحديث',
+    reportDate: 'تاريخ التقرير',
     currentRisk: 'المخاطر الحالية',
     price: 'مدخل سعر BTC في النموذج',
     modelPrice: 'سعر النموذج',
