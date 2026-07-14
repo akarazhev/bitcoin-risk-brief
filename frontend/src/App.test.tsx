@@ -735,7 +735,7 @@ test('renders the compact Minihub bottom panel after the charts', async () => {
 
   const bottomPanel = within(footer as HTMLElement)
   expect(supportLink).toHaveAttribute('href', 'mailto:support@minihub.app')
-  expect(bottomPanel.getByText(textContentMatcher('© 2026 Minihub'))).toBeInTheDocument()
+  expect(bottomPanel.getByText(textContentMatcher(`© ${new Date().getFullYear()} Minihub`))).toBeInTheDocument()
 
   const websiteLink = bottomPanel.getByRole('link', { name: /https:\/\/minihub\.app/i })
   expect(websiteLink).toHaveAttribute('href', 'https://minihub.app')

@@ -32,7 +32,7 @@ const COINMARKETCAP_HISTORICAL_DATA_URL = 'https://coinmarketcap.com/currencies/
 const SUPPORT_EMAIL = 'support@minihub.app'
 const SUPPORT_EMAIL_URL = `mailto:${SUPPORT_EMAIL}`
 const MINIHUB_URL = 'https://minihub.app'
-const COPYRIGHT_YEAR = '2026'
+const COPYRIGHT_YEAR = String(new Date().getFullYear())
 const Chart = lazy(() => import('./Chart'))
 
 function formatPercent(value: number) {
