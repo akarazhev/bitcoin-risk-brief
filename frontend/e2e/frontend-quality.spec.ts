@@ -167,9 +167,9 @@ test('renders desktop and mobile layouts with non-empty chart canvases', async (
   await expect(page.getByRole('heading', { name: 'Bitcoin Risk Brief' })).toBeVisible()
   await expect(page.getByText('Readiness ready')).toBeVisible()
   const currentState = page.locator('.metrics-strip')
-  await expect(currentState.getByText('Model price')).toBeVisible()
-  await expect(currentState.getByText('Low')).toBeVisible()
-  await expect(currentState.getByText('High')).toBeVisible()
+  await expect(currentState.getByText('Model price', { exact: true })).toBeVisible()
+  await expect(currentState.getByText('Low', { exact: true })).toBeVisible()
+  await expect(currentState.getByText('High', { exact: true })).toBeVisible()
   await expect(currentState.getByText('$96,500')).toBeVisible()
   await expect(currentState.getByText('$104,250')).toBeVisible()
   await expect(page.getByText('Low / Neutral near $82,000')).toBeVisible()
@@ -177,6 +177,25 @@ test('renders desktop and mobile layouts with non-empty chart canvases', async (
   await expect(page.getByRole('img', { name: 'Risk history' })).toHaveAttribute('aria-describedby', /risk-history-chart-summary/)
   await expect(page.getByRole('table', { name: 'Recent risk history table' })).toContainText('2026-06-25')
   await expect(page.getByRole('table', { name: 'Risk threshold price table' })).toContainText('$118,000')
+  await expectNoHorizontalOverflow(page)
+  await expectNonBlankCharts(page, testInfo.project.name.startsWith('mobile') ? 280 : 440)
+})
+
+test('keeps Arabic RTL layout numeric data isolated and readable', async ({ page }, testInfo) => {
+  await mockApi(page, degradedReadiness)
+
+  await page.goto('/')
+  await page.getByRole('combobox', { name: /select language/i }).selectOption('ar')
+
+  await expect(page.locator('html')).toHaveAttribute('lang', 'ar')
+  await expect(page.locator('html')).toHaveAttribute('dir', 'rtl')
+  await expect(page.locator('.numeric-value', { hasText: '$100,000' }).first()).toHaveAttribute('dir', 'ltr')
+  await expect(page.locator('.numeric-value', { hasText: '70%' }).first()).toHaveAttribute('dir', 'ltr')
+  await expect(page.locator('.numeric-value', { hasText: '2026-06-26' }).first()).toHaveAttribute('dir', 'ltr')
+  await expect(page.locator('.freshness-metric .numeric-value', { hasText: /^6$/ })).toHaveAttribute('dir', 'ltr')
+  await expect(page.locator('.trust-panel .numeric-value', { hasText: '2026-06-20' })).toHaveAttribute('dir', 'ltr')
+  await expect(page.locator('.trust-panel .numeric-value', { hasText: '2026-06-19' })).toHaveAttribute('dir', 'ltr')
+  await expect(page.locator('.threshold-callouts .numeric-value', { hasText: '$118,000' })).toHaveAttribute('dir', 'ltr')
   await expectNoHorizontalOverflow(page)
   await expectNonBlankCharts(page, testInfo.project.name.startsWith('mobile') ? 280 : 440)
 })
@@ -214,7 +233,7 @@ test('supports keyboard focus navigation through public controls with mocked wai
 
   await expect(page.getByRole('heading', { name: 'Bitcoin Risk Brief' })).toBeVisible()
   const methodologyLink = page.getByRole('link', { name: /methodology/i })
-  const languageButton = page.getByRole('button', { name: 'RU' })
+  const languageSelector = page.getByRole('combobox', { name: /select language/i })
   const waitlistInput = page.getByLabel('email or @telegram')
   const submitButton = page.getByRole('button', { name: /join waitlist/i })
 
@@ -222,7 +241,7 @@ test('supports keyboard focus navigation through public controls with mocked wai
   if (await isFocused(methodologyLink)) {
     await pressTab()
   }
-  await expect(languageButton).toBeFocused()
+  await expect(languageSelector).toBeFocused()
   await pressTab()
   await expect(waitlistInput).toBeFocused()
   await page.keyboard.type('keyboard@example.invalid')

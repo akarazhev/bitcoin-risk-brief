@@ -3,6 +3,7 @@ set -euo pipefail
 
 APP_USER="${APP_USER:-apps}"
 PROJECT_NAME="${PROJECT_NAME:-bitcoin-risk-brief}"
+PROJECT_DEST="${PROJECT_DEST:-/srv/projects/${PROJECT_NAME}}"
 SERVICE_NAME="${SERVICE_NAME:-bitcoin-risk-brief}"
 PUBLIC_URL="${PUBLIC_URL:-}"
 WITH_BACKUP=false
@@ -42,7 +43,7 @@ done
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-export APP_USER PROJECT_NAME SERVICE_NAME PUBLIC_URL
+export APP_USER PROJECT_NAME PROJECT_DEST SERVICE_NAME PUBLIC_URL
 
 log() {
   printf '\n==> %s\n' "$*"
@@ -63,6 +64,11 @@ run_user_systemctl() {
     HOME="/home/${APP_USER}" \
     XDG_RUNTIME_DIR="/run/user/${app_uid}" \
     systemctl --user "$@"
+}
+
+run_migrations() {
+  log "Running database migrations"
+  run_as_app bash -lc "cd '${PROJECT_DEST}' && ./scripts/manage.sh migrate"
 }
 
 verify_kit_checksums() {
@@ -119,6 +125,8 @@ deploy_without_backup() {
 
   log "Restarting service"
   run_user_systemctl restart "${SERVICE_NAME}.service"
+
+  run_migrations
 
   log "Running health checks"
   if [[ -n "${PUBLIC_URL}" ]]; then

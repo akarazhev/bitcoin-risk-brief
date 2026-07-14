@@ -292,7 +292,7 @@ The automated matrix uses Playwright browser engines and device profiles. Before
 hostname, repeat a short manual pass on available physical devices or real branded browsers, especially iOS Safari and
 Android Chrome, and record any accepted limitations here.
 
-If Phase 8 localization expansion is implemented before active traffic, repeat the launch pass for every enabled locale:
-English, Russian, Spanish, and German. Check long localized labels in buttons, badges, chart labels, waitlist states,
-degraded/error states, and mobile layouts. Arabic and Chinese remain disabled until separate RTL, Simplified/Traditional,
-platform, and channel requirements are documented and tested.
+If issue #28 localization expansion is enabled before active traffic, repeat the launch pass for English, Russian,
+Simplified Chinese (`zh`), German, French, Spanish, and Arabic. Check long localized labels in buttons, badges, chart
+labels, waitlist states, degraded/error states, and mobile layouts. Arabic requires explicit `dir="rtl"` verification;
+charts and numeric data should remain readable and not be visually reversed.

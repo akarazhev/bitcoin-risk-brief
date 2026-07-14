@@ -16,6 +16,7 @@ class ServerKitScriptTests(unittest.TestCase):
         deploy_index = script.index('bash "${script_dir}/scripts/03-deploy-bitcoin-risk-brief.sh"')
         enable_index = script.index('bash "${script_dir}/scripts/04-enable-bitcoin-risk-service.sh"')
         restart_index = script.index('restart "${SERVICE_NAME}.service"')
+        migrate_index = script.index("  run_migrations\n")
         health_index = script.index('bash "${script_dir}/scripts/05-health-check.sh"')
 
         self.assertIn("--with-backup", script)
@@ -23,7 +24,9 @@ class ServerKitScriptTests(unittest.TestCase):
         self.assertNotIn("./scripts/backup.sh", script)
         self.assertLess(deploy_index, enable_index)
         self.assertLess(enable_index, restart_index)
-        self.assertLess(restart_index, health_index)
+        self.assertLess(restart_index, migrate_index)
+        self.assertLess(migrate_index, health_index)
+        self.assertIn('cd \'${PROJECT_DEST}\' && ./scripts/manage.sh migrate', script)
 
     def test_deploy_from_usb_verifies_kit_checksums_before_default_deploy(self) -> None:
         script = (ROOT / "deploy-from-usb.sh").read_text()
@@ -96,10 +99,13 @@ class ServerKitScriptTests(unittest.TestCase):
 
         enable_index = script.index("04-enable-bitcoin-risk-service.sh")
         restart_index = script.find('restart "${SERVICE_NAME}.service"')
+        migrate_index = script.index("\nrun_migrations\n")
         health_index = script.index("05-health-check.sh")
         self.assertNotEqual(restart_index, -1)
         self.assertLess(enable_index, restart_index)
-        self.assertLess(restart_index, health_index)
+        self.assertLess(restart_index, migrate_index)
+        self.assertLess(migrate_index, health_index)
+        self.assertIn('cd \'${PROJECT_DEST}\' && ./scripts/manage.sh migrate', script)
 
     def test_update_script_validates_canonical_project_dest_before_backup(self) -> None:
         script = (ROOT / "scripts" / "07-update-bitcoin-risk-brief-from-usb.sh").read_text()

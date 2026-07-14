@@ -39,7 +39,7 @@ Contacts are validated server-side.
 | --- | --- |
 | email | Must match a simple email pattern with no whitespace. |
 | Telegram | Must match `@[A-Za-z0-9_]{5,32}`. |
-| locale | Only `en` and `ru` are accepted; invalid values fall back to `en`. |
+| locale | `en`, `ru`, `zh`, `de`, `fr`, `es`, and `ar` are accepted; invalid values fall back to `en`. |
 | source | Must match `[A-Za-z0-9_.:-]{1,64}`; invalid values fall back to `landing`. |
 
 ## Storage

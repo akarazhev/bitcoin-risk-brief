@@ -223,6 +223,9 @@ Response shape:
 }
 ```
 
+Brief `sections` are generated for `en`, `ru`, `zh`, `de`, `fr`, `es`, and `ar`. `zh` is Simplified Chinese.
+Older persisted local snapshots may contain only `en` and `ru` until the collector writes a fresh brief snapshot.
+
 ## POST /api/waitlist
 
 Stores or updates a waitlist lead.
@@ -239,6 +242,9 @@ Request:
   "source": "landing"
 }
 ```
+
+Accepted locale values are `en`, `ru`, `zh`, `de`, `fr`, `es`, and `ar`. Unsupported values are normalized to `en`
+before storage.
 
 Accepted contacts:
 

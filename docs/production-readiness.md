@@ -1683,9 +1683,9 @@ localized copy fit, first-viewport price model input labels, and common mobile/d
 The automated frontend smoke matrix and current results are recorded in [Frontend QA](frontend-qa.md). Treat that as the
 minimum automated check; repeat a short manual pass on the production hostname before public launch.
 
-If the Phase 8 localization add-on is implemented before active traffic, include English, Russian, Spanish, and German in
-the browser/device pass. Arabic and Chinese should remain disabled until their separate right-to-left, Simplified versus
-Traditional, platform, and channel requirements are documented and tested.
+If issue #28 localization expansion is implemented before active traffic, include English, Russian, Simplified Chinese,
+German, French, Spanish, and Arabic in the browser/device pass. Arabic must include right-to-left layout verification,
+waitlist locale attribution, and checks that chart data, USD prices, and ISO dates remain readable.
 
 ## Remaining External Operations
 

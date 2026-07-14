@@ -1,10 +1,11 @@
 import { Suspense, lazy, useEffect, useMemo, useState } from 'react'
+import type { FormEvent, ReactNode } from 'react'
 import type { EChartsOption } from 'echarts'
 import { Bell, CheckCircle2, ExternalLink, Languages, Radio, Send, ShieldAlert, TriangleAlert } from 'lucide-react'
 import { fetchBrief, fetchLatestRisk, fetchReadiness, fetchRiskHistory, fetchRiskLevels, joinWaitlist } from './api'
-import type { BriefPayload, ReadinessPayload, RiskLevel, RiskPoint } from './types'
+import { copy, getLocaleOption, localeOptions, stateLabel } from './locales'
+import type { BriefPayload, Locale, ReadinessPayload, RiskLevel, RiskPoint } from './types'
 
-type Locale = 'en' | 'ru'
 type ThresholdCallout = { risk: number; label: string; price: string; text: string }
 type DriverStatus = 'raises' | 'neutral' | 'lowers' | 'unavailable'
 type ReadinessLabels = {
@@ -29,181 +30,6 @@ const DRIVER_NEUTRAL_BAND = 0.25
 const AUTO_CHART_SIZE = { width: 'auto', height: 'auto' } as const
 const Chart = lazy(() => import('./Chart'))
 
-const copy = {
-  en: {
-    eyebrow: 'Daily BTC Risk Signal',
-    title: 'Bitcoin Risk Brief',
-    subtitle: 'A focused daily read on whether BTC is overheated, neutral, or washed out.',
-    updated: 'Updated',
-    currentRisk: 'Current risk',
-    price: 'BTC price model input',
-    modelPrice: 'Model price',
-    low: 'Low',
-    high: 'High',
-    riskChange: 'Risk change',
-    riskChangeContext: 'vs previous observation',
-    modelDrivers: 'Model drivers',
-    modelDriversBody: "Plain-language directions behind today's risk, based on the latest validated daily data.",
-    driverTrend: 'Trend',
-    driverTrendDetail: 'Price vs long-term baseline',
-    driverVolatility: 'Volatility',
-    driverVolatilityDetail: 'Recent price swings',
-    driverActivity: 'Activity',
-    driverActivityDetail: 'Trading activity adjusted for market size',
-    driverActivityUnavailableDetail: 'Market-adjusted activity unavailable',
-    driverRaises: 'Raises risk',
-    driverNeutral: 'Neutral',
-    driverLowers: 'Lowers risk',
-    driverUnavailable: 'Unavailable',
-    riskZones: ['Low / Neutral', 'Neutral / High'],
-    readinessReady: 'Readiness ready',
-    readinessDegraded: 'Readiness degraded',
-    validationPassed: 'Validation passed',
-    validationNeedsAttention: 'Validation needs attention',
-    currentThrough: 'Current through',
-    latestCompletedDay: 'Latest completed day',
-    coverageThrough: 'Coverage through',
-    freshnessCurrent: 'Freshness: current',
-    staleAge: (days: number | null) => (days === null ? 'Staleness unavailable' : `Stale: ${days} ${days === 1 ? 'day' : 'days'} behind`),
-    methodology: 'Methodology',
-    methodologyLink: 'View methodology',
-    methodologyVersion: 'Methodology version',
-    methodologyBody: 'The public signal uses the canonical BTC risk model and the latest validated CoinMarketCap CSV import.',
-    disclaimer: 'Risk levels are scenario outputs, not financial advice or trading instructions.',
-    thresholdCallouts: 'Nearest threshold prices',
-    thresholdNear: (label: string, price: string) => `${label} near ${price}`,
-    riskHistoryAlternative: 'Risk history chart data alternative',
-    riskLevelsAlternative: 'Risk level chart data alternative',
-    chartCurrentSummary: (date: string, risk: string, state: string, modelPrice: string, range: string) => `Latest observation ${date}: current risk is ${risk} (${state}) and model price is ${modelPrice}${range}.`,
-    chartCurrentRange: (low: string, high: string) => `, with latest daily low ${low} and high ${high}`,
-    riskHistoryAlternativeNote: (count: number) => `The table lists the ${count} most recent risk history observations available to the chart.`,
-    riskLevelsAlternativeNote: 'The table lists the key risk threshold prices used with the risk levels chart.',
-    dateColumn: 'Date',
-    riskColumn: 'Risk',
-    priceColumn: 'BTC price',
-    stateColumn: 'Risk state',
-    thresholdColumn: 'Risk threshold',
-    bandColumn: 'Band',
-    nearestModelPriceColumn: 'Nearest model price',
-    recentRiskHistoryTable: 'Recent risk history table',
-    riskThresholdPriceTable: 'Risk threshold price table',
-    history: 'Risk history',
-    levels: 'Risk levels',
-    brief: 'Today brief',
-    changed: 'What changed',
-    avoid: 'Avoid now',
-    confirm: 'Confirm next',
-    waitlistTitle: 'Get the daily signal',
-    waitlistBody: 'Leave an email or Telegram handle. The first test cohort gets the risk alert free.',
-    placeholder: 'email or @telegram',
-    join: 'Join waitlist',
-    joined: 'Saved. You are on the Bitcoin Risk Brief waitlist.',
-    joinError: 'Enter a valid email or Telegram handle.',
-    joining: 'Saving...',
-    privacyNoteTitle: 'Privacy, terms, and disclaimer',
-    privacyNoteIntro: 'Bitcoin Risk Brief is informational research only, not financial advice, investment advice, or a trading recommendation.',
-    privacyNoteWaitlist: 'The waitlist stores the contact you submit, a normalized copy, contact type, locale, source, status, and timestamps.',
-    privacyNoteLogs: 'Operational logs may include request method, path, status, client key, Cloudflare ray ID, cache status, and timing.',
-    privacyNoteLimits: 'Do not enter sensitive information. No buy, sell, portfolio, or trading action is recommended, and no paid support SLA is provided.',
-    privacyNoteAnalytics: 'The current app source does not include product analytics or tracking-cookie code.',
-    loading: 'Loading risk data...',
-    empty: 'No collected data yet. Run the collector backfill to populate TimescaleDB.',
-    loadErrorTitle: 'Risk data is temporarily unavailable',
-    loadErrorBody: 'The page could not load the latest risk payload. Treat the signal as unavailable until the API recovers.',
-    chartLoading: 'Loading chart...',
-    historyEmpty: 'Risk history is unavailable until observations are loaded.',
-    levelsEmpty: 'Risk levels are unavailable until the latest model input is ready.',
-    historyError: 'Risk history is temporarily unavailable.',
-    levelsError: 'Risk levels are temporarily unavailable.',
-  },
-  ru: {
-    eyebrow: 'Ежедневный BTC риск-сигнал',
-    title: 'Bitcoin Risk Brief',
-    subtitle: 'Короткий ежедневный ответ: BTC перегрет, нейтрален или в зоне дисконта.',
-    updated: 'Обновлено',
-    currentRisk: 'Текущий риск',
-    price: 'Цена BTC в модели',
-    modelPrice: 'Цена модели',
-    low: 'Мин.',
-    high: 'Макс.',
-    riskChange: 'Изменение риска',
-    riskChangeContext: 'к прошлому наблюдению',
-    modelDrivers: 'Драйверы модели',
-    modelDriversBody: 'Понятные направления за сегодняшним риском по последним валидированным дневным данным.',
-    driverTrend: 'Тренд',
-    driverTrendDetail: 'Цена относительно долгосрочной базы',
-    driverVolatility: 'Волатильность',
-    driverVolatilityDetail: 'Недавние колебания цены',
-    driverActivity: 'Активность',
-    driverActivityDetail: 'Торговая активность с учетом размера рынка',
-    driverActivityUnavailableDetail: 'Активность с учетом размера рынка недоступна',
-    driverRaises: 'Повышает риск',
-    driverNeutral: 'Нейтрально',
-    driverLowers: 'Снижает риск',
-    driverUnavailable: 'Недоступно',
-    riskZones: ['Низкий / Нейтральный', 'Нейтральный / Высокий'],
-    readinessReady: 'Готовность подтверждена',
-    readinessDegraded: 'Готовность снижена',
-    validationPassed: 'Валидация пройдена',
-    validationNeedsAttention: 'Валидация требует внимания',
-    currentThrough: 'Актуально по',
-    latestCompletedDay: 'Последний завершенный день',
-    coverageThrough: 'Покрытие по',
-    freshnessCurrent: 'Свежесть: актуально',
-    staleAge: (days: number | null) => (days === null ? 'Отставание данных неизвестно' : `Отставание: ${days} дн.`),
-    methodology: 'Методология',
-    methodologyLink: 'Методология',
-    methodologyVersion: 'Версия методологии',
-    methodologyBody: 'Публичный сигнал использует каноническую BTC risk-модель и последний валидированный импорт CoinMarketCap CSV.',
-    disclaimer: 'Уровни риска - сценарные расчеты, а не финансовый совет или торговая инструкция.',
-    thresholdCallouts: 'Ближайшие пороги цены',
-    thresholdNear: (label: string, price: string) => `${label}: около ${price}`,
-    riskHistoryAlternative: 'Альтернатива данным графика истории риска',
-    riskLevelsAlternative: 'Альтернатива данным графика уровней риска',
-    chartCurrentSummary: (date: string, risk: string, state: string, modelPrice: string, range: string) => `Последнее наблюдение ${date}: текущий риск ${risk} (${state}), цена модели ${modelPrice}${range}.`,
-    chartCurrentRange: (low: string, high: string) => `, дневной минимум ${low}, максимум ${high}`,
-    riskHistoryAlternativeNote: (count: number) => `Таблица показывает ${count} последних наблюдений риска, доступных на графике.`,
-    riskLevelsAlternativeNote: 'Таблица показывает ключевые пороговые цены, используемые с графиком уровней риска.',
-    dateColumn: 'Дата',
-    riskColumn: 'Риск',
-    priceColumn: 'Цена BTC',
-    stateColumn: 'Состояние риска',
-    thresholdColumn: 'Порог риска',
-    bandColumn: 'Диапазон',
-    nearestModelPriceColumn: 'Ближайшая цена модели',
-    recentRiskHistoryTable: 'Таблица недавней истории риска',
-    riskThresholdPriceTable: 'Таблица пороговых цен риска',
-    history: 'История риска',
-    levels: 'Уровни риска',
-    brief: 'Сегодняшний бриф',
-    changed: 'Что изменилось',
-    avoid: 'Чего избегать',
-    confirm: 'Что подтвердить',
-    waitlistTitle: 'Получать ежедневный сигнал',
-    waitlistBody: 'Оставь email или Telegram. Первая тестовая группа получит риск-алерт бесплатно.',
-    placeholder: 'email или @telegram',
-    join: 'В лист ожидания',
-    joined: 'Сохранено. Ты в листе ожидания Bitcoin Risk Brief.',
-    joinError: 'Укажи корректный email или Telegram.',
-    joining: 'Сохраняю...',
-    privacyNoteTitle: 'Приватность, условия и дисклеймер',
-    privacyNoteIntro: 'Bitcoin Risk Brief - только информационная аналитика, не финансовый или инвестиционный совет и не торговая рекомендация.',
-    privacyNoteWaitlist: 'Лист ожидания хранит введенный контакт, нормализованную копию, тип контакта, язык, источник, статус и временные метки.',
-    privacyNoteLogs: 'Операционные логи могут включать метод запроса, путь, статус, client key, Cloudflare ray ID, cache-статус и время выполнения.',
-    privacyNoteLimits: 'Не вводи конфиденциальную информацию. Покупка, продажа, портфельное или торговое действие не рекомендуется, платный SLA поддержки не предоставляется.',
-    privacyNoteAnalytics: 'В текущем исходном коде приложения нет product analytics или tracking-cookie кода.',
-    loading: 'Загружаю risk data...',
-    empty: 'Данных пока нет. Запусти collector backfill, чтобы заполнить TimescaleDB.',
-    loadErrorTitle: 'Данные о риске временно недоступны',
-    loadErrorBody: 'Страница не смогла загрузить последний пакет данных о риске. Считай сигнал недоступным, пока API не восстановится.',
-    chartLoading: 'Загружаю график...',
-    historyEmpty: 'История риска недоступна, пока наблюдения не загружены.',
-    levelsEmpty: 'Уровни риска недоступны, пока нет последнего входа модели.',
-    historyError: 'История риска временно недоступна.',
-    levelsError: 'Уровни риска временно недоступны.',
-  },
-} as const
-
 function formatPercent(value: number) {
   return `${Math.round(value * 100)}%`
 }
@@ -220,12 +46,33 @@ function formatDateLabel(timestamp: string, compact: boolean) {
   return compact ? timestamp.slice(5, 10) : timestamp.slice(0, 10)
 }
 
-function stateLabel(state: string, locale: Locale) {
-  const labels = {
-    en: { low: 'Low', neutral: 'Neutral', high: 'High' },
-    ru: { low: 'Низкий', neutral: 'Нейтральный', high: 'Высокий' },
-  }
-  return labels[locale][state as 'low' | 'neutral' | 'high'] ?? state
+function NumericValue({ children }: { children: ReactNode }) {
+  return <bdi className="numeric-value" dir="ltr">{children}</bdi>
+}
+
+function TrustValue({ label, value, unavailable }: { label: string; value: string | null; unavailable: string }) {
+  return (
+    <>
+      {label}: {value ? <NumericValue>{value}</NumericValue> : unavailable}
+    </>
+  )
+}
+
+function LocalizedPriceText({ text, price }: { text: string; price: string }) {
+  return <LocalizedIsolatedText text={text} value={price} />
+}
+
+function LocalizedIsolatedText({ text, value }: { text: string; value: string }) {
+  const [prefix, ...suffixParts] = text.split(value)
+  if (suffixParts.length === 0) return <>{text}</>
+
+  return (
+    <>
+      {prefix}
+      <NumericValue>{value}</NumericValue>
+      {suffixParts.join(value)}
+    </>
+  )
 }
 
 function driverStatusFromZScore(value: number | null | undefined): DriverStatus {
@@ -277,14 +124,19 @@ function buildModelDrivers(latest: RiskPoint, labels: typeof copy[Locale]): Mode
   }))
 }
 
-function formatTrustValue(label: string, value: string | null) {
-  return `${label}: ${value ?? 'unavailable'}`
-}
-
 function readinessFreshnessText(readiness: ReadinessPayload, labels: ReadinessLabels) {
   return readiness.checks.data_fresh
     ? labels.freshnessCurrent
     : labels.staleAge(readiness.data.data_age_days)
+}
+
+function ReadinessFreshnessValue({ readiness, labels }: { readiness: ReadinessPayload; labels: ReadinessLabels }) {
+  if (readiness.checks.data_fresh || readiness.data.data_age_days === null) {
+    return <>{readinessFreshnessText(readiness, labels)}</>
+  }
+
+  const days = String(readiness.data.data_age_days)
+  return <LocalizedIsolatedText text={labels.staleAge(readiness.data.data_age_days)} value={days} />
 }
 
 function validationPassed(readiness: ReadinessPayload) {
@@ -402,6 +254,12 @@ export default function App() {
     return () => query.removeEventListener('change', updateCompactCharts)
   }, [])
 
+  useEffect(() => {
+    const option = getLocaleOption(locale)
+    document.documentElement.lang = option.lang
+    document.documentElement.dir = option.dir
+  }, [locale])
+
   const riskOption = useMemo<EChartsOption>(() => ({
     backgroundColor: 'transparent',
     animation: false,
@@ -438,7 +296,7 @@ export default function App() {
   }, [levels, t])
   const accessibleHistory = useMemo(() => history.slice(-ACCESSIBLE_HISTORY_POINTS), [history])
 
-  async function submitWaitlist(event: React.FormEvent<HTMLFormElement>) {
+  async function submitWaitlist(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const value = lead.trim()
     if (!value || joining) return
@@ -472,11 +330,11 @@ export default function App() {
     return <main className="shell centered"><p className="loading">{t.loading}</p></main>
   }
 
-  const briefSection = brief.sections[locale]
+  const briefSection = brief.sections[locale] ?? brief.sections.en
   const state = stateLabel(latest.risk_state, locale)
   const ready = readiness.status === 'ready'
   const validationOk = validationPassed(readiness)
-  const methodologyVersion = readiness.data.methodology_version ?? 'unknown'
+  const methodologyVersion = readiness.data.methodology_version ?? t.unavailable
   const modelPriceUsd = latest.model_price_usd ?? latest.price_usd
   const hasDailyRange = typeof latest.low_usd === 'number' && typeof latest.high_usd === 'number'
   const chartCurrentSummary = t.chartCurrentSummary(
@@ -490,11 +348,25 @@ export default function App() {
 
   return (
     <main className="shell">
-      <nav className="topbar" aria-label="Language">
+      <nav className="topbar" aria-label={t.languageNavigation}>
         <div className="brand"><Radio size={18} /> BTC Risk Brief</div>
         <div className="top-actions">
           <a className="methodology-link" href="#methodology"><ExternalLink size={15} /> {t.methodologyLink}</a>
-          <button className="lang" onClick={() => setLocale(locale === 'en' ? 'ru' : 'en')}><Languages size={16} /> {locale === 'en' ? 'RU' : 'EN'}</button>
+          <label className="language-select">
+            <Languages size={16} aria-hidden="true" />
+            <span className="sr-only">{t.languageSelector}</span>
+            <select
+              value={locale}
+              onChange={(event) => setLocale(event.target.value as Locale)}
+              aria-label={t.languageSelector}
+            >
+              {localeOptions.map((option) => (
+                <option key={option.code} value={option.code}>
+                  {option.shortLabel}
+                </option>
+              ))}
+            </select>
+          </label>
         </div>
       </nav>
 
@@ -506,28 +378,28 @@ export default function App() {
         </div>
         <div className={`risk-dial ${latest.risk_state}`}>
           <span>{t.currentRisk}</span>
-          <strong>{formatPercent(latest.risk)}</strong>
+          <strong><NumericValue>{formatPercent(latest.risk)}</NumericValue></strong>
           <em>{state}</em>
         </div>
       </section>
 
-      <section className="metrics-strip" aria-label="Current state">
+      <section className="metrics-strip" aria-label={t.currentRisk}>
         <div className="price-metric">
           <span>{t.price}</span>
           <div className={`price-input-grid ${hasDailyRange ? 'with-range' : 'model-only'}`}>
             <div className="price-input-value">
               <em>{t.modelPrice}</em>
-              <strong>{formatUsd(modelPriceUsd)}</strong>
+              <strong><NumericValue>{formatUsd(modelPriceUsd)}</NumericValue></strong>
             </div>
             {hasDailyRange && (
               <>
                 <div className="price-input-value">
                   <em>{t.low}</em>
-                  <strong>{formatUsd(latest.low_usd as number)}</strong>
+                  <strong><NumericValue>{formatUsd(latest.low_usd as number)}</NumericValue></strong>
                 </div>
                 <div className="price-input-value">
                   <em>{t.high}</em>
-                  <strong>{formatUsd(latest.high_usd as number)}</strong>
+                  <strong><NumericValue>{formatUsd(latest.high_usd as number)}</NumericValue></strong>
                 </div>
               </>
             )}
@@ -535,17 +407,23 @@ export default function App() {
         </div>
         <div className="freshness-metric">
           <span>{ready && readiness.checks.data_fresh ? t.currentThrough : t.updated}</span>
-          <strong>{latest.timestamp.slice(0, 10)}</strong>
+          <strong><NumericValue>{latest.timestamp.slice(0, 10)}</NumericValue></strong>
           <p className={`readiness-badge ${readiness.status}`}>
             {ready ? <CheckCircle2 size={15} /> : <TriangleAlert size={15} />}
             {ready ? t.readinessReady : t.readinessDegraded}
           </p>
           <em>{validationOk ? t.validationPassed : t.validationNeedsAttention}</em>
-          <em>{formatTrustValue(t.latestCompletedDay, readiness.data.latest_date)}</em>
-          <em>{readinessFreshnessText(readiness, t)}</em>
-          <em>{formatTrustValue(t.coverageThrough, readiness.data.covered_end)}</em>
+          <em><TrustValue label={t.latestCompletedDay} value={readiness.data.latest_date} unavailable={t.unavailable} /></em>
+          <em><ReadinessFreshnessValue readiness={readiness} labels={t} /></em>
+          <em><TrustValue label={t.coverageThrough} value={readiness.data.covered_end} unavailable={t.unavailable} /></em>
         </div>
-        <div><span>{t.riskChange}</span><strong className={brief.delta_risk >= 0 ? 'up' : 'down'}>{brief.delta_risk >= 0 ? '+' : ''}{formatPercent(brief.delta_risk)}</strong><em>{t.riskChangeContext}</em></div>
+        <div>
+          <span>{t.riskChange}</span>
+          <strong className={brief.delta_risk >= 0 ? 'up' : 'down'}>
+            <NumericValue>{brief.delta_risk >= 0 ? '+' : ''}{formatPercent(brief.delta_risk)}</NumericValue>
+          </strong>
+          <em>{t.riskChangeContext}</em>
+        </div>
       </section>
 
       <section className="brief-grid">
@@ -580,8 +458,8 @@ export default function App() {
           <p>{t.methodologyBody}</p>
           <dl>
             <div><dt>{t.methodologyVersion}</dt><dd>{methodologyVersion}</dd></div>
-            <div><dt>{t.latestCompletedDay}</dt><dd>{readiness.data.latest_date ?? 'unavailable'}</dd></div>
-            <div><dt>{t.coverageThrough}</dt><dd>{readiness.data.covered_end ?? 'unavailable'}</dd></div>
+            <div><dt>{t.latestCompletedDay}</dt><dd>{readiness.data.latest_date ? <NumericValue>{readiness.data.latest_date}</NumericValue> : t.unavailable}</dd></div>
+            <div><dt>{t.coverageThrough}</dt><dd>{readiness.data.covered_end ? <NumericValue>{readiness.data.covered_end}</NumericValue> : t.unavailable}</dd></div>
           </dl>
           <p className="disclaimer">{t.disclaimer}</p>
         </article>
@@ -601,6 +479,7 @@ export default function App() {
             aria-label={t.placeholder}
             aria-invalid={joinError ? 'true' : undefined}
             aria-describedby={joinError ? waitlistErrorId : undefined}
+            dir="ltr"
           />
           <button type="submit" disabled={joining} aria-busy={joining}>
             <Send size={16} /> {joining ? t.joining : t.join}
@@ -637,13 +516,17 @@ export default function App() {
         <article className="chart-panel" aria-labelledby="risk-history-heading">
           <div className="chart-heading">
             <h2 id="risk-history-heading">{t.history}</h2>
-            <div className="risk-thresholds" aria-label="Risk thresholds">
+            <div className="risk-thresholds" aria-label={t.thresholdColumn}>
               {t.riskZones.map((label) => <span key={label}>{label}</span>)}
             </div>
           </div>
           {thresholdCallouts.length > 0 && (
             <div className="threshold-callouts" aria-label={t.thresholdCallouts}>
-              {thresholdCallouts.map((callout) => <span key={callout.risk}>{callout.text}</span>)}
+              {thresholdCallouts.map((callout) => (
+                <span key={callout.risk}>
+                  <LocalizedPriceText text={callout.text} price={callout.price} />
+                </span>
+              ))}
             </div>
           )}
           <section className="sr-only" aria-labelledby="risk-history-alternative-heading">
