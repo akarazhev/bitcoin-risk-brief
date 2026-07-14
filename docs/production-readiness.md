@@ -562,10 +562,11 @@ Launch Matrix, accessibility, and public-host QA evidence pass recorded on 2026-
   evidence stays pending.
 - Launch Matrix / Accessibility / Public-Host QA gate status: partial, not passed. Current public endpoint freshness,
   public homepage desktop/mobile Chromium smoke, public metadata/privacy smoke, local browser-profile smoke, local axe,
-  local mocked keyboard/focus, and public-host axe evidence are recorded. First traffic remains blocked because external
-  monitoring/alert delivery, fresh backup/off-server evidence, direct production import proof, manual/native
-  accessibility and device checks, final launch snapshot, and first traffic itself remain incomplete. The accessibility
-  gap is not accepted as a limitation.
+  local mocked keyboard/focus, and public-host axe evidence are recorded. After the later 2026-07-14 monitoring
+  acceptance, first traffic remains blocked by fresh backup/off-server evidence, direct production import proof,
+  manual/native accessibility and device checks, fresh public readiness/latest-risk checks, final launch snapshot, and
+  separate operator approval/run for first traffic. Dedicated external API monitoring and alert delivery remain pending
+  before broader launch. The accessibility gap is not accepted as a limitation.
 
 ## Operator Launch Decision Register
 
@@ -580,10 +581,11 @@ monitoring, send alerts, run backups, run first traffic, or mutate production st
 `first-traffic-blocked-evidence-2026-07-12`, and the local branch was `main...origin/main`.
 
 Gate status: partial, not passed. Operator decisions are substantially recorded, and the support/contact and account
-recovery blockers are now completed by the later 2026-07-12 sanitized readiness evidence. External health/readiness
-alerts and delivery test, fresh backup/off-server copy, manual/native accessibility checks, sanitized import proof, final
-readiness/latest-risk checks, final launch snapshot, and first traffic remain pending. First traffic remains blocked and
-`not_run`.
+recovery blockers are now completed by the later 2026-07-12 sanitized readiness evidence. After the later 2026-07-14
+monitoring acceptance, dedicated external health/readiness monitors and alert delivery proof remain broader-launch
+limitations, not small-pilot first-traffic blockers. Fresh backup/off-server copy, manual/native accessibility checks,
+sanitized import proof, final readiness/latest-risk checks, final launch snapshot, and first traffic remain pending.
+First traffic remains blocked and `not_run`.
 
 | Decision area | Sanitized status | Recorded decision and remaining action |
 | --- | --- | --- |
@@ -594,13 +596,13 @@ readiness/latest-risk checks, final launch snapshot, and first traffic remain pe
 | Dependency/security | Partial. | Dependency/security owner role is founder/operator. Security review cadence is monthly during pilot. Dependency/license external confirmation remains pending before broader commercial launch. GitHub-hosted Dependabot execution and first PR evidence remain pending until observed. |
 | Cloudflare Free-plan posture | Accepted limitation for small operator-watched pilot only. | The current Free-plan-compatible subset is accepted for a small operator-watched pilot. Managed WAF and additional rate-limit controls are deferred until broader traffic or observed abuse risk. Do not claim broader Cloudflare security readiness. |
 | Accessibility/manual-device | Blocked before first traffic. | Manual keyboard, screen-reader/assistive-tech, and physical/native browser checks are required before first traffic. The accessibility gap is not accepted. Do not claim full WCAG/legal accessibility compliance. |
-| Monitoring and incident response | Partial/blocker. | Pilot resource watcher role and incident/rollback decision owner role are founder/operator. Response path is to pause traffic, check readiness/logs, follow the operations runbook, and rollback/update only if needed. Simple external uptime/readiness alerts are required before first traffic: `/api/health`, `/api/readiness`, and alert delivery test to the dedicated pilot channel. Missing broader monitors are not accepted unless explicitly decided later. |
+| Monitoring and incident response | Accepted/closed for the small operator-watched pilot with limitation after the later 2026-07-14 monitoring acceptance; broader launch pending. | Pilot resource watcher role and incident/rollback decision owner role are founder/operator. Response path is to pause traffic, check readiness/logs, follow the operations runbook, and rollback/update only if needed. Cloudflare Tunnel Health Alert plus public homepage availability monitoring are accepted as sufficient for the small pilot. Dedicated external `/api/health` monitoring, dedicated external `/api/readiness` freshness monitoring, and explicit alert delivery proof remain pending before broader launch. |
 | Backups | Partial/blocker with accepted automation deferral. | First traffic requires a fresh manual backup plus off-server copy. Recurring backup automation and backup freshness alerting are deferred until after the initial operator-watched pilot, conditional on the fresh manual backup/off-server copy passing before traffic. Restore-drill deferral remains accepted until a safe staging or intentionally empty restore target exists. |
 | Production import/data freshness | Partial/blocker for final evidence. | The founder/operator considers the production data refresh path complete and operational for the small operator-watched pilot. No accepted limitation is intended for the refresh workflow. Sanitized proof still needs recording before or during the final launch snapshot, including latest source category, retrieval/import timestamp, row count/range, readiness/latest-risk output, and checksum if available. |
 | Final readiness and launch snapshot | Blocked. | Run fresh public GET-only `/api/readiness` and `/api/risk/latest` checks immediately before first traffic. Create a sanitized launch snapshot packet after all remaining blockers are resolved and before traffic starts. |
 | First-user feedback | Partial/resolved for planned path; evidence pending traffic. | Feedback channel category is waitlist notes and direct support-email replies, with no raw contacts in Git. Reviewer role is founder/operator. Review cadence is after the first traffic window and several times per week during pilot. Evidence summary format is aggregate/sanitized only, with no raw contacts or message text in Git. |
 
-Accepted limitations after this pass:
+Accepted limitations after this pass, as updated by the later 2026-07-14 monitoring acceptance:
 
 - Restore-drill deferral until a safe staging or intentionally empty restore target exists.
 - Cloudflare Free-plan-compatible subset for a small operator-watched pilot only.
@@ -608,16 +610,21 @@ Accepted limitations after this pass:
   manual backup plus off-server copy passing before traffic.
 - CoinMarketCap/source-terms commercial or paid-plan decision deferred only for commercial claims, paid beta, or broader
   distribution; this is not legal approval or commercial readiness.
+- Small-pilot monitoring coverage limited to Cloudflare Tunnel Health Alert plus public homepage availability monitoring;
+  dedicated external API monitors and explicit alert delivery proof remain pending before broader launch.
 
 Actions still pending before first traffic:
 
-- Configure simple external `/api/health` and `/api/readiness` alerts and run an alert delivery test to the dedicated
-  pilot channel.
 - Perform a fresh manual backup plus off-server copy.
 - Perform manual keyboard, screen-reader/assistive-tech, and physical/native browser checks.
-- Record sanitized import/data-refresh proof in the final snapshot if not already in Git.
+- Record sanitized import/data-refresh proof in the final snapshot unless it is already derivable from public checks or
+  recorded in Git.
 - Run fresh pre-traffic public `/api/readiness` and `/api/risk/latest` checks.
 - Create the final sanitized launch snapshot packet.
+- Obtain separate operator approval for the first traffic run after the final snapshot is ready.
+
+Dedicated external `/api/health` and `/api/readiness` monitors plus explicit alert delivery proof remain pending before
+broader launch, not before the small operator-watched pilot first-traffic decision.
 
 First traffic remains blocked. This pass supersedes pending-status language in the 2026-07-11 operator governance pass
 only where a 2026-07-12 sanitized decision is explicitly recorded above.
@@ -642,9 +649,9 @@ decision by itself.
 | Dependency, security, and license posture | Partial local evidence. `.github/dependabot.yml` is configured locally for conservative monthly version-update checks across frontend npm, backend and collector pip requirements, GitHub Actions, Dockerfiles, and a root `docker-compose` ecosystem entry. The dependency/license review records local npm lockfile license metadata and known gaps. GitHub-hosted Dependabot execution, first PR evidence, vulnerability/advisory clearance, external/manual license confirmation, container/OS package license review, project license choice, and legal approval remain pending. A monthly manual review cadence is documented, but the owner role for security updates is not recorded. | Choose the owner role for dependency/security updates, keep or revise the monthly cadence, record GitHub-hosted Dependabot execution and first PR evidence when available, complete or explicitly defer vulnerability/advisory, credential-scan, license, container image, OS package, CI action, and legal compatibility review, and record only date/scope/outcome/follow-up. |
 | Cloudflare Free-plan first-traffic decision | Pending first-traffic decision. Historical public snapshots used the documented Free-plan-compatible subset, but no operator decision accepts that subset for first traffic or requires an upgrade. Managed WAF execution, broader `/api/*` burst limiting, multiple rate-limit rules, and longer rate-limit windows are not proven active in the current subset. | Accept the current Free-plan subset for one operator-watched first traffic window, or require an upgrade/equivalent controls before first traffic. Record the accepted limitation or blocker without Cloudflare account IDs, zone IDs, tunnel IDs, rule IDs, dashboard URLs, credential values, private event logs, or routing details. |
 | Accessibility and device evidence | Pending accepted-limitation decision. Local automated axe, browser-profile, chart-alternative, live-region, and keyboard/focus evidence exists. Public-host desktop/mobile Chromium smoke and public-host automated axe evidence are recorded through 2026-07-12. Manual keyboard, screen-reader/assistive-tech, physical-device/native browser, full accessibility/WCAG, and legal approval evidence are not recorded. | Decide whether manual keyboard, screen-reader/assistive-tech, native-device, and broader production-host accessibility evidence is required before first traffic, or explicitly accept the missing evidence as a limitation for an operator-watched pilot. Record only sanitized status and follow-up owner role. |
-| Resource monitoring and incident response | Partial runbook evidence. The operations runbook documents local/public readiness checks, logs to inspect, backup checks, Cloudflare Tunnel checks, disk/database pressure checks, cache-stale handling, bad-data correction steps, pause/take-down conditions, and rollback-style recovery through known-good CSV/import/backup paths. External monitor/dashboard proof and alert delivery remain blocked. No operator role is recorded for watching CPU, disk, memory, logs, container restarts, backup freshness, or Cloudflare Tunnel health during the pilot; no first-response owner role or incident communication path is recorded. | Choose who watches CPU/disk/memory/logs and related resource signals during the pilot, choose the first-response owner role, record the incident communication path and rollback/take-down decision owner, configure or accept limitations for external monitors and alert delivery, and record sanitized evidence only. |
+| Resource monitoring and incident response | Superseded by the later 2026-07-12 operator decision pass and 2026-07-14 monitoring acceptance. The operations runbook documents local/public readiness checks, logs to inspect, backup checks, Cloudflare Tunnel checks, disk/database pressure checks, cache-stale handling, bad-data correction steps, pause/take-down conditions, and rollback-style recovery through known-good CSV/import/backup paths. | Current small-pilot coverage accepts Cloudflare Tunnel Health Alert plus public homepage availability monitoring. Dedicated external API monitor proof and alert delivery proof remain pending before broader launch; record only sanitized evidence when those broader-launch items are completed. |
 | Release feedback and first-user feedback | Partial/pending. The runbook says that after the first controlled traffic window, operators should summarize waitlist conversion, repeat-use signals, direct questions, and requests for alerts, API access, agents, widgets, embeddings, or licensing into readiness or roadmap notes without raw contacts. First traffic has not run, no reviewer role is recorded, and no post-traffic evidence exists. | Choose the first-user feedback collection paths, reviewer role, review cadence, and sanitized evidence format. After first traffic, record aggregate waitlist/source/locale/repeat-use/request evidence and direct-question themes without raw contacts, private messages, raw analytics, or personal details. |
-| Accepted launch limitations and hard blockers | Superseded by the 2026-07-12 operator decision pass. At the time of this 2026-07-11 pass, only restore drill was explicitly accepted/deferred until a staging project or intentionally empty restore target existed. | Use the 2026-07-12 accepted-limitations list as current: restore-drill deferral, Cloudflare Free-plan subset for a small operator-watched pilot, recurring backup automation/freshness alert deferral conditional on fresh manual backup/off-server copy, and CoinMarketCap commercial/source-terms decision deferred only for commercial/broader launch. Do not mark the project publicly launched until all required blockers are closed, the final launch snapshot exists, and first traffic evidence exists. |
+| Accepted launch limitations and hard blockers | Superseded by the 2026-07-12 operator decision pass and later 2026-07-14 monitoring acceptance. At the time of this 2026-07-11 pass, only restore drill was explicitly accepted/deferred until a staging project or intentionally empty restore target existed. | Use the current accepted-limitations list: restore-drill deferral, Cloudflare Free-plan subset for a small operator-watched pilot, recurring backup automation/freshness alert deferral conditional on fresh manual backup/off-server copy, CoinMarketCap commercial/source-terms decision deferred only for commercial/broader launch, and small-pilot monitoring coverage limited to Tunnel Health plus homepage availability while dedicated API monitor and alert delivery proof remain pending before broader launch. Do not mark the project publicly launched until all required blockers are closed, the final launch snapshot exists, and first traffic evidence exists. |
 
 Launch governance in this 2026-07-11 pass was recorded only as a partial governance pass. It is superseded by the
 2026-07-12 operator decision resolution pass where that later pass records sanitized decisions or accepted limitations.

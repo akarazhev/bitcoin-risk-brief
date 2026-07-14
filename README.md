@@ -132,7 +132,8 @@ Recommended next production sequence before first traffic:
    [docs/launch-snapshot-evidence-packet-template.md](docs/launch-snapshot-evidence-packet-template.md) to prepare the
    packet outside Git first, then copy only sanitized final evidence into launch docs.
 8. Run the operator-watched first traffic test only after all required blockers are completed, the final launch snapshot
-   exists, and the only remaining limitations are the accepted limitations listed in the 2026-07-12 decision pass.
+   exists, and the only remaining limitations are the current accepted limitations, including the 2026-07-14 monitoring
+   accepted limitation.
 
 ## Product Surface
 

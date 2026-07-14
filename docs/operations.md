@@ -549,8 +549,8 @@ private filesystem paths.
 7. Create and validate the final launch snapshot packet from already collected sanitized evidence. Missing categories
    must remain pending; do not mark first traffic as run in the packet unless separate first-traffic evidence exists.
 8. Run the operator-watched first traffic test only after freshness is current, all required blockers are completed, the
-   final launch snapshot exists, and the only remaining limitations are the accepted limitations listed in the 2026-07-12
-   decision pass.
+   final launch snapshot exists, and the only remaining limitations are the current accepted limitations, including the
+   2026-07-14 monitoring accepted limitation.
 
 ## Cloudflare Edge Rules
 
