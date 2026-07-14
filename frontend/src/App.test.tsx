@@ -726,6 +726,26 @@ test('places the waitlist call to action before the charts', async () => {
   expect(waitlistTitle.compareDocumentPosition(riskHistoryTitle) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
 })
 
+test('renders the compact Minihub bottom panel after the charts', async () => {
+  render(<App />)
+
+  const supportLink = await screen.findByRole('link', { name: 'support@minihub.app' })
+  const footer = supportLink.closest('footer.bottom-panel')
+  expect(footer).not.toBeNull()
+
+  const bottomPanel = within(footer as HTMLElement)
+  expect(supportLink).toHaveAttribute('href', 'mailto:support@minihub.app')
+  expect(bottomPanel.getByText(textContentMatcher('© 2026 Minihub'))).toBeInTheDocument()
+
+  const websiteLink = bottomPanel.getByRole('link', { name: /https:\/\/minihub\.app/i })
+  expect(websiteLink).toHaveAttribute('href', 'https://minihub.app')
+  expect(websiteLink).toHaveAttribute('target', '_blank')
+  expect(websiteLink).toHaveAttribute('rel', 'noreferrer')
+
+  const riskLevelsTitle = screen.getByRole('heading', { name: 'Risk levels' })
+  expect(riskLevelsTitle.compareDocumentPosition(footer as HTMLElement) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+})
+
 test('uses compact chart options on narrow viewports', async () => {
   setCompactViewport(true)
   render(<App />)
@@ -808,6 +828,15 @@ test('defines visible keyboard focus states for interactive controls', () => {
   expect(css).toContain('.lead-form input:focus-visible')
   expect(css).toContain('.lead-form button:focus-visible')
   expect(css).toContain('.privacy-note summary:focus-visible')
+  expect(css).toContain('.bottom-panel-link:focus-visible')
+})
+
+test('defines compact bottom panel layout and RTL styles', () => {
+  const css = readFileSync(resolve(process.cwd(), 'src/App.css'), 'utf8')
+
+  expect(css).toContain('.bottom-panel')
+  expect(css).toContain('border-top: 1px solid #2c3037')
+  expect(css).toContain('[dir="rtl"] .bottom-panel')
 })
 
 test('offers all issue 28 languages and applies document language metadata', async () => {

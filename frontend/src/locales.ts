@@ -15,6 +15,7 @@ type RiskStateLabels = Record<'low' | 'neutral' | 'high', string>
 type Copy = {
   languageNavigation: string
   languageSelector: string
+  footerAriaLabel: string
   eyebrow: string
   title: string
   subtitle: string
@@ -141,6 +142,7 @@ export const copy: Record<Locale, Copy> = {
   en: {
     languageNavigation: 'Language',
     languageSelector: 'Select language',
+    footerAriaLabel: 'Minihub support and copyright',
     eyebrow: 'Daily BTC Risk Signal',
     title: 'Bitcoin Risk Brief',
     subtitle: 'A concise daily read on whether BTC risk looks elevated, balanced, or washed out.',
@@ -232,6 +234,7 @@ export const copy: Record<Locale, Copy> = {
   ru: {
     languageNavigation: 'Язык',
     languageSelector: 'Выберите язык',
+    footerAriaLabel: 'Поддержка Minihub и авторские права',
     eyebrow: 'Ежедневный BTC риск-сигнал',
     title: 'Bitcoin Risk Brief',
     subtitle: 'Короткий ежедневный обзор: риск BTC повышен, сбалансирован или близок к зоне дисконта.',
@@ -323,6 +326,7 @@ export const copy: Record<Locale, Copy> = {
   zh: {
     languageNavigation: '语言',
     languageSelector: '选择语言',
+    footerAriaLabel: 'Minihub 支持和版权',
     eyebrow: '每日 BTC 风险信号',
     title: 'Bitcoin Risk Brief',
     subtitle: '每日简明判断 BTC 风险处于偏高、均衡，还是接近折价区域。',
@@ -414,6 +418,7 @@ export const copy: Record<Locale, Copy> = {
   de: {
     languageNavigation: 'Sprache',
     languageSelector: 'Sprache auswählen',
+    footerAriaLabel: 'Minihub Support und Copyright',
     eyebrow: 'Tägliches BTC-Risikosignal',
     title: 'Bitcoin Risk Brief',
     subtitle: 'Ein kurzer täglicher Blick darauf, ob das BTC-Risiko erhöht, ausgeglichen oder ausgewaschen wirkt.',
@@ -505,6 +510,7 @@ export const copy: Record<Locale, Copy> = {
   fr: {
     languageNavigation: 'Langue',
     languageSelector: 'Choisir la langue',
+    footerAriaLabel: 'Assistance Minihub et droits d’auteur',
     eyebrow: 'Signal de risque BTC quotidien',
     title: 'Bitcoin Risk Brief',
     subtitle: 'Une lecture quotidienne concise pour savoir si le risque BTC paraît élevé, équilibré ou décoté.',
@@ -596,6 +602,7 @@ export const copy: Record<Locale, Copy> = {
   es: {
     languageNavigation: 'Idioma',
     languageSelector: 'Seleccionar idioma',
+    footerAriaLabel: 'Soporte de Minihub y copyright',
     eyebrow: 'Señal diaria de riesgo BTC',
     title: 'Bitcoin Risk Brief',
     subtitle: 'Una lectura diaria breve sobre si el riesgo de BTC parece elevado, equilibrado o descontado.',
@@ -687,6 +694,7 @@ export const copy: Record<Locale, Copy> = {
   ar: {
     languageNavigation: 'اللغة',
     languageSelector: 'اختر اللغة',
+    footerAriaLabel: 'دعم Minihub وحقوق النشر',
     eyebrow: 'إشارة مخاطر BTC اليومية',
     title: 'Bitcoin Risk Brief',
     subtitle: 'قراءة يومية موجزة لما إذا كانت مخاطر BTC مرتفعة أو متوازنة أو قريبة من منطقة خصم.',
