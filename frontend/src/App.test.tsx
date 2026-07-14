@@ -154,7 +154,16 @@ beforeEach(() => {
   apiMocks.fetchRiskLevels.mockResolvedValue({ data: [
     { risk: 0.35, price_usd: 82000 },
     { risk: 0.65, price_usd: 118000 },
-  ], meta: { base: {} } })
+  ], meta: {
+    base: latestRisk(),
+    methodology_version: 'crypto-scout-canonical-v1',
+    evaluation_date: '2026-06-26',
+    current_price: 100000,
+    current_risk: 0.7,
+    turnover_enabled: false,
+    risk_step: 0.025,
+    source_row_count: 5827,
+  } })
   apiMocks.fetchBrief.mockReset()
   apiMocks.fetchBrief.mockResolvedValue({ data: { snapshot_version: 'v1', as_of: '2026-06-26T00:00:00Z', risk: 0.7, risk_state: 'high', price_usd: 100000, delta_risk: 0.1, sections: { en: { summary: 'Risk elevated', what_changed: 'Changed', avoid_now: 'Avoid', confirm_next: 'Confirm' }, ru: { summary: 'Риск повышен', what_changed: 'Изменилось', avoid_now: 'Избегай', confirm_next: 'Проверь' } } } })
   apiMocks.fetchReadiness.mockClear()
@@ -795,6 +804,39 @@ test('uses accessible risk threshold labels outside the chart canvas', async () 
   expect(priceOption.animation).toBe(false)
   expect(riskOption.series[0].markLine.label.show).toBe(false)
   expect(riskOption.series[0].markLine.data).toEqual([{ yAxis: 0.35 }, { yAxis: 0.65 }])
+})
+
+test('marks the current risk on levels chart using levels snapshot metadata', async () => {
+  apiMocks.fetchLatestRisk.mockResolvedValueOnce({ data: latestRisk({ risk: 0.2 }) })
+  apiMocks.fetchRiskLevels.mockResolvedValueOnce({ data: [
+    { risk: 0.35, price_usd: 82000 },
+    { risk: 0.65, price_usd: 118000 },
+  ], meta: {
+    base: latestRisk({ risk: 0.7 }),
+    methodology_version: 'crypto-scout-canonical-v1',
+    evaluation_date: '2026-06-26',
+    current_price: 100000,
+    current_risk: 0.7,
+    turnover_enabled: false,
+    risk_step: 0.025,
+    source_row_count: 5827,
+  } })
+
+  render(<App />)
+
+  const priceChart = await screen.findByTestId('chart-price')
+  const priceOption = JSON.parse(priceChart.dataset.option ?? '{}')
+
+  expect(priceOption.series[0].markLine).toMatchObject({
+    symbol: 'none',
+    silent: true,
+    data: [{ xAxis: '65%' }],
+    lineStyle: { color: '#f2b84b', width: 2 },
+  })
+  expect(priceOption.series[0].markLine.label).toMatchObject({
+    show: true,
+    formatter: 'Current risk: 70%',
+  })
 })
 
 test('renders screen-reader chart data alternatives for current risk, recent history, and thresholds', async () => {

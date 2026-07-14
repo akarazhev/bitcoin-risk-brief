@@ -43,6 +43,22 @@ export interface RiskLevel {
   price_usd: number
 }
 
+export interface RiskLevelsMeta {
+  base?: Partial<RiskPoint> | null
+  methodology_version?: string | null
+  evaluation_date?: string | null
+  current_price?: number | null
+  current_risk?: number | null
+  turnover_enabled?: boolean | null
+  risk_step?: number | null
+  source_row_count?: number | null
+}
+
+export interface RiskLevelsPayload {
+  data: RiskLevel[]
+  meta?: RiskLevelsMeta | null
+}
+
 export type ReadinessStatus = 'ready' | 'degraded'
 
 export interface ReadinessChecks {

@@ -1,4 +1,4 @@
-import type { BriefPayload, ReadinessPayload, RiskLevel, RiskPoint, WaitlistRequest, WaitlistResponse } from './types'
+import type { BriefPayload, ReadinessPayload, RiskLevelsPayload, RiskPoint, WaitlistRequest, WaitlistResponse } from './types'
 
 async function getJson<T>(path: string): Promise<T> {
   const response = await fetch(path)
@@ -29,7 +29,7 @@ export async function fetchRiskHistory() {
 }
 
 export async function fetchRiskLevels() {
-  return getJson<{ data: RiskLevel[]; meta: { base: RiskPoint } }>('/api/risk/levels')
+  return getJson<RiskLevelsPayload>('/api/risk/levels')
 }
 
 export async function fetchBrief() {

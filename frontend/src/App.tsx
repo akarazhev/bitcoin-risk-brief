@@ -4,9 +4,17 @@ import type { EChartsOption } from 'echarts'
 import { Bell, CheckCircle2, ExternalLink, Languages, Radio, Send, ShieldAlert, TriangleAlert } from 'lucide-react'
 import { fetchBrief, fetchLatestRisk, fetchReadiness, fetchRiskHistory, fetchRiskLevels, joinWaitlist } from './api'
 import { copy, getLocaleOption, localeOptions, stateLabel } from './locales'
-import type { BriefPayload, Locale, ReadinessPayload, RiskLevel, RiskPoint } from './types'
+import type { BriefPayload, Locale, ReadinessPayload, RiskLevel, RiskLevelsMeta, RiskPoint } from './types'
 
 type ThresholdCallout = { risk: number; label: string; price: string; text: string }
+type RiskLevelsChartData = {
+  levels: RiskLevel[]
+  meta: RiskLevelsMeta | null
+}
+type CurrentRiskMarker = {
+  risk: number
+  xAxisLabel: string
+}
 type DriverStatus = 'raises' | 'neutral' | 'lowers' | 'unavailable'
 type ReadinessLabels = {
   freshnessCurrent: string
@@ -41,6 +49,10 @@ function formatPercent(value: number) {
 
 function formatTooltipPercent(value: unknown) {
   return typeof value === 'number' ? formatPercent(value) : String(value ?? '')
+}
+
+function riskLevelAxisLabel(risk: number) {
+  return `${Math.round(risk * 100)}%`
 }
 
 function formatUsd(value: number) {
@@ -175,6 +187,27 @@ function nearestRiskLevel(levels: RiskLevel[], targetRisk: number) {
   }, null)
 }
 
+function emptyRiskLevelsChartData(): RiskLevelsChartData {
+  return { levels: [], meta: null }
+}
+
+function isRiskValue(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= 1
+}
+
+function buildCurrentRiskMarker(levels: RiskLevel[], levelsMeta: RiskLevelsMeta | null): CurrentRiskMarker | null {
+  const currentRisk = levelsMeta?.current_risk
+  if (!isRiskValue(currentRisk)) return null
+
+  const nearestLevel = nearestRiskLevel(levels, currentRisk)
+  if (!nearestLevel) return null
+
+  return {
+    risk: currentRisk,
+    xAxisLabel: riskLevelAxisLabel(nearestLevel.risk),
+  }
+}
+
 function getCompactChartPreference() {
   return typeof window !== 'undefined' && window.matchMedia
     ? window.matchMedia(COMPACT_CHART_QUERY).matches
@@ -200,9 +233,9 @@ export default function App() {
     data: [],
     error: null,
   })
-  const [levelsState, setLevelsState] = useState<ChartLoadState<RiskLevel[]>>({
+  const [levelsState, setLevelsState] = useState<ChartLoadState<RiskLevelsChartData>>({
     status: 'idle',
-    data: [],
+    data: emptyRiskLevelsChartData(),
     error: null,
   })
   const [brief, setBrief] = useState<BriefPayload | null>(null)
@@ -215,7 +248,8 @@ export default function App() {
   const [compactCharts, setCompactCharts] = useState(getCompactChartPreference)
   const t = copy[locale]
   const history = historyState.data
-  const levels = levelsState.data
+  const levels = levelsState.data.levels
+  const levelsMeta = levelsState.data.meta
   const waitlistStatusId = 'waitlist-status'
   const waitlistErrorId = 'waitlist-error'
 
@@ -251,15 +285,19 @@ export default function App() {
         setHistoryState({ status: 'error', data: [], error: err.message })
       })
 
-    setLevelsState({ status: 'loading', data: [], error: null })
+    setLevelsState({ status: 'loading', data: emptyRiskLevelsChartData(), error: null })
     fetchRiskLevels()
       .then((levelsResponse) => {
         if (!active) return
-        setLevelsState({ status: 'loaded', data: levelsResponse.data, error: null })
+        setLevelsState({
+          status: 'loaded',
+          data: { levels: levelsResponse.data, meta: levelsResponse.meta ?? null },
+          error: null,
+        })
       })
       .catch((err: Error) => {
         if (!active) return
-        setLevelsState({ status: 'error', data: [], error: err.message })
+        setLevelsState({ status: 'error', data: emptyRiskLevelsChartData(), error: err.message })
       })
 
     return () => {
@@ -292,15 +330,47 @@ export default function App() {
     series: [{ name: 'Risk', type: 'line', smooth: true, showSymbol: false, data: history.map((point) => point.risk), lineStyle: { width: 3, color: '#f2b84b' }, areaStyle: { color: 'rgba(242,184,75,0.12)' }, markLine: { symbol: 'none', label: { show: false }, data: [{ yAxis: 0.35 }, { yAxis: 0.65 }], lineStyle: { color: '#596473', type: 'dashed' } } }],
   }), [compactCharts, history])
 
+  const currentRiskMarker = useMemo(
+    () => buildCurrentRiskMarker(levels, levelsMeta),
+    [levels, levelsMeta],
+  )
+
   const levelsOption = useMemo<EChartsOption>(() => ({
     backgroundColor: 'transparent',
     animation: false,
-    grid: { left: compactCharts ? 46 : 62, right: compactCharts ? 8 : 22, top: compactCharts ? 14 : 18, bottom: compactCharts ? 30 : 36 },
+    grid: {
+      left: compactCharts ? 46 : 62,
+      right: compactCharts ? 8 : 22,
+      top: currentRiskMarker ? (compactCharts ? 38 : 34) : (compactCharts ? 14 : 18),
+      bottom: compactCharts ? 30 : 36,
+    },
     tooltip: { trigger: 'axis' },
-    xAxis: { type: 'category', data: levels.map((row) => `${Math.round(row.risk * 100)}%`), axisLabel: { color: '#7e8794', hideOverlap: compactCharts }, axisLine: { lineStyle: { color: '#2a3441' } } },
+    xAxis: { type: 'category', data: levels.map((row) => riskLevelAxisLabel(row.risk)), axisLabel: { color: '#7e8794', hideOverlap: compactCharts }, axisLine: { lineStyle: { color: '#2a3441' } } },
     yAxis: { type: 'value', axisLabel: { color: '#7e8794', formatter: (value: number) => `$${Math.round(value / 1000)}k` }, splitLine: { lineStyle: { color: '#26303b' } } },
-    series: [{ name: 'Price', type: 'bar', barMaxWidth: compactCharts ? 5 : 9, data: levels.map((row) => row.price_usd), itemStyle: { color: '#5bd6c6', borderRadius: [4, 4, 0, 0] } }],
-  }), [compactCharts, levels])
+    series: [{
+      name: 'Price',
+      type: 'bar',
+      barMaxWidth: compactCharts ? 5 : 9,
+      data: levels.map((row) => row.price_usd),
+      itemStyle: { color: '#5bd6c6', borderRadius: [4, 4, 0, 0] },
+      markLine: currentRiskMarker ? {
+        symbol: 'none',
+        silent: true,
+        label: {
+          show: true,
+          formatter: `${t.currentRisk}: ${formatPercent(currentRiskMarker.risk)}`,
+          position: 'end',
+          color: '#f8fafc',
+          backgroundColor: 'rgba(8, 13, 22, 0.88)',
+          borderRadius: 4,
+          padding: [3, 6],
+          fontSize: compactCharts ? 10 : 11,
+        },
+        data: [{ xAxis: currentRiskMarker.xAxisLabel }],
+        lineStyle: { color: '#f2b84b', width: 2, type: 'solid' },
+      } : undefined,
+    }],
+  }), [compactCharts, currentRiskMarker, levels, t.currentRisk])
 
   const thresholdCallouts = useMemo<ThresholdCallout[]>(() => {
     return [0.35, 0.65].flatMap((targetRisk, index) => {
