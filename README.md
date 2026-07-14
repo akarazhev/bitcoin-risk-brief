@@ -51,8 +51,8 @@ mutate production state.
 The 2026-07-12 Launch Matrix / Accessibility / Public-Host QA pass recorded public desktop/mobile Chromium homepage
 smoke, public-host axe automation, public metadata checks, visible privacy/disclaimer copy, and no waitlist POST. The
 gate remains partial: manual keyboard, screen-reader/assistive-tech, physical-device/native browser, full WCAG/legal
-accessibility, broader latency, external monitoring/alert, fresh backup/off-server copy, direct import proof, launch
-snapshot, and first-traffic evidence remain pending or unaccepted.
+accessibility, broader latency, fresh backup/off-server copy, direct import proof, launch snapshot, and first-traffic
+evidence remain pending or unaccepted.
 
 Backup-gated USB production update evidence recorded on 2026-07-11 targets commit
 `86cb2dad889baf24a7464a105bbe2224f75b14ef` with evidence tag
@@ -72,6 +72,12 @@ handling as manual requests through that dedicated support path, and the account
 and current. Exact support addresses, provider details, account IDs, recovery text, private URLs, and secrets remain
 outside Git.
 
+The 2026-07-14 sanitized monitoring acceptance records the small operator-watched pilot monitoring blocker as
+accepted/closed with limitation: Cloudflare Tunnel Health Alert is configured, a HetrixTools/external uptime monitor
+provider category is recorded, and homepage availability monitoring is configured for the public homepage. This does not
+claim full API readiness/freshness monitoring; dedicated external `/api/health` and `/api/readiness` monitors plus
+explicit alert delivery evidence remain deferred before broader launch.
+
 The project is still not publicly launched. Launch remains blocked by external/operational evidence gates, and public
 readiness must be rechecked before any first traffic window because freshness is time-sensitive. Production host access
 is unavailable from this workspace; future production updates still require operator deployment or update verification on
@@ -83,11 +89,10 @@ Still external/operator before treating the pilot as publicly launched:
   evidence current on the production host.
 - Keep USB deploy/update evidence current on future production updates, including project revision, health/readiness
   checks, and backup-gated mode when a fresh pre-update database dump is required.
-- Configure external monitors and alerts for `/api/health`, `/api/readiness`, stale data after the nightly update
-  window, collector failures, Cloudflare Tunnel health, and alert delivery. The local `scripts/check_public_endpoints.py`
-  probe is implemented and tested for health/readiness/latest-risk assertions, and the 2026-07-12 approved GET-only
-  public probe passed, but no external monitor dashboard, alert rule, stale-data after-window alert, collector failure
-  alert, Cloudflare Tunnel health notification, backup freshness alert, or delivery evidence is recorded.
+- Keep the accepted small-pilot monitoring coverage active: Cloudflare Tunnel Health Alert plus external public homepage
+  availability monitoring. Dedicated external `/api/health` and `/api/readiness` freshness monitors, stale-data
+  after-window alerting, collector-failure alerts, backup freshness alerts, and explicit alert delivery evidence remain
+  pending before broader launch.
 - Create a fresh manual backup plus off-server copy before first traffic. Recurring scheduled backups, recurring
   off-server copies, and backup freshness monitoring are deferred until after the initial operator-watched pilot,
   conditional on the fresh manual backup/off-server copy passing before traffic. Restore drill remains deferred until a
@@ -98,8 +103,9 @@ Still external/operator before treating the pilot as publicly launched:
   for future runs, but a real production packet and direct production validation/import metadata remain pending.
 - Use `scripts/launch_snapshot_packet.py` during the final pre-traffic window to create or validate a sanitized local
   launch snapshot packet from already collected evidence. The helper is implemented/tested, but the actual launch
-  snapshot packet, final pre-traffic public readiness evidence, monitor/alert delivery proof, production import provenance,
-  fresh backup/off-server evidence, manual/native accessibility evidence, and first traffic remain pending.
+  snapshot packet, final pre-traffic public readiness evidence, production import provenance, fresh backup/off-server
+  evidence, manual/native accessibility evidence, and first traffic remain pending. Dedicated API monitoring and alert
+  delivery proof remain broader-launch limitations.
 - Keep public-host privacy/terms/disclaimer and SEO/social metadata verification current after future deployments, and
   complete launch governance, browser/device, accessibility, release-feedback, and operational evidence gates.
 - Keep the current Cloudflare Free-plan-compatible subset limited to a small operator-watched pilot; defer managed WAF
@@ -108,18 +114,18 @@ Still external/operator before treating the pilot as publicly launched:
 
 Recommended next production sequence before first traffic:
 
-1. Complete the remaining operator-owned setup from the 2026-07-12 decision pass: external health/readiness alerts with
-   delivery test, fresh backup/off-server copy, manual/native accessibility checks, sanitized import proof, final public
-   readiness/latest-risk checks, and final launch snapshot.
+1. Complete the remaining operator-owned setup after the 2026-07-14 monitoring acceptance: fresh backup/off-server copy,
+   manual/native accessibility checks, sanitized import proof, final public readiness/latest-risk checks, and final launch
+   snapshot.
 2. Deploy or update the selected production path, then record project revision, service status, health/readiness, and
    public-host metadata/privacy/accessibility smoke evidence.
 3. Run the production refresh/import path and create the production import provenance packet from the real source,
    canonical output, validation/readiness, cache evidence, and deployment context.
 4. Create a fresh backup, copy it off-server, run the backup freshness checker against both roots, and keep restore drill
    pending until a staging or intentionally empty restore target exists.
-5. Run the public endpoint monitor probe with the chosen freshness policy, then configure external monitors and alert
-   delivery for health, readiness/freshness, stale data, collector failures, backup freshness, and Cloudflare Tunnel
-   health.
+5. Keep the accepted small-pilot Tunnel health plus homepage monitor coverage active, run the public endpoint probe with
+   the chosen freshness policy for final evidence, and defer dedicated external API monitors and alert delivery evidence
+   to broader launch.
 6. Verify public-host privacy/terms/disclaimer copy, SEO/social metadata, browser/device smoke, and the required manual
    keyboard, screen-reader/assistive-tech, and physical/native browser checks.
 7. Create and validate the final sanitized launch snapshot packet from already collected evidence. Use

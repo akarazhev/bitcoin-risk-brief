@@ -345,6 +345,14 @@ python3 scripts/check_public_endpoints.py \
   --require-cache-header X-Cache
 ```
 
+Small operator-watched pilot monitoring coverage accepted on 2026-07-14:
+
+- Cloudflare Tunnel Health Alert is configured.
+- External uptime monitor provider category is HetrixTools/external uptime monitor provider.
+- Public homepage availability monitoring is configured for `https://bitcoinriskbrief.minihub.app/`.
+- This accepted coverage is intentionally limited to Tunnel health plus homepage availability for a small
+  operator-watched pilot. It is not full API readiness/freshness monitoring and does not prove alert delivery.
+
 Before broader public traffic, configure and record redacted evidence for these monitors. Store provider names, sanitized
 check names, monitored paths, assertion summaries, intervals/windows, latest check status, and delivery-test status only;
 do not record tokens, account IDs, private dashboard URLs, recipient addresses, phone numbers, IPs, raw logs with PII, or
@@ -354,12 +362,12 @@ Use [docs/monitoring-alert-evidence-packet-template.md](monitoring-alert-evidenc
 sanitized provider, scheduler, probe, backup freshness, Cloudflare connector, and alert-delivery fields before copying
 final outcomes into launch docs. The template is not provider evidence and does not mark the gate passed.
 
-- Health uptime: monitor `GET https://bitcoinriskbrief.minihub.app/api/health`; alert on HTTP non-200, timeout, or TLS
-  failure. The local probe can supply this assertion, but provider/dashboard evidence is still required before this gate
-  is treated as configured.
-- Readiness/freshness: monitor `GET https://bitcoinriskbrief.minihub.app/api/readiness`; alert on HTTP non-200,
-  `status` not `ready`, or `checks.data_fresh` not `true`. The local probe can also require an exact latest date or a
-  maximum data age and compare readiness with `/api/risk/latest`.
+- Health uptime: before broader launch, monitor `GET https://bitcoinriskbrief.minihub.app/api/health`; alert on HTTP
+  non-200, timeout, or TLS failure. The local probe can supply this assertion, but provider/dashboard evidence is still
+  required before full API monitoring is treated as configured.
+- Readiness/freshness: before broader launch, monitor `GET https://bitcoinriskbrief.minihub.app/api/readiness`; alert on
+  HTTP non-200, `status` not `ready`, or `checks.data_fresh` not `true`. The local probe can also require an exact latest
+  date or a maximum data age and compare readiness with `/api/risk/latest`.
 - Stale data: after the nightly collector window plus the operator-defined grace period, alert when readiness is HTTP
   503, `data_age_days` exceeds `max_age_days`, or `latest_date`/`covered_end` is older than the last completed UTC day.
 - Collector failure: alert on `scheduled_refresh_failed`, `public_cmc_download_failed`, API fallback failure, missed
@@ -369,9 +377,10 @@ final outcomes into launch docs. The template is not provider evidence and does 
   that window.
 - Cloudflare Tunnel connector health: enable or document Cloudflare Zero Trust connector-down or flapping notifications
   for the tunnel serving `bitcoinriskbrief.minihub.app`; record whether production uses host-service `cloudflared` or
-  compose-managed `cloudflared`.
-- Alert delivery channel: choose the pilot channel, send a provider test notification, and record only the channel type,
-  test time, and delivered/not-delivered result.
+  compose-managed `cloudflared`. Current small-pilot status records Cloudflare Tunnel Health Alert as configured, without
+  private account, tunnel, dashboard, routing, or recipient details.
+- Alert delivery channel: before broader launch, choose the pilot channel, send a provider test notification, and record
+  only the channel type, test time, and delivered/not-delivered result.
 
 ## Cache Verification
 
@@ -519,9 +528,9 @@ evidence: status, dates, commit IDs, timestamp basenames, check names, and pass/
 tokens, `.env` values, raw waitlist contacts, private account details, raw logs, dashboard URLs, private contacts, or
 private filesystem paths.
 
-1. Complete the remaining operator-owned setup from the 2026-07-12 decision pass: external health/readiness alerts with
-   delivery test, fresh backup/off-server copy, manual/native accessibility checks, sanitized import proof, final public
-   readiness/latest-risk checks, and final launch snapshot.
+1. Complete the remaining operator-owned setup after the 2026-07-14 monitoring acceptance: fresh backup/off-server copy,
+   manual/native accessibility checks, sanitized import proof, final public readiness/latest-risk checks, and final launch
+   snapshot.
 2. Deploy or update the selected production path. Record the project revision, selected deployment path, service status,
    local health/readiness, public readiness, and whether the current Cloudflare Free-plan edge subset is accepted or an
    upgraded edge posture is configured.
@@ -531,9 +540,10 @@ private filesystem paths.
 4. Create a fresh backup, copy it off-server, verify checksums in both locations, and run
    `scripts/check_backup_freshness.py` with the chosen freshness window and required off-server root. Keep the restore
    drill pending until a staging project or intentionally empty restore target exists.
-5. Run `scripts/check_public_endpoints.py` against the public hostname with the chosen freshness policy. Configure
-   external monitors and alert delivery for health, readiness/freshness, stale data after the nightly update window,
-   collector failures, backup freshness, and Cloudflare Tunnel connector health.
+5. Keep the accepted small-pilot monitoring coverage active. Run `scripts/check_public_endpoints.py` against the public
+   hostname with the chosen freshness policy for final evidence. Defer dedicated external API monitors and alert delivery
+   evidence for health, readiness/freshness, stale data after the nightly update window, collector failures, and backup
+   freshness to broader launch.
 6. Verify public-host privacy/terms/disclaimer copy, SEO/social metadata, browser/device smoke, and the required manual
    keyboard, screen-reader/assistive-tech, and physical/native browser checks.
 7. Create and validate the final launch snapshot packet from already collected sanitized evidence. Missing categories
@@ -899,6 +909,10 @@ decision register in [Production Readiness](production-readiness.md):
 - Cloudflare Free-plan first-traffic decision: accepted limitation for a small operator-watched pilot only. Managed WAF
   execution, broader `/api/*` burst limiting, multiple rate-limit rules, and longer rate-limit windows remain deferred
   until broader traffic or observed abuse risk.
+- Small-pilot monitoring acceptance: Cloudflare Tunnel Health Alert plus external public homepage availability monitoring
+  are accepted for the small operator-watched pilot only. Dedicated external `/api/health` and `/api/readiness`
+  freshness monitoring, stale-data after-window alerting, and explicit alert delivery proof remain pending before broader
+  launch.
 - Accessibility and metadata pass: browser-capable public-hostname QA is recorded, and local focused accessibility,
   chart-alternative, waitlist live-region/keyboard, privacy/terms/disclaimer, and SEO/social metadata evidence exists.
   Production-host verification, physical-device/native browser evidence, manual keyboard evidence, and manual

@@ -242,7 +242,7 @@ errors, and backend rate-limit responses.
 
 ## Known External Requirements
 
-Before public launch, configure:
+Before broader public launch, configure:
 
 - HTTPS/TLS termination;
 - production request logs;
@@ -254,3 +254,6 @@ Before public launch, configure:
 - privacy/terms/disclaimer posture and waitlist contact handling;
 - production credential ownership and recovery paths;
 - data-source terms and attribution notes.
+
+For the small operator-watched pilot, use the current accepted limitations and remaining blocker register in
+[Production Readiness](production-readiness.md).

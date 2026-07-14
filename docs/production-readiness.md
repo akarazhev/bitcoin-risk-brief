@@ -45,6 +45,26 @@ Sanitized support/contact and account recovery readiness evidence recorded on 20
   founder/operator. Do not record account holders, account IDs, private recovery paths, secret locations, or recovery
   text in Git.
 
+Small-pilot external monitoring acceptance recorded on 2026-07-14:
+
+- Gate status: partial, with the small operator-watched pilot monitoring blocker accepted/closed by explicit operator
+  decision. First traffic remains blocked by the remaining first-traffic blockers below.
+- Scope/safety: documentation-only evidence update. No deploy, push, tag, refresh/import, waitlist POST,
+  Cloudflare/routing change, production endpoint probe, monitor configuration, alert delivery test, backup/off-server
+  copy, restore drill, first traffic, or production mutation was performed from this workspace. No account IDs, monitor
+  IDs, email addresses, alert recipients, private dashboard URLs, webhook URLs, tokens, raw headers, screenshots, provider
+  secrets, or private filesystem paths are recorded.
+- Sanitized coverage accepted for the small operator-watched pilot: Cloudflare Tunnel Health Alert is configured; the
+  external uptime monitor provider category is HetrixTools/external uptime monitor provider; and a homepage availability
+  monitor is configured for the public homepage.
+- Accepted limitation: this proves only Tunnel health notification plus public homepage availability coverage for a small
+  operator-watched pilot. No dedicated external `/api/health` monitor evidence, dedicated external `/api/readiness`
+  freshness monitor evidence, JSON assertion evidence, stale-data after-window alert evidence, or explicit alert delivery
+  test evidence is recorded yet.
+- Broader launch monitoring remains pending before broader traffic or broader readiness claims: dedicated external
+  `/api/health` monitor evidence, dedicated external `/api/readiness` freshness monitor evidence, and explicit sanitized
+  alert delivery evidence without private details.
+
 AI-resolvable pre-traffic readiness sweep recorded on 2026-07-12:
 
 - Gate status: AI-resolvable sweep completed; overall launch gate remains blocked, not passed. First traffic is not
@@ -71,11 +91,12 @@ AI-resolvable pre-traffic readiness sweep recorded on 2026-07-12:
   confirmed safe/non-mutating because it uses a local preview server and mocked API routes, including the waitlist route.
   The sandboxed smoke attempt was blocked by `listen EPERM` on `127.0.0.1:4173`; the approved local rerun passed 25
   Playwright checks.
-- Remaining true manual/external blockers after this sweep: external `/api/health` and `/api/readiness` monitors/alerts
-  plus alert delivery test; fresh manual backup plus off-server copy; manual keyboard, screen-reader/assistive-tech, and
-  physical/native browser checks unless explicitly accepted later; sanitized production import/data-refresh proof if not
-  derivable from public checks; final launch snapshot packet after manual blockers are complete; and the operator-watched
-  first traffic run.
+- Remaining true manual/external blockers after the later 2026-07-14 monitoring acceptance: fresh manual backup plus
+  off-server copy; manual keyboard, screen-reader/assistive-tech, and physical/native browser checks unless explicitly
+  accepted later; sanitized production import/data-refresh proof if not derivable from public checks; fresh public
+  readiness/latest-risk checks; final launch snapshot packet after manual blockers are complete; and the operator-watched
+  first traffic run. Dedicated external `/api/health` and `/api/readiness` monitoring plus alert delivery remain pending
+  for broader launch, not as a small-pilot first-traffic blocker.
 - First traffic decision: not allowed now. Keep `first_traffic_status` at `not_run` until the manual/external blockers
   above are completed or explicitly accepted, the final launch snapshot exists, and the operator separately approves the
   first traffic run.
@@ -98,9 +119,10 @@ Production/operator evidence still pending before public launch:
   off-server copy pass before traffic. Use [docs/backup-restore-evidence-packet-template.md](backup-restore-evidence-packet-template.md)
   to collect sanitized backup/restore evidence outside Git before copying final outcomes into launch docs. The template
   is not completed evidence and does not close this blocker by itself.
-- Simple external monitoring provider/dashboard or scheduled-runner proof and alert delivery proof before first traffic:
-  external uptime alert for `/api/health`, external readiness/freshness alert for `/api/readiness`, and an alert delivery
-  test to the dedicated pilot channel. Broader monitor coverage remains unaccepted unless explicitly decided later.
+- Broader-launch monitoring proof: the 2026-07-14 operator decision accepts Cloudflare Tunnel Health Alert plus an
+  external homepage availability monitor as sufficient for a small operator-watched pilot. Dedicated external
+  `/api/health` and `/api/readiness` freshness monitor evidence, stale-data after-window alert evidence, and explicit
+  sanitized alert delivery evidence remain pending before broader traffic or broader readiness/freshness claims.
 - Restore drill evidence on a staging project or intentionally empty restore target; no live-production restore drill is
   recorded or recommended.
 - Manual keyboard, screen-reader/assistive-tech, physical-device/native browser, production-host accessibility, full
@@ -113,24 +135,24 @@ Production/operator evidence still pending before public launch:
   Use [docs/launch-snapshot-evidence-packet-template.md](launch-snapshot-evidence-packet-template.md) to prepare the
   final snapshot outside Git first; the template is not completed evidence and does not close this blocker by itself.
 
-External gates that cannot be closed from this local workspace include production host execution, Cloudflare or external
-monitor provider configuration, alert delivery tests, production backup/off-server execution, restore target
-provisioning, legal/license approval, and first traffic.
+External gates that cannot be closed from this local workspace include production host execution, broader-launch
+Cloudflare or external monitor provider configuration, alert delivery tests, production backup/off-server execution,
+restore target provisioning, legal/license approval, and first traffic.
 
 Recommended next production sequence before first traffic:
 
-1. Complete the remaining operator-owned setup from the 2026-07-12 decision pass: external health/readiness alerts with
-   delivery test, fresh backup/off-server copy, manual/native accessibility checks, sanitized import proof, final public
-   readiness/latest-risk checks, and final launch snapshot.
+1. Complete the remaining operator-owned setup after the 2026-07-14 monitoring acceptance: fresh backup/off-server copy,
+   manual/native accessibility checks, sanitized import proof, final public readiness/latest-risk checks, and final launch
+   snapshot.
 2. Deploy or update the selected production path and record project revision, health/readiness, public-host
    privacy/metadata/accessibility smoke, and selected Cloudflare edge posture.
 3. Run the production refresh/import path and create the production import provenance packet from the real source,
    canonical output, validation/readiness, cache evidence, and deployment context.
 4. Create a fresh backup, copy it off-server, run the backup freshness checker against the required roots, and keep the
    restore drill pending until a safe restore target exists.
-5. Run the public endpoint monitor probe with the selected freshness policy, then configure external monitors and alert
-   delivery for health, readiness/freshness, stale data, collector failures, backup freshness, and Cloudflare Tunnel
-   health.
+5. Keep the accepted small-pilot monitoring coverage active, run the public endpoint probe with the selected freshness
+   policy for final evidence, and defer dedicated external `/api/health`, `/api/readiness`, stale-data, collector-failure,
+   backup-freshness, and alert-delivery monitoring evidence to broader launch.
 6. Verify public-host metadata, privacy/terms/disclaimer copy, browser/device smoke, and the required manual keyboard,
    screen-reader/assistive-tech, and physical/native browser checks.
 7. Create and validate the final launch snapshot packet from already collected sanitized evidence, using
@@ -155,10 +177,12 @@ Consolidated first-traffic blocker and acceptance register recorded on 2026-07-1
 - Accepted limitations: restore-drill deferral until a safe staging or intentionally empty restore target exists; the
   current Cloudflare Free-plan-compatible subset for a small operator-watched pilot only; recurring backup automation and
   backup freshness alerting deferred until after the initial pilot only if a fresh manual backup plus off-server copy
-  passes before traffic; and CoinMarketCap/source-terms commercial or paid-plan decision deferred only for commercial
-  claims, paid beta, or broader distribution. Missing external health/readiness alerts, fresh backup/off-server copy,
-  sanitized import proof, final readiness/latest-risk checks, launch snapshot, and accessibility manual/native checks are
-  not accepted limitations.
+  passes before traffic; small-pilot monitoring coverage limited to Cloudflare Tunnel Health Alert plus public homepage
+  availability monitoring; and CoinMarketCap/source-terms commercial or paid-plan decision deferred only for commercial
+  claims, paid beta, or broader distribution. Missing fresh backup/off-server copy, sanitized import proof, final
+  readiness/latest-risk checks, launch snapshot, and accessibility manual/native checks are not accepted limitations.
+  Dedicated external `/api/health` and `/api/readiness` freshness monitors plus explicit alert delivery evidence remain
+  pending broader-launch limitations.
 
 | Gate area | Consolidated status | Blocker or required acceptance before first traffic |
 | --- | --- | --- |
@@ -168,12 +192,12 @@ Consolidated first-traffic blocker and acceptance register recorded on 2026-07-1
 | Source terms and import governance owner | Partial with accepted pilot limitation. | Current product status is unpaid/non-commercial pilot. Source terms owner role is founder/operator. If interest or paid/commercial use appears, the operator intends to buy the appropriate plan or make the required terms/plan decision. Terms review or paid plan remains required before commercial claims, paid beta, or broader distribution. This is acceptable only for a small operator-watched pilot and is not legal approval or commercial readiness. |
 | Dependency/security ownership and status | Partial. | Dependency/security owner role is founder/operator with monthly review cadence during pilot. GitHub-hosted Dependabot execution/first PR evidence remains pending; dependency/license external confirmation remains pending before broader commercial launch. No vulnerability clearance, legal approval, or full license compliance is claimed. |
 | First-user feedback path | Partial/resolved for planned path; post-traffic evidence pending. | Feedback channels are waitlist notes and direct support-email replies with no raw contacts in Git. Reviewer role is founder/operator. Review cadence is after the first traffic window and several times per week during pilot. Evidence summaries must be aggregate/sanitized only, with no raw contacts or message text. |
-| External provider/dashboard monitoring proof | Blocked pending external evidence. | Configure or show sanitized monitor provider, dashboard, or scheduled-runner proof for the public health, readiness/freshness, and latest-risk checks. |
-| Health/readiness/stale-data alert rules | Blocked pending alert-rule evidence. | Minimum required before first traffic: external uptime alert for `/api/health`, external readiness/freshness alert for `/api/readiness`, and alert delivery test to the dedicated pilot channel. Broader missing monitors are not accepted unless explicitly decided later. |
-| Collector failure alert | Blocked pending production log or service alert evidence. | Record sanitized alert coverage for scheduled refresh failures, public-download failures, optional API fallback failures, missed scheduled runs, and repeated collector restarts. |
+| External provider/dashboard monitoring proof | Accepted/closed for the small operator-watched pilot with limitation. | Cloudflare Tunnel Health Alert is configured, and a HetrixTools/external uptime monitor provider category is recorded for public homepage availability. No account IDs, monitor IDs, private dashboard URLs, alert recipients, webhook URLs, tokens, screenshots, or secrets are recorded. Dedicated external `/api/health`, `/api/readiness`, and latest-risk monitor evidence remains pending for broader launch. |
+| Health/readiness/stale-data alert rules | Deferred broader-launch limitation, not a small-pilot first-traffic blocker. | No dedicated external `/api/health` or `/api/readiness` freshness monitor evidence, stale-data after-window alert evidence, JSON assertion evidence, or explicit alert delivery test evidence is recorded yet. Record those before broader traffic or broader readiness/freshness claims. |
+| Collector failure alert | Deferred broader-launch limitation. | Record sanitized alert coverage for scheduled refresh failures, public-download failures, optional API fallback failures, missed scheduled runs, and repeated collector restarts before broader traffic. |
 | Backup freshness alert | Deferred only after first traffic prerequisites. | Recurring backup automation and freshness alerting are deferred until after the initial operator-watched pilot. This limitation is accepted only if a fresh manual backup plus off-server copy passes before first traffic. |
-| Cloudflare Tunnel health notification | Blocked pending Cloudflare or equivalent notification evidence. | Record sanitized connector health notification status or equivalent tunnel availability alert evidence without account, tunnel, dashboard, or routing details. |
-| Alert delivery test | Blocked pending delivery evidence. | Send and record a sanitized test alert through the dedicated pilot channel, including covered rules and delivered/not-delivered result. |
+| Cloudflare Tunnel health notification | Accepted/closed for the small operator-watched pilot. | Cloudflare Tunnel Health Alert is configured. Keep account IDs, tunnel IDs, private dashboard URLs, alert recipients, routing details, tokens, and screenshots out of Git. |
+| Alert delivery test | Deferred broader-launch limitation. | No explicit alert delivery test evidence is recorded. Send and record sanitized delivery evidence before broader traffic or broader monitoring claims, including covered rules and delivered/not-delivered result without private recipients. |
 | Fresh manual backup and off-server copy | Blocked pending final pre-traffic evidence. | Create a fresh manual backup, copy it off-server, and record sanitized checker/result evidence before first traffic. |
 | Recurring production backup schedule | Accepted limitation/deferred only after initial pilot. | Recurring automation is deferred until after the initial operator-watched pilot, conditional on fresh manual backup/off-server copy passing before traffic. |
 | Recurring off-server copy | Accepted limitation/deferred only after initial pilot. | Recurring copy automation is deferred until after the initial operator-watched pilot, conditional on fresh manual backup/off-server copy passing before traffic. |
@@ -196,8 +220,8 @@ Consolidated first-traffic blocker and acceptance register recorded on 2026-07-1
 | Remote publication if required | Not blocking in current local state. | Local `HEAD` and `origin/main` both resolved to `08ff527` at the start of the decision pass. This pass does not push or tag. |
 
 - First traffic decision: not allowed now. The project remains not publicly launched, and first traffic must stay
-  `not_run` until every blocker above is completed, the final launch snapshot packet is created from current evidence,
-  and the only remaining limitations are the accepted limitations listed in this register.
+  `not_run` until the remaining small-pilot blockers above are completed, the final launch snapshot packet is created
+  from current evidence, and the only remaining limitations are the accepted limitations listed in this register.
 
 Final launch snapshot readiness/gap pass recorded on 2026-07-12:
 
@@ -223,7 +247,8 @@ Final launch snapshot readiness/gap pass recorded on 2026-07-12:
   launch-matrix pass, and product cache headers were present where checked. This is supporting current public evidence,
   not final pre-traffic evidence, because upstream launch gates remain incomplete.
 - Required evidence reference status: support/contact and account recovery readiness are completed by the later
-  2026-07-12 sanitized evidence note; external monitoring and alert delivery remain partial/blocked; recurring
+  2026-07-12 sanitized evidence note; small-pilot monitoring coverage is accepted/closed by the 2026-07-14 sanitized
+  note with dedicated API readiness/freshness monitoring and alert delivery deferred for broader launch; recurring
   backup/off-server copy/freshness automation is deferred only after a fresh manual backup/off-server copy passes before
   traffic; production import provenance remains partial pending sanitized final proof;
   launch matrix/accessibility/public-host QA remains partial; restore-drill deferral and the Cloudflare Free-plan subset
@@ -235,8 +260,8 @@ Final launch snapshot readiness/gap pass recorded on 2026-07-12:
   `python3 scripts/launch_snapshot_packet.py --help` completed successfully, and
   `python3 -m unittest backend.tests.test_launch_snapshot_packet` passed 12 tests. This validates helper availability
   only; it does not create a final packet or close launch evidence gaps.
-- Blockers preventing a true final launch snapshot: external monitor/provider evidence and alert-delivery proof; fresh
-  manual backup plus off-server copy; sanitized production import source/import proof; manual keyboard,
+- Blockers preventing a true final launch snapshot: fresh manual backup plus off-server copy; sanitized production import
+  source/import proof; manual keyboard,
   screen-reader/assistive-tech, physical-device/native browser, production-host accessibility, and full WCAG/legal
   accessibility evidence; remaining cache-miss/edge-hit latency matrix if still required; final pre-traffic public
   readiness evidence; final first-traffic operator acceptance; first traffic itself; and remote publication of the current
@@ -309,21 +334,20 @@ completed evidence and does not close monitor/provider or alert-delivery blocker
 
 | Required coverage | 2026-07-11 sanitized status | Assertion type / limitation |
 | --- | --- | --- |
-| Uptime monitor for `GET /api/health` | Partial. Local public probe passed; no external provider monitor was configured or verified. | HTTP 200 and JSON `status: ok` assertion proven by local probe only. |
-| Readiness/freshness monitor for `GET /api/readiness` | Partial. Local public probe passed; no external provider JSON assertion evidence was available. | HTTP 200, JSON `status: ready`, required readiness checks, `data_fresh`, date match, max age, and readiness `no-store` proven by local probe only. If the selected provider cannot assert JSON, use this probe from cron or a synthetic runner and record that limitation. |
-| Latest-risk monitor for `GET /api/risk/latest` | Partial. Local public probe passed; no external provider monitor evidence was available. | HTTP 200, parseable timestamp date matching readiness, numeric risk in range, freshness, and cache headers proven by local probe only. |
-| Backup freshness monitor | Blocked for production monitoring. Workstation-local checker failed stale; production/off-server scheduler evidence was unavailable. | Record only timestamp basename plus pass/fail from the production host or selected scheduler with off-server root when available. |
-| Cloudflare Tunnel connector health notification | Blocked. No Cloudflare dashboard/API evidence or current plan notification evidence was available. | Public endpoints prove the hostname path served during the probe, but not connector-down/flapping notification coverage. |
-| Alert delivery | Blocked. No provider channel was available and no test alert was sent. | Record channel type, test time, and delivered/not-delivered only after an operator sends a test through the chosen channel. |
+| Uptime monitor for `GET /api/health` | Broader-launch pending after the 2026-07-14 small-pilot acceptance. Local public probe passed, but no dedicated external provider monitor was configured or verified. | HTTP 200 and JSON `status: ok` assertion proven by local probe only; record dedicated external API monitor evidence before broader traffic. |
+| Readiness/freshness monitor for `GET /api/readiness` | Broader-launch pending after the 2026-07-14 small-pilot acceptance. Local public probe passed, but no dedicated external provider JSON assertion evidence was available. | HTTP 200, JSON `status: ready`, required readiness checks, `data_fresh`, date match, max age, and readiness `no-store` proven by local probe only. If the selected provider cannot assert JSON before broader traffic, use this probe from cron or a synthetic runner and record that limitation. |
+| Latest-risk monitor for `GET /api/risk/latest` | Broader-launch pending. Local public probe passed, but no external provider monitor evidence was available. | HTTP 200, parseable timestamp date matching readiness, numeric risk in range, freshness, and cache headers proven by local probe only. |
+| Backup freshness monitor | Deferred recurring-operations limitation. Workstation-local checker failed stale; production/off-server scheduler evidence was unavailable. | Fresh manual backup/off-server evidence remains a first-traffic blocker; recurring monitoring can be recorded from the production host or selected scheduler with off-server root later. |
+| Cloudflare Tunnel connector health notification | Accepted/closed for the small operator-watched pilot by the 2026-07-14 monitoring acceptance. | Cloudflare Tunnel Health Alert is configured. Keep account IDs, tunnel IDs, routing details, dashboard URLs, alert recipients, screenshots, and tokens out of Git. |
+| Alert delivery | Deferred broader-launch limitation. No provider channel was available and no test alert was sent. | Record channel type, test time, and delivered/not-delivered only after an operator sends a test through the chosen channel before broader traffic. |
 
-- Monitoring/alert delivery gate status: partial/blocked, not passed. Public health/readiness/latest-risk behavior is
-  currently healthy by local probe, but external monitor provider proof, JSON assertion configuration or documented
-  provider limitation, backup freshness scheduler proof, Cloudflare Tunnel health notification status, and alert delivery
-  test evidence remain missing.
-- Remaining launch blockers from this gate: configure or verify external uptime/readiness/latest-risk monitors, configure
-  stale-data and collector-failure alerts, configure recurring backup freshness/off-server monitoring, verify Cloudflare
-  Tunnel connector health notification availability/status, send and record a sanitized test alert, and keep final
-  pre-traffic readiness fresh before any first traffic window.
+- Monitoring/alert delivery gate status: accepted/closed for the small operator-watched pilot with limitation after the
+  2026-07-14 monitoring acceptance. Public health/readiness/latest-risk behavior was healthy by local probe, and
+  Cloudflare Tunnel Health Alert plus public homepage availability monitoring are accepted for the watched pilot.
+  Dedicated external API monitor proof, JSON assertion configuration or documented provider limitation, backup freshness
+  scheduler proof, stale-data/collector-failure alert proof, and alert delivery test evidence remain broader-launch work.
+- Remaining first-traffic blockers from this area: keep final pre-traffic public readiness fresh. Dedicated API monitors
+  and alert delivery are broader-launch limitations, not small-pilot first-traffic blockers.
 
 Fresh public endpoint readiness probe recorded on 2026-07-11:
 
@@ -377,21 +401,25 @@ completed evidence and does not close monitor/provider or alert-delivery blocker
 
 | Required coverage | 2026-07-12 sanitized status | Evidence / remaining proof |
 | --- | --- | --- |
-| Uptime monitor for `GET /api/health` | Partial. The approved local public probe passed; no external provider monitor was configured or verified. | Local GET-only evidence supports HTTP 200/JSON health behavior. Still required: external monitor/dashboard or chosen scheduled runner proof, plus alerts on non-200, timeout, or TLS failure. |
-| Readiness/freshness monitor for `GET /api/readiness` | Partial. The approved local public probe passed with max data age 2 and readiness freshness checks; no external provider JSON assertion, scheduled after-window run, or alert route evidence was available. | Still required: alert on non-200, `status` not `ready`, stale data after the nightly refresh window, and `data_age_days` exceeding `DATA_FRESHNESS_MAX_AGE_DAYS`. |
-| Latest-risk public endpoint probe for `GET /api/risk/latest` | Partial. The approved local public probe passed with `latest_date=2026-07-11`, rounded risk `0.2190`, readiness/latest-risk date alignment, and required cache headers. | Still required: provider/scheduler proof and alert behavior for timeout, non-200, malformed JSON, stale/mismatched date, nonnumeric risk, or missing required cache headers. |
-| Collector failure alert | Blocked. No production host, scheduler, service monitor, container restart, or log-alert evidence was available. | Configure and record sanitized alerts for `scheduled_refresh_failed`, `public_cmc_download_failed`, API fallback failure when configured, missed scheduled refresh evidence, and repeated `data-collector` restarts. |
-| Backup freshness/off-server copy alert | Blocked for recurring production monitoring. Historical copied/off-server checker evidence exists for `20260711T190355Z`, but no current scheduler/monitor or delivery proof was available. | Choose the freshness window, monitor checksum-verified local backup plus off-server copy presence inside that window, alert on missing/stale/malformed/checksum-invalid results, and record only sanitized timestamp basenames/status. |
-| Cloudflare Tunnel health notification | Blocked. No Cloudflare dashboard/API evidence, connector-down/flapping notification proof, or equivalent tunnel status alert evidence was available. | Enable or document connector health notifications for the tunnel serving `bitcoinriskbrief.minihub.app` and record sanitized status without account IDs, tunnel IDs, dashboard URLs, or tokens. |
-| Alert delivery channel | Blocked. No selected pilot channel type or provider test notification result was available. | Send a real test notification through the chosen monitoring or alert system and record only sanitized channel type, test time, delivered/not-delivered result, and covered rules. |
+| Uptime monitor for `GET /api/health` | Broader-launch pending; not a small-pilot blocker after the 2026-07-14 monitoring acceptance. | Local GET-only evidence supports HTTP 200/JSON health behavior. Dedicated external API monitor/dashboard or chosen scheduled runner proof, plus alerts on non-200, timeout, or TLS failure, remain required before broader traffic. |
+| Readiness/freshness monitor for `GET /api/readiness` | Broader-launch pending; not a small-pilot blocker after the 2026-07-14 monitoring acceptance. | The approved local public probe passed with max data age 2 and readiness freshness checks. Dedicated external readiness/freshness JSON assertion, scheduled after-window run, and alert route evidence remain required before broader traffic. |
+| Latest-risk public endpoint probe for `GET /api/risk/latest` | Broader-launch pending. | The approved local public probe passed with `latest_date=2026-07-11`, rounded risk `0.2190`, readiness/latest-risk date alignment, and required cache headers. Provider/scheduler proof and alert behavior for timeout, non-200, malformed JSON, stale/mismatched date, nonnumeric risk, or missing required cache headers remain broader-launch work. |
+| Collector failure alert | Deferred broader-launch limitation. | Configure and record sanitized alerts for `scheduled_refresh_failed`, `public_cmc_download_failed`, API fallback failure when configured, missed scheduled refresh evidence, and repeated `data-collector` restarts before broader traffic. |
+| Backup freshness/off-server copy alert | Deferred recurring-operations limitation. | Historical copied/off-server checker evidence exists for `20260711T190355Z`, but no current scheduler/monitor or delivery proof was available. Fresh manual backup/off-server evidence remains a first-traffic blocker; recurring backup alerting remains deferred after the small pilot prerequisites. |
+| Cloudflare Tunnel health notification | Accepted/closed for the small operator-watched pilot by the 2026-07-14 monitoring acceptance. | Cloudflare Tunnel Health Alert is configured. Keep account IDs, tunnel IDs, dashboard URLs, tokens, routing details, screenshots, and recipient details out of Git. |
+| Alert delivery channel | Deferred broader-launch limitation. | No explicit alert delivery test evidence is recorded. Send a real test notification through the chosen monitoring or alert system before broader traffic and record only the channel type, test time, delivered/not-delivered result, and covered rules. |
 
-- Monitoring/alert delivery gate status: partial, not passed. Current public health/readiness/latest-risk behavior is
-  supported by a local public GET-only probe, but external monitor/provider proof, alert rules, stale-data/readiness
-  after-window alert proof, collector-failure alert proof, recurring backup freshness/off-server alert proof, Cloudflare
-  Tunnel health notification proof, and alert-delivery test evidence remain missing.
-- First traffic remains blocked by this gate unless the operator completes the minimum external health/readiness alert
-  evidence and alert delivery test recorded in the 2026-07-12 operator decision pass. Missing external monitoring or
-  alert delivery is not accepted as a launch limitation.
+- Monitoring/alert delivery gate status: accepted/closed for the small operator-watched pilot with limitation after the
+  2026-07-14 acceptance. Current public health/readiness/latest-risk behavior is supported by a local public GET-only
+  probe, and Cloudflare Tunnel Health Alert plus public homepage availability monitoring are accepted for the watched
+  pilot. Dedicated external API monitor/provider proof, alert rules, stale-data/readiness after-window alert proof,
+  collector-failure alert proof, recurring backup freshness/off-server alert proof, and alert-delivery test evidence
+  remain missing for broader launch.
+- This 2026-07-12 gap status is superseded for the small operator-watched pilot by the 2026-07-14 sanitized monitoring
+  acceptance note: Cloudflare Tunnel Health Alert plus public homepage availability monitoring are accepted as sufficient
+  small-pilot coverage. The missing dedicated external `/api/health` monitor, dedicated external `/api/readiness`
+  freshness monitor, stale-data after-window alert, collector-failure alert, backup freshness/off-server alert, and
+  explicit alert delivery evidence remain broader-launch limitations, not small-pilot first-traffic blockers.
 
 Recurring backup, off-server copy, and backup freshness evidence gap pass recorded on 2026-07-12:
 
@@ -432,13 +460,14 @@ alert-delivery, or restore-drill blockers by itself.
 | Backup freshness alert delivery | Blocked. No backup freshness alert rule, route type, latest alert-rule evaluation, or delivery-test evidence was available. | Alert when no checksum-verified local backup plus off-server copy exists inside the chosen window, and cover missing backup, stale backup, malformed timestamp, missing artifact categories, checksum failure, missing off-server copy, and runner failure. Record only sanitized channel type, evaluation time, and delivered/not-delivered result. |
 | Restore drill | Accepted limitation/deferred. The accepted limitation is the absence of a staging or intentionally empty restore target. | Keep the drill deferred until a safe target exists. When available, record target type, timestamp basename, checksum verification, restore command result, post-restore readiness, and cleanup/teardown status without private paths or raw restore logs. |
 
-- Backup/off-server/freshness gate status: partial/blocked, not passed. Historical one-time backup and copied/off-server
-  freshness evidence supports recoverability planning, but recurring production backup scheduling, recurring off-server
-  copy, scheduled freshness monitoring, freshness alert delivery, and restore-drill proof are still missing.
-- First traffic remains blocked unless the operator completes the missing recurring backup/off-server/freshness/alert
-  evidence or records explicit sanitized accepted limitations for an operator-watched pilot. The current operator
-  register accepts only restore-drill deferral, not missing recurring backup, off-server copy, freshness monitoring, or
-  alert delivery evidence.
+- Backup/off-server/freshness gate status: partial. Historical one-time backup and copied/off-server freshness evidence
+  supports recoverability planning, but recurring production backup scheduling, recurring off-server copy, scheduled
+  freshness monitoring, freshness alert delivery, and restore-drill proof are still missing for broader launch or later
+  operations.
+- First traffic remains blocked by the need for a fresh manual backup plus off-server copy during the final pre-traffic
+  window. The current operator register accepts recurring backup automation, recurring off-server copy, backup freshness
+  monitoring, backup alert delivery, and restore-drill deferral as limitations only for the small operator-watched pilot,
+  conditional on the fresh manual backup/off-server copy passing before traffic.
 
 Production import provenance evidence gap pass recorded on 2026-07-12:
 
@@ -819,28 +848,28 @@ Monitoring and alerts evidence pass recorded on 2026-07-10 at 06:13 UTC for
   Relevant public cache headers were `Cache-Control: public, max-age=60, stale-while-revalidate=300`,
   `ETag: "970d143369867a8e06f4af55"`, `X-Cache: MISS`, the same `X-Cache-Version` as readiness, and
   `cf-cache-status: EXPIRED`.
-- Monitor/provider evidence status: blocked. This workstation session has no external monitoring provider dashboard/API,
-  Cloudflare dashboard/API, alert-delivery dashboard, production host at `/srv/projects/bitcoin-risk-brief`, service
-  logs, or current backup/off-server filesystem evidence available. The repo search found no monitor-provider
-  configuration outside documentation. Therefore this pass does not prove that any production monitor or alert is
-  configured.
+- Monitor/provider evidence status from this historical 2026-07-10 pass: blocked at that time. This workstation session
+  had no external monitoring provider dashboard/API, Cloudflare dashboard/API, alert-delivery dashboard, production host
+  at `/srv/projects/bitcoin-risk-brief`, service logs, or current backup/off-server filesystem evidence available. The
+  later 2026-07-14 acceptance supersedes this only for small-pilot monitoring coverage: Cloudflare Tunnel Health Alert
+  plus public homepage availability monitoring are accepted, while dedicated external API readiness/freshness monitoring
+  and alert delivery remain pending before broader launch.
 
 | Evidence area | 2026-07-10 status | Exact remaining operator action |
 | --- | --- | --- |
 | Local public endpoint probe tooling | Implemented locally after the 2026-07-10 evidence pass. `scripts/check_public_endpoints.py` can validate public `GET /api/health`, `GET /api/readiness`, and `GET /api/risk/latest` with an explicit `--max-data-age-days` or `--expected-latest-date` freshness policy, readiness `no-store`, and optional cache-header assertions for cacheable product responses. Focused unit tests cover success, endpoint failures, stale readiness, missing readiness fields, malformed JSON/latest risk, date mismatch, readiness no-store, cache-header requirements, handled network failure, and GET-only behavior. | Put the probe under cron, a synthetic monitor runner, or an external monitoring provider using a chosen freshness policy; record only sanitized latest status, assertion summary, interval/window, and delivery route. This does not replace provider/dashboard proof or alert-delivery evidence. |
-| External uptime monitor for `/api/health` | Blocked pending provider evidence. Public `/api/health` is currently HTTP 200, but no external uptime monitor dashboard/API proof was available. | Configure or show an external HTTP monitor for `https://bitcoinriskbrief.minihub.app/api/health`; alert on non-200, timeout, or TLS failure; record provider/dashboard name, sanitized check name, interval, latest check status, and delivery route without account details. |
-| External readiness/freshness monitor for `/api/readiness` | Blocked pending provider evidence. Public `/api/readiness` is currently HTTP 200 and fresh, but no monitor assertion or alert evidence was available. | Configure or show an external HTTP monitor for `https://bitcoinriskbrief.minihub.app/api/readiness`; alert when HTTP is non-200, `status` is not `ready`, or `checks.data_fresh` is not `true`; record sanitized assertion and latest check evidence. |
-| Stale-data alert | Blocked pending alert-rule evidence. Current public readiness is fresh, but no stale-data alert rule or delivery proof was available. | After the nightly collector window plus the operator-defined grace period, alert when readiness is HTTP 503, `data_age_days` exceeds `max_age_days`, or `latest_date`/`covered_end` is older than the last completed UTC day. |
-| Collector failure alert | Blocked pending production host or log-alert evidence. No collector container status, scheduled run proof, restart alert, or log-alert dashboard was available from this workstation. | Configure production alerts for `scheduled_refresh_failed`, `public_cmc_download_failed`, API fallback failure, missed scheduled refresh evidence, and repeated `data-collector` restarts; record the alert source and latest passing scheduled run without raw log dumps. |
-| Backup freshness/off-server copy monitor | Blocked for monitor evidence; local checker tooling is implemented and tested, but only historical backup-copy evidence remains. The 2026-07-07 checksum-verified USB off-server backup copy is still the last recorded backup-copy evidence, but no current production freshness-window check, recurring backup schedule, or backup alert evidence was available here. | Choose the freshness window, schedule backups and off-server copies, run `scripts/check_backup_freshness.py` against the local backup root and required off-server root, alert when no checksum-verified backup plus off-server copy exists inside the chosen window, and record only sanitized timestamp basenames/status from the production host. |
-| Cloudflare Tunnel connector health notification | Blocked pending Cloudflare dashboard evidence. Public endpoints prove the hostname path is currently serving, but no connector-down/flapping notification or connector status proof was available. | In Cloudflare Zero Trust, enable or document connector health notifications for the tunnel serving `bitcoinriskbrief.minihub.app`; record notification configured yes/no, connector status, and whether production uses host-service or compose-managed `cloudflared`, without private dashboard URLs or account IDs. |
-| Alert delivery channel | Blocked pending delivery evidence. No email, chat, pager, or other delivery-channel configuration/test proof was available. | Choose the pilot alert channel, send a test notification from the monitoring provider, and record channel type, test time, and delivered/not-delivered result without recipient addresses, handles, phone numbers, tokens, or private contacts. |
+| External uptime monitor for `/api/health` | Broader-launch pending after the 2026-07-14 small-pilot acceptance. Public `/api/health` was HTTP 200 in this historical pass, but no dedicated external uptime monitor dashboard/API proof was available. | Configure or show an external HTTP monitor for `https://bitcoinriskbrief.minihub.app/api/health`; alert on non-200, timeout, or TLS failure; record provider/dashboard name, sanitized check name, interval, latest check status, and delivery route without account details before broader traffic. |
+| External readiness/freshness monitor for `/api/readiness` | Broader-launch pending after the 2026-07-14 small-pilot acceptance. Public `/api/readiness` was HTTP 200 and fresh in this historical pass, but no monitor assertion or alert evidence was available. | Configure or show an external HTTP monitor for `https://bitcoinriskbrief.minihub.app/api/readiness`; alert when HTTP is non-200, `status` is not `ready`, or `checks.data_fresh` is not `true`; record sanitized assertion and latest check evidence before broader traffic. |
+| Stale-data alert | Broader-launch pending. Current public readiness was fresh in this historical pass, but no stale-data alert rule or delivery proof was available. | After the nightly collector window plus the operator-defined grace period, alert when readiness is HTTP 503, `data_age_days` exceeds `max_age_days`, or `latest_date`/`covered_end` is older than the last completed UTC day. |
+| Collector failure alert | Deferred broader-launch limitation. No collector container status, scheduled run proof, restart alert, or log-alert dashboard was available from this workstation. | Configure production alerts for `scheduled_refresh_failed`, `public_cmc_download_failed`, API fallback failure, missed scheduled refresh evidence, and repeated `data-collector` restarts; record the alert source and latest passing scheduled run without raw log dumps. |
+| Backup freshness/off-server copy monitor | Deferred recurring-operations limitation; local checker tooling is implemented and tested, but only historical backup-copy evidence remains. The 2026-07-07 checksum-verified USB off-server backup copy is still the last recorded backup-copy evidence for this historical pass, but no current production freshness-window check, recurring backup schedule, or backup alert evidence was available here. | Choose the freshness window, schedule backups and off-server copies, run `scripts/check_backup_freshness.py` against the local backup root and required off-server root, alert when no checksum-verified backup plus off-server copy exists inside the chosen window, and record only sanitized timestamp basenames/status from the production host. |
+| Cloudflare Tunnel connector health notification | Accepted/closed for the small operator-watched pilot by the 2026-07-14 monitoring acceptance. | Cloudflare Tunnel Health Alert is configured. Keep private dashboard URLs, account IDs, tunnel IDs, routing details, alert recipients, screenshots, and tokens out of Git. |
+| Alert delivery channel | Deferred broader-launch limitation. No email, chat, pager, or other delivery-channel configuration/test proof was available. | Choose the alert channel before broader traffic, send a test notification from the monitoring provider, and record channel type, test time, and delivered/not-delivered result without recipient addresses, handles, phone numbers, tokens, or private contacts. |
 
-- Monitoring/alerts gate status: partial/blocked, not passed. Local public endpoint probe tooling is implemented and
-  tested, and previous public health, readiness, and latest-risk endpoint evidence was healthy/current, but
-  provider/dashboard evidence and delivery evidence are missing for every monitor/alert gate. Until these blocked items
-  have operator evidence, broader traffic remains limited to an operator-watched pilot using the first-response runbook
-  in [Operations](operations.md).
+- Monitoring/alerts gate status: accepted/closed for the small operator-watched pilot with limitation after the
+  2026-07-14 monitoring acceptance. Local public endpoint probe tooling is implemented and tested, and previous public
+  health, readiness, and latest-risk endpoint evidence was healthy/current. Dedicated API monitor provider/dashboard
+  evidence and alert delivery evidence remain pending before broader traffic.
 - Local public endpoint probe status: implemented and covered by focused unit tests in this repository. This is local
   tooling only; no external monitor provider, dashboard/API proof, alert rule, delivery channel, or current production
   probe run evidence is recorded here.
@@ -852,9 +881,9 @@ Monitoring and alerts evidence pass recorded on 2026-07-10 at 06:13 UTC for
   `scripts/launch_snapshot_packet.py` creates or validates a sanitized JSON packet template for the final pre-traffic
   evidence window, stores evidence basenames instead of full paths, keeps missing categories as pending gates, and keeps
   `first_traffic_status` at `not_run` unless explicit first-traffic evidence fields are deliberately supplied. This is
-  local tooling only; the actual final launch snapshot packet, final pre-traffic public readiness evidence,
-  monitor/alert delivery proof, sanitized import proof, fresh backup/off-server evidence, manual/native accessibility
-  checks, and first traffic remain pending.
+  local tooling only; the actual final launch snapshot packet, final pre-traffic public readiness evidence, sanitized
+  import proof, fresh backup/off-server evidence, manual/native accessibility checks, and first traffic remain pending.
+  Dedicated API monitor/alert delivery proof remains a broader-launch limitation.
 
 Bundled canonical CSV repository evidence recorded on 2026-07-11:
 
@@ -911,10 +940,10 @@ Launch governance gap pass recorded on 2026-07-10:
 | First-user feedback review path | passed with existing repo evidence | This document and [Operations](operations.md) define a post-window review path for waitlist conversion, repeat-use signals, direct questions, methodology confusion, and requests for alerts/API/agents/widgets/licensing. | Run the review only after first traffic creates evidence; do not copy raw waitlist contacts into summaries. |
 | Dependency-license review | partial; local evidence recorded, external/manual confirmation pending | [Dependency and License Review](dependency-license-review.md) records the 2026-07-10 local inventory from npm lockfile, Python requirements, container references, CI workflow references, and local Dependabot configuration. Local npm lockfile entries all include license metadata, including `@axe-core/playwright` and `axe-core` as `MPL-2.0`; Python and container license metadata remain unknown from repository files. | Confirm GitHub-hosted Dependabot execution and first PR evidence, Python package metadata, transitive dependencies, container image and OS package licenses, CI action/license posture, vulnerability/advisory status, project license choice, and legal compatibility before broader portfolio sharing or commercial claims. |
 | Launch snapshot evidence | pending external evidence | The 2026-07-05 launch snapshot is historical and was blocked by stale readiness. Later public freshness evidence exists, including the 2026-07-11 update probe, and local launch snapshot packet tooling is implemented/tested, but no final launch snapshot/first-traffic evidence packet is recorded. | Use `scripts/launch_snapshot_packet.py` during the final pre-traffic window to create or validate a sanitized packet from already collected local evidence, then capture the launch commit, public hostname, readiness payload, cache headers, waitlist smoke, launch limitations, and related backup/restore/provenance references immediately before first traffic. |
-| External monitoring and alert delivery | partial; first traffic blocked | The 2026-07-12 monitoring/alert evidence gap pass recorded an approved local public GET-only probe for health, readiness, and latest-risk, but found no external monitor-provider dashboard/API proof, alert rules, Cloudflare connector notification evidence, recurring backup freshness alert proof, collector-failure alert proof, or delivery-test evidence. | Configure or show provider/dashboard evidence and alert delivery proof for the required `/api/health` and `/api/readiness` alerts before first traffic. Missing broader monitors are not accepted unless explicitly decided later. |
+| External monitoring and alert delivery | accepted/closed for small operator-watched pilot; broader launch pending | The 2026-07-14 monitoring acceptance records Cloudflare Tunnel Health Alert as configured, a HetrixTools/external uptime monitor provider category, and public homepage availability monitoring for the pilot. The 2026-07-12 local public GET-only probe still supports health, readiness, and latest-risk behavior, but no dedicated external `/api/health` monitor, dedicated external `/api/readiness` freshness monitor, stale-data after-window alert, collector-failure alert, recurring backup freshness alert, or explicit alert delivery test evidence is recorded. | Keep small-pilot monitoring limited to the accepted Tunnel health plus homepage availability coverage. Before broader traffic or broader readiness/freshness claims, record sanitized dedicated API monitor evidence and alert delivery proof without private provider details. |
 | Import provenance source archive and direct production metadata | partial supporting evidence; direct production evidence pending | The 2026-07-09 pass publicly verified data/cache consistency, and the 2026-07-12 import provenance gap pass verified local helper availability plus existing public/local supporting evidence. Neither pass proved the exact source path/category, source archive, direct production validation/import table metadata, or collector command evidence. | Capture sanitized production import proof outside the repository before or during the final launch snapshot with source category, retrieval/import timestamp, row counts/range, validation/readiness output, latest-risk output, and checksum if available. No accepted limitation is intended for the refresh workflow. |
 | Restore drill | accepted limitation for operator-watched first traffic | Checksum-verified off-server USB backup copy evidence is recorded for 2026-07-07 and copied/off-server freshness/checksum checker evidence is recorded for timestamp `20260711T190355Z`, but the current setup has only the live production server and no staging or empty restore target. | Defer the drill until a separate target exists; do not run restore testing against live production. Record target type and readiness result after the drill. |
-| First traffic test | blocked | No first traffic window has run. Freshness, public metadata/privacy smoke, waitlist smoke evidence, support/contact readiness, and account recovery readiness exist, but monitoring/alerts, sanitized import proof, fresh backup/off-server evidence, manual/native accessibility checks, and final snapshot evidence remain incomplete. | Run only after freshness is rechecked, all required blockers are completed, the final launch snapshot exists, and the only remaining limitations are the accepted limitations listed in the 2026-07-12 operator decision pass. |
+| First traffic test | blocked | No first traffic window has run. Freshness, public metadata/privacy smoke, waitlist smoke evidence, support/contact readiness, account recovery readiness, and small-pilot monitoring acceptance exist, but sanitized import proof, fresh backup/off-server evidence, manual/native accessibility checks, fresh public readiness/latest-risk checks, and final snapshot evidence remain incomplete. | Run only after freshness is rechecked, all required small-pilot blockers are completed, the final launch snapshot exists, and the only remaining limitations are the accepted limitations listed in the current operator decision register. |
 
 Browser/device/accessibility/metadata gap pass recorded on 2026-07-10:
 
@@ -1113,45 +1142,45 @@ Monitoring, alerts, and single-server restore evidence pass recorded on 2026-07-
   - `GET https://bitcoinriskbrief.minihub.app/api/risk/latest` returned HTTP 200 for timestamp
     `2026-07-07T00:00:00+00:00` with `risk_state: low`, risk approximately `0.2648`, and
     `model_price_usd: 63392.986942233336`.
-- Monitoring evidence status: partially verified. Public health/readiness/risk endpoints are reachable and current
-  public readiness is healthy, and one checksum-verified off-server USB backup copy is recorded for 2026-07-07. This
-  session has no production host, external monitoring provider, Cloudflare dashboard, or alert delivery access, so
-  provider/dashboard evidence and delivery evidence remain blocked pending operator setup or handoff.
+- Monitoring evidence status from this historical 2026-07-08 pass: partially verified at that time. Public
+  health/readiness/risk endpoints were reachable and current, public readiness was healthy, and one checksum-verified
+  off-server USB backup copy was recorded for 2026-07-07. The later 2026-07-14 acceptance supersedes this only for
+  small-pilot monitoring coverage: Cloudflare Tunnel Health Alert plus public homepage availability monitoring are
+  accepted, while dedicated external API readiness/freshness monitoring and alert delivery remain pending before broader
+  launch.
 
 | Evidence area | 2026-07-08 status | Exact remaining operator action |
 | --- | --- | --- |
-| External uptime/readiness monitor dashboard/evidence | Blocked pending operator setup/evidence. Public endpoints are reachable, but no monitor provider/dashboard proof was available in this session. | Configure or show HTTP monitors for `/api/health` and `/api/readiness`; record provider/dashboard name, sanitized check names, latest check time, and expected status rules without account details. |
-| Stale-data alert or readiness HTTP 503 alert | Blocked pending operator setup/evidence. No alert rule or delivery proof was available. | Alert when `/api/readiness` returns non-200, when `status` is not `ready`, or after the nightly collector window plus grace period when `latest_date`/`covered_end` is older than the last completed UTC day or `data_age_days` exceeds `DATA_FRESHNESS_MAX_AGE_DAYS`. |
-| Collector failure/container log alert | Blocked pending operator setup/evidence. Code and runbooks name the relevant log events, but no production log alert evidence was available. | Configure alerts for `scheduled_refresh_failed`, `public_cmc_download_failed`, API fallback failure, and repeated `data-collector` restarts; record the alert source and latest passing scheduled run. |
+| External uptime/readiness monitor dashboard/evidence | Broader-launch pending after the 2026-07-14 small-pilot acceptance. Public endpoints were reachable, but no dedicated API monitor provider/dashboard proof was available in this session. | Configure or show HTTP monitors for `/api/health` and `/api/readiness`; record provider/dashboard name, sanitized check names, latest check time, and expected status rules without account details before broader traffic. |
+| Stale-data alert or readiness HTTP 503 alert | Broader-launch pending. No alert rule or delivery proof was available. | Alert when `/api/readiness` returns non-200, when `status` is not `ready`, or after the nightly collector window plus grace period when `latest_date`/`covered_end` is older than the last completed UTC day or `data_age_days` exceeds `DATA_FRESHNESS_MAX_AGE_DAYS`. |
+| Collector failure/container log alert | Deferred broader-launch limitation. Code and runbooks name the relevant log events, but no production log alert evidence was available. | Configure alerts for `scheduled_refresh_failed`, `public_cmc_download_failed`, API fallback failure, and repeated `data-collector` restarts; record the alert source and latest passing scheduled run before broader traffic. |
 | Backup freshness/off-server copy monitor | Partially verified. One checksum-verified USB off-server backup copy is recorded for timestamp `20260707T111928Z`, but no recurring backup freshness monitor or alert evidence was available. | Schedule backups and off-server copies, alert when no checksum-verified backup plus off-server copy exists inside the chosen freshness window, and record sanitized evidence from the production host. |
-| Cloudflare Tunnel connector health notification | Blocked pending operator setup/evidence. Public endpoints prove the tunnel path is currently serving, but no Cloudflare connector health notification evidence was available. | In Cloudflare Zero Trust, enable or document tunnel connector health notifications for the connector serving `bitcoinriskbrief.minihub.app`; record whether production uses host-service `cloudflared` or compose-managed `cloudflared`. |
-| Alert delivery channel | Blocked pending operator setup/evidence. No email, chat, pager, or other delivery-channel proof was available. | Choose the pilot alert channel, send a test alert from the monitoring provider, and record the channel type, test time, and success result without addresses, handles, tokens, or private contacts. |
+| Cloudflare Tunnel connector health notification | Accepted/closed for the small operator-watched pilot by the 2026-07-14 monitoring acceptance. | Cloudflare Tunnel Health Alert is configured. Keep account IDs, tunnel IDs, routing details, dashboard URLs, alert recipients, screenshots, and tokens out of Git. |
+| Alert delivery channel | Deferred broader-launch limitation. No email, chat, pager, or other delivery-channel proof was available. | Choose the alert channel before broader traffic, send a test alert from the monitoring provider, and record the channel type, test time, and success result without addresses, handles, tokens, or private contacts. |
 
-- Until the blocked items above have operator evidence, monitoring/alerts are not configured for launch evidence
-  purposes. Broader traffic remains limited to an operator-watched pilot using the first-response runbook.
+- The 2026-07-14 monitoring acceptance supersedes the blocked small-pilot status above: monitoring is accepted/closed for
+  the small operator-watched pilot with limitation, while dedicated API monitoring and alert delivery remain pending
+  before broader traffic.
 
 Monitoring and first-response status recorded on 2026-07-05:
 
-- Overall monitoring status: blocked pending operator evidence for first traffic. The earlier accepted-limitation wording
-  for this historical 2026-07-05 note is superseded by the current governance register. The first-response runbook is
-  documented in [Operations](operations.md), and previous public smoke checks prove the public health/readiness paths
-  exist, but this agent session has no access to the production host, Cloudflare dashboard, or an external monitoring
-  provider. No monitor dashboard, alert delivery, backup freshness monitor, collector log alert, or Cloudflare Tunnel
-  health alert evidence was provided. Do not mark monitoring configured or accepted for first traffic unless an operator
-  records a new explicit accepted-limitation decision.
+- Overall monitoring status for this historical 2026-07-05 note: blocked pending operator evidence at that time. The
+  first-response runbook is documented in [Operations](operations.md), and previous public smoke checks prove the public
+  health/readiness paths exist. The later 2026-07-14 operator decision now records that Cloudflare Tunnel Health Alert
+  plus public homepage availability monitoring are accepted for the small operator-watched pilot, while dedicated API
+  monitoring and alert delivery remain pending before broader launch.
 
 | Monitor area | Current status | Required operator action |
 | --- | --- | --- |
-| Public `/api/health` | Blocked pending evidence. Endpoint exists and has previous smoke evidence, but no external uptime monitor evidence is recorded. | Configure an HTTP monitor for `https://bitcoinriskbrief.minihub.app/api/health`, alert on non-200, timeout, or TLS failure, and record the provider/dashboard name plus alert channel without account details. |
-| Public `/api/readiness` | Blocked pending evidence. Endpoint exists and has previous smoke evidence, but no external readiness alert evidence is recorded. | Configure an HTTP monitor for `https://bitcoinriskbrief.minihub.app/api/readiness`, alert on non-200, and route the alert to the `/api/readiness` first-response entry in `docs/operations.md`. |
-| Stale readiness after nightly update window | Blocked pending evidence. No scheduled stale-data monitor evidence is recorded. | After the default 01:00 UTC collector window plus operator-defined grace period, check `/api/readiness`; alert if `status` is not `ready`, `latest_date`/`covered_end` is older than the last completed UTC day, or `data_age_days` exceeds `DATA_FRESHNESS_MAX_AGE_DAYS`. |
-| Collector refresh failure | Blocked pending evidence. The scheduled public-download-first path is documented, but no production log alert evidence is recorded. | Configure production log/container alerts for `scheduled_refresh_failed`, `public_cmc_download_failed`, API fallback failure, and repeated `data-collector` restarts; record the alert source and latest passing scheduled run. |
+| Public `/api/health` | Broader-launch pending after the 2026-07-14 small-pilot acceptance. Endpoint exists and has previous smoke evidence, but no dedicated external uptime monitor evidence is recorded. | Configure an HTTP monitor for `https://bitcoinriskbrief.minihub.app/api/health`, alert on non-200, timeout, or TLS failure, and record the provider/dashboard name plus alert channel without account details before broader traffic. |
+| Public `/api/readiness` | Broader-launch pending after the 2026-07-14 small-pilot acceptance. Endpoint exists and has previous smoke evidence, but no dedicated external readiness alert evidence is recorded. | Configure an HTTP monitor for `https://bitcoinriskbrief.minihub.app/api/readiness`, alert on non-200, and route the alert to the `/api/readiness` first-response entry in `docs/operations.md` before broader traffic. |
+| Stale readiness after nightly update window | Broader-launch pending. No scheduled stale-data monitor evidence is recorded. | After the default 01:00 UTC collector window plus operator-defined grace period, check `/api/readiness`; alert if `status` is not `ready`, `latest_date`/`covered_end` is older than the last completed UTC day, or `data_age_days` exceeds `DATA_FRESHNESS_MAX_AGE_DAYS`. |
+| Collector refresh failure | Deferred broader-launch limitation. The scheduled public-download-first path is documented, but no production log alert evidence is recorded. | Configure production log/container alerts for `scheduled_refresh_failed`, `public_cmc_download_failed`, API fallback failure, and repeated `data-collector` restarts; record the alert source and latest passing scheduled run before broader traffic. |
 | Backup freshness | Partially blocked. One checksum-verified off-server USB backup copy is recorded for 2026-07-07, but no restore drill or recurring backup freshness monitor evidence is recorded here. | Schedule `./scripts/backup.sh`, copy verified backups off-server, alert when no checksum-verified backup and off-server copy exists inside the chosen freshness window, run a restore drill only on staging or an intentionally empty restore target, and record redacted evidence from the production host. |
-| Cloudflare Tunnel health | Partially configured. The public hostname and Tunnel path have previous smoke evidence, but no Cloudflare connector health alert evidence is recorded. | In Cloudflare Zero Trust, enable or document Tunnel connector health notifications for the connector serving `bitcoinriskbrief.minihub.app`; also record whether production uses host-service `cloudflared` or compose-managed `cloudflared` and where operators check status. |
+| Cloudflare Tunnel health | Accepted/closed for the small operator-watched pilot by the 2026-07-14 monitoring acceptance. | Cloudflare Tunnel Health Alert is configured. Keep account IDs, tunnel IDs, routing details, dashboard URLs, alert recipients, screenshots, and tokens out of Git. |
 
-- Until the actions above are complete, public traffic should be a controlled operator-watched pilot only. Pause broader
-  promotion when any required monitor is missing and no operator is actively watching the matching command/dashboard from
-  the first-response runbook.
+- Public traffic remains limited to a controlled operator-watched pilot. Pause broader promotion while dedicated API
+  monitors or alert delivery evidence are missing.
 
 Production import provenance evidence pass recorded on 2026-07-09 from 16:19 to 16:20 UTC for
 `https://bitcoinriskbrief.minihub.app`:
@@ -1411,10 +1440,11 @@ Task 10 launch snapshot recorded on 2026-07-05 at 11:37 UTC for `https://bitcoin
   production backup, off-server copy, restore drill, or backup freshness monitor was recorded. The 2026-07-07 evidence
   above supersedes the backup/off-server copy portion, while restore drill and backup freshness monitor evidence remain
   open.
-- Monitoring status for this historical snapshot: blocked pending operator evidence. Public endpoints exist, but no
-  external monitor dashboard, alert delivery, collector failure alert, backup freshness alert, or Cloudflare Tunnel health
-  alert evidence is recorded. Earlier accepted-limitation wording is superseded by the current governance register; first
-  traffic must not rely on monitoring acceptance unless a new explicit operator decision records it.
+- Monitoring status for this historical snapshot: blocked pending operator evidence at that time. Public endpoints exist,
+  but no external monitor dashboard, alert delivery, collector failure alert, backup freshness alert, or Cloudflare Tunnel
+  health alert evidence was recorded in that snapshot. The 2026-07-14 operator decision now accepts Cloudflare Tunnel
+  Health Alert plus public homepage availability monitoring for the small operator-watched pilot, while dedicated API
+  monitoring and alert delivery remain pending before broader launch.
 - Import provenance status: blocked pending operator evidence. No sanitized production import evidence packet is recorded
   outside the repository.
 - Limitations/blockers for this historical snapshot: Cloudflare remained on the documented Free-plan-compatible
@@ -1727,8 +1757,9 @@ Still required before treating the pilot as publicly launched:
   without a `COINMARKETCAP_API_KEY`; the 2026-07-11 update evidence proves update-time freshness, not future scheduled
   runs.
 - Put request logging, backup health, and operational review in place.
-- Configure simple external alerts for `/api/health` and `/api/readiness`, including readiness becoming stale after the
-  nightly update window, and record an alert delivery test to the dedicated pilot channel before first traffic.
+- Keep the accepted small-pilot monitoring coverage active: Cloudflare Tunnel Health Alert plus external homepage
+  availability monitoring. Dedicated external `/api/health` and `/api/readiness` freshness monitors, stale-data
+  after-window alerting, and explicit alert delivery evidence remain pending before broader launch.
 - Complete the manual/native accessibility launch-matrix coverage not represented by automated Playwright smoke,
   including manual keyboard, screen-reader/assistive-tech, and physical-device/native browser checks. The accessibility
   gap is not accepted as a limitation before first traffic.
