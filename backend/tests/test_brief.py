@@ -42,6 +42,28 @@ class BriefTest(unittest.TestCase):
         self.assertIn("El riesgo bajó", brief["sections"]["es"]["what_changed"])
         self.assertIn("انخفضت المخاطر", brief["sections"]["ar"]["what_changed"])
 
+    def test_neutral_brief_avoids_exposure_change_wording(self) -> None:
+        latest = {"risk": 0.50, "risk_state": "neutral", "price_usd": 90000, "timestamp": "2026-06-26T00:00:00Z"}
+        previous = {"risk": 0.50, "risk_state": "neutral", "price_usd": 90000, "timestamp": "2026-06-25T00:00:00Z"}
+        brief = build_brief(latest, previous)
+
+        self.assertIn("before drawing conclusions from this signal", brief["sections"]["en"]["confirm_next"])
+
+        forbidden_terms = (
+            "changing exposure",
+            "изменением экспозиции",
+            "改变敞口",
+            "exponierung ändern",
+            "modifier l’exposition",
+            "cambiar exposición",
+            "تغيير التعرض",
+        )
+        for locale in SUPPORTED_LOCALES:
+            section_text = " ".join(str(value).lower() for value in brief["sections"][locale].values())
+            with self.subTest(locale=locale):
+                for forbidden_term in forbidden_terms:
+                    self.assertNotIn(forbidden_term, section_text)
+
 
 if __name__ == "__main__":
     unittest.main()

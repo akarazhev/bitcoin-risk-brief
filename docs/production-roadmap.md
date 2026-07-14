@@ -31,7 +31,7 @@ Production-pilot readiness means:
 
 Already implemented:
 
-- React frontend with EN/RU brief copy, risk history chart, risk levels chart, and waitlist form.
+- React frontend with seven-locale brief copy, risk history chart, risk levels chart, and waitlist form.
 - FastAPI backend with latest risk, history, levels, brief, waitlist, health, and readiness endpoints.
 - TimescaleDB storage and migration script.
 - Canonical BTC CSV import and CoinMarketCap API delta refresh when an API key is configured.

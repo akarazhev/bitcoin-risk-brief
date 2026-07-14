@@ -3,7 +3,15 @@ import { copy, getLocaleOption, localeOptions, stateLabel, supportedLocales } fr
 test('defines the issue 28 supported locale set in selector order', () => {
   expect(supportedLocales).toEqual(['en', 'ru', 'zh', 'de', 'fr', 'es', 'ar'])
   expect(localeOptions.map((option) => option.code)).toEqual(supportedLocales)
-  expect(localeOptions.map((option) => option.shortLabel)).toEqual(['EN', 'RU', '中文', 'DE', 'FR', 'ES', 'AR'])
+  expect(localeOptions.map((option) => option.shortLabel)).toEqual([
+    'EN - English',
+    'RU - Русский',
+    'ZH - 简体中文',
+    'DE - Deutsch',
+    'FR - Français',
+    'ES - Español',
+    'AR - العربية',
+  ])
 })
 
 test('marks Arabic as RTL and all other supported locales as LTR', () => {

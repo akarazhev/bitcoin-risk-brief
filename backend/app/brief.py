@@ -20,7 +20,7 @@ RISK_COPY: dict[str, dict[str, tuple[str, str, str]]] = {
         "neutral": (
             "Risk is neutral. BTC is not showing an extreme risk reading right now.",
             "Avoid forcing a directional conclusion from the risk score alone.",
-            "Confirm with trend, liquidity, and market rotation before changing exposure.",
+            "Confirm with trend, liquidity, and market rotation before drawing conclusions from this signal.",
         ),
     },
     "ru": {
@@ -37,7 +37,7 @@ RISK_COPY: dict[str, dict[str, tuple[str, str, str]]] = {
         "neutral": (
             "Риск нейтральный. Сейчас нет экстремального риск-сигнала по BTC.",
             "Не стоит делать направленный вывод только по риск-метрике.",
-            "Проверьте тренд, ликвидность и рыночную ротацию перед изменением экспозиции.",
+            "Проверьте тренд, ликвидность и рыночную ротацию, прежде чем делать выводы по этому сигналу.",
         ),
     },
     "zh": {
@@ -54,7 +54,7 @@ RISK_COPY: dict[str, dict[str, tuple[str, str, str]]] = {
         "neutral": (
             "风险中性。BTC 当前没有显示极端风险读数。",
             "避免仅凭风险分数得出方向性结论。",
-            "在改变敞口前，请结合趋势、流动性和市场轮动确认。",
+            "在根据该信号得出结论前，请结合趋势、流动性和市场轮动确认。",
         ),
     },
     "de": {
@@ -71,7 +71,7 @@ RISK_COPY: dict[str, dict[str, tuple[str, str, str]]] = {
         "neutral": (
             "Das Risiko ist neutral. BTC zeigt derzeit keinen extremen Risikowert.",
             "Leiten Sie aus dem Risikoscore allein keine Richtungsaussage ab.",
-            "Prüfen Sie Trend, Liquidität und Marktrotation, bevor Sie die Exponierung ändern.",
+            "Prüfen Sie Trend, Liquidität und Marktrotation, bevor Sie aus diesem Signal Schlussfolgerungen ziehen.",
         ),
     },
     "fr": {
@@ -88,7 +88,7 @@ RISK_COPY: dict[str, dict[str, tuple[str, str, str]]] = {
         "neutral": (
             "Le risque est neutre. BTC ne montre pas de lecture de risque extrême pour le moment.",
             "Évitez de tirer une conclusion directionnelle du seul score de risque.",
-            "Confirmez avec la tendance, la liquidité et la rotation de marché avant de modifier l’exposition.",
+            "Confirmez avec la tendance, la liquidité et la rotation de marché avant de tirer des conclusions de ce signal.",
         ),
     },
     "es": {
@@ -105,7 +105,7 @@ RISK_COPY: dict[str, dict[str, tuple[str, str, str]]] = {
         "neutral": (
             "El riesgo es neutral. BTC no muestra ahora una lectura de riesgo extrema.",
             "Evita forzar una conclusión direccional solo a partir de la puntuación de riesgo.",
-            "Confirma con tendencia, liquidez y rotación de mercado antes de cambiar exposición.",
+            "Confirma con tendencia, liquidez y rotación de mercado antes de sacar conclusiones de esta señal.",
         ),
     },
     "ar": {
@@ -122,7 +122,7 @@ RISK_COPY: dict[str, dict[str, tuple[str, str, str]]] = {
         "neutral": (
             "المخاطر محايدة. لا يظهر BTC قراءة مخاطر متطرفة الآن.",
             "تجنب استخلاص نتيجة اتجاهية من درجة المخاطر وحدها.",
-            "أكد ذلك عبر الاتجاه والسيولة ودوران السوق قبل تغيير التعرض.",
+            "أكد ذلك عبر الاتجاه والسيولة ودوران السوق قبل استخلاص استنتاجات من هذه الإشارة.",
         ),
     },
 }

@@ -479,6 +479,7 @@ export default function App() {
             aria-label={t.placeholder}
             aria-invalid={joinError ? 'true' : undefined}
             aria-describedby={joinError ? waitlistErrorId : undefined}
+            dir="ltr"
           />
           <button type="submit" disabled={joining} aria-busy={joining}>
             <Send size={16} /> {joining ? t.joining : t.join}

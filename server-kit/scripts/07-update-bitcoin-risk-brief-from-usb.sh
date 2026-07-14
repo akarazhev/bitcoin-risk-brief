@@ -43,6 +43,11 @@ run_user_systemctl() {
     systemctl --user "$@"
 }
 
+run_migrations() {
+  log "Running database migrations"
+  run_as_app bash -lc "cd '${PROJECT_DEST}' && ./scripts/manage.sh migrate"
+}
+
 verify_checksums_as_root() {
   local directory="$1"
 
@@ -158,6 +163,8 @@ bash "${script_dir}/03-deploy-bitcoin-risk-brief.sh"
 log "Enabling and restarting service"
 bash "${script_dir}/04-enable-bitcoin-risk-service.sh"
 run_user_systemctl restart "${SERVICE_NAME}.service"
+
+run_migrations
 
 log "Running health checks"
 if [[ -n "${PUBLIC_URL}" ]]; then

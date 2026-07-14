@@ -1,6 +1,6 @@
 # Bitcoin Risk Brief
 
-Bitcoin Risk Brief is a standalone EN/RU mini-product for validating demand around a focused daily Bitcoin risk signal. It collects canonical BTC/USD daily data, computes a `crypto-scout-canonical-v1` risk metric, exposes read-only API endpoints, renders risk charts and risk levels, and stores waitlist leads in PostgreSQL.
+Bitcoin Risk Brief is a standalone seven-locale mini-product for validating demand around a focused daily Bitcoin risk signal. It collects canonical BTC/USD daily data, computes a `crypto-scout-canonical-v1` risk metric, exposes read-only API endpoints, renders risk charts and risk levels, and stores waitlist leads in PostgreSQL.
 
 ## Current Status
 
@@ -148,7 +148,7 @@ Recommended next production sequence before first traffic:
 | `timescaledb` | TimescaleDB/PostgreSQL | BTC OHLCV, risk rows, validation state, brief snapshots, waitlist leads |
 | `data-collector` | Python, asyncpg, APScheduler, httpx | Daily CSV refresh, full CSV import, risk recomputation |
 | `backend` | FastAPI, asyncpg | API, readiness, waitlist storage, risk and brief reads |
-| `frontend` | React, Vite, ECharts, nginx | Public EN/RU interface and API proxy |
+| `frontend` | React, Vite, ECharts, nginx | Public seven-locale interface and API proxy |
 
 The stack is orchestrated with `podman-compose`.
 

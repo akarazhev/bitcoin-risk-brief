@@ -105,13 +105,13 @@ type Copy = {
 export const supportedLocales = ['en', 'ru', 'zh', 'de', 'fr', 'es', 'ar'] as const satisfies readonly Locale[]
 
 export const localeOptions: readonly LocaleOption[] = [
-  { code: 'en', label: 'English', shortLabel: 'EN', lang: 'en', dir: 'ltr' },
-  { code: 'ru', label: 'Русский', shortLabel: 'RU', lang: 'ru', dir: 'ltr' },
-  { code: 'zh', label: '简体中文', shortLabel: '中文', lang: 'zh-CN', dir: 'ltr' },
-  { code: 'de', label: 'Deutsch', shortLabel: 'DE', lang: 'de', dir: 'ltr' },
-  { code: 'fr', label: 'Français', shortLabel: 'FR', lang: 'fr', dir: 'ltr' },
-  { code: 'es', label: 'Español', shortLabel: 'ES', lang: 'es', dir: 'ltr' },
-  { code: 'ar', label: 'العربية', shortLabel: 'AR', lang: 'ar', dir: 'rtl' },
+  { code: 'en', label: 'English', shortLabel: 'EN - English', lang: 'en', dir: 'ltr' },
+  { code: 'ru', label: 'Русский', shortLabel: 'RU - Русский', lang: 'ru', dir: 'ltr' },
+  { code: 'zh', label: '简体中文', shortLabel: 'ZH - 简体中文', lang: 'zh-CN', dir: 'ltr' },
+  { code: 'de', label: 'Deutsch', shortLabel: 'DE - Deutsch', lang: 'de', dir: 'ltr' },
+  { code: 'fr', label: 'Français', shortLabel: 'FR - Français', lang: 'fr', dir: 'ltr' },
+  { code: 'es', label: 'Español', shortLabel: 'ES - Español', lang: 'es', dir: 'ltr' },
+  { code: 'ar', label: 'العربية', shortLabel: 'AR - العربية', lang: 'ar', dir: 'rtl' },
 ]
 
 export function getLocaleOption(locale: Locale) {

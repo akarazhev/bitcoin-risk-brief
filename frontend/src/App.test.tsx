@@ -833,6 +833,23 @@ test('submits the selected expanded locale to the waitlist API', async () => {
   })
 })
 
+test('keeps Arabic waitlist contact entry LTR and submits locale metadata', async () => {
+  render(<App />)
+
+  const selector = await screen.findByRole('combobox', { name: /select language/i })
+  fireEvent.change(selector, { target: { value: 'ar' } })
+
+  const input = await screen.findByPlaceholderText('email أو @telegram')
+  expect(input).toHaveAttribute('dir', 'ltr')
+
+  fireEvent.change(input, { target: { value: '@arabic_test' } })
+  fireEvent.click(screen.getByRole('button', { name: /انضم/ }))
+
+  await waitFor(() => {
+    expect(apiMocks.joinWaitlist).toHaveBeenCalledWith({ contact: '@arabic_test', locale: 'ar', source: 'landing' })
+  })
+})
+
 test('falls back to the English generated brief when selected locale is absent from an old snapshot', async () => {
   render(<App />)
 
