@@ -839,6 +839,22 @@ test('marks the current risk on levels chart using levels snapshot metadata', as
   })
 })
 
+test('falls back to latest risk for levels marker when levels metadata omits current risk', async () => {
+  apiMocks.fetchLatestRisk.mockResolvedValueOnce({ data: latestRisk({ risk: 0.35 }) })
+  apiMocks.fetchRiskLevels.mockResolvedValueOnce({ data: [
+    { risk: 0.35, price_usd: 82000 },
+    { risk: 0.65, price_usd: 118000 },
+  ], meta: { base: latestRisk({ risk: 0.35 }) } })
+
+  render(<App />)
+
+  const priceChart = await screen.findByTestId('chart-price')
+  const priceOption = JSON.parse(priceChart.dataset.option ?? '{}')
+
+  expect(priceOption.series[0].markLine.data).toEqual([{ xAxis: '35%' }])
+  expect(priceOption.series[0].markLine.label.formatter).toBe('Current risk: 35%')
+})
+
 test('renders screen-reader chart data alternatives for current risk, recent history, and thresholds', async () => {
   render(<App />)
 

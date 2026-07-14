@@ -195,8 +195,13 @@ function isRiskValue(value: unknown): value is number {
   return typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= 1
 }
 
-function buildCurrentRiskMarker(levels: RiskLevel[], levelsMeta: RiskLevelsMeta | null): CurrentRiskMarker | null {
-  const currentRisk = levelsMeta?.current_risk
+function buildCurrentRiskMarker(
+  levels: RiskLevel[],
+  levelsMeta: RiskLevelsMeta | null,
+  fallbackRisk: number | null | undefined,
+): CurrentRiskMarker | null {
+  const metadataRisk = levelsMeta?.current_risk
+  const currentRisk = isRiskValue(metadataRisk) ? metadataRisk : fallbackRisk
   if (!isRiskValue(currentRisk)) return null
 
   const nearestLevel = nearestRiskLevel(levels, currentRisk)
@@ -331,8 +336,8 @@ export default function App() {
   }), [compactCharts, history])
 
   const currentRiskMarker = useMemo(
-    () => buildCurrentRiskMarker(levels, levelsMeta),
-    [levels, levelsMeta],
+    () => buildCurrentRiskMarker(levels, levelsMeta, latest?.risk),
+    [levels, levelsMeta, latest?.risk],
   )
 
   const levelsOption = useMemo<EChartsOption>(() => ({
