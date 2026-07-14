@@ -870,7 +870,8 @@ test('renders screen-reader chart data alternatives for current risk, recent his
   expect(within(historyTable).getAllByText('Neutral')).toHaveLength(2)
 
   const levelsChart = screen.getByRole('img', { name: 'Risk levels' })
-  expect(levelsChart).toHaveAccessibleDescription('The table lists the key risk threshold prices used with the risk levels chart.')
+  expect(levelsChart).toHaveAccessibleDescription(/The table lists the key risk threshold prices used with the risk levels chart\./)
+  expect(levelsChart).toHaveAccessibleDescription(/Current risk: 70%/)
 
   const thresholdTable = screen.getByRole('table', { name: 'Risk threshold price table' })
   expect(within(thresholdTable).getByText('35%')).toBeInTheDocument()

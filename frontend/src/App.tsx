@@ -441,6 +441,9 @@ export default function App() {
     formatUsd(modelPriceUsd),
     hasDailyRange ? t.chartCurrentRange(formatUsd(latest.low_usd as number), formatUsd(latest.high_usd as number)) : '',
   )
+  const riskLevelsSummary = currentRiskMarker
+    ? `${t.riskLevelsAlternativeNote} ${t.currentRisk}: ${formatPercent(currentRiskMarker.risk)}.`
+    : t.riskLevelsAlternativeNote
   const modelDrivers = buildModelDrivers(latest, t)
   const reportDate = ready && readiness.checks.data_fresh && readiness.data.latest_date
     ? addUtcDays(readiness.data.latest_date, 1)
@@ -678,29 +681,31 @@ export default function App() {
         </article>
         <article className="chart-panel" aria-labelledby="risk-levels-heading">
           <h2 id="risk-levels-heading">{t.levels}</h2>
-          {thresholdCallouts.length > 0 && (
+          {levels.length > 0 && (
             <section className="sr-only" aria-labelledby="risk-levels-alternative-heading">
               <h3 id="risk-levels-alternative-heading">{t.riskLevelsAlternative}</h3>
-              <p id="risk-levels-chart-summary">{t.riskLevelsAlternativeNote}</p>
-              <table aria-describedby="risk-levels-chart-summary">
-                <caption>{t.riskThresholdPriceTable}</caption>
-                <thead>
-                  <tr>
-                    <th scope="col">{t.thresholdColumn}</th>
-                    <th scope="col">{t.bandColumn}</th>
-                    <th scope="col">{t.nearestModelPriceColumn}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {thresholdCallouts.map((callout) => (
-                    <tr key={callout.risk}>
-                      <td>{formatPercent(callout.risk)}</td>
-                      <td>{callout.label}</td>
-                      <td>{callout.price}</td>
+              <p id="risk-levels-chart-summary">{riskLevelsSummary}</p>
+              {thresholdCallouts.length > 0 && (
+                <table aria-describedby="risk-levels-chart-summary">
+                  <caption>{t.riskThresholdPriceTable}</caption>
+                  <thead>
+                    <tr>
+                      <th scope="col">{t.thresholdColumn}</th>
+                      <th scope="col">{t.bandColumn}</th>
+                      <th scope="col">{t.nearestModelPriceColumn}</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {thresholdCallouts.map((callout) => (
+                      <tr key={callout.risk}>
+                        <td>{formatPercent(callout.risk)}</td>
+                        <td>{callout.label}</td>
+                        <td>{callout.price}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
             </section>
           )}
           {levelsState.status === 'loading' || levelsState.status === 'idle' ? (
