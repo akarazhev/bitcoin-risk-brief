@@ -234,19 +234,111 @@ test('chart request failures do not hide the current risk', async () => {
   expect(screen.queryByText('Risk data is temporarily unavailable')).not.toBeInTheDocument()
 })
 
-test('renders ready daily data as current through the latest completed day', async () => {
+test('renders ready daily data with a report date after the latest completed day', async () => {
   render(<App />)
 
   expect(apiMocks.fetchReadiness).toHaveBeenCalled()
-  expect(await screen.findByText('Current through')).toBeInTheDocument()
-  expect(screen.getAllByText('2026-06-26').length).toBeGreaterThan(0)
+  expect(await screen.findByText('Report date')).toBeInTheDocument()
+  expect(screen.getByText('2026-06-27')).toBeInTheDocument()
   expect(screen.getByText('Readiness ready')).toBeInTheDocument()
   expect(screen.getByText('Validation passed')).toBeInTheDocument()
   expect(screen.getByText(textContentMatcher('Latest completed day: 2026-06-26'))).toBeInTheDocument()
   expect(screen.getByText('Freshness: current')).toBeInTheDocument()
   expect(screen.getByText(textContentMatcher('Coverage through: 2026-06-26'))).toBeInTheDocument()
+  expect(screen.queryByText('Current through')).not.toBeInTheDocument()
   expect(screen.queryByText('Fresh: 1 day old')).not.toBeInTheDocument()
   expect(screen.queryByText('Data is 1 day old')).not.toBeInTheDocument()
+})
+
+test('rolls the report date across UTC year boundaries', async () => {
+  apiMocks.fetchLatestRisk.mockResolvedValueOnce({
+    data: latestRisk({ timestamp: '2026-12-31T00:00:00Z' }),
+  })
+  apiMocks.fetchBrief.mockResolvedValueOnce({
+    data: {
+      snapshot_version: 'v1',
+      as_of: '2026-12-31T00:00:00Z',
+      risk: 0.7,
+      risk_state: 'high',
+      price_usd: 100000,
+      delta_risk: 0.1,
+      sections: {
+        en: {
+          summary: 'Risk elevated',
+          what_changed: 'Changed',
+          avoid_now: 'Avoid',
+          confirm_next: 'Confirm',
+        },
+      },
+    },
+  })
+  apiMocks.fetchReadiness.mockResolvedValueOnce({
+    status: 'ready',
+    checks: {
+      risk_data_available: true,
+      validation_available: true,
+      risk_range_ok: true,
+      validation_has_rows: true,
+      latest_matches_validation_end: true,
+      source_is_canonical: true,
+      data_fresh: true,
+    },
+    data: {
+      latest_date: '2026-12-31',
+      covered_end: '2026-12-31',
+      data_age_days: 1,
+      max_age_days: 2,
+      source: 'coinmarketcap_csv',
+      row_count: 5827,
+      methodology_version: 'crypto-scout-canonical-v1',
+    },
+  })
+
+  render(<App />)
+
+  expect(await screen.findByText('Report date')).toBeInTheDocument()
+  expect(screen.getByText('2027-01-01')).toBeInTheDocument()
+  expect(screen.getByText(textContentMatcher('Latest completed day: 2026-12-31'))).toBeInTheDocument()
+  expect(screen.getByText(textContentMatcher('Coverage through: 2026-12-31'))).toBeInTheDocument()
+})
+
+test('does not render a report date when readiness is degraded despite fresh data', async () => {
+  apiMocks.fetchReadiness.mockResolvedValueOnce({
+    status: 'degraded',
+    checks: {
+      risk_data_available: true,
+      validation_available: true,
+      risk_range_ok: true,
+      validation_has_rows: true,
+      latest_matches_validation_end: false,
+      source_is_canonical: true,
+      data_fresh: true,
+    },
+    data: {
+      latest_date: '2026-06-26',
+      covered_end: '2026-06-25',
+      data_age_days: 1,
+      max_age_days: 2,
+      source: 'coinmarketcap_csv',
+      row_count: 5827,
+      methodology_version: 'crypto-scout-canonical-v1',
+    },
+  })
+
+  render(<App />)
+
+  expect(await screen.findByText('Current risk')).toBeInTheDocument()
+  expect(screen.queryByText('Report date')).not.toBeInTheDocument()
+  expect(screen.queryByText('2026-06-27')).not.toBeInTheDocument()
+  expect(screen.getByText('Readiness degraded')).toBeInTheDocument()
+  expect(screen.getByText('Validation needs attention')).toBeInTheDocument()
+
+  const methodology = within(screen.getByRole('region', { name: 'Methodology' }))
+  expect(methodology.getByText('crypto-scout-canonical-v1')).toBeInTheDocument()
+  expect(methodology.getByText('Latest completed day')).toBeInTheDocument()
+  expect(methodology.getByText('2026-06-26')).toBeInTheDocument()
+  expect(methodology.getByText('Coverage through')).toBeInTheDocument()
+  expect(methodology.getByText('2026-06-25')).toBeInTheDocument()
 })
 
 test('renders degraded readiness copy without hiding the latest risk', async () => {
@@ -277,6 +369,7 @@ test('renders degraded readiness copy without hiding the latest risk', async () 
   expect(await screen.findByText('Current risk')).toBeInTheDocument()
   expect(screen.getByText('Readiness degraded')).toBeInTheDocument()
   expect(screen.getByText('Validation needs attention')).toBeInTheDocument()
+  expect(screen.queryByText('Report date')).not.toBeInTheDocument()
   expect(screen.getByText(textContentMatcher('Latest completed day: 2026-06-20'))).toBeInTheDocument()
   expect(screen.getByText(textContentMatcher('Stale: 6 days behind'))).toBeInTheDocument()
   expect(screen.getByText(textContentMatcher('Coverage through: 2026-06-19'))).toBeInTheDocument()

@@ -46,6 +46,23 @@ function formatDateLabel(timestamp: string, compact: boolean) {
   return compact ? timestamp.slice(5, 10) : timestamp.slice(0, 10)
 }
 
+function addUtcDays(isoDate: string, days: number) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(isoDate)
+  if (!match) return null
+
+  const year = Number(match[1])
+  const month = Number(match[2])
+  const day = Number(match[3])
+  const parsed = new Date(Date.UTC(year, month - 1, day))
+
+  if (Number.isNaN(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== isoDate) {
+    return null
+  }
+
+  parsed.setUTCDate(parsed.getUTCDate() + days)
+  return parsed.toISOString().slice(0, 10)
+}
+
 function NumericValue({ children }: { children: ReactNode }) {
   return <bdi className="numeric-value" dir="ltr">{children}</bdi>
 }
@@ -345,6 +362,11 @@ export default function App() {
     hasDailyRange ? t.chartCurrentRange(formatUsd(latest.low_usd as number), formatUsd(latest.high_usd as number)) : '',
   )
   const modelDrivers = buildModelDrivers(latest, t)
+  const reportDate = ready && readiness.checks.data_fresh && readiness.data.latest_date
+    ? addUtcDays(readiness.data.latest_date, 1)
+    : null
+  const primaryDateLabel = reportDate ? t.reportDate : t.updated
+  const primaryDateValue = reportDate ?? latest.timestamp.slice(0, 10)
 
   return (
     <main className="shell">
@@ -406,8 +428,8 @@ export default function App() {
           </div>
         </div>
         <div className="freshness-metric">
-          <span>{ready && readiness.checks.data_fresh ? t.currentThrough : t.updated}</span>
-          <strong><NumericValue>{latest.timestamp.slice(0, 10)}</NumericValue></strong>
+          <span>{primaryDateLabel}</span>
+          <strong><NumericValue>{primaryDateValue}</NumericValue></strong>
           <p className={`readiness-badge ${readiness.status}`}>
             {ready ? <CheckCircle2 size={15} /> : <TriangleAlert size={15} />}
             {ready ? t.readinessReady : t.readinessDegraded}
