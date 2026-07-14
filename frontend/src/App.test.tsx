@@ -398,12 +398,24 @@ test('renders explicit empty chart states when history or levels have no rows', 
   expect(screen.queryByTestId('chart-price')).not.toBeInTheDocument()
 })
 
-test('renders methodology reference and no-advice disclaimer', async () => {
+test('renders methodology reference, public data-source copy, and no-advice disclaimer', async () => {
   render(<App />)
 
   expect(await screen.findByText('Methodology')).toBeInTheDocument()
-  expect(screen.getByText('crypto-scout-canonical-v1')).toBeInTheDocument()
   expect(screen.getByRole('link', { name: /methodology/i })).toHaveAttribute('href', '#methodology')
+
+  const methodology = within(screen.getByRole('region', { name: 'Methodology' }))
+  expect(methodology.getByText('The public signal uses the canonical BTC risk model and validated daily Bitcoin market data.')).toBeInTheDocument()
+  expect(methodology.getByText('crypto-scout-canonical-v1')).toBeInTheDocument()
+  expect(methodology.getByText('Data source')).toBeInTheDocument()
+
+  const sourceLink = methodology.getByRole('link', { name: 'CoinMarketCap' })
+  expect(sourceLink).toHaveAttribute('href', 'https://coinmarketcap.com/currencies/bitcoin/historical-data/')
+  expect(sourceLink).toHaveAttribute('target', '_blank')
+  expect(sourceLink).toHaveAttribute('rel', 'noreferrer')
+
+  expect(methodology.queryByText(/CSV/i)).not.toBeInTheDocument()
+  expect(methodology.queryByText(/import/i)).not.toBeInTheDocument()
   expect(screen.getByText('Risk levels are scenario outputs for research. They are not financial advice or trading instructions.')).toBeInTheDocument()
 })
 

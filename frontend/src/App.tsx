@@ -28,6 +28,7 @@ const COMPACT_CHART_QUERY = '(max-width: 640px)'
 const ACCESSIBLE_HISTORY_POINTS = 6
 const DRIVER_NEUTRAL_BAND = 0.25
 const AUTO_CHART_SIZE = { width: 'auto', height: 'auto' } as const
+const COINMARKETCAP_HISTORICAL_DATA_URL = 'https://coinmarketcap.com/currencies/bitcoin/historical-data/'
 const Chart = lazy(() => import('./Chart'))
 
 function formatPercent(value: number) {
@@ -480,6 +481,7 @@ export default function App() {
           <p>{t.methodologyBody}</p>
           <dl>
             <div><dt>{t.methodologyVersion}</dt><dd>{methodologyVersion}</dd></div>
+            <div><dt>{t.dataSource}</dt><dd><a className="source-link" href={COINMARKETCAP_HISTORICAL_DATA_URL} target="_blank" rel="noreferrer">CoinMarketCap <ExternalLink size={14} aria-hidden="true" /></a></dd></div>
             <div><dt>{t.latestCompletedDay}</dt><dd>{readiness.data.latest_date ? <NumericValue>{readiness.data.latest_date}</NumericValue> : t.unavailable}</dd></div>
             <div><dt>{t.coverageThrough}</dt><dd>{readiness.data.covered_end ? <NumericValue>{readiness.data.covered_end}</NumericValue> : t.unavailable}</dd></div>
           </dl>
