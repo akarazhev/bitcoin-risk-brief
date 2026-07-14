@@ -5,6 +5,7 @@ from types import SimpleNamespace
 import unittest
 
 from app import main
+from app.brief import SUPPORTED_BRIEF_LOCALES
 from app.public_cache import (
     PublicCacheWarmupResult,
     PublicEndpointCache,
@@ -286,6 +287,63 @@ class PublicPayloadSchemaRegressionTest(MainPatchMixin, unittest.IsolatedAsyncio
 
         self.assertEqual(status, 200)
         self.assertEqual(payload, snapshot)
+
+    async def test_brief_payload_rebuilds_legacy_persisted_snapshot_missing_locales(self) -> None:
+        persisted = {
+            "snapshot_version": "bitcoin-risk-brief-v1",
+            "as_of": "2026-07-12T00:00:00+00:00",
+            "risk": 0.24,
+            "risk_state": "low",
+            "price_usd": 63869.39,
+            "delta_risk": 0.02,
+            "sections": {
+                "en": {
+                    "summary": "Risk is low. BTC is closer to a discounted or washed-out regime.",
+                    "what_changed": "Risk increased by 0.02 points.",
+                    "avoid_now": "Avoid assuming the low-risk zone is an immediate reversal signal.",
+                    "confirm_next": "Confirm with improving trend, liquidity, and reduced forced-selling pressure.",
+                },
+                "ru": {
+                    "summary": "Риск низкий. BTC ближе к зоне дисконта или капитуляции.",
+                    "what_changed": "Риск вырос на 0.02 пункта.",
+                    "avoid_now": "Не стоит считать низкий риск мгновенным сигналом разворота.",
+                    "confirm_next": "Проверь восстановление тренда, ликвидность и снижение давления продавцов.",
+                },
+            },
+        }
+        latest = {
+            "timestamp": "2026-07-12T00:00:00+00:00",
+            "risk": 0.24,
+            "risk_state": "low",
+            "price_usd": 63869.39,
+        }
+        previous = {
+            "timestamp": "2026-07-11T00:00:00+00:00",
+            "risk": 0.22,
+            "risk_state": "low",
+            "price_usd": 63500.00,
+        }
+
+        async def fake_brief(_pool):
+            return persisted
+
+        async def fake_latest(_pool):
+            return latest
+
+        async def fake_previous(_pool):
+            return previous
+
+        self.patch_main("get_pool", lambda: object())
+        self.patch_main("fetch_latest_brief", fake_brief)
+        self.patch_main("fetch_latest_risk", fake_latest)
+        self.patch_main("fetch_previous_risk", fake_previous)
+
+        payload, status = await main._produce_brief_latest_payload()
+
+        self.assertEqual(status, 200)
+        self.assertEqual(set(payload["data"]["sections"].keys()), set(SUPPORTED_BRIEF_LOCALES))
+        self.assertEqual(payload["data"]["sections"]["zh"]["summary"], "风险偏低。BTC 更接近折价或被充分释放压力的状态。")
+        self.assertEqual(payload["data"]["sections"]["ar"]["summary"], "المخاطر منخفضة. BTC أقرب إلى حالة خصم أو ضغط بيعي مستنفد.")
 
 
 if __name__ == "__main__":

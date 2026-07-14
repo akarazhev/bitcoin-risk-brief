@@ -11,7 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
-from app.brief import build_brief
+from app.brief import SUPPORTED_BRIEF_LOCALES, build_brief
 from app.config import settings
 from app.db import connect, disconnect, get_pool
 from app.repository import (
@@ -166,13 +166,20 @@ async def _produce_risk_levels_payload() -> tuple[dict[str, Any], int]:
     ), 200
 
 
+def _brief_has_supported_locales(payload: dict[str, Any]) -> bool:
+    sections = payload.get("sections")
+    return isinstance(sections, dict) and set(SUPPORTED_BRIEF_LOCALES).issubset(sections)
+
+
 async def _produce_brief_latest_payload() -> tuple[dict[str, Any], int]:
     pool = get_pool()
     persisted = await fetch_latest_brief(pool)
-    if persisted is not None:
+    if persisted is not None and _brief_has_supported_locales(persisted):
         return {"data": persisted}, 200
     latest = await fetch_latest_risk(pool)
     if latest is None:
+        if persisted is not None:
+            return {"data": persisted}, 200
         raise HTTPException(status_code=404, detail="Brief data has not been collected yet")
     previous = await fetch_previous_risk(pool)
     return {"data": build_brief(latest, previous)}, 200
