@@ -17,6 +17,7 @@ data/
 *.log
 *.tsbuildinfo
 .idea/
+.superpowers/
 backups/
 .cloudflared/
 collector/btc-csv/incoming/*
