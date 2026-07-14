@@ -362,7 +362,7 @@ export default function App() {
     hasDailyRange ? t.chartCurrentRange(formatUsd(latest.low_usd as number), formatUsd(latest.high_usd as number)) : '',
   )
   const modelDrivers = buildModelDrivers(latest, t)
-  const reportDate = readiness.checks.data_fresh && readiness.data.latest_date
+  const reportDate = ready && readiness.checks.data_fresh && readiness.data.latest_date
     ? addUtcDays(readiness.data.latest_date, 1)
     : null
   const primaryDateLabel = reportDate ? t.reportDate : t.updated
