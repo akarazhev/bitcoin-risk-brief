@@ -54,7 +54,7 @@ does not, by itself, prove direct production source/archive provenance for broad
 | Data-source terms and commercial readiness | Accepted limitation only for unpaid/non-commercial pilot. | 2026-07-12 operator decision records founder/operator source-terms owner and unpaid/non-commercial pilot status. | Complete CoinMarketCap/source-terms review or paid-plan decision before commercial claims, paid beta, broader distribution, or legal/commercial readiness claims. |
 | Dependency/license review | Partial local engineering evidence. | [Dependency and License Review](dependency-license-review.md) records local npm lockfile metadata, Python manifest gaps, container references, CI references, and local Dependabot configuration. | Confirm GitHub-hosted Dependabot execution/first PR evidence, Python/container/OS/CI license posture, vulnerability/advisory status, project license choice, and legal compatibility before broader commercial claims. |
 | Cloudflare edge posture | Accepted limitation for small operator-watched pilot only. | Current Free-plan-compatible subset is documented and accepted for the small pilot. | Managed WAF, broader `/api/*` burst limiting, multiple rate-limit rules, or equivalent controls remain deferred until broader traffic or observed abuse risk. |
-| Post-traffic learning | Active next phase; feedback evidence not yet recorded here. | First traffic has completed; [Production Roadmap](production-roadmap.md) now treats Phase 9 as the active learning loop. | Record only sanitized aggregate waitlist/source/locale/repeat-use/request evidence and direct-question themes. Do not copy raw contacts, raw analytics, or private message text into Git. |
+| Post-traffic learning | Active next phase; feedback evidence not yet recorded here. | First traffic has completed; [Production Roadmap](production-roadmap.md) now treats Phase 9 as the active learning loop, with the operator runbook in [Pilot Learning Loop](pilot-learning-loop.md). | Record only sanitized aggregate waitlist/source/locale/repeat-use/request evidence and direct-question themes. Do not copy raw contacts, raw analytics, or private message text into Git. |
 
 ## Future Pilot Window Checklist
 
@@ -66,6 +66,8 @@ Before future pilot traffic windows, production updates, or a new public snapsho
 - Confirm the selected production refresh path and latest BTC CSV coverage are current for the window.
 - Preserve or refresh backup/off-server evidence when a production update or data-change window requires it.
 - Keep accepted limitations visible in any launch/update summary.
+- Use the [Pilot Learning Loop](pilot-learning-loop.md) for post-traffic observation cadence, aggregate waitlist review,
+  sanitized feedback summaries, and continue/adjust/pause/broaden decisions.
 - Do not run production waitlist POSTs, deploys, data refresh/imports, Cloudflare changes, monitor changes, or backup
   operations unless the operator explicitly requests that production mutation.
 
@@ -97,6 +99,7 @@ unless application code or runtime configuration changes.
 
 - [Production Evidence Log](production-evidence-log.md)
 - [Production Roadmap](production-roadmap.md)
+- [Pilot Learning Loop](pilot-learning-loop.md)
 - [Operations](operations.md)
 - [Security and Privacy](security-and-privacy.md)
 - [Frontend QA](frontend-qa.md)

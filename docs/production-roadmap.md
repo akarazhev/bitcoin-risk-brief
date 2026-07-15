@@ -521,9 +521,11 @@ Status: Active for the small operator-watched pilot.
 
 Goal: decide whether the single BTC risk signal is worth extending.
 
+Operator runbook and first evidence-packet template: [Pilot Learning Loop](pilot-learning-loop.md).
+
 Deliverables:
 
-- Review waitlist conversion, repeat visits, and direct user questions.
+- Review waitlist conversion, repeat visits, and direct user questions through sanitized aggregate counts and themes only.
 - Track requests for alerts, daily notifications, and personal plan comparisons.
 - Run an Agent Access And Risk-Signal Licensing Demand Test if the small-pilot traffic evidence creates enough attention
   to justify a small integration experiment.
@@ -555,6 +557,8 @@ Deliverables:
 Acceptance criteria:
 
 - Product decisions are based on usage and waitlist evidence, not feature appetite.
+- Pilot evidence packets record public readiness, aggregate waitlist/source/locale/contact-type counts, sanitized support
+  themes, decision criteria, and explicit no-raw-data safety checks.
 - Agent access is judged by waitlist leads and integration requests, not raw API traffic alone.
 - The first agent-access experiment does not add new API, auth, billing, SDK, MCP, or SLA scope before demand is proven.
 - The `EUR 9-19/month` risk-signal license is treated as an early paid-intent test, not as a complete commercial API

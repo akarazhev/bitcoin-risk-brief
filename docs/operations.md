@@ -560,8 +560,9 @@ python3 scripts/check_public_endpoints.py \
 7. Keep backup/off-server evidence fresh for update windows. Recurring backup automation remains post-pilot work until
    configured, and the restore drill remains deferred until a staging project or intentionally empty restore target
    exists.
-8. Summarize post-traffic learning from aggregate waitlist/source/locale/repeat-use/request signals only. Do not copy raw
-   contacts, raw analytics, raw messages, account IDs, dashboard URLs, or private support details into Git.
+8. Summarize post-traffic learning with the [Pilot Learning Loop](pilot-learning-loop.md). Use aggregate
+   waitlist/source/locale/repeat-use/request signals and sanitized support themes only. Do not copy raw contacts, raw
+   analytics, raw messages, account IDs, dashboard URLs, or private support details into Git.
 
 ## Cloudflare Edge Rules
 
@@ -937,9 +938,10 @@ evidence in [Production Readiness](production-readiness.md):
   broader accessibility evidence, and full WCAG/legal accessibility approval remain pending before broader claims.
 - Restore drill: accepted limitation/deferred until a staging project or intentionally empty restore target exists. Do not
   run a restore drill against live production.
-- Feedback review path: after the completed first controlled traffic window and during the pilot, summarize waitlist
-  conversion, repeat-use signals, direct questions, and requests for alerts, API access, agents, widgets, embeddings, or
-  licensing into the production readiness or roadmap notes. Do not copy raw contacts into feedback summaries.
+- Feedback review path: after the completed first controlled traffic window and during the pilot, use the
+  [Pilot Learning Loop](pilot-learning-loop.md) to summarize waitlist conversion, repeat-use signals, direct questions,
+  and requests for alerts, API access, agents, widgets, embeddings, or licensing into the production readiness or roadmap
+  notes. Do not copy raw contacts into feedback summaries.
 
 ## First-Response Runbook
 
