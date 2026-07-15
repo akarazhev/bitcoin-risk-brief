@@ -34,7 +34,7 @@ class PrepareUsbKitTests(unittest.TestCase):
 
         write_file(
             self.source / ".gitignore",
-            "*.tsbuildinfo\ncollector/btc-csv/incoming/*.csv\n",
+            "*.tsbuildinfo\ncollector/btc-csv/incoming/*.csv\nscratch-output/\n",
         )
         write_file(self.source / "podman-compose.yml", "services: {}\n")
         write_file(self.source / ".env.production.example", "APP_ENV=production\n")
@@ -47,6 +47,11 @@ class PrepareUsbKitTests(unittest.TestCase):
         write_file(self.source / "collector" / "btc-csv" / "incoming" / ".gitkeep", "")
         write_file(self.source / "collector" / "btc-csv" / "incoming" / "local-download.csv", "local state\n")
         write_file(self.source / "migrations" / "001_initial_schema.sql", "select 1;\n")
+        write_file(self.source / "scratch-output" / "local-report.txt", "ignored local report\n")
+        write_file(self.source / ".venv" / "bin" / "activate", "local venv\n")
+        write_file(self.source / ".superpowers" / "brainstorm" / "state", "local agent state\n")
+        write_file(self.source / "notes" / "ai-process.md", "local notes\n")
+        write_file(self.source / "backend" / "app" / "._main.py", "mac metadata\n")
 
         write_file(self.source / "docs" / "server-msi-cubi5-ubuntu-26.04.md", "# server\n")
         write_file(self.source / "docs" / "deploy-ubuntu-cloudflare.md", "# deploy\n")
@@ -86,6 +91,7 @@ class PrepareUsbKitTests(unittest.TestCase):
             ".ruff_cache/state.json",
             ".cache/tool/state",
             "backend/app/__pycache__/main.cpython-313.pyc",
+            "backend/app/._brief.py",
             "podman-images/frontend.tar",
             "image.oci",
             ".DS_Store",
@@ -134,6 +140,8 @@ class PrepareUsbKitTests(unittest.TestCase):
             ".ruff_cache",
             ".cache",
             "backend/app/__pycache__",
+            "backend/app/._brief.py",
+            "backend/app/._main.py",
             "podman-images/frontend.tar",
             "image.oci",
             ".DS_Store",
@@ -154,6 +162,47 @@ class PrepareUsbKitTests(unittest.TestCase):
         self.assertTrue((project / "collector" / "btc-csv" / "incoming" / ".gitkeep").is_file())
         self.assertFalse((project / "frontend" / "tsconfig.tsbuildinfo").exists())
         self.assertFalse((project / "collector" / "btc-csv" / "incoming" / "local-download.csv").exists())
+        self.assertFalse((project / "scratch-output").exists())
+
+    def test_project_snapshot_excludes_local_tooling_directories(self) -> None:
+        result = self.run_packager()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        project = self.target / KIT_NAME / "project" / "bitcoin-risk-brief"
+
+        for relative in (".venv", ".superpowers", "notes"):
+            self.assertFalse((project / relative).exists(), relative)
+
+    def test_project_snapshot_excludes_apple_double_metadata_files(self) -> None:
+        result = self.run_packager()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        kit = self.target / KIT_NAME
+
+        apple_double_files = [path for path in kit.rglob("._*")]
+        self.assertEqual(apple_double_files, [])
+
+    def test_generated_apple_double_files_are_removed_before_validation(self) -> None:
+        import importlib.util
+
+        module_path = REPO_ROOT / "server-kit" / "prepare_usb_kit.py"
+        spec = importlib.util.spec_from_file_location("prepare_usb_kit", module_path)
+        self.assertIsNotNone(spec)
+        self.assertIsNotNone(spec.loader)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+
+        original_copy_project_snapshot = module.copy_project_snapshot
+
+        def copy_project_snapshot_with_generated_metadata(source_root: Path, project_dir: Path) -> None:
+            original_copy_project_snapshot(source_root, project_dir)
+            write_file(project_dir / "backend" / "app" / "._main.py", "generated metadata\n")
+
+        module.copy_project_snapshot = copy_project_snapshot_with_generated_metadata
+        try:
+            kit = module.build_kit(self.target, self.source)
+        finally:
+            module.copy_project_snapshot = original_copy_project_snapshot
+
+        self.assertFalse((kit / "project" / "bitcoin-risk-brief" / "backend" / "app" / "._main.py").exists())
 
     def test_project_snapshot_does_not_follow_source_symlinks(self) -> None:
         outside_secret = self.root / "outside-secret.txt"
@@ -230,6 +279,22 @@ class PrepareUsbKitTests(unittest.TestCase):
         staged_project = self.root / "staged-project"
         write_file(staged_project / ".env", "secret\n")
         write_file(staged_project / ".git" / "config", "git\n")
+
+        with self.assertRaises(SystemExit):
+            module.verify_no_forbidden_staged_files(staged_project)
+
+    def test_forbidden_staged_local_tooling_fails_validation(self) -> None:
+        import importlib.util
+
+        module_path = REPO_ROOT / "server-kit" / "prepare_usb_kit.py"
+        spec = importlib.util.spec_from_file_location("prepare_usb_kit", module_path)
+        self.assertIsNotNone(spec)
+        self.assertIsNotNone(spec.loader)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+
+        staged_project = self.root / "staged-local-tooling"
+        write_file(staged_project / ".venv" / "bin" / "activate", "local venv\n")
 
         with self.assertRaises(SystemExit):
             module.verify_no_forbidden_staged_files(staged_project)

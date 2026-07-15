@@ -48,6 +48,9 @@ EXCLUDED_NAMES = {
     "coverage",
     "playwright-report",
     "test-results",
+    ".venv",
+    ".superpowers",
+    "notes",
     ".pytest_cache",
     ".mypy_cache",
     ".ruff_cache",
@@ -61,6 +64,8 @@ EXCLUDED_NAMES = {
 }
 EXCLUDED_SUFFIXES = (".pyc", ".log", ".tmp", ".tar", ".tar.gz", ".tgz", ".oci", ".img")
 ALLOWED_ENV_EXAMPLES = {".env.example", ".env.production.example"}
+APPLE_DOUBLE_PREFIX = "._"
+FORBIDDEN_STAGED_NAMES = {".git", ".venv", ".superpowers", "notes"}
 
 
 def is_forbidden_env_name(name: str) -> bool:
@@ -69,12 +74,16 @@ def is_forbidden_env_name(name: str) -> bool:
 
 def git_ignored_paths(source_root: Path) -> set[Path]:
     output = subprocess.check_output(
-        ["git", "ls-files", "--others", "--ignored", "--exclude-standard", "-z"],
+        ["git", "ls-files", "--others", "--ignored", "--exclude-standard", "--directory", "-z"],
         cwd=source_root,
         stderr=subprocess.DEVNULL,
         text=True,
     )
-    return {Path(relative) for relative in output.split("\0") if relative}
+    return {Path(relative.rstrip("/")) for relative in output.split("\0") if relative}
+
+
+def is_ignored_path(relative_path: Path, ignored_paths: set[Path]) -> bool:
+    return relative_path in ignored_paths or any(parent in ignored_paths for parent in relative_path.parents)
 
 
 def should_exclude(path: Path, source_root: Path, ignored_paths: set[Path]) -> bool:
@@ -82,7 +91,7 @@ def should_exclude(path: Path, source_root: Path, ignored_paths: set[Path]) -> b
         return True
 
     relative_path = path.relative_to(source_root)
-    if relative_path in ignored_paths:
+    if is_ignored_path(relative_path, ignored_paths):
         return True
 
     relative_parts = relative_path.parts
@@ -90,6 +99,7 @@ def should_exclude(path: Path, source_root: Path, ignored_paths: set[Path]) -> b
     return (
         any(part in EXCLUDED_NAMES for part in relative_parts)
         or any(is_forbidden_env_name(part) for part in relative_parts)
+        or name.startswith(APPLE_DOUBLE_PREFIX)
         or any(name.endswith(suffix) for suffix in EXCLUDED_SUFFIXES)
         or "node_modules" in relative_parts
         or "playwright-report" in relative_parts
@@ -101,7 +111,11 @@ def verify_no_forbidden_staged_files(project_dir: Path) -> None:
     forbidden: list[Path] = []
     for candidate in project_dir.rglob("*"):
         relative_parts = candidate.relative_to(project_dir).parts
-        if ".git" in relative_parts or any(is_forbidden_env_name(part) for part in relative_parts):
+        if (
+            any(part in FORBIDDEN_STAGED_NAMES for part in relative_parts)
+            or any(is_forbidden_env_name(part) for part in relative_parts)
+            or candidate.name.startswith(APPLE_DOUBLE_PREFIX)
+        ):
             forbidden.append(candidate)
 
     if forbidden:
@@ -114,7 +128,16 @@ def copy_file(source: Path, destination: Path) -> None:
     if not source.is_file():
         raise SystemExit(f"Required file not found: {source}")
     destination.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copy2(source, destination)
+    shutil.copyfile(source, destination)
+    shutil.copymode(source, destination)
+
+
+def remove_apple_double_files(kit_dir: Path) -> None:
+    for path in kit_dir.rglob(f"{APPLE_DOUBLE_PREFIX}*"):
+        if path.is_dir():
+            shutil.rmtree(path)
+        else:
+            path.unlink()
 
 
 def copy_docs(source_root: Path, kit_dir: Path) -> None:
@@ -233,6 +256,7 @@ def build_kit(target_dir: Path, source_root: Path) -> Path:
     copy_docs(source_root, kit_dir)
     copy_server_scripts(source_root, kit_dir, script_names)
     copy_project_snapshot(source_root, project_dir)
+    remove_apple_double_files(kit_dir)
 
     for required in (project_dir / "podman-compose.yml", project_dir / ".env.production.example"):
         if not required.is_file():
@@ -240,7 +264,9 @@ def build_kit(target_dir: Path, source_root: Path) -> Path:
     verify_no_forbidden_staged_files(project_dir)
 
     write_manifest(source_root, kit_dir, script_names)
+    remove_apple_double_files(kit_dir)
     write_checksums(kit_dir)
+    remove_apple_double_files(kit_dir)
     return kit_dir
 
 
