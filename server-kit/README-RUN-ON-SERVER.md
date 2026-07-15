@@ -13,6 +13,18 @@ bash server-kit/prepare-usb-kit.sh /Volumes/USB
 
 The command creates `/Volumes/USB/bitcoin-risk-brief-server-kit`. It is safe to rerun because it replaces only that kit
 directory, not the USB mount itself.
+Run this after checking out or committing the exact version you intend to deploy. Before ejecting the USB, compare the
+kit manifest with the intended release commit:
+
+```bash
+git rev-parse HEAD
+cat /Volumes/USB/bitcoin-risk-brief-server-kit/manifest.txt
+cd /Volumes/USB/bitcoin-risk-brief-server-kit
+shasum -a 256 -c SHA256SUMS
+```
+
+The manifest `source_commit` must match the release commit you mean to install. If it does not, return to the repository
+checkout, select the correct commit, and rerun `bash server-kit/prepare-usb-kit.sh /Volumes/USB`.
 
 The kit contains:
 
@@ -113,7 +125,54 @@ ALLOW_DOWNLOAD=true bash scripts/02-install-cloudflared-from-usb.sh
 
 ## Update Existing Deployment
 
-Use the top-level deploy script for the normal no-database-backup path:
+For production updates, prefer the backup-gated path so the database and canonical BTC CSV are backed up and verified
+before the project snapshot is replaced.
+
+1. Mount the USB if Ubuntu did not mount it automatically:
+
+```bash
+lsblk -f
+sudo mkdir -p /mnt/deploy-usb
+sudo mount /dev/sdX1 /mnt/deploy-usb
+```
+
+Replace `/dev/sdX1` with the actual USB partition from `lsblk -f`.
+
+2. Go to the kit and confirm the package is the intended version:
+
+```bash
+cd /mnt/deploy-usb/bitcoin-risk-brief-server-kit
+cat manifest.txt
+sha256sum -c SHA256SUMS
+```
+
+Check that `source_commit` in `manifest.txt` matches the release commit you intended to deploy.
+
+3. Confirm the existing production environment file is present:
+
+```bash
+sudo test -f /srv/projects/bitcoin-risk-brief/.env
+```
+
+4. Run the backup-gated update:
+
+```bash
+bash deploy-from-usb.sh --with-backup https://bitcoinriskbrief.minihub.app
+```
+
+That command verifies the USB kit, creates a backup, verifies backup checksums, copies the verified backup to
+`BACKUP_COPY_DEST` or the USB kit default `backups-from-server/`, verifies the copied backup, deploys the project
+snapshot while preserving production `.env` and the database volume, restarts the user service, runs migrations, and
+checks local and public health/readiness.
+
+If the PostgreSQL dump is legitimately slow, rerun with a larger timeout:
+
+```bash
+BACKUP_DUMP_TIMEOUT_SECONDS=900 bash deploy-from-usb.sh --with-backup https://bitcoinriskbrief.minihub.app
+```
+
+Use the top-level deploy script without `--with-backup` only when you intentionally want the faster no-database-backup
+path:
 
 ```bash
 cd /mnt/deploy-usb/bitcoin-risk-brief-server-kit
@@ -130,23 +189,9 @@ The default path verifies `SHA256SUMS`, deploys the USB project snapshot, preser
 database volume, recreates/restarts the user service, and runs local health/readiness plus optional public readiness
 checks. It does not run `pg_dump`.
 
-For the stricter backup-gated path, run:
-
-```bash
-bash deploy-from-usb.sh --with-backup https://bitcoinriskbrief.minihub.app
-```
-
-That mode runs the backup wrapper from the USB project snapshot before copying new code, with the deployed project as the
-working directory. It verifies the backup checksums, copies the verified backup to `BACKUP_COPY_DEST` or the USB kit
-default `backups-from-server/`, verifies that copied backup, then deploys and checks the service.
-The copy step intentionally does not preserve POSIX owner, group, or permission bits because common USB filesystems such
-as FAT and exFAT do not support them; backup integrity is verified with `SHA256SUMS`.
-
-The PostgreSQL dump is non-interactive, uses direct `podman exec` by default, and is bounded by
-`BACKUP_DUMP_TIMEOUT_SECONDS` from the command environment, defaulting to 300 seconds. If the backup step fails with a
-dump timeout, inspect Podman health, database locks, and disk pressure; for a legitimately slow host, rerun with a larger
-value, for example
-`BACKUP_DUMP_TIMEOUT_SECONDS=900 bash deploy-from-usb.sh --with-backup https://bitcoinriskbrief.minihub.app`.
+In backup-gated mode, the backup wrapper runs from the USB project snapshot while the deployed project remains the
+working directory. The copy step intentionally does not preserve POSIX owner, group, or permission bits because common
+USB filesystems such as FAT and exFAT do not support them; backup integrity is verified with `SHA256SUMS`.
 
 ## Diagnostics
 
