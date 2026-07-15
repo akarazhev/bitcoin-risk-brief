@@ -164,11 +164,11 @@ Assistive-tech proxy QA and pilot limitation recorded on 2026-07-15:
 
 Final launch snapshot gate recorded on 2026-07-15:
 
-- Gate status: ready for separate operator approval, not first traffic. Fresh public GET-only readiness/latest-risk
+- Gate status at snapshot time: ready for separate operator approval, not first traffic. Fresh public GET-only readiness/latest-risk
   checks passed, and the sanitized launch snapshot packet basename `launch-snapshot-20260715T121952Z.json` was created
   and validated with `scripts/launch_snapshot_packet.py`. The helper intentionally reports
   `launch_readiness_status=pending` because the packet records accepted limitations and keeps operator review separate.
-  `first_traffic_status` remains `not_run`.
+  `first_traffic_status` remained `not_run` at snapshot time.
 - Scope/safety: final public checks used only `GET /api/health`, `GET /api/readiness`, and
   `GET /api/risk/latest`. No waitlist POST, deploy, refresh/import, cache warmup, Cloudflare/routing change, backup
   command, restore drill, first traffic, or production mutation was performed from this workspace. Raw response dumps,
@@ -200,9 +200,46 @@ Final launch snapshot gate recorded on 2026-07-15:
   commercial readiness, or broader provenance claim is made; restore drill is deferred until a safe target exists;
   recurring backup automation and backup freshness alerting are deferred until after the initial pilot; and the
   Cloudflare Free-plan-compatible edge subset is accepted only for the small operator-watched pilot.
-- Remaining action before first traffic: obtain separate operator approval and run the watched first-traffic window.
-  Recheck public readiness/latest-risk if the operator delays traffic beyond the current freshness window. Do not treat
-  the snapshot as first-traffic evidence.
+- Remaining action at snapshot time: obtain separate operator approval and run the watched first-traffic window. Do not
+  treat the snapshot as first-traffic evidence.
+
+Operator-watched first traffic evidence recorded on 2026-07-15:
+
+- Gate status: completed for the small operator-watched pilot. `first_traffic_status=completed`. This is not a broad
+  public launch, paid/commercial launch, full WCAG/legal accessibility claim, broader monitoring claim, or broader
+  provenance claim.
+- Operator approval basis: the operator continuation request for this evidence run asked to continue and finish the
+  remaining tasks, specifically the watched first-traffic evidence run. No test contact was provided and no waitlist POST
+  was requested, so no waitlist POST was performed or recorded.
+- Scope/safety: GET-only public endpoint checks plus one browser-only public homepage observation. No deploy,
+  refresh/import, cache warmup command, Cloudflare/routing change, waitlist POST, monitor configuration, alert delivery
+  test, backup/off-server copy, restore drill, tag, push, or production mutation was performed from this workspace.
+- Repository and tag evidence before traffic: local `HEAD` and `origin/main` both resolved to `aa2ac6a`;
+  `git rev-list --left-right --count origin/main...HEAD` returned `0 0`; local tag
+  `final-launch-snapshot-evidence-2026-07-15` pointed at `HEAD`; remote tag
+  `final-launch-snapshot-evidence-2026-07-15^{}` peeled to `aa2ac6a`.
+- Fresh public GET-only checks: `/api/health` returned HTTP 200 with `status=ok`; `/api/readiness` returned HTTP 200
+  with `status=ready`, `latest_date=2026-07-14`, `covered_end=2026-07-14`, `data_age_days=1`, `max_age_days=2`,
+  `source=coinmarketcap_csv`, `row_count=5846`, `methodology_version=crypto-scout-canonical-v1`, and
+  `data_fresh=true`; `/api/risk/latest` returned HTTP 200 with timestamp `2026-07-14T00:00:00+00:00`, risk
+  `0.2694028326125623`, `risk_state=low`, `model_price_usd=64069.92364076667`, `low_usd=62207.522497`, and
+  `high_usd=65046.1341991`. Latest date is current inside the configured freshness policy.
+- Selected cache/status header evidence: `/api/health` returned `cf-cache-status: DYNAMIC`; `/api/readiness` returned
+  `Cache-Control: no-store` and `cf-cache-status: DYNAMIC`; `/api/risk/latest` returned
+  `Cache-Control: public, max-age=60, stale-while-revalidate=300`, an `ETag`, `X-Cache: MISS`, `X-Cache-Version` with
+  validation timestamp `2026-07-15T01:00:06.111310+00:00`, latest date `2026-07-14`, row count `5846`, freshness
+  `true`, and `cf-cache-status: HIT`.
+- Watched public homepage observation: approved headless Chromium loaded `https://bitcoinriskbrief.minihub.app/` at
+  desktop viewport `1440x1000`, returned title `Bitcoin Risk Brief`, showed current risk `27%`, latest completed day
+  `2026-07-14`, report date `2026-07-15`, readiness text, and two visible chart canvases. No console errors, page
+  errors, same-origin request failures, same-origin API error responses, or waitlist POSTs were observed.
+- Accepted limitations remaining before broader launch: direct broader-launch import provenance remains deferred beyond
+  public readiness/latest-risk and BTC CSV evidence for the small pilot; dedicated external API monitors, stale-data
+  after-window alerting, and explicit alert delivery remain broader-launch work; true screen-reader/manual assistive-tech
+  evidence remains deferred for the small pilot; no full WCAG, legal accessibility, commercial readiness, or broader
+  provenance claim is made; restore drill is deferred until a safe target exists; recurring backup automation and backup
+  freshness alerting are deferred until after the initial pilot; and the Cloudflare Free-plan-compatible edge subset is
+  accepted only for the small operator-watched pilot.
 
 AI-resolvable pre-traffic readiness sweep recorded on 2026-07-12:
 
@@ -230,23 +267,23 @@ AI-resolvable pre-traffic readiness sweep recorded on 2026-07-12:
   confirmed safe/non-mutating because it uses a local preview server and mocked API routes, including the waitlist route.
   The sandboxed smoke attempt was blocked by `listen EPERM` on `127.0.0.1:4173`; the approved local rerun passed 25
   Playwright checks.
-- Current first-traffic state after the later 2026-07-15 final launch snapshot: the final snapshot packet has been
-  created and validated outside Git, and fresh public readiness/latest-risk checks passed for that snapshot. The only
-  remaining pre-traffic action is separate operator approval, the watched first-traffic run, and a public
-  readiness/latest-risk recheck if the operator delays traffic beyond the current freshness window. Dedicated external
-  `/api/health` and `/api/readiness` monitoring plus alert delivery remain pending for broader launch, not as a
-  small-pilot first-traffic blocker. A true screen-reader/manual assistive-tech pass remains deferred only as an accepted
-  small-pilot limitation.
-- First traffic decision: ready for separate operator approval, not run. Keep `first_traffic_status` at `not_run` until
-  the operator separately approves and the watched first-traffic run happens.
+- Current first-traffic state after the later 2026-07-15 operator-watched traffic evidence: the final snapshot packet was
+  created and validated outside Git, fresh public readiness/latest-risk checks passed, operator approval was recorded
+  from the continuation request, and the watched first-traffic observation completed. Dedicated external `/api/health`
+  and `/api/readiness` monitoring plus alert delivery remain pending for broader launch, not as a small-pilot
+  first-traffic blocker. A true screen-reader/manual assistive-tech pass remains deferred only as an accepted small-pilot
+  limitation.
+- First traffic decision: completed for the small operator-watched pilot. Keep `first_traffic_status=completed` for this
+  evidence run and do not expand it into broader launch claims.
 
-Production/operator evidence still pending before public launch:
+Production/operator evidence still pending before broader public launch:
 
-- Separate operator approval and watched first traffic. The final snapshot gate above is ready for operator review, but
-  first traffic has not run and remains `not_run`.
-- Public readiness/freshness remains time-sensitive. The 2026-07-15 final snapshot check records current public
-  health/readiness/latest-risk evidence through `latest_date=2026-07-14`; rerun the GET-only public checks if the operator
-  delays the first-traffic window.
+- The first operator-watched traffic window completed only for a small pilot. Do not treat it as broad public launch,
+  paid/commercial launch, full accessibility/legal approval, broader monitoring completion, or broader provenance
+  completion.
+- Public readiness/freshness remains time-sensitive. The 2026-07-15 first-traffic check records current public
+  health/readiness/latest-risk evidence through `latest_date=2026-07-14`; rerun the GET-only public checks during future
+  pilot windows and after production updates.
 - Direct broader-launch import provenance packet for a real production refresh/import, including sanitized source
   category, retrieval/import timestamp, row count/range, readiness/latest-risk output, and checksum if available. Public
   readiness/latest-risk plus the `btc-csv-through-2026-07-14-evidence-2026-07-15` tag are accepted for the small
@@ -271,33 +308,32 @@ Production/operator evidence still pending before public launch:
 - Commercial/broader-launch source-terms review or paid-plan decision before commercial claims, paid beta, broader
   distribution, or any claim of legal approval or commercial readiness. The current source-terms posture is accepted only
   for a small unpaid/non-commercial operator-watched pilot.
-- Operator-watched first traffic test after separate approval. The final launch snapshot packet has been created and
-  validated for the current window; it is not first-traffic evidence.
+- Preserve the final launch snapshot packet and first-traffic evidence separately. The final launch snapshot packet is
+  not the first-traffic observation itself.
 
 External gates that cannot be closed from this local workspace include broader-launch Cloudflare or external monitor
 provider configuration, alert delivery tests, recurring production backup/off-server automation, restore target
-provisioning, legal/license approval, and first traffic.
+provisioning, legal/license approval, and broader public-launch approval.
 
-Current first-traffic sequence:
+Current first-traffic status:
 
 1. Keep the created and validated final sanitized launch snapshot packet evidence available outside Git; do not treat it
-   as first-traffic evidence.
-2. Confirm the 2026-07-15 final snapshot is still inside the accepted freshness window, or rerun the GET-only public
-   readiness/latest-risk checks if the operator delays traffic.
-3. Obtain explicit operator approval for the watched first-traffic run.
-4. Run the operator-watched first traffic test only after that approval; first traffic remains `not_run` until the run
-   happens.
+   as the first-traffic observation itself.
+2. Operator approval was recorded from the continuation request for the watched evidence run.
+3. The 2026-07-15 watched first-traffic observation completed and `first_traffic_status=completed` for the small pilot.
+4. Keep future pilot-window public readiness/latest-risk checks current, especially after future production updates.
 5. Keep accepted limitations explicit: broader direct import provenance, dedicated API monitoring, alert delivery proof,
    restore drill, true screen-reader/manual assistive-tech evidence, full WCAG/legal accessibility, and broader launch
    claims remain unclaimed.
 
 Consolidated first-traffic blocker and acceptance register recorded on 2026-07-12:
 
-- Gate status: updated by later evidence, ready for separate operator approval, not first traffic. This register
+- Gate status: updated by later evidence; the 2026-07-15 watched first-traffic observation is now complete for the small
+  pilot. This register
   consolidates the current launch-gate status, newly recorded sanitized operator decisions, the 2026-07-12
   support/contact and account recovery readiness evidence, later accepted limitations from repository-visible docs, and
-  existing dated evidence notes. It does not run first traffic, deploy, push, tag, refresh/import data, configure alerts,
-  or close any gate by inference.
+  existing dated evidence notes. The original 2026-07-12 register did not run first traffic, deploy, push, tag,
+  refresh/import data, configure alerts, or close any gate by inference.
 - Scope/safety: documentation-only register update. No deploy, refresh/import, production endpoint probe, waitlist POST,
   Cloudflare/routing change, monitor configuration, alert delivery test, backup/off-server copy, restore drill, first
   traffic, push, or tag was performed. At the start of this operator-decision pass, local `HEAD` and `origin/main` were
@@ -310,13 +346,13 @@ Consolidated first-traffic blocker and acceptance register recorded on 2026-07-1
   homepage availability monitoring; dedicated screen-reader/manual assistive-tech pass deferred only for the small
   operator-watched pilot after the 2026-07-15 proxy QA pass; and CoinMarketCap/source-terms commercial or paid-plan
   decision deferred only for commercial claims, paid beta, or broader distribution. The 2026-07-15 final snapshot records
-  broader direct import proof as accepted small-pilot limitation, the launch snapshot as created and validated, and
-  first-traffic operator approval/run as the remaining current pre-traffic action. Manual keyboard/native browser QA is
-  completed for the small pilot by the 2026-07-15 evidence note. Dedicated external
+  broader direct import proof as accepted small-pilot limitation, the launch snapshot as created and validated, and the
+  later 2026-07-15 operator-watched first-traffic run as completed for the small pilot. Manual keyboard/native browser QA
+  is completed for the small pilot by the 2026-07-15 evidence note. Dedicated external
   `/api/health` and `/api/readiness` freshness monitors plus explicit alert delivery evidence remain pending
   broader-launch limitations.
 
-| Gate area | Consolidated status | Blocker or required acceptance before first traffic |
+| Gate area | Consolidated status | Remaining limitation or follow-up after first traffic |
 | --- | --- | --- |
 | Waitlist governance | Resolved for sanitized first-traffic decision; support path is ready for manual requests. | Owner role is founder/operator; review cadence is several times per week during pilot; review method is a manual operator-run database query or script; pilot contacts are retained until beta ends and deleted earlier on operator-approved request; deletion/unsubscribe requests use the dedicated support contact path kept outside Git; follow-up is manual founder/operator follow-up only, with no automated newsletter. |
 | Support/contact path | Completed for first-traffic readiness. | Support email status is created and ready. The contact category is a dedicated support mailbox with a project-domain alias; exact addresses and provider details are kept outside Git. The support path was checked by the founder/operator. Deletion/unsubscribe requests use a manual request through the dedicated support contact path. No paid support SLA is claimed. |
@@ -346,20 +382,20 @@ Consolidated first-traffic blocker and acceptance register recorded on 2026-07-1
 | Full WCAG/legal accessibility status | Not claimed; broader-launch/legal evidence pending. | Do not claim full WCAG/legal accessibility compliance. Manual/native browser QA and local assistive-tech proxy QA support the small pilot only; broader compliance evidence and legal accessibility approval are not recorded. |
 | Remaining cache-miss/edge-hit latency matrix | Partial historical evidence; blocked if still required by the launch matrix. | Record current endpoint-specific cache-miss and edge-hit timing for any public read endpoints not covered by current accepted evidence, or explicitly accept remaining latency limitations. |
 | Cloudflare Free-plan first-traffic decision | Accepted limitation for small operator-watched pilot only. | The current Free-plan-compatible subset is accepted for a small operator-watched pilot. Managed WAF/additional rate-limit controls are deferred until broader traffic or observed abuse risk. Do not claim broader Cloudflare security readiness. |
-| Fresh pre-traffic readiness evidence | Completed for the 2026-07-15 final snapshot window. | Public health, readiness, latest-risk, freshness, date alignment, readiness `no-store`, and latest-risk cache headers are recorded for `latest_date=2026-07-14`. If first traffic is delayed, recheck freshness. |
-| Sanitized final launch snapshot packet | Created and validated for operator review. | Packet basename `launch-snapshot-20260715T121952Z.json` was created outside Git and validated with `scripts/launch_snapshot_packet.py`; only the sanitized status summary is copied here. The helper reports `launch_readiness_status=pending` because accepted limitations remain explicit and first traffic is separate. |
-| Final operator acceptance | Blocked pending operator acceptance. | Record sanitized final operator acceptance only after all required gates are completed, the launch snapshot exists, and the only remaining limitations are the accepted limitations listed in this register. No final acceptance is recorded now. |
-| Remote publication if required | Not blocking in current local state. | For the final snapshot pass, local `HEAD` and `origin/main` both resolved to `98007ce`, and divergence was `0 0`. This pass does not push or tag. |
+| Fresh public readiness evidence | Completed for the 2026-07-15 first-traffic window. | Public health, readiness, latest-risk, freshness, date alignment, readiness `no-store`, and latest-risk cache/version headers are recorded for `latest_date=2026-07-14`. Recheck freshness during future pilot windows and after production updates. |
+| Sanitized final launch snapshot packet | Created and validated for operator review before first traffic. | Packet basename `launch-snapshot-20260715T121952Z.json` was created outside Git and validated with `scripts/launch_snapshot_packet.py`; only the sanitized status summary is copied here. The helper reports `launch_readiness_status=pending` because accepted limitations remain explicit and first traffic was separate from that snapshot packet. |
+| First-traffic operator acceptance | Completed for small operator-watched pilot only. | Operator approval was recorded from the continuation request for the watched evidence run. Do not expand this into broad launch, paid/commercial launch, full accessibility/legal approval, broader monitoring completion, or broader provenance completion. |
+| Remote publication if required | Not blocking in current local state. | For the first-traffic evidence pass, local `HEAD` and `origin/main` both resolved to `aa2ac6a`, and divergence was `0 0`. This pass does not push or tag. |
 
-- First traffic decision: ready for separate operator approval, not run. The project remains not publicly launched, and
-  first traffic must stay `not_run` until the operator separately approves and runs the watched first-traffic window.
+- First traffic decision: completed for the small operator-watched pilot. The project is not broadly publicly launched,
+  and the completed first-traffic evidence must not be expanded into broader launch claims.
 
 Final launch snapshot readiness/gap pass recorded on 2026-07-12:
 
 - Supersession note: this historical gap pass is retained for audit context. It is superseded by the 2026-07-15 final
-  launch snapshot gate note above, which records the created and validated snapshot packet for the current window.
-- Gate status: blocked, not passed. No real sanitized final launch snapshot packet was provided or created from current
-  evidence, and no final first-traffic operator acceptance is recorded. The project remains not publicly launched.
+  launch snapshot gate note and the later 2026-07-15 operator-watched first-traffic evidence note above.
+- Gate status at that time: blocked, not passed. No real sanitized final launch snapshot packet was provided or created
+  from current evidence during that pass, and no final first-traffic operator acceptance was recorded then.
 - Scope/safety: documentation/evidence pass only. This pass inspected current repository docs, the launch snapshot packet
   template, `scripts/launch_snapshot_packet.py`, helper tests, local branch state, and the read-only remote `main` ref.
   No deploy, refresh/import, cache warmup, waitlist POST, Cloudflare/routing change, production host command, external
@@ -698,14 +734,13 @@ Launch Matrix, accessibility, and public-host QA evidence pass recorded on 2026-
   It did not run a new cache-miss/edge-hit latency matrix for all public product read endpoints. Existing 2026-07-05 and
   2026-07-07 latency/cache evidence remains historical; unmeasured or stale endpoint-specific cache-miss/edge-hit latency
   evidence stays pending.
-- Launch Matrix / Accessibility / Public-Host QA gate status: partial, not passed. Current public endpoint freshness,
+- Launch Matrix / Accessibility / Public-Host QA gate status: partial, superseded by later evidence. Current public endpoint freshness,
   public homepage desktop/mobile Chromium smoke, public metadata/privacy smoke, local browser-profile smoke, local axe,
   local mocked keyboard/focus, public-host axe evidence, the later 2026-07-15 manual/native browser QA evidence, the
-  later 2026-07-15 assistive-tech proxy QA evidence, and the 2026-07-15 final launch snapshot are recorded. After that
-  final snapshot, first traffic remains `not_run` pending separate operator approval and the watched first-traffic run;
-  recheck public readiness/latest-risk if the operator delays traffic beyond the current freshness window. Direct
-  production import proof, dedicated external API monitoring, alert delivery, and a true screen-reader/manual
-  assistive-tech pass remain pending before broader launch or broader accessibility claims.
+  later 2026-07-15 assistive-tech proxy QA evidence, the 2026-07-15 final launch snapshot, and the later 2026-07-15
+  operator-watched first-traffic evidence are recorded. Direct production import proof, dedicated external API monitoring,
+  alert delivery, and a true screen-reader/manual assistive-tech pass remain pending before broader launch or broader
+  accessibility claims.
 
 ## Operator Launch Decision Register
 
@@ -758,18 +793,18 @@ Accepted limitations after this pass, as updated by the later 2026-07-14 monitor
   2026-07-15 assistive-tech proxy QA pass; do not claim a true screen-reader pass, full WCAG conformance, or legal
   accessibility approval.
 
-Actions still pending before first traffic:
+First-traffic follow-up/current status:
 
-- Obtain separate operator approval for the first traffic run after reviewing the final snapshot.
-- Rerun GET-only public readiness/latest-risk checks if the traffic window is delayed beyond the current freshness
-  window.
+- Operator approval was recorded from the continuation request for the 2026-07-15 watched evidence run.
+- The first operator-watched traffic window completed for the small pilot. Rerun GET-only public readiness/latest-risk
+  checks during future pilot windows and after production updates.
 
 Dedicated external `/api/health` and `/api/readiness` monitors plus explicit alert delivery proof remain pending before
 broader launch, not before the small operator-watched pilot first-traffic decision.
 
-First traffic remains `not_run` until separate operator approval. This pass supersedes pending-status language in the
-2026-07-11 operator governance pass only where a later sanitized decision, accepted limitation, or final snapshot note is
-explicitly recorded above.
+First traffic is now completed for the small operator-watched pilot only. This pass supersedes pending-status language in
+the 2026-07-11 operator governance pass only where a later sanitized decision, accepted limitation, final snapshot note,
+or first-traffic evidence note is explicitly recorded above.
 
 ### 2026-07-11 Operator Governance Pass
 
@@ -789,11 +824,11 @@ decision by itself.
 | Credential/account ownership and recovery | Superseded/completed by later 2026-07-12 evidence. Required ownership categories are documented, owner roles are founder/operator, and the later sanitized readiness evidence records the outside-Git account recovery record as created and current. | Keep holders, personal contacts, account IDs, dashboard URLs, recovery paths, credential locations, credential values, and account details out of Git. |
 | Data-source terms and import governance | Pending operator decision/evidence. No completed CoinMarketCap public-download/manual CSV terms review, optional CoinMarketCap API usage review, attribution outcome, or accepted limitation is recorded. Production import provenance remains separate and still requires a real source/archive packet after production imports. No owner role for future source review is recorded. | Record a sanitized status for CoinMarketCap public CSV and optional API usage as passed, accepted limitation, or pending; record any attribution or usage limitation; choose the owner role for future source review; and keep private source terms, account details, raw CSV rows, and private archive paths out of Git. |
 | Dependency, security, and license posture | Partial local evidence. `.github/dependabot.yml` is configured locally for conservative monthly version-update checks across frontend npm, backend and collector pip requirements, GitHub Actions, Dockerfiles, and a root `docker-compose` ecosystem entry. The dependency/license review records local npm lockfile license metadata and known gaps. GitHub-hosted Dependabot execution, first PR evidence, vulnerability/advisory clearance, external/manual license confirmation, container/OS package license review, project license choice, and legal approval remain pending. A monthly manual review cadence is documented, but the owner role for security updates is not recorded. | Choose the owner role for dependency/security updates, keep or revise the monthly cadence, record GitHub-hosted Dependabot execution and first PR evidence when available, complete or explicitly defer vulnerability/advisory, credential-scan, license, container image, OS package, CI action, and legal compatibility review, and record only date/scope/outcome/follow-up. |
-| Cloudflare Free-plan first-traffic decision | Pending first-traffic decision. Historical public snapshots used the documented Free-plan-compatible subset, but no operator decision accepts that subset for first traffic or requires an upgrade. Managed WAF execution, broader `/api/*` burst limiting, multiple rate-limit rules, and longer rate-limit windows are not proven active in the current subset. | Accept the current Free-plan subset for one operator-watched first traffic window, or require an upgrade/equivalent controls before first traffic. Record the accepted limitation or blocker without Cloudflare account IDs, zone IDs, tunnel IDs, rule IDs, dashboard URLs, credential values, private event logs, or routing details. |
+| Cloudflare Free-plan first-traffic decision | Superseded/accepted limitation for small operator-watched pilot. Historical public snapshots used the documented Free-plan-compatible subset, and later 2026-07-15 evidence records the small operator-watched pilot as run under the accepted Free-plan-compatible subset. Managed WAF execution, broader `/api/*` burst limiting, multiple rate-limit rules, and longer rate-limit windows are not proven active in the current subset. | Keep the current subset limited to the small pilot; require an upgrade/equivalent controls before broader traffic or observed abuse risk. Record future changes without Cloudflare account IDs, zone IDs, tunnel IDs, rule IDs, dashboard URLs, credential values, private event logs, or routing details. |
 | Accessibility and device evidence | Superseded by later evidence; small-pilot manual/native plus proxy scope completed with limitation. Local automated axe, browser-profile, chart-alternative, live-region, and keyboard/focus evidence exists. Public-host desktop/mobile Chromium smoke and public-host automated axe evidence are recorded through 2026-07-12. The later 2026-07-15 manual/native browser QA evidence completes the small-pilot manual keyboard/native desktop and mobile browser blocker, and the later 2026-07-15 assistive-tech proxy QA pass accepts the missing dedicated screen-reader/manual assistive-tech pass only as a small-pilot limitation. | Record true assistive-tech and broader accessibility evidence before broader launch or broader accessibility claims. Record only sanitized status and follow-up owner role; do not claim full WCAG/legal accessibility compliance. |
 | Resource monitoring and incident response | Superseded by the later 2026-07-12 operator decision pass and 2026-07-14 monitoring acceptance. The operations runbook documents local/public readiness checks, logs to inspect, backup checks, Cloudflare Tunnel checks, disk/database pressure checks, cache-stale handling, bad-data correction steps, pause/take-down conditions, and rollback-style recovery through known-good CSV/import/backup paths. | Current small-pilot coverage accepts Cloudflare Tunnel Health Alert plus public homepage availability monitoring. Dedicated external API monitor proof and alert delivery proof remain pending before broader launch; record only sanitized evidence when those broader-launch items are completed. |
-| Release feedback and first-user feedback | Partial/pending. The runbook says that after the first controlled traffic window, operators should summarize waitlist conversion, repeat-use signals, direct questions, and requests for alerts, API access, agents, widgets, embeddings, or licensing into readiness or roadmap notes without raw contacts. First traffic has not run, no reviewer role is recorded, and no post-traffic evidence exists. | Choose the first-user feedback collection paths, reviewer role, review cadence, and sanitized evidence format. After first traffic, record aggregate waitlist/source/locale/repeat-use/request evidence and direct-question themes without raw contacts, private messages, raw analytics, or personal details. |
-| Accepted launch limitations and hard blockers | Superseded by the 2026-07-12 operator decision pass, later 2026-07-14 monitoring acceptance, later 2026-07-15 backup/readiness evidence, later 2026-07-15 assistive-tech proxy QA evidence, and the 2026-07-15 final launch snapshot. At the time of this 2026-07-11 pass, only restore drill was explicitly accepted/deferred until a staging project or intentionally empty restore target existed. | Use the current accepted-limitations list: restore-drill deferral, Cloudflare Free-plan subset for a small operator-watched pilot, recurring backup automation/freshness alert deferral after the 2026-07-15 fresh manual backup/off-server copy pass, CoinMarketCap commercial/source-terms decision deferred only for commercial/broader launch, small-pilot monitoring coverage limited to Tunnel Health plus homepage availability while dedicated API monitor and alert delivery proof remain pending before broader launch, dedicated screen-reader/manual assistive-tech pass deferred only for the small watched pilot after the 2026-07-15 proxy QA pass, and broader direct import provenance deferred beyond the small-pilot snapshot. Do not mark the project publicly launched until first traffic evidence exists. |
+| Release feedback and first-user feedback | Partial/pending after first traffic. The runbook says that after the first controlled traffic window, operators should summarize waitlist conversion, repeat-use signals, direct questions, and requests for alerts, API access, agents, widgets, embeddings, or licensing into readiness or roadmap notes without raw contacts. First traffic has run, but no post-traffic feedback evidence is recorded yet. | Record aggregate waitlist/source/locale/repeat-use/request evidence and direct-question themes without raw contacts, private messages, raw analytics, or personal details. |
+| Accepted launch limitations and hard blockers | Superseded by the 2026-07-12 operator decision pass, later 2026-07-14 monitoring acceptance, later 2026-07-15 backup/readiness evidence, later 2026-07-15 assistive-tech proxy QA evidence, the 2026-07-15 final launch snapshot, and the 2026-07-15 operator-watched first-traffic evidence. At the time of this 2026-07-11 pass, only restore drill was explicitly accepted/deferred until a staging project or intentionally empty restore target existed. | Use the current accepted-limitations list: restore-drill deferral, Cloudflare Free-plan subset for a small operator-watched pilot, recurring backup automation/freshness alert deferral after the 2026-07-15 fresh manual backup/off-server copy pass, CoinMarketCap commercial/source-terms decision deferred only for commercial/broader launch, small-pilot monitoring coverage limited to Tunnel Health plus homepage availability while dedicated API monitor and alert delivery proof remain pending before broader launch, dedicated screen-reader/manual assistive-tech pass deferred only for the small watched pilot after the 2026-07-15 proxy QA pass, and broader direct import provenance deferred beyond the small-pilot snapshot. Do not mark the project broadly publicly launched because small-pilot first traffic completed. |
 
 Launch governance in this 2026-07-11 pass was recorded only as a partial governance pass. It is superseded by the
 2026-07-12 operator decision resolution pass where that later pass records sanitized decisions or accepted limitations.
@@ -1084,14 +1119,14 @@ Launch governance gap pass recorded on 2026-07-10:
 | Accessibility pass evidence | proxy passed with accepted small-pilot limitation | Browser-capable public-hostname QA, source inspection, the 2026-07-10 focused local axe pass, local chart data alternative implementation, local waitlist live-region/keyboard smoke, the 2026-07-15 manual/native browser QA evidence, and the 2026-07-15 local assistive-tech proxy QA pass are recorded. `@axe-core/playwright` is in the Playwright smoke suite, the chart panels expose a screen-reader-only current summary plus recent history/threshold tables, waitlist submit feedback exposes status/alert semantics, and the updated `npm run smoke --prefix frontend` passed 30 checks outside the sandbox across Chromium, Firefox, WebKit, Pixel 5, and iPhone 13 profiles with focused axe and keyboard/focus checks. The manual/native browser evidence completes the small-pilot manual keyboard/native desktop and mobile browser blocker; the missing dedicated screen-reader/manual assistive-tech pass is accepted only as a small-pilot limitation. | Do not claim VoiceOver, NVDA, TalkBack, manual assistive-tech, full WCAG/legal accessibility compliance, or broader accessibility approval. Record true assistive-tech and broader compliance evidence before broader launch or broader accessibility claims. |
 | SEO/social metadata pass evidence | public-host verified for 2026-07-11 update | The 2026-07-11 public metadata check found `title`, description, canonical URL, Open Graph type/title/description/url/site name, and Twitter card/title/description. `og:image` and `twitter:image` were absent as expected because no real repo-served production image asset exists. | Keep public metadata current after future deployments. Keep image metadata omitted unless a real publicly served production image asset is added. |
 | Incident response readiness | passed with existing repo evidence | [Operations](operations.md) includes the first-response runbook, monitoring alert expectations, bad-data correction policy, restore guidance, and cache-safety procedures. | Keep the runbook aligned as new monitor, restore, and provenance evidence arrives. |
-| Release notes or decision log | passed with current repo evidence | This document and [Production Roadmap](production-roadmap.md) contain dated evidence notes and decision/status history; this document now records the 2026-07-15 final launch snapshot note. | Do not reuse the stale 2026-07-05 snapshot as a launch-ready note. Keep first-traffic evidence separate until the operator runs it. |
-| First-user feedback review path | passed with existing repo evidence | This document and [Operations](operations.md) define a post-window review path for waitlist conversion, repeat-use signals, direct questions, methodology confusion, and requests for alerts/API/agents/widgets/licensing. | Run the review only after first traffic creates evidence; do not copy raw waitlist contacts into summaries. |
+| Release notes or decision log | passed with current repo evidence | This document and [Production Roadmap](production-roadmap.md) contain dated evidence notes and decision/status history; this document now records the 2026-07-15 final launch snapshot note and the separate 2026-07-15 operator-watched first-traffic evidence note. | Do not reuse the stale 2026-07-05 snapshot as a launch-ready note. Keep final snapshot evidence and first-traffic evidence separate. |
+| First-user feedback review path | passed with existing repo evidence | This document and [Operations](operations.md) define a post-window review path for waitlist conversion, repeat-use signals, direct questions, methodology confusion, and requests for alerts/API/agents/widgets/licensing. | First traffic has created the initial observation evidence; record only sanitized aggregate follow-up when user feedback exists, and do not copy raw waitlist contacts into summaries. |
 | Dependency-license review | partial; local evidence recorded, external/manual confirmation pending | [Dependency and License Review](dependency-license-review.md) records the 2026-07-10 local inventory from npm lockfile, Python requirements, container references, CI workflow references, and local Dependabot configuration. Local npm lockfile entries all include license metadata, including `@axe-core/playwright` and `axe-core` as `MPL-2.0`; Python and container license metadata remain unknown from repository files. | Confirm GitHub-hosted Dependabot execution and first PR evidence, Python package metadata, transitive dependencies, container image and OS package licenses, CI action/license posture, vulnerability/advisory status, project license choice, and legal compatibility before broader portfolio sharing or commercial claims. |
-| Launch snapshot evidence | ready for operator review; first traffic not run | The 2026-07-05 launch snapshot is historical and was blocked by stale readiness. The current 2026-07-15 final launch snapshot packet basename `launch-snapshot-20260715T121952Z.json` was created and validated from collected evidence, and the sanitized final status is recorded above. | Keep `first_traffic_status=not_run` until separate operator approval/run. Recheck public readiness/latest-risk if the window is delayed. |
+| Launch snapshot evidence | created and validated before first traffic | The 2026-07-05 launch snapshot is historical and was blocked by stale readiness. The current 2026-07-15 final launch snapshot packet basename `launch-snapshot-20260715T121952Z.json` was created and validated from collected evidence, and the sanitized final status is recorded above. | Preserve the snapshot separately from the later first-traffic evidence. Recheck public readiness/latest-risk during future pilot windows and after production updates. |
 | External monitoring and alert delivery | accepted/closed for small operator-watched pilot; broader launch pending | The 2026-07-14 monitoring acceptance records Cloudflare Tunnel Health Alert as configured, a HetrixTools/external uptime monitor provider category, and public homepage availability monitoring for the pilot. The 2026-07-12 local public GET-only probe still supports health, readiness, and latest-risk behavior, but no dedicated external `/api/health` monitor, dedicated external `/api/readiness` freshness monitor, stale-data after-window alert, collector-failure alert, recurring backup freshness alert, or explicit alert delivery test evidence is recorded. | Keep small-pilot monitoring limited to the accepted Tunnel health plus homepage availability coverage. Before broader traffic or broader readiness/freshness claims, record sanitized dedicated API monitor evidence and alert delivery proof without private provider details. |
 | Import provenance source archive and direct production metadata | accepted limitation for small-pilot snapshot; broader direct evidence pending | The 2026-07-15 final snapshot records public readiness/latest-risk, row count, latest date, cache evidence, and the BTC CSV evidence tag through 2026-07-14. Direct production source/archive, validation/import table metadata, and collector command evidence remain unclaimed for broader launch. | Capture sanitized broader-launch production import proof outside the repository with source category, retrieval/import timestamp, row counts/range, validation/readiness output, latest-risk output, and checksum if available. |
 | Restore drill | accepted limitation for operator-watched first traffic | Checksum-verified off-server USB backup copy evidence is recorded for 2026-07-07, copied/off-server freshness/checksum checker evidence is recorded for timestamp `20260711T190355Z`, and fresh manual backup/off-server evidence is recorded for timestamp `20260715T082457Z`, but the current setup has only the live production server and no staging or empty restore target. | Defer the drill until a separate target exists; do not run restore testing against live production. Record target type and readiness result after the drill. |
-| First traffic test | ready for separate operator approval; not run | No first traffic window has run. Freshness, public metadata/privacy smoke, waitlist smoke evidence, support/contact readiness, account recovery readiness, small-pilot monitoring acceptance, fresh backup/off-server evidence, small-pilot manual/native browser QA evidence, local assistive-tech proxy QA evidence, and final snapshot evidence exist for the current window. | Run only after separate operator approval. Keep `first_traffic_status=not_run` until that run happens, and recheck public readiness/latest-risk if delayed. |
+| First traffic test | completed for small operator-watched pilot | The 2026-07-15 first traffic window ran after operator approval from the continuation request. Freshness, public metadata/privacy smoke, waitlist smoke evidence, support/contact readiness, account recovery readiness, small-pilot monitoring acceptance, fresh backup/off-server evidence, small-pilot manual/native browser QA evidence, local assistive-tech proxy QA evidence, final snapshot evidence, and fresh public GET/browser observation evidence exist for the current window. | Keep `first_traffic_status=completed` for this small-pilot run only. Do not claim broad public launch, paid/commercial launch, full accessibility/legal approval, broader monitoring completion, or broader provenance completion. |
 
 Browser/device/accessibility/metadata gap pass recorded on 2026-07-10:
 
@@ -1897,7 +1932,7 @@ Completed or partially completed as of 2026-07-01:
   response shape, and aggregate-only storage verification for source `ops-smoke-20260708115806`; the waitlist smoke gate
   is closed for that smoke.
 
-Still required before treating the pilot as publicly launched:
+Still required before broader public launch:
 
 - Confirm the production host runbook, `.env`, service path, and selected data-refresh workflow.
 - Keep the USB deploy evidence current on future production updates, including the project revision, health/readiness
@@ -1931,9 +1966,9 @@ Still required before treating the pilot as publicly launched:
   related launch, restore, or correction note.
 - Update external portfolio surfaces such as GitHub description/topics or the sibling product-ideas brief only by
   separate request; they were not changed by the tracked repository docs pass.
-- Keep the created and validated 2026-07-15 final launch snapshot evidence available outside Git, recheck public
-  readiness/latest-risk if the operator delays traffic, and run the first small traffic test only after separate operator
-  approval; `first_traffic_status` remains `not_run` until that run happens.
+- Keep the created and validated 2026-07-15 final launch snapshot evidence and the separate 2026-07-15 first-traffic
+  evidence available outside Git, and recheck public readiness/latest-risk during future pilot windows and after
+  production updates. `first_traffic_status=completed` applies only to the small operator-watched pilot run.
 
 ## Related Docs
 

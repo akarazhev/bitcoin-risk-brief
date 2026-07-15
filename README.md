@@ -4,9 +4,10 @@ Bitcoin Risk Brief is a standalone seven-locale mini-product for validating dema
 
 ## Current Status
 
-Bitcoin Risk Brief is implementation-complete in this repository for the current local pre-traffic hardening items.
-Repository files, commits, local tags, and recorded checks are implementation evidence; production readiness still
-depends on recorded operator execution and public-host evidence. The project is still not publicly launched.
+Bitcoin Risk Brief is implementation-complete in this repository for the current small-pilot hardening items.
+Repository files, commits, local tags, and recorded checks are implementation evidence; broader production readiness
+still depends on recorded operator execution and public-host evidence. A small operator-watched pilot has started; this
+is not a broad public launch, paid launch, commercial-readiness claim, or full accessibility/legal approval.
 
 Local pre-deployment tooling and evidence completed in the repository:
 
@@ -31,12 +32,13 @@ Repository-local bundled BTC CSV evidence recorded on 2026-07-11: commit
 does not prove a production deployment, production database import, public-host freshness after this commit, full
 production import provenance, launch readiness, or first traffic.
 
-The public pilot hostname exists at `https://bitcoinriskbrief.minihub.app` and has final launch-window evidence from
-2026-07-15. Public `GET /api/health`, `GET /api/readiness`, and `GET /api/risk/latest` passed for launch commit
-`98007ce` with `HEAD=origin/main=98007ce`, `latest_date=2026-07-14`, `row_count=5846`, latest risk
-`0.2694028326125623`, `risk_state=low`, freshness policy `max_age_days=2`, readiness `no-store`, latest-risk cache
-headers present, and first traffic still `not_run`. This public evidence does not prove dedicated external API
-monitor/provider configuration or alert delivery.
+The public pilot hostname exists at `https://bitcoinriskbrief.minihub.app` and has first-traffic evidence from
+2026-07-15. Public `GET /api/health`, `GET /api/readiness`, and `GET /api/risk/latest` passed with
+`HEAD=origin/main=aa2ac6a`, final snapshot tag `final-launch-snapshot-evidence-2026-07-15` pointing to that commit,
+`latest_date=2026-07-14`, `row_count=5846`, latest risk `0.2694028326125623`, `risk_state=low`, freshness policy
+`max_age_days=2`, readiness `no-store`, latest-risk cache/version headers present, and `first_traffic_status=completed`
+for the small operator-watched pilot. This public evidence does not prove dedicated external API monitor/provider
+configuration or alert delivery.
 
 The 2026-07-12 AI-resolvable pre-traffic readiness sweep completed the remaining local/GET-only checks available from
 this workspace without mutating production. Frontend unit tests passed 27 tests, the frontend production build passed,
@@ -53,7 +55,7 @@ blocker. The 2026-07-15 assistive-tech proxy QA pass records that local tests, f
 and a local Playwright ARIA snapshot proxy passed, with no waitlist POST or production mutation. No true VoiceOver,
 NVDA, TalkBack, or manual assistive-tech pass was performed; that missing dedicated pass is accepted only as a limitation
 for the small operator-watched pilot. Full WCAG/legal accessibility, broader latency, broader direct import provenance,
-and first-traffic evidence remain pending or unclaimed.
+and broader launch evidence remain pending or unclaimed.
 
 Backup-gated USB production update evidence recorded on 2026-07-11 targets commit
 `86cb2dad889baf24a7464a105bbe2224f75b14ef` with evidence tag
@@ -102,19 +104,17 @@ operator-watched pilot.
 The 2026-07-15 final launch snapshot packet was created and validated with basename
 `launch-snapshot-20260715T121952Z.json`. The helper validation passed while conservatively reporting
 `launch_readiness_status=pending` because the packet records accepted limitations and keeps operator review separate.
-The final snapshot gate is ready for separate operator approval; first traffic remains `not_run`.
+The final snapshot gate was followed by the 2026-07-15 operator-watched first-traffic evidence run.
 
-The project is still not publicly launched. The remaining action before first traffic is separate operator approval and
-the watched first-traffic run. Public readiness should be rechecked if the operator delays traffic beyond the current
-freshness window. Production host access is unavailable from this workspace; future production updates still require
-operator deployment or update verification on the selected production path, or an explicitly chosen replacement path.
+The project is in a small operator-watched pilot, not a broad public launch. Public readiness should continue to be
+rechecked during future pilot windows and after future updates. Production host access is unavailable from this workspace;
+future production updates still require operator deployment or update verification on the selected production path, or an
+explicitly chosen replacement path.
 
-Still external/operator before treating the pilot as publicly launched:
+Still external/operator before broader public launch:
 
-- Obtain separate operator approval for first traffic and keep `first_traffic_status` at `not_run` until the watched
-  first-traffic window actually runs.
-- Recheck public `/api/readiness` and `/api/risk/latest` if the first-traffic window is delayed beyond the current
-  freshness window, and keep scheduled public-download-first refresh evidence current on the production host.
+- Recheck public `/api/readiness` and `/api/risk/latest` during future pilot windows and after production updates, and
+  keep scheduled public-download-first refresh evidence current on the production host.
 - Keep USB deploy/update evidence current on future production updates, including project revision, health/readiness
   checks, and backup-gated mode when a fresh pre-update database dump is required.
 - Keep the accepted small-pilot monitoring coverage active: Cloudflare Tunnel Health Alert plus external public homepage
@@ -136,18 +136,15 @@ Still external/operator before treating the pilot as publicly launched:
   complete launch governance, browser/device, accessibility, release-feedback, and operational evidence gates.
 - Keep the current Cloudflare Free-plan-compatible subset limited to a small operator-watched pilot; defer managed WAF
   and broader API burst-rate-limit controls until broader traffic or observed abuse risk.
-- Run the first traffic test only after separate operator approval; keep first traffic `not_run` until then.
 
-Current first-traffic sequence:
+Current first-traffic status:
 
 1. Keep the created and validated final sanitized launch snapshot packet evidence available outside Git; do not treat it
-   as first-traffic evidence.
-2. Confirm the 2026-07-15 final snapshot is still inside the accepted freshness window, or rerun the GET-only public
-   readiness/latest-risk checks if the operator delays traffic.
-3. Obtain explicit operator approval for the watched first-traffic run.
-4. Run the operator-watched first traffic test only after that approval; first traffic remains `not_run` until the run
-   happens.
-5. Keep accepted limitations explicit: broader direct import provenance, dedicated API monitoring, alert delivery proof,
+   as the first-traffic observation itself.
+2. The 2026-07-15 watched first-traffic observation completed after operator approval from the continuation request;
+   `first_traffic_status=completed` for the small pilot.
+3. Keep future pilot-window public readiness/latest-risk checks current, especially after future production updates.
+4. Keep accepted limitations explicit: broader direct import provenance, dedicated API monitoring, alert delivery proof,
    restore drill, true screen-reader/manual assistive-tech evidence, full WCAG/legal accessibility, and broader launch
    claims remain unclaimed.
 
