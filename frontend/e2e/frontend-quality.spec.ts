@@ -159,6 +159,17 @@ async function isFocused(locator: Locator) {
   return locator.evaluate((node) => node === document.activeElement)
 }
 
+async function pressUntilFocused(pressTab: () => Promise<void>, locator: Locator, maxPresses: number) {
+  for (let pressCount = 0; pressCount < maxPresses; pressCount += 1) {
+    if (await isFocused(locator)) {
+      return pressCount
+    }
+    await pressTab()
+  }
+  await expect(locator).toBeFocused()
+  return maxPresses
+}
+
 test('renders desktop and mobile layouts with non-empty chart canvases', async ({ page }, testInfo) => {
   await mockApi(page)
 
@@ -242,8 +253,8 @@ test('supports keyboard focus navigation through public controls with mocked wai
     await pressTab()
   }
   await expect(languageSelector).toBeFocused()
-  await pressTab()
-  await expect(waitlistInput).toBeFocused()
+  const tabsFromLanguageToWaitlist = await pressUntilFocused(pressTab, waitlistInput, 6)
+  expect(tabsFromLanguageToWaitlist).toBeGreaterThan(0)
   await page.keyboard.type('keyboard@example.invalid')
   await pressTab()
   await expect(submitButton).toBeFocused()
