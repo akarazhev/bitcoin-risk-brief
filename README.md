@@ -51,9 +51,10 @@ mutate production state.
 
 The 2026-07-12 Launch Matrix / Accessibility / Public-Host QA pass recorded public desktop/mobile Chromium homepage
 smoke, public-host axe automation, public metadata checks, visible privacy/disclaimer copy, and no waitlist POST. The
-gate remains partial: manual keyboard, screen-reader/assistive-tech, physical-device/native browser, full WCAG/legal
-accessibility, broader latency, direct import proof if still required beyond public checks/operator confirmation, launch
-snapshot, and first-traffic evidence remain pending or unaccepted.
+gate remains partial after the later 2026-07-15 manual/native browser QA evidence: manual keyboard and native
+desktop/mobile browser QA are completed for the small pilot, but dedicated screen-reader/assistive-tech evidence, full
+WCAG/legal accessibility, broader latency, direct import proof if still required beyond public checks/operator
+confirmation, launch snapshot, and first-traffic evidence remain pending or unaccepted.
 
 Backup-gated USB production update evidence recorded on 2026-07-11 targets commit
 `86cb2dad889baf24a7464a105bbe2224f75b14ef` with evidence tag
@@ -85,6 +86,12 @@ off-server copy blocker as completed for the current first-traffic evidence set.
 `20260715T082457Z` contains PostgreSQL dump, BTC CSV, manifest, and checksum categories, and copied-backup SHA-256
 verification passed. Restore drill remains deferred until a safe staging or intentionally empty restore target exists.
 
+The 2026-07-15 sanitized manual/native browser QA evidence records that manual keyboard/native checks passed on the
+public site in notebook/native desktop browser and mobile/native browser categories. The page loaded correctly, current
+risk/date and the main visual/chart were visible, no obvious layout issue was reported, and the language toggle plus
+visible controls worked correctly. This completes the small-pilot manual/native browser QA blocker, but it does not claim
+a dedicated screen-reader or assistive-tech pass.
+
 The project is still not publicly launched. Launch remains blocked by external/operational evidence gates, and public
 readiness must be rechecked before any first traffic window because freshness is time-sensitive. Production host access
 is unavailable from this workspace; future production updates still require operator deployment or update verification on
@@ -111,8 +118,8 @@ Still external/operator before treating the pilot as publicly launched:
 - Use `scripts/launch_snapshot_packet.py` during the final pre-traffic window to create or validate a sanitized local
   launch snapshot packet from already collected evidence. The helper is implemented/tested, but the actual launch
   snapshot packet, production import provenance if still required beyond public checks/operator confirmation,
-  manual/native accessibility evidence, and first traffic remain pending. Dedicated API monitoring and alert delivery
-  proof remain broader-launch limitations.
+  dedicated screen-reader/assistive-tech resolution if still required by current operator decisions, and first traffic
+  remain pending. Dedicated API monitoring and alert delivery proof remain broader-launch limitations.
 - Keep public-host privacy/terms/disclaimer and SEO/social metadata verification current after future deployments, and
   complete launch governance, browser/device, accessibility, release-feedback, and operational evidence gates.
 - Keep the current Cloudflare Free-plan-compatible subset limited to a small operator-watched pilot; defer managed WAF
@@ -121,9 +128,9 @@ Still external/operator before treating the pilot as publicly launched:
 
 Recommended next production sequence before first traffic:
 
-1. Complete the remaining operator-owned setup after the 2026-07-15 backup/readiness evidence: manual/native
-   accessibility checks, sanitized import proof if still required beyond public checks/operator confirmation, and final
-   launch snapshot.
+1. Complete the remaining operator-owned setup after the 2026-07-15 backup/readiness and manual/native QA evidence:
+   dedicated screen-reader/assistive-tech resolution if still required by current operator decisions, sanitized import
+   proof if still required beyond public checks/operator confirmation, and final launch snapshot.
 2. Deploy or update the selected production path, then record project revision, service status, health/readiness, and
    public-host metadata/privacy/accessibility smoke evidence.
 3. Run the production refresh/import path and create the production import provenance packet from the real source,
@@ -134,8 +141,8 @@ Recommended next production sequence before first traffic:
 5. Keep the accepted small-pilot Tunnel health plus homepage monitor coverage active, run the public endpoint probe with
    the chosen freshness policy for final evidence, and defer dedicated external API monitors and alert delivery evidence
    to broader launch.
-6. Verify public-host privacy/terms/disclaimer copy, SEO/social metadata, browser/device smoke, and the required manual
-   keyboard, screen-reader/assistive-tech, and physical/native browser checks.
+6. Keep public-host privacy/terms/disclaimer copy, SEO/social metadata, browser/device smoke, and manual/native browser
+   evidence current, and resolve dedicated screen-reader/assistive-tech status without overclaiming.
 7. Create and validate the final sanitized launch snapshot packet from already collected evidence. Use
    [docs/launch-snapshot-evidence-packet-template.md](docs/launch-snapshot-evidence-packet-template.md) to prepare the
    packet outside Git first, then copy only sanitized final evidence into launch docs.

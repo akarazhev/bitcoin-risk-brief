@@ -528,9 +528,9 @@ evidence: status, dates, commit IDs, timestamp basenames, check names, and pass/
 tokens, `.env` values, raw waitlist contacts, private account details, raw logs, dashboard URLs, private contacts, or
 private filesystem paths.
 
-1. Complete the remaining operator-owned setup after the 2026-07-15 backup/readiness evidence: manual/native
-   accessibility checks, sanitized import proof if still required beyond public checks/operator confirmation, and final
-   launch snapshot.
+1. Complete the remaining operator-owned setup after the 2026-07-15 backup/readiness and manual/native QA evidence:
+   dedicated screen-reader/assistive-tech resolution if still required by current operator decisions, sanitized import
+   proof if still required beyond public checks/operator confirmation, and final launch snapshot.
 2. Deploy or update the selected production path. Record the project revision, selected deployment path, service status,
    local health/readiness, public readiness, and whether the current Cloudflare Free-plan edge subset is accepted or an
    upgraded edge posture is configured.
@@ -544,8 +544,8 @@ private filesystem paths.
    hostname with the chosen freshness policy for final evidence. Defer dedicated external API monitors and alert delivery
    evidence for health, readiness/freshness, stale data after the nightly update window, collector failures, and backup
    freshness to broader launch.
-6. Verify public-host privacy/terms/disclaimer copy, SEO/social metadata, browser/device smoke, and the required manual
-   keyboard, screen-reader/assistive-tech, and physical/native browser checks.
+6. Keep public-host privacy/terms/disclaimer copy, SEO/social metadata, browser/device smoke, and manual/native browser
+   evidence current, and resolve dedicated screen-reader/assistive-tech status without overclaiming.
 7. Create and validate the final launch snapshot packet from already collected sanitized evidence. Missing categories
    must remain pending; do not mark first traffic as run in the packet unless separate first-traffic evidence exists.
 8. Run the operator-watched first traffic test only after the remaining blockers are completed, the final launch snapshot
@@ -920,8 +920,9 @@ decision register in [Production Readiness](production-readiness.md):
   launch.
 - Accessibility and metadata pass: browser-capable public-hostname QA is recorded, and local focused accessibility,
   chart-alternative, waitlist live-region/keyboard, privacy/terms/disclaimer, and SEO/social metadata evidence exists.
-  Production-host verification, physical-device/native browser evidence, manual keyboard evidence, and manual
-  assistive-tech evidence still need operator evidence before first traffic. The accessibility gap is not accepted as a
+  The 2026-07-15 manual/native browser QA evidence completes the small-pilot manual keyboard/native desktop and mobile
+  browser blocker. Dedicated screen-reader/assistive-tech evidence still needs operator evidence or explicit acceptance
+  before first traffic under the current decision register. The remaining accessibility gap is not accepted as a
   limitation.
 - Restore drill: accepted limitation/deferred until a staging project or intentionally empty restore target exists. Do not
   run a restore drill against live production.

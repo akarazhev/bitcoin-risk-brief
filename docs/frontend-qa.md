@@ -261,13 +261,29 @@ Launch Matrix, accessibility, and public-host QA evidence recorded on 2026-07-12
   physical-device/native browser pass, full WCAG conformance audit, legal accessibility approval, cache-miss/edge-hit
   latency matrix, first traffic, or any waitlist submission.
 
+Manual/native browser QA evidence recorded on 2026-07-15:
+
+- Scope/safety: documentation-only evidence note. No deploy, refresh/import, cache warmup, waitlist POST,
+  Cloudflare/routing change, production endpoint probe, monitor configuration, first traffic, push, or tag was performed.
+  No screenshots, exact device models, user accounts, contact details, or private browser/profile details are recorded.
+- Public site checked: `https://bitcoinriskbrief.minihub.app/`.
+- Manual keyboard/native status: passed for the small operator-watched pilot.
+- Sanitized environment categories checked: notebook/native desktop browser and mobile/native browser.
+- Reported result: the page loaded correctly; current risk/date were visible; the main visual/chart was visible; no
+  obvious layout issue was reported; and the language toggle plus visible controls worked correctly.
+- Waitlist boundary: no production waitlist POST was claimed by this evidence.
+- Accessibility boundary: this is not a dedicated screen-reader/assistive-tech tool pass and does not claim full
+  WCAG/accessibility compliance. Existing automated axe/accessibility evidence remains supporting evidence, while
+  dedicated screen-reader/assistive-tech status must remain separate unless explicitly accepted by the operator for the
+  small pilot.
+
 Overall browser/device/accessibility/metadata/privacy launch-gate status: partial/blocked. Automated Playwright smoke,
 the local axe scan, source inspection, local chart data alternative, local waitlist live-region/keyboard smoke, local
 SEO/social metadata implementation, local privacy/terms/disclaimer note, 2026-07-11 public-host metadata/privacy smoke,
-and 2026-07-12 public-host desktop/mobile Chromium smoke plus public-host axe provide useful evidence. The full
-native/manual browser-device matrix, manual keyboard/screen-reader/assistive-tech evidence, broader production-host
-accessibility beyond the automated axe scan, first traffic, and full WCAG/accessibility compliance remain not
-launch-passed.
+2026-07-12 public-host desktop/mobile Chromium smoke plus public-host axe, and the 2026-07-15 manual/native desktop and
+mobile browser QA provide useful evidence. The small-pilot manual keyboard/native browser blocker is completed; dedicated
+screen-reader/assistive-tech evidence, broader production-host accessibility beyond the automated axe/manual native
+evidence, first traffic, and full WCAG/accessibility compliance remain not launch-passed.
 
 ## Reproducing Locally
 
