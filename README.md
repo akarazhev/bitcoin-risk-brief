@@ -31,14 +31,15 @@ Repository-local bundled BTC CSV evidence recorded on 2026-07-11: commit
 does not prove a production deployment, production database import, public-host freshness after this commit, full
 production import provenance, launch readiness, or first traffic.
 
-The public pilot hostname exists at `https://bitcoinriskbrief.minihub.app` and has evidence through 2026-07-12. The
+The public pilot hostname exists at `https://bitcoinriskbrief.minihub.app` and has evidence through 2026-07-15. The
 2026-07-05 public `/api/readiness` HTTP 503 stale-data blocker is closed by later public evidence: 2026-07-07
 post-deploy checks returned public readiness HTTP 200/fresh, the 2026-07-10 monitoring evidence recorded public
 `/api/health`, `/api/readiness`, and `/api/risk/latest` healthy/current, and the 2026-07-11 backup-gated USB update
-evidence recorded public readiness/latest checks passed. Latest recorded local public GET-only probe evidence is from
-2026-07-12: public health/readiness/latest-risk checks passed with `latest_date=2026-07-11`, latest risk `0.2190`,
-freshness policy `max_data_age_days:2`, and required cache headers present. This public probe does not prove external
-monitor/provider configuration or alert delivery.
+evidence recorded public readiness/latest checks passed. Latest recorded public GET-only readiness/latest-risk evidence
+is from 2026-07-15: public health/readiness/latest-risk checks passed with `latest_date=2026-07-14`, `row_count=5846`,
+latest risk `0.2694028326125623`, `risk_state=low`, freshness policy `max_age_days=2`, readiness `no-store`, and
+latest-risk cache headers present. This public evidence does not prove dedicated external API monitor/provider
+configuration or alert delivery.
 
 The 2026-07-12 AI-resolvable pre-traffic readiness sweep completed the remaining local/GET-only checks available from
 this workspace without mutating production. Frontend unit tests passed 27 tests, the frontend production build passed,
@@ -51,8 +52,8 @@ mutate production state.
 The 2026-07-12 Launch Matrix / Accessibility / Public-Host QA pass recorded public desktop/mobile Chromium homepage
 smoke, public-host axe automation, public metadata checks, visible privacy/disclaimer copy, and no waitlist POST. The
 gate remains partial: manual keyboard, screen-reader/assistive-tech, physical-device/native browser, full WCAG/legal
-accessibility, broader latency, fresh backup/off-server copy, direct import proof, launch snapshot, and first-traffic
-evidence remain pending or unaccepted.
+accessibility, broader latency, direct import proof if still required beyond public checks/operator confirmation, launch
+snapshot, and first-traffic evidence remain pending or unaccepted.
 
 Backup-gated USB production update evidence recorded on 2026-07-11 targets commit
 `86cb2dad889baf24a7464a105bbe2224f75b14ef` with evidence tag
@@ -78,6 +79,12 @@ provider category is recorded, and homepage availability monitoring is configure
 claim full API readiness/freshness monitoring; dedicated external `/api/health` and `/api/readiness` monitors plus
 explicit alert delivery evidence remain deferred before broader launch.
 
+The 2026-07-15 sanitized backup/off-server copy and public readiness evidence records the fresh manual backup plus
+off-server copy blocker as completed for the current first-traffic evidence set. The deployed USB package source is
+`8020384ddaa53f3805f0f29c54928ea53c91cce1`, not current repository `18e07e6`; copied backup timestamp basename
+`20260715T082457Z` contains PostgreSQL dump, BTC CSV, manifest, and checksum categories, and copied-backup SHA-256
+verification passed. Restore drill remains deferred until a safe staging or intentionally empty restore target exists.
+
 The project is still not publicly launched. Launch remains blocked by external/operational evidence gates, and public
 readiness must be rechecked before any first traffic window because freshness is time-sensitive. Production host access
 is unavailable from this workspace; future production updates still require operator deployment or update verification on
@@ -93,19 +100,19 @@ Still external/operator before treating the pilot as publicly launched:
   availability monitoring. Dedicated external `/api/health` and `/api/readiness` freshness monitors, stale-data
   after-window alerting, collector-failure alerts, backup freshness alerts, and explicit alert delivery evidence remain
   pending before broader launch.
-- Create a fresh manual backup plus off-server copy before first traffic. Recurring scheduled backups, recurring
-  off-server copies, and backup freshness monitoring are deferred until after the initial operator-watched pilot,
-  conditional on the fresh manual backup/off-server copy passing before traffic. Restore drill remains deferred until a
-  separate staging or intentionally empty restore target exists.
+- Keep the 2026-07-15 fresh manual backup/off-server copy evidence available for the final launch snapshot. Recurring
+  scheduled backups, recurring off-server copies, and backup freshness monitoring are deferred until after the initial
+  operator-watched pilot. Restore drill remains deferred until a separate staging or intentionally empty restore target
+  exists.
 - Capture direct production import source/archive provenance outside the repository, including source snapshot, manifest,
   `sha256`, retrieval metadata, row count, covered range, expected tail, validation/readiness output, and cache evidence.
   The local `scripts/import_provenance_packet.py` helper is implemented/tested to build or validate sanitized manifests
   for future runs, but a real production packet and direct production validation/import metadata remain pending.
 - Use `scripts/launch_snapshot_packet.py` during the final pre-traffic window to create or validate a sanitized local
   launch snapshot packet from already collected evidence. The helper is implemented/tested, but the actual launch
-  snapshot packet, final pre-traffic public readiness evidence, production import provenance, fresh backup/off-server
-  evidence, manual/native accessibility evidence, and first traffic remain pending. Dedicated API monitoring and alert
-  delivery proof remain broader-launch limitations.
+  snapshot packet, production import provenance if still required beyond public checks/operator confirmation,
+  manual/native accessibility evidence, and first traffic remain pending. Dedicated API monitoring and alert delivery
+  proof remain broader-launch limitations.
 - Keep public-host privacy/terms/disclaimer and SEO/social metadata verification current after future deployments, and
   complete launch governance, browser/device, accessibility, release-feedback, and operational evidence gates.
 - Keep the current Cloudflare Free-plan-compatible subset limited to a small operator-watched pilot; defer managed WAF
@@ -114,15 +121,16 @@ Still external/operator before treating the pilot as publicly launched:
 
 Recommended next production sequence before first traffic:
 
-1. Complete the remaining operator-owned setup after the 2026-07-14 monitoring acceptance: fresh backup/off-server copy,
-   manual/native accessibility checks, sanitized import proof, final public readiness/latest-risk checks, and final launch
-   snapshot.
+1. Complete the remaining operator-owned setup after the 2026-07-15 backup/readiness evidence: manual/native
+   accessibility checks, sanitized import proof if still required beyond public checks/operator confirmation, and final
+   launch snapshot.
 2. Deploy or update the selected production path, then record project revision, service status, health/readiness, and
    public-host metadata/privacy/accessibility smoke evidence.
 3. Run the production refresh/import path and create the production import provenance packet from the real source,
    canonical output, validation/readiness, cache evidence, and deployment context.
-4. Create a fresh backup, copy it off-server, run the backup freshness checker against both roots, and keep restore drill
-   pending until a staging or intentionally empty restore target exists.
+4. Carry the completed 2026-07-15 fresh backup/off-server copy evidence into the final launch snapshot, keep recurring
+   backup automation as post-pilot work, and keep restore drill pending until a staging or intentionally empty restore
+   target exists.
 5. Keep the accepted small-pilot Tunnel health plus homepage monitor coverage active, run the public endpoint probe with
    the chosen freshness policy for final evidence, and defer dedicated external API monitors and alert delivery evidence
    to broader launch.

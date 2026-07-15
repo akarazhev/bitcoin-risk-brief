@@ -528,18 +528,18 @@ evidence: status, dates, commit IDs, timestamp basenames, check names, and pass/
 tokens, `.env` values, raw waitlist contacts, private account details, raw logs, dashboard URLs, private contacts, or
 private filesystem paths.
 
-1. Complete the remaining operator-owned setup after the 2026-07-14 monitoring acceptance: fresh backup/off-server copy,
-   manual/native accessibility checks, sanitized import proof, final public readiness/latest-risk checks, and final launch
-   snapshot.
+1. Complete the remaining operator-owned setup after the 2026-07-15 backup/readiness evidence: manual/native
+   accessibility checks, sanitized import proof if still required beyond public checks/operator confirmation, and final
+   launch snapshot.
 2. Deploy or update the selected production path. Record the project revision, selected deployment path, service status,
    local health/readiness, public readiness, and whether the current Cloudflare Free-plan edge subset is accepted or an
    upgraded edge posture is configured.
 3. Run the selected production refresh/import path. Create the production import provenance packet from the real source
    snapshot, source `sha256`, retrieval metadata, canonical output, validation/readiness output, public cache evidence,
    row count/range, expected tail, and deployment/operator context.
-4. Create a fresh backup, copy it off-server, verify checksums in both locations, and run
-   `scripts/check_backup_freshness.py` with the chosen freshness window and required off-server root. Keep the restore
-   drill pending until a staging project or intentionally empty restore target exists.
+4. Carry the completed 2026-07-15 fresh backup/off-server copy evidence into the final launch snapshot, keep recurring
+   backup automation as post-pilot work, and keep the restore drill pending until a staging project or intentionally empty
+   restore target exists.
 5. Keep the accepted small-pilot monitoring coverage active. Run `scripts/check_public_endpoints.py` against the public
    hostname with the chosen freshness policy for final evidence. Defer dedicated external API monitors and alert delivery
    evidence for health, readiness/freshness, stale data after the nightly update window, collector failures, and backup
@@ -548,9 +548,9 @@ private filesystem paths.
    keyboard, screen-reader/assistive-tech, and physical/native browser checks.
 7. Create and validate the final launch snapshot packet from already collected sanitized evidence. Missing categories
    must remain pending; do not mark first traffic as run in the packet unless separate first-traffic evidence exists.
-8. Run the operator-watched first traffic test only after freshness is current, all required blockers are completed, the
-   final launch snapshot exists, and the only remaining limitations are the current accepted limitations, including the
-   2026-07-14 monitoring accepted limitation.
+8. Run the operator-watched first traffic test only after the remaining blockers are completed, the final launch snapshot
+   exists, and the only remaining limitations are the current accepted limitations, including the 2026-07-14 monitoring
+   accepted limitation and the 2026-07-15 fresh backup/off-server copy evidence.
 
 ## Cloudflare Edge Rules
 
@@ -676,10 +676,11 @@ python3 scripts/check_backup_freshness.py
 ```
 
 Local checker implementation and unit coverage are in place. A 2026-07-11 backup-gated USB production update recorded a
-copied/off-server freshness/checksum checker pass for timestamp basename `20260711T190355Z` as valid and fresh, with the
-expected PostgreSQL dump, BTC CSV, manifest, and checksum artifacts present. Production scheduling, recurring off-server
-copy configuration, and external alert delivery remain pending until an operator records redacted recurring evidence from
-the production host or monitoring system.
+copied/off-server freshness/checksum checker pass for timestamp basename `20260711T190355Z` as valid and fresh, and the
+2026-07-15 fresh manual backup/off-server copy evidence records timestamp basename `20260715T082457Z` with PostgreSQL
+dump, BTC CSV, manifest, and checksum artifacts present plus copied-backup SHA-256 verification passed. Production
+scheduling, recurring off-server copy configuration, and external alert delivery remain pending until an operator records
+redacted recurring evidence from the production host or monitoring system.
 
 Use [docs/backup-restore-evidence-packet-template.md](backup-restore-evidence-packet-template.md) to collect the
 sanitized backup run, off-server copy, freshness/checksum, scheduler, alert-delivery, and safe restore-target fields
@@ -896,6 +897,10 @@ decision register in [Production Readiness](production-readiness.md):
   secrets/.env, and backups is founder/operator, and the account recovery record is created outside Git and current. Track
   recovery for the categories in the resource checklist above, but do not store holders, emails, account IDs, secrets,
   account exports, personal account details, secret locations, or private recovery paths in Git.
+- Fresh manual backup/off-server copy: completed for the current first-traffic evidence set by the 2026-07-15 copied
+  backup timestamp basename `20260715T082457Z`; PostgreSQL dump, BTC CSV, manifest, and checksum categories were present,
+  and copied-backup SHA-256 verification passed. Recurring backup automation, backup freshness monitoring, and backup
+  alert delivery remain deferred until after the initial operator-watched pilot.
 - Dependency and security maintenance cadence: `.github/dependabot.yml` is configured locally for conservative monthly
   version-update checks across frontend npm, backend and collector pip requirements, GitHub Actions, Dockerfiles, and the
   root `docker-compose` ecosystem entry for Compose-style image references. GitHub-hosted Dependabot execution, first PR
