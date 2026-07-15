@@ -103,7 +103,7 @@ launch API readiness/freshness monitoring and alert delivery, restore drill, fin
 | Phase 5: Performance, Caching, And Abuse Protection | Complete in repository; post-deploy Cloudflare HIT/fast repeat behavior verified for public smoke | `3c66df9`, `5bb179d`, `cache-warmup-local-complete-2026-07-05`, 2026-07-07 repeated public cache requests about `0.14s` to `0.22s` with Cloudflare `cf-cache-status: HIT`, `backend/app/public_cache.py`, `backend/app/main.py`, `scripts/cloudflare_edge_rules.py`, `backend/tests/test_cloudflare_edge_rules.py` |
 | Phase 6: Production Environment And Deployment | Verified for USB deploy/update and public freshness; closed as stale-data blocker | 2026-07-11 backup-gated USB update passed for commit `86cb2dad889baf24a7464a105bbe2224f75b14ef` with server-reported exit code 0; public readiness/latest checks passed with `latest_date=2026-07-10`, `row_count=5842`, `data_fresh=True`, and required cache headers present. |
 | Phase 7: Backups, Restore, And Monitoring | Partially verified; small-pilot monitoring accepted with limitation | One checksum-verified off-server USB backup copy is recorded for 2026-07-07, the 2026-07-11 backup-gated USB update records copied/off-server freshness/checksum checker status valid and fresh for `20260711T190355Z`, and the 2026-07-15 fresh manual backup/off-server copy records timestamp basename `20260715T082457Z` with PostgreSQL dump, BTC CSV, manifest, and checksum categories present plus copied-backup SHA-256 verification passed. The local backup freshness/off-server copy checker and public endpoint probe are implemented and tested, and the latest public readiness/latest-risk checks were healthy and fresh through `latest_date=2026-07-14`. The 2026-07-14 operator decision accepts Cloudflare Tunnel Health Alert plus public homepage availability monitoring for the small operator-watched pilot. Restore drill remains deferred because the current setup has only the live production server and no separate restore target; recurring production backup scheduling/off-server-copy evidence, dedicated external `/api/health` and `/api/readiness` monitoring, alert delivery, backup freshness alert, collector failure alert, direct production validation/import metadata, and exact import source path/category remain pending for broader launch or later operations. |
-| Phase 8: Launch Checklist And First Traffic Test | Blocked by remaining operator evidence gates; freshness, fresh backup/off-server, and manual/native browser blockers closed; first traffic test not run | 2026-07-15 evidence records public readiness/latest fresh for `2026-07-14`, `row_count=5846`, `risk_state=low`, readiness `no-store`, latest-risk cache headers present, and copied-backup SHA-256 verification passed for timestamp basename `20260715T082457Z`. The deployed USB package source for that evidence is `8020384ddaa53f3805f0f29c54928ea53c91cce1`, not current repository `18e07e6`. The 2026-07-15 manual/native browser QA evidence records manual keyboard/native status passed for notebook/native desktop browser and mobile/native browser categories on the public site, with page load, current risk/date, main visual/chart, layout, language toggle, and visible controls reported working. It does not claim a dedicated screen-reader/assistive-tech pass. The 2026-07-08 browser-like waitlist smoke is closed. The 2026-07-09 import provenance pass verified public data/cache consistency but left exact source-path proof pending. The 2026-07-12 operator decision pass records sanitized waitlist/support/account/source/dependency/Cloudflare/backup/feedback decisions as partial or accepted limitations where applicable, the later 2026-07-12 support/recovery evidence records support mailbox readiness plus the current outside-Git account recovery record, and the 2026-07-14 monitoring acceptance closes the small-pilot monitoring blocker with limitation. Dedicated screen-reader/assistive-tech evidence or explicit operator acceptance if still required by current decisions, sanitized import proof if still required beyond public checks/operator confirmation, fresh launch-window readiness/latest-risk checks, final launch snapshot, separate operator approval, and first traffic remain pending. |
+| Phase 8: Launch Checklist And First Traffic Test | Blocked by remaining operator evidence gates; freshness, fresh backup/off-server, manual/native browser, and assistive-tech proxy blockers closed for the small pilot; first traffic test not run | 2026-07-15 evidence records public readiness/latest fresh for `2026-07-14`, `row_count=5846`, `risk_state=low`, readiness `no-store`, latest-risk cache headers present, and copied-backup SHA-256 verification passed for timestamp basename `20260715T082457Z`. The deployed USB package source for that evidence is `8020384ddaa53f3805f0f29c54928ea53c91cce1`, not current repository `18e07e6`. The 2026-07-15 manual/native browser QA evidence records manual keyboard/native status passed for notebook/native desktop browser and mobile/native browser categories on the public site, with page load, current risk/date, main visual/chart, layout, language toggle, and visible controls reported working. The 2026-07-15 assistive-tech proxy QA evidence records local tests, build, focused axe/keyboard smoke, and a local Playwright ARIA snapshot proxy passed, while explicitly not claiming a true screen-reader/manual assistive-tech pass. That missing dedicated pass is an accepted limitation only for the small operator-watched pilot. The 2026-07-08 browser-like waitlist smoke is closed. The 2026-07-09 import provenance pass verified public data/cache consistency but left exact source-path proof pending. The 2026-07-12 operator decision pass records sanitized waitlist/support/account/source/dependency/Cloudflare/backup/feedback decisions as partial or accepted limitations where applicable, the later 2026-07-12 support/recovery evidence records support mailbox readiness plus the current outside-Git account recovery record, and the 2026-07-14 monitoring acceptance closes the small-pilot monitoring blocker with limitation. Sanitized import proof if still required beyond public checks/operator confirmation, fresh launch-window readiness/latest-risk checks, final launch snapshot, separate operator approval, and first traffic remain pending. |
 | Phase 9: Post-Launch Learning Loop | Pending | Starts after launch traffic creates usage evidence, including optional agent-access demand testing |
 | Phase 10: Risk Methodology Research | Pending | Starts only after launch evidence justifies method work; current production metric remains `crypto-scout-canonical-v1` |
 | Phase 11: Distribution Channel Research | Pending | Evaluates PWA, Telegram Mini App, browser extension, and other channel packaging after launch evidence |
@@ -133,7 +133,8 @@ Current production-pilot progress after Phase 1-5:
   mobile horizontal overflow at a 390px viewport; the 2026-07-11 desktop/mobile public smoke verified H1/readiness/latest
   date visibility, nonblank charts, EN/RU toggle behavior, no horizontal overflow, the privacy/disclaimer note, and no
   waitlist POSTs; the 2026-07-15 manual/native browser QA evidence completes the small-pilot manual keyboard/native
-  desktop and mobile browser blocker without claiming a dedicated screen-reader/assistive-tech pass;
+  desktop and mobile browser blocker, and the 2026-07-15 assistive-tech proxy QA evidence completes the AI-doable proxy
+  check while leaving a true screen-reader/manual assistive-tech pass as an accepted small-pilot limitation;
 - Cloudflare Rulesets API apply succeeded for the custom waitlist bot challenge, one waitlist rate-limit rule, waitlist
   cache bypass, and public-read origin-cache rules;
 - the active Cloudflare plan did not entitle the zone to execute the managed WAF ruleset, more than one rate-limit rule,
@@ -157,10 +158,10 @@ Remaining production-pilot gaps:
   recurring daily backups, recurring off-server copies, production backup freshness monitoring, and backup freshness
   alerts are deferred until after the initial operator-watched pilot; the restore drill is explicitly deferred until a
   staging or intentionally empty restore target exists;
-- complete the remaining operator-owned first-traffic blockers after the 2026-07-15 backup/readiness and manual/native QA
-  evidence: dedicated screen-reader/assistive-tech resolution if still required by current operator decisions, sanitized
-  import proof if still required beyond public checks/operator confirmation, fresh launch-window readiness/latest-risk
-  checks, final launch snapshot, and separate operator approval/run for first traffic;
+- complete the remaining operator-owned first-traffic blockers after the 2026-07-15 backup/readiness, manual/native QA,
+  and assistive-tech proxy QA evidence: sanitized import proof if still required beyond public checks/operator
+  confirmation, fresh launch-window readiness/latest-risk checks, final launch snapshot, and separate operator
+  approval/run for first traffic;
 - broader browser/device launch matrix if required beyond the small-pilot manual/native pass, remaining cache-miss latency
   measurement, and first traffic test still need to run; the stale-data blocker, browser-like waitlist smoke, and
   small-pilot manual/native browser QA blocker are closed, but broader launch gates remain;
@@ -175,9 +176,9 @@ Remaining production-pilot gaps:
   sanitized JSON packet from already collected evidence; use
   [Launch Snapshot Evidence Packet Template](launch-snapshot-evidence-packet-template.md) to prepare the final packet
   outside Git first; the helper is implemented/tested, but the real final launch snapshot packet, sanitized import proof
-  if still required beyond public checks/operator confirmation, dedicated screen-reader/assistive-tech resolution if still
-  required by current operator decisions, and first traffic remain pending; dedicated API monitoring and alert delivery
-  proof remain broader-launch limitations;
+  if still required beyond public checks/operator confirmation, fresh launch-window public readiness/latest-risk recheck,
+  operator approval, and first traffic remain pending; dedicated API monitoring, alert delivery proof, and a true
+  screen-reader/manual assistive-tech pass remain broader-launch limitations;
 - post-launch learning cannot start until real usage evidence exists.
 
 ## Roadmap Phases
@@ -434,11 +435,12 @@ path/category or direct production validation/import table metadata. The 2026-07
 small-pilot monitoring blocker with limitation: Cloudflare Tunnel Health Alert plus public homepage availability
 monitoring are accepted, while dedicated API monitoring, alert delivery, recurring backup freshness alert, and collector
 failure alert evidence remain broader-launch or later operations work. The 2026-07-15 manual/native browser QA evidence
-closes the small-pilot manual keyboard/native desktop and mobile browser blocker without claiming a dedicated
-screen-reader/assistive-tech pass. Broader browser/device/governance evidence, dedicated screen-reader/assistive-tech
-resolution if still required by current operator decisions, sanitized import proof if still required beyond public
-checks/operator confirmation, final launch snapshot, separate operator approval, and first traffic remain incomplete. The
-2026-07-10
+closes the small-pilot manual keyboard/native desktop and mobile browser blocker, and the 2026-07-15 assistive-tech proxy
+QA pass records local tests, focused axe/keyboard smoke, and a local Playwright ARIA snapshot proxy as passed. It does
+not claim a true screen-reader/manual assistive-tech pass, full WCAG conformance, or legal accessibility approval; the
+missing dedicated pass is accepted only as a small-pilot limitation. Broader browser/device/governance evidence,
+sanitized import proof if still required beyond public checks/operator confirmation, final launch snapshot, separate
+operator approval, and first traffic remain incomplete. The 2026-07-10
 browser/device/accessibility/metadata gap pass added automated smoke and
 public metadata gap evidence. The later focused accessibility local pass added `@axe-core/playwright`; `npm run smoke
 --prefix frontend` passed 25 checks across the Playwright browser/device profiles, including the axe scan and
@@ -447,8 +449,8 @@ screen-reader-only current summary, recent risk-history table, and risk-threshol
 verification. The 2026-07-10 waitlist live-region pass added polite status semantics for submitting/success feedback,
 alert semantics for errors, and unit plus Playwright coverage. The 2026-07-10 privacy/terms/disclaimer pass added compact
 public note copy near the waitlist with local unit/build/smoke verification, and the 2026-07-11 browser smoke verified it
-on the public host. Dedicated screen-reader/assistive-tech evidence and broader production-host accessibility evidence
-remain pending unless explicitly accepted for the small pilot. The 2026-07-10 local dependency/license and
+on the public host. Broader production-host accessibility evidence and a true screen-reader/manual assistive-tech pass
+remain pending before broader launch or broader accessibility claims. The 2026-07-10 local dependency/license and
 dependency update automation passes record npm lockfile license metadata, Python manifest gaps, container references, CI
 references, and local Dependabot configuration in [Dependency and License Review](dependency-license-review.md), while
 GitHub-hosted Dependabot execution, first PR evidence, and external/manual confirmation remain pending. The 2026-07-10
@@ -530,13 +532,13 @@ Post-deploy snapshot recorded on 2026-07-07:
   `age` around `33` to `35`. App-level `X-Cache` may still show `MISS` from a cached origin response, so that header
   alone is not a public-latency blocker.
 
-Still pending for Phase 8: dedicated screen-reader/assistive-tech evidence or explicit operator acceptance if still
-required by current decisions, broader production-host accessibility evidence, localization add-on if accepted for
-pre-traffic scope, release/feedback/evidence checklist, GitHub-hosted Dependabot execution and first PR evidence,
-external/manual dependency-license confirmation, data-correction/service-target evidence, direct import-provenance source
-archive and production validation/import metadata proof, external GitHub settings or sibling product-ideas updates if
-separately requested, any remaining endpoint cache-miss latency measurement not covered by the post-deploy smoke, and
-first traffic test. The
+Still pending for Phase 8: broader production-host accessibility evidence and a true screen-reader/manual assistive-tech
+pass before broader launch or broader accessibility claims, localization add-on if accepted for pre-traffic scope,
+release/feedback/evidence checklist, GitHub-hosted Dependabot execution and first PR evidence, external/manual
+dependency-license confirmation, data-correction/service-target evidence, direct import-provenance source archive and
+production validation/import metadata proof, external GitHub settings or sibling product-ideas updates if separately
+requested, any remaining endpoint cache-miss latency measurement not covered by the post-deploy smoke, final
+launch-window readiness/latest-risk recheck, final launch snapshot, operator approval, and first traffic test. The
 tracked repository documentation and portfolio presentation pass is locally complete as of 2026-07-06. Do not mark the
 first traffic test complete until the required blockers are completed, the final launch snapshot exists, only the
 recorded accepted limitations remain, and the traffic window actually runs.

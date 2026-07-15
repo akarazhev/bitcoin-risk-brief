@@ -51,10 +51,13 @@ mutate production state.
 
 The 2026-07-12 Launch Matrix / Accessibility / Public-Host QA pass recorded public desktop/mobile Chromium homepage
 smoke, public-host axe automation, public metadata checks, visible privacy/disclaimer copy, and no waitlist POST. The
-gate remains partial after the later 2026-07-15 manual/native browser QA evidence: manual keyboard and native
-desktop/mobile browser QA are completed for the small pilot, but dedicated screen-reader/assistive-tech evidence, full
-WCAG/legal accessibility, broader latency, direct import proof if still required beyond public checks/operator
-confirmation, launch snapshot, and first-traffic evidence remain pending or unaccepted.
+2026-07-15 manual/native browser QA evidence completes the small-pilot manual keyboard/native desktop and mobile browser
+blocker. The 2026-07-15 assistive-tech proxy QA pass records that local tests, focused axe smoke, keyboard/focus smoke,
+and a local Playwright ARIA snapshot proxy passed, with no waitlist POST or production mutation. No true VoiceOver,
+NVDA, TalkBack, or manual assistive-tech pass was performed; that missing dedicated pass is accepted only as a limitation
+for the small operator-watched pilot. Full WCAG/legal accessibility, broader latency, direct import proof if still
+required beyond public checks/operator confirmation, launch snapshot, and first-traffic evidence remain pending or
+unclaimed.
 
 Backup-gated USB production update evidence recorded on 2026-07-11 targets commit
 `86cb2dad889baf24a7464a105bbe2224f75b14ef` with evidence tag
@@ -92,6 +95,14 @@ risk/date and the main visual/chart were visible, no obvious layout issue was re
 visible controls worked correctly. This completes the small-pilot manual/native browser QA blocker, but it does not claim
 a dedicated screen-reader or assistive-tech pass.
 
+The 2026-07-15 assistive-tech proxy QA evidence records that the strongest AI-doable local/browser accessibility proxy
+checks passed: `npm test --prefix frontend` passed 4 files / 54 tests, `npm run build --prefix frontend` passed,
+`npm run smoke --prefix frontend` passed 30 local mocked Playwright checks after a stale keyboard-smoke assumption was
+fixed, and a local Playwright ARIA snapshot exposed the main navigation, H1, current risk/readiness, methodology,
+waitlist textbox/button, and chart data alternatives. This does not claim a real screen-reader/manual assistive-tech
+pass or full WCAG/legal accessibility compliance; the missing dedicated pass is an accepted limitation only for the small
+operator-watched pilot.
+
 The project is still not publicly launched. Launch remains blocked by external/operational evidence gates, and public
 readiness must be rechecked before any first traffic window because freshness is time-sensitive. Production host access
 is unavailable from this workspace; future production updates still require operator deployment or update verification on
@@ -118,8 +129,9 @@ Still external/operator before treating the pilot as publicly launched:
 - Use `scripts/launch_snapshot_packet.py` during the final pre-traffic window to create or validate a sanitized local
   launch snapshot packet from already collected evidence. The helper is implemented/tested, but the actual launch
   snapshot packet, production import provenance if still required beyond public checks/operator confirmation,
-  dedicated screen-reader/assistive-tech resolution if still required by current operator decisions, and first traffic
-  remain pending. Dedicated API monitoring and alert delivery proof remain broader-launch limitations.
+  fresh launch-window public readiness/latest-risk recheck, operator approval, and first traffic remain pending. Dedicated
+  API monitoring, alert delivery proof, and a true screen-reader/manual assistive-tech pass remain broader-launch
+  limitations.
 - Keep public-host privacy/terms/disclaimer and SEO/social metadata verification current after future deployments, and
   complete launch governance, browser/device, accessibility, release-feedback, and operational evidence gates.
 - Keep the current Cloudflare Free-plan-compatible subset limited to a small operator-watched pilot; defer managed WAF
@@ -128,9 +140,9 @@ Still external/operator before treating the pilot as publicly launched:
 
 Recommended next production sequence before first traffic:
 
-1. Complete the remaining operator-owned setup after the 2026-07-15 backup/readiness and manual/native QA evidence:
-   dedicated screen-reader/assistive-tech resolution if still required by current operator decisions, sanitized import
-   proof if still required beyond public checks/operator confirmation, and final launch snapshot.
+1. Complete the remaining operator-owned setup after the 2026-07-15 backup/readiness, manual/native QA, and
+   assistive-tech proxy QA evidence: sanitized import proof if still required beyond public checks/operator confirmation,
+   fresh launch-window public readiness/latest-risk recheck, and final launch snapshot.
 2. Deploy or update the selected production path, then record project revision, service status, health/readiness, and
    public-host metadata/privacy/accessibility smoke evidence.
 3. Run the production refresh/import path and create the production import provenance packet from the real source,
@@ -141,8 +153,9 @@ Recommended next production sequence before first traffic:
 5. Keep the accepted small-pilot Tunnel health plus homepage monitor coverage active, run the public endpoint probe with
    the chosen freshness policy for final evidence, and defer dedicated external API monitors and alert delivery evidence
    to broader launch.
-6. Keep public-host privacy/terms/disclaimer copy, SEO/social metadata, browser/device smoke, and manual/native browser
-   evidence current, and resolve dedicated screen-reader/assistive-tech status without overclaiming.
+6. Keep public-host privacy/terms/disclaimer copy, SEO/social metadata, browser/device smoke, manual/native browser
+   evidence, and assistive-tech proxy evidence current without claiming a true screen-reader/manual assistive-tech pass,
+   full WCAG conformance, or legal accessibility approval.
 7. Create and validate the final sanitized launch snapshot packet from already collected evidence. Use
    [docs/launch-snapshot-evidence-packet-template.md](docs/launch-snapshot-evidence-packet-template.md) to prepare the
    packet outside Git first, then copy only sanitized final evidence into launch docs.

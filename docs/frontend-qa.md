@@ -277,12 +277,44 @@ Manual/native browser QA evidence recorded on 2026-07-15:
   dedicated screen-reader/assistive-tech status must remain separate unless explicitly accepted by the operator for the
   small pilot.
 
+Assistive-tech proxy QA evidence recorded on 2026-07-15:
+
+- Scope/safety: local frontend tests, local browser automation, mocked API routes, and documentation evidence only. No
+  deploy, refresh/import, cache warmup, production endpoint probe, waitlist POST, Cloudflare/routing change, monitor
+  configuration, backup/off-server copy, restore drill, first traffic, push, or tag was performed. The local smoke suite
+  mocked `/api/waitlist`; the additional ARIA snapshot probe aborted any waitlist request.
+- Existing accessibility coverage inspected: `frontend/src/App.test.tsx` covers waitlist status/alert semantics,
+  invalid-input linkage, no browser-storage persistence for waitlist contacts, screen-reader chart data alternatives,
+  accessible chart labels, visible focus CSS, Arabic RTL/LTR numeric isolation, and localized waitlist behavior.
+  `frontend/e2e/frontend-quality.spec.ts` runs mocked-route layout/chart checks, a focused axe scan, keyboard/focus
+  navigation through public controls, degraded readiness, API failure, and Arabic RTL browser-profile checks.
+- Local verification passed: `npm test --prefix frontend` passed 4 files / 54 tests; `npm run build --prefix frontend`
+  passed with `dist/index.html` 1.36 kB gzip 0.46 kB, `index` JS 254.31 kB gzip 81.54 kB, and lazy `Chart` JS 557.61 kB
+  gzip 188.87 kB.
+- Local smoke verification: the first sandboxed `npm run smoke --prefix frontend` attempt was blocked by
+  `listen EPERM` on `127.0.0.1:4173`; the approved local/browser rerun exposed a stale keyboard-smoke assumption after
+  25 checks passed and 5 keyboard checks failed. The smoke was updated to verify bounded keyboard reachability through
+  the current tab order instead of assuming the waitlist input immediately follows the language selector. The focused
+  Chromium keyboard check then passed, and the full approved local mocked smoke passed 30 Playwright checks across
+  Chromium, Firefox, WebKit, Pixel 5, and iPhone 13 profiles, including the focused axe scan and keyboard/focus smoke.
+- Local ARIA snapshot proxy: Playwright `locator('main').ariaSnapshot()` on the built local app with mocked API routes
+  exposed the main navigation, H1, current risk/readiness region, methodology region, waitlist textbox/button, and
+  screen-reader chart data alternatives including recent risk-history and threshold-price tables. This was local browser
+  accessibility-tree proxy evidence only and did not submit the waitlist.
+- Result: assistive-tech proxy evidence passed for the AI-doable local/browser checks. This is not a VoiceOver, NVDA,
+  TalkBack, switch-control, screen-magnifier, or manual assistive-tech pass, and it is not full WCAG conformance or legal
+  accessibility approval.
+- Pilot limitation: a dedicated screen-reader/manual assistive-tech pass was not performed. The absence of that pass is
+  recorded as an accepted limitation only for the small operator-watched pilot; it remains deferred before broader
+  accessibility claims or broader launch.
+
 Overall browser/device/accessibility/metadata/privacy launch-gate status: partial/blocked. Automated Playwright smoke,
 the local axe scan, source inspection, local chart data alternative, local waitlist live-region/keyboard smoke, local
 SEO/social metadata implementation, local privacy/terms/disclaimer note, 2026-07-11 public-host metadata/privacy smoke,
 2026-07-12 public-host desktop/mobile Chromium smoke plus public-host axe, and the 2026-07-15 manual/native desktop and
-mobile browser QA provide useful evidence. The small-pilot manual keyboard/native browser blocker is completed; dedicated
-screen-reader/assistive-tech evidence, broader production-host accessibility beyond the automated axe/manual native
+mobile browser QA plus 2026-07-15 assistive-tech proxy QA provide useful evidence. The small-pilot manual
+keyboard/native browser blocker is completed, and the missing dedicated screen-reader/manual assistive-tech pass is an
+accepted small-pilot limitation. Broader production-host accessibility beyond the automated axe/manual native/proxy
 evidence, first traffic, and full WCAG/accessibility compliance remain not launch-passed.
 
 ## Reproducing Locally
