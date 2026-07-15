@@ -66,7 +66,7 @@ The README should link to detailed docs instead of duplicating them.
 The portfolio pass should also update the sibling product-ideas brief:
 
 ```text
-/Users/andrey.karazhev/Developer/startups/product-ideas/01-bitcoin-risk-brief.md
+<external-product-brief-path>
 ```
 
 That file should stay product-facing rather than engineering-facing. It should explain why the product exists, what

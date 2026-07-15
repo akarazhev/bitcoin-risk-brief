@@ -37,7 +37,7 @@
 - Modify: `docs/security-and-privacy.md` - only if the secret/artifact hygiene and launch governance wording needs alignment with the presentation pass.
 - Modify: `docs/superpowers/README.md` - archive index status for local-complete cache warmup, USB kit v2, price-model OHLC, and this plan.
 - No repository file: GitHub repository description and topics are repository settings, not tracked files. Record recommended values in the final implementation report or a docs note only if the user asks.
-- Do not modify: `/Users/andrey.karazhev/Developer/startups/product-ideas/01-bitcoin-risk-brief.md` unless the user explicitly requests that external workspace update.
+- Do not modify: `<external-product-brief-path>` unless the user explicitly requests that external workspace update.
 
 ## Non-Goals
 
@@ -311,8 +311,8 @@ Expected: no doc says the public-download-first scheduler is unimplemented. The 
 
 Ensure `docs/operations.md` and `docs/deploy-ubuntu-cloudflare.md` agree that:
 
-- workstation packaging command is `bash server-kit/prepare-usb-kit.sh /Volumes/USB`;
-- kit output is `/Volumes/USB/bitcoin-risk-brief-server-kit`;
+- workstation packaging command is `bash server-kit/prepare-usb-kit.sh <usb-root-path>`;
+- kit output is `<usb-kit-path>`;
 - server fresh install uses ordered scripts under the mounted kit;
 - existing production update uses `bash scripts/07-update-bitcoin-risk-brief-from-usb.sh`;
 - optional public readiness check uses `PUBLIC_URL=https://bitcoinriskbrief.minihub.app`;

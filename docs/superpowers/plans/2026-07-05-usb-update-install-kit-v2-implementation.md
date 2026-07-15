@@ -54,13 +54,13 @@
 The workstation command should be:
 
 ```bash
-bash server-kit/prepare-usb-kit.sh /Volumes/USB
+bash server-kit/prepare-usb-kit.sh <usb-root-path>
 ```
 
 It should create:
 
 ```text
-/Volumes/USB/bitcoin-risk-brief-server-kit/
+<usb-kit-path>/
   README-RUN-ON-SERVER.md
   manifest.txt
   SHA256SUMS
@@ -128,8 +128,8 @@ __pycache__
 ```text
 created_at_utc=2026-07-05T00:00:00Z
 source_commit=fe458ac28b3ba99367dcd64cc9fd14c1925a48bd
-source_path=/Users/andrey.karazhev/Developer/startups/bitcoin-risk-brief
-kit_path=/Volumes/USB/bitcoin-risk-brief-server-kit
+source_path=<repo-checkout-path>
+kit_path=<usb-kit-path>
 project_snapshot=project/bitcoin-risk-brief
 copied_categories=server-kit-readme,server-scripts,deployment-docs,project-snapshot
 docs=docs/server-msi-cubi5-ubuntu-26.04.md,docs/deploy-ubuntu-cloudflare.md,docs/operations.md,docs/production-readiness.md,docs/superpowers/specs/2026-07-01-usb-update-install-kit-v2-design.md
@@ -601,12 +601,12 @@ In `server-kit/README-RUN-ON-SERVER.md`, add a short "Prepare The USB On The Wor
 
 ```bash
 cd /path/to/bitcoin-risk-brief
-bash server-kit/prepare-usb-kit.sh /Volumes/USB
+bash server-kit/prepare-usb-kit.sh <usb-root-path>
 ```
 
 Expected documentation facts:
 
-- the command creates `/Volumes/USB/bitcoin-risk-brief-server-kit`;
+- the command creates `<usb-kit-path>`;
 - the kit contains docs, scripts, a filtered project snapshot, `manifest.txt`, and `SHA256SUMS`;
 - the kit does not contain local `.env`, `.git`, backups, dependency caches, build output, browser artifacts, or container images;
 - the workstation command is safe to rerun because it replaces only the kit directory.

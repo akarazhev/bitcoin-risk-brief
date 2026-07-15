@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add a compact bottom footer strip to the public React UI with `support@minihub.app`, copyright `2026`, and `https://minihub.app`.
+**Goal:** Add a compact bottom footer strip to the public React UI with `<public-support-address>`, copyright `2026`, and `https://minihub.app`.
 
 **Architecture:** Implement this as a quiet global footer at the end of the existing single-page dashboard, after the charts. Keep the values as constants in `App.tsx`, localize only the footer accessibility label through the existing `copy` object, and style the strip with the same constrained `1180px` layout, dark palette, 8px-or-less UI rules, focus states, and RTL support already used by the page.
 
@@ -36,12 +36,12 @@ In `frontend/src/App.test.tsx`, add this test near the existing layout/order tes
 test('renders the compact Minihub bottom panel after the charts', async () => {
   render(<App />)
 
-  const supportLink = await screen.findByRole('link', { name: 'support@minihub.app' })
+  const supportLink = await screen.findByRole('link', { name: '<public-support-address>' })
   const footer = supportLink.closest('footer.bottom-panel')
   expect(footer).not.toBeNull()
 
   const bottomPanel = within(footer as HTMLElement)
-  expect(supportLink).toHaveAttribute('href', 'mailto:support@minihub.app')
+  expect(supportLink).toHaveAttribute('href', 'mailto:<public-support-address>')
   expect(bottomPanel.getByText(textContentMatcher('© 2026 Minihub'))).toBeInTheDocument()
 
   const websiteLink = bottomPanel.getByRole('link', { name: /https:\/\/minihub\.app/i })
@@ -84,7 +84,7 @@ Run:
 npm test --prefix frontend -- App.test.tsx
 ```
 
-Expected result: FAIL because `support@minihub.app` and `.bottom-panel-link:focus-visible` do not exist yet.
+Expected result: FAIL because `<public-support-address>` and `.bottom-panel-link:focus-visible` do not exist yet.
 
 ---
 
@@ -139,7 +139,7 @@ footerAriaLabel: 'دعم Minihub وحقوق النشر',
 In `frontend/src/App.tsx`, add these constants near `COINMARKETCAP_HISTORICAL_DATA_URL`:
 
 ```ts
-const SUPPORT_EMAIL = 'support@minihub.app'
+const SUPPORT_EMAIL = '<public-support-address>'
 const SUPPORT_EMAIL_URL = `mailto:${SUPPORT_EMAIL}`
 const MINIHUB_URL = 'https://minihub.app'
 const COPYRIGHT_YEAR = '2026'
