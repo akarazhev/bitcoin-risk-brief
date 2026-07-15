@@ -68,10 +68,9 @@ sender or bot ownership, unsubscribe or stop handling, provider recovery, no-adv
 
 ## Launch Governance Status
 
-The current launch governance checklist and 2026-07-12 sanitized operator decision register are recorded in
-[Production Readiness](production-readiness.md). Security and privacy status as of the 2026-07-10 gap pass, local
-metadata implementation, focused local accessibility pass, local dependency/license evidence pass, and current decision
-register:
+The current launch governance checklist, sanitized operator decision register, and 2026-07-15 small-pilot first-traffic
+status are recorded in [Production Readiness](production-readiness.md). Security and privacy status as of the current
+small operator-watched pilot:
 
 Use [docs/operator-launch-decision-packet-template.md](operator-launch-decision-packet-template.md) to collect sanitized
 operator decisions outside Git before copying final outcomes into the launch register. The template is not completed
@@ -85,14 +84,14 @@ evidence.
 | Credential and account ownership | completed for first-traffic readiness | GitHub, Cloudflare/domain, server, secrets/.env, and backups owner role is founder/operator. The account recovery record is created outside Git and current. Actual account holders, recovery channels, secret locations, account IDs, and private recovery paths must stay in an operator-controlled record outside this repository. |
 | Data-source terms and attribution review | accepted limitation for unpaid pilot; commercial/broader launch pending | Current product status is unpaid/non-commercial pilot. Source terms owner role is founder/operator. If demonstrated interest or paid/commercial use appears, the operator will buy the appropriate plan or make the required terms/plan decision. Terms review or paid plan remains required before commercial claims, paid beta, or broader distribution; this is not legal approval or commercial readiness. |
 | Dependency and security maintenance cadence | partial; owner/cadence recorded, external evidence pending | `.github/dependabot.yml` is now present with conservative monthly version-update checks for frontend npm, backend and collector pip requirements, GitHub Actions, Dockerfiles, and a root `docker-compose` ecosystem entry for Compose-style image references. Dependency/security owner role is founder/operator, with monthly review cadence during pilot. GitHub-hosted Dependabot execution, first PR evidence, external dependency/license confirmation, vulnerability/advisory clearance, and legal compatibility remain pending. [Dependency and License Review](dependency-license-review.md) records the 2026-07-10 local inventory and the local automation configuration limits. |
-| Accessibility and metadata evidence | partial/blocker; dedicated screen-reader/assistive-tech gap not accepted | Browser-capable public-hostname QA and the 2026-07-10 local Playwright profile smoke are recorded with limitations. `@axe-core/playwright` is integrated into the smoke suite, and the focused local axe scan passed across Chromium, Firefox, WebKit, Pixel 5, and iPhone 13 profiles with no reported violations. The 2026-07-15 manual/native browser QA evidence completes the small-pilot manual keyboard/native desktop and mobile browser blocker without claiming a dedicated screen-reader/assistive-tech pass. Dedicated screen-reader/assistive-tech, broader production-host accessibility, and full compliance evidence remain pending or require explicit operator acceptance before first traffic. Public metadata verification on 2026-07-11 found title, description, canonical URL, Open Graph type/title/description/url/site name, and Twitter card/title/description, with image metadata intentionally omitted because no real repo-served production image asset exists. |
+| Accessibility and metadata evidence | proxy passed with accepted small-pilot limitation | Browser-capable public-hostname QA and the 2026-07-10 local Playwright profile smoke are recorded with limitations. `@axe-core/playwright` is integrated into the smoke suite, and the focused local axe scan passed across Chromium, Firefox, WebKit, Pixel 5, and iPhone 13 profiles with no reported violations. The 2026-07-15 manual/native browser QA evidence completes the small-pilot manual keyboard/native desktop and mobile browser blocker without claiming a dedicated screen-reader/assistive-tech pass. The 2026-07-15 local assistive-tech proxy QA passed, and the missing dedicated screen-reader/manual assistive-tech pass is accepted only as a small-pilot limitation. True assistive-tech evidence, broader production-host accessibility, full WCAG conformance, and legal accessibility approval remain pending before broader claims. Public metadata verification on 2026-07-11 found title, description, canonical URL, Open Graph type/title/description/url/site name, and Twitter card/title/description, with image metadata intentionally omitted because no real repo-served production image asset exists. |
 
-Pre-traffic gate boundary after the 2026-07-12 operator decision pass and later support/recovery readiness evidence:
-public-host privacy/disclaimer smoke and metadata verification are recorded, and sanitized waitlist/support/account
-decisions are completed for first-traffic readiness. They do not prove legal approval, commercial readiness, full license
-compliance, full accessibility/WCAG conformance, production-host accessibility, or external/manual dependency-license
-confirmation. Record only sanitized operator decisions and keep private contacts, account details, tokens, `.env` values,
-raw logs, dashboard URLs, and raw waitlist contacts out of repository notes.
+Small-pilot boundary after the 2026-07-15 watched first-traffic run: public-host privacy/disclaimer smoke and metadata
+verification are recorded, sanitized waitlist/support/account decisions are completed for first-traffic readiness, and
+first traffic completed for the small operator-watched pilot. They do not prove legal approval, commercial readiness,
+full license compliance, full accessibility/WCAG conformance, broader production-host accessibility, or external/manual
+dependency-license confirmation. Record only sanitized operator decisions and keep private contacts, account details,
+tokens, `.env` values, raw logs, dashboard URLs, and raw waitlist contacts out of repository notes.
 
 ## Product Analytics Privacy
 
@@ -198,14 +197,14 @@ The helper preserves unrelated Cloudflare rules and replaces only rules with ref
 The public pilot should assume automated traffic will hit both static pages and API endpoints. The in-memory backend
 waitlist limiter is only a fallback control; it is not enough by itself for public exposure.
 
-Before launch, configure and verify:
+Before broader launch or future public promotion, configure and verify:
 
 - Cloudflare WAF managed rules for common web attacks when the active plan is entitled to run them, or a documented
   launch limitation/upgrade decision when it is not;
 - the repo-managed custom bot challenge for suspicious waitlist submissions plus Cloudflare Bot Fight Mode,
   Super Bot Fight Mode, or the equivalent bot protection available on the active plan;
 - edge rate limits for `POST /api/waitlist` and bursty `/api/*` traffic using the starting thresholds above, or the
-  documented Free-plan-compatible waitlist-only subset for first traffic;
+  documented Free-plan-compatible waitlist-only subset for the small operator-watched pilot;
 - a cache rule that respects origin `Cache-Control` for public GET endpoints and bypasses `POST /api/waitlist`;
 - backend API access logs that include method, path, status, client key, Cloudflare ray ID, cache status, and duration
   without logging waitlist contact values;

@@ -471,7 +471,9 @@ public data for a launch snapshot.
 
 ## Launch Snapshot Packet
 
-Local launch snapshot packet tooling is available for the final pre-traffic evidence window:
+Local launch snapshot packet tooling is available for future pre-traffic or pre-update evidence windows. The
+2026-07-15 final launch snapshot was already created and validated outside Git; use this helper again only when a future
+snapshot needs a fresh sanitized packet:
 
 ```bash
 python3 scripts/launch_snapshot_packet.py create \
@@ -516,41 +518,50 @@ account ownership, and data-source terms must be supplied to the packet only as 
 `--operator-decision name=status`. The current sanitized decision status is recorded in
 [Production Readiness](production-readiness.md); the helper still treats any omitted packet category as pending.
 
-`first_traffic_status` defaults to `not_run`. Do not change it during the pre-traffic snapshot unless an operator has
-separate sanitized first-traffic evidence and intentionally supplies the explicit first-traffic fields. Creating or
-validating a packet does not prove the launch snapshot is complete, does not configure monitors or alerts, does not prove
-production import provenance or backup freshness, and does not run first traffic.
+The first-traffic field defaults to the helper's no-run state. Do not change it in a future snapshot unless an operator
+has separate sanitized first-traffic evidence for that specific window and intentionally supplies the explicit
+first-traffic fields. Creating or validating a packet does not prove the snapshot is complete, does not configure
+monitors or alerts, does not prove production import provenance or backup freshness, and does not run traffic.
 
-## Recommended First-Traffic Production Sequence
+## Post-Pilot And Future Update Sequence
 
-Run this sequence from the selected production path and the operator-controlled evidence archive. Record only sanitized
-evidence: status, dates, commit IDs, timestamp basenames, check names, and pass/fail summaries. Do not record secrets,
-tokens, `.env` values, raw waitlist contacts, private account details, raw logs, dashboard URLs, private contacts, or
-private filesystem paths.
+Run this sequence from the selected production path and the operator-controlled evidence archive after the completed
+small-pilot first-traffic window, or before future pilot traffic/update windows. Record only sanitized evidence: status,
+dates, commit IDs, timestamp basenames, check names, and pass/fail summaries. Do not record secrets, tokens, `.env`
+values, raw waitlist contacts, private account details, raw logs, dashboard URLs, private contacts, or private filesystem
+paths.
 
-1. Complete the remaining operator-owned setup after the 2026-07-15 backup/readiness and manual/native QA evidence:
-   dedicated screen-reader/assistive-tech resolution if still required by current operator decisions, sanitized import
-   proof if still required beyond public checks/operator confirmation, and final launch snapshot.
-2. Deploy or update the selected production path. Record the project revision, selected deployment path, service status,
-   local health/readiness, public readiness, and whether the current Cloudflare Free-plan edge subset is accepted or an
-   upgraded edge posture is configured.
-3. Run the selected production refresh/import path. Create the production import provenance packet from the real source
-   snapshot, source `sha256`, retrieval metadata, canonical output, validation/readiness output, public cache evidence,
-   row count/range, expected tail, and deployment/operator context.
-4. Carry the completed 2026-07-15 fresh backup/off-server copy evidence into the final launch snapshot, keep recurring
-   backup automation as post-pilot work, and keep the restore drill pending until a staging project or intentionally empty
-   restore target exists.
-5. Keep the accepted small-pilot monitoring coverage active. Run `scripts/check_public_endpoints.py` against the public
-   hostname with the chosen freshness policy for final evidence. Defer dedicated external API monitors and alert delivery
-   evidence for health, readiness/freshness, stale data after the nightly update window, collector failures, and backup
-   freshness to broader launch.
-6. Keep public-host privacy/terms/disclaimer copy, SEO/social metadata, browser/device smoke, and manual/native browser
-   evidence current, and resolve dedicated screen-reader/assistive-tech status without overclaiming.
-7. Create and validate the final launch snapshot packet from already collected sanitized evidence. Missing categories
-   must remain pending; do not mark first traffic as run in the packet unless separate first-traffic evidence exists.
-8. Run the operator-watched first traffic test only after the remaining blockers are completed, the final launch snapshot
-   exists, and the only remaining limitations are the current accepted limitations, including the 2026-07-14 monitoring
-   accepted limitation and the 2026-07-15 fresh backup/off-server copy evidence.
+1. Confirm the intended scope: post-pilot observation only, a future production update, a future pilot-window evidence
+   refresh, or broader-launch preparation. Do not expand the 2026-07-15 first-traffic evidence into broad launch claims.
+2. Verify the selected production path and project revision. Record service status, local health/readiness, public
+   readiness, and whether the current Cloudflare Free-plan edge subset remains accepted or an upgraded edge posture is
+   configured.
+3. Recheck public freshness before promoting additional traffic:
+
+```bash
+python3 scripts/check_public_endpoints.py \
+  --base-url https://bitcoinriskbrief.minihub.app \
+  --max-data-age-days 2 \
+  --require-cache-header Cache-Control \
+  --require-cache-header ETag \
+  --require-cache-header X-Cache-Version \
+  --require-cache-header X-Cache
+```
+
+4. If a data refresh/import is run, create a production import provenance packet from the real source snapshot, source
+   `sha256`, retrieval metadata, canonical output, validation/readiness output, public cache evidence, row count/range,
+   expected tail, and deployment/operator context. Keep the packet outside Git.
+5. Keep the 2026-07-15 final launch snapshot and first-traffic evidence available, but create a new sanitized snapshot
+   packet only for a future launch/update window that needs one. Keep missing categories pending; do not reuse old
+   first-traffic fields for a new window.
+6. Keep accepted small-pilot monitoring active: Cloudflare Tunnel Health Alert plus public homepage availability
+   monitoring. Dedicated external API monitors, stale-data after-window alerting, collector-failure alerts, backup
+   freshness alerts, and explicit alert delivery evidence remain broader-launch work.
+7. Keep backup/off-server evidence fresh for update windows. Recurring backup automation remains post-pilot work until
+   configured, and the restore drill remains deferred until a staging project or intentionally empty restore target
+   exists.
+8. Summarize post-traffic learning from aggregate waitlist/source/locale/repeat-use/request signals only. Do not copy raw
+   contacts, raw analytics, raw messages, account IDs, dashboard URLs, or private support details into Git.
 
 ## Cloudflare Edge Rules
 
@@ -595,7 +606,7 @@ python3 scripts/cloudflare_edge_rules.py apply \
 
 The script preserves unrelated Cloudflare rules and only replaces rules with refs starting `bitcoin-risk-brief:`. After
 applying it, enable Cloudflare Bot Fight Mode, Super Bot Fight Mode, or equivalent dashboard bot protection if the active
-plan supports it. Record any accepted plan limitations before first traffic.
+plan supports it. Record any accepted plan limitations before broader traffic or a future pilot-window promotion.
 
 Verify the public hostname after applying edge rules:
 
@@ -873,8 +884,8 @@ loops, Cloudflare Tunnel connector health, public hostname availability, and any
 
 ## Launch Governance Operating Notes
 
-Recorded on 2026-07-05 for the current production-pilot candidate and updated on 2026-07-12 with the sanitized operator
-decision register in [Production Readiness](production-readiness.md):
+Recorded on 2026-07-05 for the production-pilot candidate and updated through the 2026-07-15 watched first-traffic
+evidence in [Production Readiness](production-readiness.md):
 
 - Privacy/terms/disclaimer note: locally implemented on 2026-07-10 as compact public copy near the waitlist, with
   public-host smoke verification recorded in the 2026-07-11 update evidence. It documents
@@ -921,14 +932,14 @@ decision register in [Production Readiness](production-readiness.md):
 - Accessibility and metadata pass: browser-capable public-hostname QA is recorded, and local focused accessibility,
   chart-alternative, waitlist live-region/keyboard, privacy/terms/disclaimer, and SEO/social metadata evidence exists.
   The 2026-07-15 manual/native browser QA evidence completes the small-pilot manual keyboard/native desktop and mobile
-  browser blocker. Dedicated screen-reader/assistive-tech evidence still needs operator evidence or explicit acceptance
-  before first traffic under the current decision register. The remaining accessibility gap is not accepted as a
-  limitation.
+  browser blocker. The 2026-07-15 assistive-tech proxy QA pass records the missing dedicated screen-reader/manual
+  assistive-tech pass as an accepted limitation only for the small operator-watched pilot. True assistive-tech evidence,
+  broader accessibility evidence, and full WCAG/legal accessibility approval remain pending before broader claims.
 - Restore drill: accepted limitation/deferred until a staging project or intentionally empty restore target exists. Do not
   run a restore drill against live production.
-- Feedback review path: after the first controlled traffic window, summarize waitlist conversion, repeat-use signals,
-  direct questions, and requests for alerts, API access, agents, widgets, embeddings, or licensing into the production
-  readiness or roadmap notes. Do not copy raw contacts into feedback summaries.
+- Feedback review path: after the completed first controlled traffic window and during the pilot, summarize waitlist
+  conversion, repeat-use signals, direct questions, and requests for alerts, API access, agents, widgets, embeddings, or
+  licensing into the production readiness or roadmap notes. Do not copy raw contacts into feedback summaries.
 
 ## First-Response Runbook
 
@@ -989,9 +1000,10 @@ EXPECTED_END_DATE="$(date -u -d 'yesterday' +%F)"
 curl -fsS http://127.0.0.1:3001/api/readiness
 ```
 
-- Pause promotion or take public traffic down: pause promotion if the scheduled run did not complete before launch
-  checks. Take public traffic down if readiness becomes stale beyond `DATA_FRESHNESS_MAX_AGE_DAYS`, if collector logs
-  show repeated `scheduled_refresh_failed` events, or if the refresh failure may have left public data inconsistent.
+- Pause promotion or take public traffic down: pause promotion if the scheduled run did not complete before broader
+  promotion or future pilot-window checks. Take public traffic down if readiness becomes stale beyond
+  `DATA_FRESHNESS_MAX_AGE_DAYS`, if collector logs show repeated `scheduled_refresh_failed` events, or if the refresh
+  failure may have left public data inconsistent.
 
 ### Public CoinMarketCap download failure
 

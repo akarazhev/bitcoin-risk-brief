@@ -83,9 +83,9 @@ Observed live page evidence:
 
 Accepted limitations:
 
-- This was browser-capable QA using Playwright profiles, not a physical iOS Safari, Android Chrome, or native branded
-  desktop browser pass. Real device/native browser QA remains pending operator execution before treating the launch
-  matrix as fully covered.
+- At this 2026-07-05 snapshot, this was browser-capable QA using Playwright profiles, not a physical iOS Safari, Android
+  Chrome, or native branded desktop browser pass. The later 2026-07-15 manual/native QA completed the small-pilot
+  manual/native browser scope; broader device coverage remains unclaimed.
 - The public page was visually checkable, but readiness was degraded because the latest visible data was four days old.
   This QA pass does not clear the separate production data-freshness gate.
 
@@ -308,14 +308,14 @@ Assistive-tech proxy QA evidence recorded on 2026-07-15:
   recorded as an accepted limitation only for the small operator-watched pilot; it remains deferred before broader
   accessibility claims or broader launch.
 
-Overall browser/device/accessibility/metadata/privacy launch-gate status: partial/blocked. Automated Playwright smoke,
-the local axe scan, source inspection, local chart data alternative, local waitlist live-region/keyboard smoke, local
-SEO/social metadata implementation, local privacy/terms/disclaimer note, 2026-07-11 public-host metadata/privacy smoke,
-2026-07-12 public-host desktop/mobile Chromium smoke plus public-host axe, and the 2026-07-15 manual/native desktop and
-mobile browser QA plus 2026-07-15 assistive-tech proxy QA provide useful evidence. The small-pilot manual
-keyboard/native browser blocker is completed, and the missing dedicated screen-reader/manual assistive-tech pass is an
-accepted small-pilot limitation. Broader production-host accessibility beyond the automated axe/manual native/proxy
-evidence, first traffic, and full WCAG/accessibility compliance remain not launch-passed.
+Overall browser/device/accessibility/metadata/privacy status: completed for the small operator-watched pilot with
+accepted limitation. Automated Playwright smoke, the local axe scan, source inspection, local chart data alternative,
+local waitlist live-region/keyboard smoke, local SEO/social metadata implementation, local privacy/terms/disclaimer note,
+2026-07-11 public-host metadata/privacy smoke, 2026-07-12 public-host desktop/mobile Chromium smoke plus public-host axe,
+and the 2026-07-15 manual/native desktop and mobile browser QA plus 2026-07-15 assistive-tech proxy QA provide the
+small-pilot evidence. The missing dedicated screen-reader/manual assistive-tech pass is an accepted small-pilot
+limitation only. Broader production-host accessibility beyond the automated axe/manual native/proxy evidence and full
+WCAG/accessibility compliance remain unclaimed before broader launch or broader accessibility claims.
 
 ## Reproducing Locally
 
@@ -336,11 +336,11 @@ If a sandbox blocks local port binding or browser launch, rerun in an environmen
 
 ## Launch Notes
 
-The automated matrix uses Playwright browser engines and device profiles. Before public launch on the production
-hostname, repeat a short manual pass on available physical devices or real branded browsers, especially iOS Safari and
+The automated matrix uses Playwright browser engines and device profiles. Before broader launch or future public
+promotion, repeat a short manual pass on available physical devices or real branded browsers, especially iOS Safari and
 Android Chrome, and record any accepted limitations here.
 
-If issue #28 localization expansion is enabled before active traffic, repeat the launch pass for English, Russian,
+If issue #28 localization expansion is enabled before broader active traffic, repeat the launch pass for English, Russian,
 Simplified Chinese (`zh`), German, French, Spanish, and Arabic. Check long localized labels in buttons, badges, chart
 labels, waitlist states, degraded/error states, and mobile layouts. Arabic requires explicit `dir="rtl"` verification;
 charts and numeric data should remain readable and not be visually reversed.

@@ -84,3 +84,6 @@ times per week during pilot, retention through beta end with earlier operator-ap
 founder/operator follow-up only. Deletion and unsubscribe requests use manual requests through the dedicated support
 contact path kept outside Git; the support mailbox with project-domain alias is created and ready, and exact addresses
 stay outside Git. Do not commit raw contacts, raw review output, private contact values, or query details.
+
+The 2026-07-15 small operator-watched first-traffic observation did not include or claim a production waitlist POST. Use
+an operator-approved test contact only when a future smoke test explicitly needs to verify `POST /api/waitlist`.

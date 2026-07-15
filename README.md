@@ -4,112 +4,31 @@ Bitcoin Risk Brief is a standalone seven-locale mini-product for validating dema
 
 ## Current Status
 
-Bitcoin Risk Brief is implementation-complete in this repository for the current small-pilot hardening items.
-Repository files, commits, local tags, and recorded checks are implementation evidence; broader production readiness
-still depends on recorded operator execution and public-host evidence. A small operator-watched pilot has started; this
-is not a broad public launch, paid launch, commercial-readiness claim, or full accessibility/legal approval.
+Bitcoin Risk Brief is online at `https://bitcoinriskbrief.minihub.app/` and is in a small operator-watched pilot. The
+2026-07-15 watched first-traffic observation completed for that pilot with `first_traffic_status=completed`. This is not
+a broad public launch, paid launch, commercial-readiness claim, full WCAG/legal accessibility approval, broader
+monitoring claim, or broader direct import provenance claim.
 
-Local pre-deployment tooling and evidence completed in the repository:
+Current local repo state before this docs cleanup was verified as `HEAD=origin/main=a62216b`, with local tag
+`first-traffic-pilot-evidence-2026-07-15` pointing at the same commit. The final launch snapshot was created and
+validated outside Git before first traffic with basename `launch-snapshot-20260715T121952Z.json`; local tag
+`final-launch-snapshot-evidence-2026-07-15` points at `aa2ac6a`.
 
-- Scheduled public CoinMarketCap CSV refresh, local bundled BTC CSV evidence through 2026-07-09, and operator/manual CSV
-  fallback workflows.
-- Public payload cache warmup, USB Update And Install Kit V2, first-viewport model-price/OHLC display polish, local
-  SEO/social metadata, and a local public privacy/terms/disclaimer note near the waitlist.
-- Local public endpoint probe tooling for health/readiness/latest-risk assertions, local backup freshness/off-server copy
-  checker tooling, local import provenance packet helper, and local launch snapshot packet helper for the final
-  pre-traffic evidence window.
-- Local Dependabot configuration, local dependency/license inventory evidence, local accessibility improvements/evidence,
-  and local waitlist live-region/keyboard evidence.
-- Latest local tooling evidence tag: `launch-snapshot-helper-local-evidence-2026-07-11` at commit
-  `e1a4dc521343b8c48060358204ff5c9cfd7e1ecf`.
+First-traffic public evidence recorded on 2026-07-15:
 
-Repository-local bundled BTC CSV evidence recorded on 2026-07-11: commit
-`8cbc6998c757f1ca1716277104e099b4705dfba9` is tagged
-`btc-csv-through-2026-07-09-evidence-2026-07-11` and adds 11 canonical rows for 2026-06-29 through 2026-07-09 to
-`collector/btc-csv/btc_usd_daily.csv`. The reviewed local incoming source was
-`collector/btc-csv/incoming/coinmarketcap-public-btc-20260629-20260709.csv` with SHA-256
-`38e9b0e8717013f217b93e7501aa3e216b1f989b52899cacff9e14c13f309d07`. This is local repository data evidence only; it
-does not prove a production deployment, production database import, public-host freshness after this commit, full
-production import provenance, launch readiness, or first traffic.
+- `GET /api/health`, `GET /api/readiness`, and `GET /api/risk/latest` passed.
+- Readiness was current for the window: `latest_date=2026-07-14`, `covered_end=2026-07-14`, `row_count=5846`,
+  `data_fresh=true`, freshness policy `max_age_days=2`, and `Cache-Control: no-store`.
+- Latest risk was `0.2694028326125623`, `risk_state=low`, with cache/version headers present.
+- The watched homepage observation loaded the public page, showed current risk/readiness and two visible chart canvases.
+- No production waitlist POST was performed or claimed during the first-traffic run.
 
-The public pilot hostname exists at `https://bitcoinriskbrief.minihub.app` and has first-traffic evidence from
-2026-07-15. Public `GET /api/health`, `GET /api/readiness`, and `GET /api/risk/latest` passed with
-`HEAD=origin/main=aa2ac6a`, final snapshot tag `final-launch-snapshot-evidence-2026-07-15` pointing to that commit,
-`latest_date=2026-07-14`, `row_count=5846`, latest risk `0.2694028326125623`, `risk_state=low`, freshness policy
-`max_age_days=2`, readiness `no-store`, latest-risk cache/version headers present, and `first_traffic_status=completed`
-for the small operator-watched pilot. This public evidence does not prove dedicated external API monitor/provider
-configuration or alert delivery.
+Current repository-local BTC CSV evidence tails at `2026-07-14`; tag
+`btc-csv-through-2026-07-14-evidence-2026-07-15` points at `e204acc`. Repository CSV evidence supports the small-pilot
+snapshot but does not replace broader direct production source/archive provenance.
 
-The 2026-07-12 AI-resolvable pre-traffic readiness sweep completed the remaining local/GET-only checks available from
-this workspace without mutating production. Frontend unit tests passed 27 tests, the frontend production build passed,
-the safe local mocked Playwright smoke passed 25 tests after local preview-server bind approval, and the approved public
-GET-only probe passed for `/api/health`, `/api/readiness`, and `/api/risk/latest` with `latest_date=2026-07-11`, latest
-risk `0.2190`, freshness policy `max_data_age_days:2`, and required cache headers present. The sweep did not deploy,
-refresh/import data, call waitlist POST, change Cloudflare/routing, configure external providers, run first traffic, or
-mutate production state.
-
-The 2026-07-12 Launch Matrix / Accessibility / Public-Host QA pass recorded public desktop/mobile Chromium homepage
-smoke, public-host axe automation, public metadata checks, visible privacy/disclaimer copy, and no waitlist POST. The
-2026-07-15 manual/native browser QA evidence completes the small-pilot manual keyboard/native desktop and mobile browser
-blocker. The 2026-07-15 assistive-tech proxy QA pass records that local tests, focused axe smoke, keyboard/focus smoke,
-and a local Playwright ARIA snapshot proxy passed, with no waitlist POST or production mutation. No true VoiceOver,
-NVDA, TalkBack, or manual assistive-tech pass was performed; that missing dedicated pass is accepted only as a limitation
-for the small operator-watched pilot. Full WCAG/legal accessibility, broader latency, broader direct import provenance,
-and broader launch evidence remain pending or unclaimed.
-
-Backup-gated USB production update evidence recorded on 2026-07-11 targets commit
-`86cb2dad889baf24a7464a105bbe2224f75b14ef` with evidence tag
-`predeployment-readiness-reconciled-2026-07-11`. The server-reported update exit code was 0; the copied/off-server backup
-freshness/checksum checker passed for timestamp basename `20260711T190355Z` as valid and fresh; public metadata/privacy
-smoke passed; and desktop/mobile browser smoke passed without waitlist POSTs. No data refresh/import, external monitor
-configuration, restore drill, launch snapshot, or first traffic is claimed by that evidence.
-
-The 2026-07-08 browser-like waitlist smoke is closed for HTTP 201, no-store/no-cache headers, expected JSON response
-shape, and aggregate-only server-side storage verification. The 2026-07-09 import provenance pass is partial, not
-passed: public data/readiness/cache consistency aligned, but direct production source/archive proof and validation/import
-metadata remain pending.
-
-The 2026-07-12 sanitized support/contact and account recovery readiness evidence records the support email as created
-and ready, the support contact category as a dedicated support mailbox with project-domain alias, deletion/unsubscribe
-handling as manual requests through that dedicated support path, and the account recovery record as created outside Git
-and current. Exact support addresses, provider details, account IDs, recovery text, private URLs, and secrets remain
-outside Git.
-
-The 2026-07-14 sanitized monitoring acceptance records the small operator-watched pilot monitoring blocker as
-accepted/closed with limitation: Cloudflare Tunnel Health Alert is configured, a HetrixTools/external uptime monitor
-provider category is recorded, and homepage availability monitoring is configured for the public homepage. This does not
-claim full API readiness/freshness monitoring; dedicated external `/api/health` and `/api/readiness` monitors plus
-explicit alert delivery evidence remain deferred before broader launch.
-
-The 2026-07-15 sanitized backup/off-server copy and public readiness evidence records the fresh manual backup plus
-off-server copy blocker as completed for the current first-traffic evidence set. The deployed USB package source is
-`8020384ddaa53f3805f0f29c54928ea53c91cce1`, not current repository `18e07e6`; copied backup timestamp basename
-`20260715T082457Z` contains PostgreSQL dump, BTC CSV, manifest, and checksum categories, and copied-backup SHA-256
-verification passed. Restore drill remains deferred until a safe staging or intentionally empty restore target exists.
-
-The 2026-07-15 sanitized manual/native browser QA evidence records that manual keyboard/native checks passed on the
-public site in notebook/native desktop browser and mobile/native browser categories. The page loaded correctly, current
-risk/date and the main visual/chart were visible, no obvious layout issue was reported, and the language toggle plus
-visible controls worked correctly. This completes the small-pilot manual/native browser QA blocker, but it does not claim
-a dedicated screen-reader or assistive-tech pass.
-
-The 2026-07-15 assistive-tech proxy QA evidence records that the strongest AI-doable local/browser accessibility proxy
-checks passed: `npm test --prefix frontend` passed 4 files / 54 tests, `npm run build --prefix frontend` passed,
-`npm run smoke --prefix frontend` passed 30 local mocked Playwright checks after a stale keyboard-smoke assumption was
-fixed, and a local Playwright ARIA snapshot exposed the main navigation, H1, current risk/readiness, methodology,
-waitlist textbox/button, and chart data alternatives. This does not claim a real screen-reader/manual assistive-tech
-pass or full WCAG/legal accessibility compliance; the missing dedicated pass is an accepted limitation only for the small
-operator-watched pilot.
-
-The 2026-07-15 final launch snapshot packet was created and validated with basename
-`launch-snapshot-20260715T121952Z.json`. The helper validation passed while conservatively reporting
-`launch_readiness_status=pending` because the packet records accepted limitations and keeps operator review separate.
-The final snapshot gate was followed by the 2026-07-15 operator-watched first-traffic evidence run.
-
-The project is in a small operator-watched pilot, not a broad public launch. Public readiness should continue to be
-rechecked during future pilot windows and after future updates. Production host access is unavailable from this workspace;
-future production updates still require operator deployment or update verification on the selected production path, or an
-explicitly chosen replacement path.
+The detailed evidence history has moved to [Production Evidence Log](docs/production-evidence-log.md). The current gate
+register is [Production Readiness](docs/production-readiness.md).
 
 Still external/operator before broader public launch:
 
@@ -121,19 +40,19 @@ Still external/operator before broader public launch:
   availability monitoring. Dedicated external `/api/health` and `/api/readiness` freshness monitors, stale-data
   after-window alerting, collector-failure alerts, backup freshness alerts, and explicit alert delivery evidence remain
   pending before broader launch.
-- Keep the 2026-07-15 fresh manual backup/off-server copy evidence available for the final launch snapshot. Recurring
-  scheduled backups, recurring off-server copies, and backup freshness monitoring are deferred until after the initial
-  operator-watched pilot. Restore drill remains deferred until a separate staging or intentionally empty restore target
-  exists.
+- Keep the 2026-07-15 fresh manual backup/off-server copy evidence available with the final launch snapshot and
+  first-traffic evidence. Recurring scheduled backups, recurring off-server copies, and backup freshness monitoring are
+  deferred until after the initial operator-watched pilot. Restore drill remains deferred until a separate staging or
+  intentionally empty restore target exists.
 - Capture direct broader-launch production import source/archive provenance outside the repository, including source
   snapshot, manifest, `sha256`, retrieval metadata, row count, covered range, expected tail, validation/readiness output,
   and cache evidence. Public readiness/latest-risk plus the BTC CSV evidence tag support the small-pilot snapshot, but a
   broader real production packet and direct production validation/import metadata remain pending.
-- Preserve the final sanitized launch snapshot packet evidence, but do not treat it as first-traffic evidence. Dedicated
-  API monitoring, alert delivery proof, broader direct import provenance, and a true screen-reader/manual assistive-tech
-  pass remain broader-launch limitations.
+- Preserve the final sanitized launch snapshot packet evidence separately from first-traffic evidence. Dedicated API
+  monitoring, alert delivery proof, broader direct import provenance, and a true screen-reader/manual assistive-tech pass
+  remain broader-launch limitations.
 - Keep public-host privacy/terms/disclaimer and SEO/social metadata verification current after future deployments, and
-  complete launch governance, browser/device, accessibility, release-feedback, and operational evidence gates.
+  continue post-traffic feedback review plus broader governance, accessibility, and operational evidence gates.
 - Keep the current Cloudflare Free-plan-compatible subset limited to a small operator-watched pilot; defer managed WAF
   and broader API burst-rate-limit controls until broader traffic or observed abuse risk.
 
@@ -241,6 +160,7 @@ Use `AGENTS.md` as the agent-facing source for repository rules. For human-drive
 - [Operations](docs/operations.md)
 - [Ubuntu and Cloudflare Tunnel Deployment](docs/deploy-ubuntu-cloudflare.md)
 - [Production Readiness](docs/production-readiness.md)
+- [Production Evidence Log](docs/production-evidence-log.md)
 - [Testing and Quality](docs/testing-and-quality.md)
 
 ## Data Source
