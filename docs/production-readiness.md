@@ -293,12 +293,11 @@ Current first-traffic sequence:
 
 Consolidated first-traffic blocker and acceptance register recorded on 2026-07-12:
 
-- Gate status: partial/blocked, not passed. First traffic is not allowed by the current evidence. This register
-  consolidates the current launch-gate blockers, newly recorded sanitized operator decisions, the 2026-07-12
-  support/contact and account recovery readiness evidence, and accepted limitations from repository-visible docs,
-  existing dated evidence notes, and the 2026-07-12 operator decision resolution pass. It does not create a launch
-  snapshot packet, run first traffic, deploy, push, tag, refresh/import data, configure alerts, or close any gate by
-  inference.
+- Gate status: updated by later evidence, ready for separate operator approval, not first traffic. This register
+  consolidates the current launch-gate status, newly recorded sanitized operator decisions, the 2026-07-12
+  support/contact and account recovery readiness evidence, later accepted limitations from repository-visible docs, and
+  existing dated evidence notes. It does not run first traffic, deploy, push, tag, refresh/import data, configure alerts,
+  or close any gate by inference.
 - Scope/safety: documentation-only register update. No deploy, refresh/import, production endpoint probe, waitlist POST,
   Cloudflare/routing change, monitor configuration, alert delivery test, backup/off-server copy, restore drill, first
   traffic, push, or tag was performed. At the start of this operator-decision pass, local `HEAD` and `origin/main` were
@@ -310,10 +309,10 @@ Consolidated first-traffic blocker and acceptance register recorded on 2026-07-1
   off-server copy has passed; small-pilot monitoring coverage limited to Cloudflare Tunnel Health Alert plus public
   homepage availability monitoring; dedicated screen-reader/manual assistive-tech pass deferred only for the small
   operator-watched pilot after the 2026-07-15 proxy QA pass; and CoinMarketCap/source-terms commercial or paid-plan
-  decision deferred only for commercial claims, paid beta, or broader distribution. Missing sanitized import proof if still
-  required beyond public checks and operator confirmation, launch snapshot, and first-traffic operator approval are not
-  accepted limitations. Manual keyboard/native browser QA is completed for the small pilot by the 2026-07-15 evidence
-  note. Dedicated external
+  decision deferred only for commercial claims, paid beta, or broader distribution. The 2026-07-15 final snapshot records
+  broader direct import proof as accepted small-pilot limitation, the launch snapshot as created and validated, and
+  first-traffic operator approval/run as the remaining current pre-traffic action. Manual keyboard/native browser QA is
+  completed for the small pilot by the 2026-07-15 evidence note. Dedicated external
   `/api/health` and `/api/readiness` freshness monitors plus explicit alert delivery evidence remain pending
   broader-launch limitations.
 
