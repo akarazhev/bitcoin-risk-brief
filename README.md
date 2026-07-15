@@ -31,15 +31,12 @@ Repository-local bundled BTC CSV evidence recorded on 2026-07-11: commit
 does not prove a production deployment, production database import, public-host freshness after this commit, full
 production import provenance, launch readiness, or first traffic.
 
-The public pilot hostname exists at `https://bitcoinriskbrief.minihub.app` and has evidence through 2026-07-15. The
-2026-07-05 public `/api/readiness` HTTP 503 stale-data blocker is closed by later public evidence: 2026-07-07
-post-deploy checks returned public readiness HTTP 200/fresh, the 2026-07-10 monitoring evidence recorded public
-`/api/health`, `/api/readiness`, and `/api/risk/latest` healthy/current, and the 2026-07-11 backup-gated USB update
-evidence recorded public readiness/latest checks passed. Latest recorded public GET-only readiness/latest-risk evidence
-is from 2026-07-15: public health/readiness/latest-risk checks passed with `latest_date=2026-07-14`, `row_count=5846`,
-latest risk `0.2694028326125623`, `risk_state=low`, freshness policy `max_age_days=2`, readiness `no-store`, and
-latest-risk cache headers present. This public evidence does not prove dedicated external API monitor/provider
-configuration or alert delivery.
+The public pilot hostname exists at `https://bitcoinriskbrief.minihub.app` and has final launch-window evidence from
+2026-07-15. Public `GET /api/health`, `GET /api/readiness`, and `GET /api/risk/latest` passed for launch commit
+`98007ce` with `HEAD=origin/main=98007ce`, `latest_date=2026-07-14`, `row_count=5846`, latest risk
+`0.2694028326125623`, `risk_state=low`, freshness policy `max_age_days=2`, readiness `no-store`, latest-risk cache
+headers present, and first traffic still `not_run`. This public evidence does not prove dedicated external API
+monitor/provider configuration or alert delivery.
 
 The 2026-07-12 AI-resolvable pre-traffic readiness sweep completed the remaining local/GET-only checks available from
 this workspace without mutating production. Frontend unit tests passed 27 tests, the frontend production build passed,
@@ -55,9 +52,8 @@ smoke, public-host axe automation, public metadata checks, visible privacy/discl
 blocker. The 2026-07-15 assistive-tech proxy QA pass records that local tests, focused axe smoke, keyboard/focus smoke,
 and a local Playwright ARIA snapshot proxy passed, with no waitlist POST or production mutation. No true VoiceOver,
 NVDA, TalkBack, or manual assistive-tech pass was performed; that missing dedicated pass is accepted only as a limitation
-for the small operator-watched pilot. Full WCAG/legal accessibility, broader latency, direct import proof if still
-required beyond public checks/operator confirmation, launch snapshot, and first-traffic evidence remain pending or
-unclaimed.
+for the small operator-watched pilot. Full WCAG/legal accessibility, broader latency, broader direct import provenance,
+and first-traffic evidence remain pending or unclaimed.
 
 Backup-gated USB production update evidence recorded on 2026-07-11 targets commit
 `86cb2dad889baf24a7464a105bbe2224f75b14ef` with evidence tag
@@ -103,15 +99,22 @@ waitlist textbox/button, and chart data alternatives. This does not claim a real
 pass or full WCAG/legal accessibility compliance; the missing dedicated pass is an accepted limitation only for the small
 operator-watched pilot.
 
-The project is still not publicly launched. Launch remains blocked by external/operational evidence gates, and public
-readiness must be rechecked before any first traffic window because freshness is time-sensitive. Production host access
-is unavailable from this workspace; future production updates still require operator deployment or update verification on
-the selected production path, or an explicitly chosen replacement path.
+The 2026-07-15 final launch snapshot packet was created and validated with basename
+`launch-snapshot-20260715T121952Z.json`. The helper validation passed while conservatively reporting
+`launch_readiness_status=pending` because the packet records accepted limitations and keeps operator review separate.
+The final snapshot gate is ready for separate operator approval; first traffic remains `not_run`.
+
+The project is still not publicly launched. The remaining action before first traffic is separate operator approval and
+the watched first-traffic run. Public readiness should be rechecked if the operator delays traffic beyond the current
+freshness window. Production host access is unavailable from this workspace; future production updates still require
+operator deployment or update verification on the selected production path, or an explicitly chosen replacement path.
 
 Still external/operator before treating the pilot as publicly launched:
 
-- Recheck public `/api/readiness` immediately before first traffic and keep scheduled public-download-first refresh
-  evidence current on the production host.
+- Obtain separate operator approval for first traffic and keep `first_traffic_status` at `not_run` until the watched
+  first-traffic window actually runs.
+- Recheck public `/api/readiness` and `/api/risk/latest` if the first-traffic window is delayed beyond the current
+  freshness window, and keep scheduled public-download-first refresh evidence current on the production host.
 - Keep USB deploy/update evidence current on future production updates, including project revision, health/readiness
   checks, and backup-gated mode when a fresh pre-update database dump is required.
 - Keep the accepted small-pilot monitoring coverage active: Cloudflare Tunnel Health Alert plus external public homepage
@@ -122,27 +125,23 @@ Still external/operator before treating the pilot as publicly launched:
   scheduled backups, recurring off-server copies, and backup freshness monitoring are deferred until after the initial
   operator-watched pilot. Restore drill remains deferred until a separate staging or intentionally empty restore target
   exists.
-- Capture direct production import source/archive provenance outside the repository, including source snapshot, manifest,
-  `sha256`, retrieval metadata, row count, covered range, expected tail, validation/readiness output, and cache evidence.
-  The local `scripts/import_provenance_packet.py` helper is implemented/tested to build or validate sanitized manifests
-  for future runs, but a real production packet and direct production validation/import metadata remain pending.
-- Use `scripts/launch_snapshot_packet.py` during the final pre-traffic window to create or validate a sanitized local
-  launch snapshot packet from already collected evidence. The helper is implemented/tested, but the actual launch
-  snapshot packet, production import provenance if still required beyond public checks/operator confirmation,
-  fresh launch-window public readiness/latest-risk recheck, operator approval, and first traffic remain pending. Dedicated
-  API monitoring, alert delivery proof, and a true screen-reader/manual assistive-tech pass remain broader-launch
-  limitations.
+- Capture direct broader-launch production import source/archive provenance outside the repository, including source
+  snapshot, manifest, `sha256`, retrieval metadata, row count, covered range, expected tail, validation/readiness output,
+  and cache evidence. Public readiness/latest-risk plus the BTC CSV evidence tag support the small-pilot snapshot, but a
+  broader real production packet and direct production validation/import metadata remain pending.
+- Preserve the final sanitized launch snapshot packet evidence, but do not treat it as first-traffic evidence. Dedicated
+  API monitoring, alert delivery proof, broader direct import provenance, and a true screen-reader/manual assistive-tech
+  pass remain broader-launch limitations.
 - Keep public-host privacy/terms/disclaimer and SEO/social metadata verification current after future deployments, and
   complete launch governance, browser/device, accessibility, release-feedback, and operational evidence gates.
 - Keep the current Cloudflare Free-plan-compatible subset limited to a small operator-watched pilot; defer managed WAF
   and broader API burst-rate-limit controls until broader traffic or observed abuse risk.
-- Capture the launch snapshot and run the first traffic test only after freshness and accepted launch gates allow it.
+- Run the first traffic test only after separate operator approval; keep first traffic `not_run` until then.
 
 Recommended next production sequence before first traffic:
 
-1. Complete the remaining operator-owned setup after the 2026-07-15 backup/readiness, manual/native QA, and
-   assistive-tech proxy QA evidence: sanitized import proof if still required beyond public checks/operator confirmation,
-   fresh launch-window public readiness/latest-risk recheck, and final launch snapshot.
+1. Confirm the 2026-07-15 final snapshot is still inside the accepted freshness window, or rerun the GET-only
+   public readiness/latest-risk checks if delayed.
 2. Deploy or update the selected production path, then record project revision, service status, health/readiness, and
    public-host metadata/privacy/accessibility smoke evidence.
 3. Run the production refresh/import path and create the production import provenance packet from the real source,
@@ -156,12 +155,9 @@ Recommended next production sequence before first traffic:
 6. Keep public-host privacy/terms/disclaimer copy, SEO/social metadata, browser/device smoke, manual/native browser
    evidence, and assistive-tech proxy evidence current without claiming a true screen-reader/manual assistive-tech pass,
    full WCAG conformance, or legal accessibility approval.
-7. Create and validate the final sanitized launch snapshot packet from already collected evidence. Use
-   [docs/launch-snapshot-evidence-packet-template.md](docs/launch-snapshot-evidence-packet-template.md) to prepare the
-   packet outside Git first, then copy only sanitized final evidence into launch docs.
-8. Run the operator-watched first traffic test only after all required blockers are completed, the final launch snapshot
-   exists, and the only remaining limitations are the current accepted limitations, including the 2026-07-14 monitoring
-   accepted limitation.
+7. Keep the final sanitized launch snapshot packet evidence available and copy only sanitized status into launch docs.
+8. Run the operator-watched first traffic test only after separate operator approval; first traffic remains `not_run`
+   until that run happens.
 
 ## Product Surface
 
