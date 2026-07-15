@@ -138,26 +138,18 @@ Still external/operator before treating the pilot as publicly launched:
   and broader API burst-rate-limit controls until broader traffic or observed abuse risk.
 - Run the first traffic test only after separate operator approval; keep first traffic `not_run` until then.
 
-Recommended next production sequence before first traffic:
+Current first-traffic sequence:
 
-1. Confirm the 2026-07-15 final snapshot is still inside the accepted freshness window, or rerun the GET-only
-   public readiness/latest-risk checks if delayed.
-2. Deploy or update the selected production path, then record project revision, service status, health/readiness, and
-   public-host metadata/privacy/accessibility smoke evidence.
-3. Run the production refresh/import path and create the production import provenance packet from the real source,
-   canonical output, validation/readiness, cache evidence, and deployment context.
-4. Carry the completed 2026-07-15 fresh backup/off-server copy evidence into the final launch snapshot, keep recurring
-   backup automation as post-pilot work, and keep restore drill pending until a staging or intentionally empty restore
-   target exists.
-5. Keep the accepted small-pilot Tunnel health plus homepage monitor coverage active, run the public endpoint probe with
-   the chosen freshness policy for final evidence, and defer dedicated external API monitors and alert delivery evidence
-   to broader launch.
-6. Keep public-host privacy/terms/disclaimer copy, SEO/social metadata, browser/device smoke, manual/native browser
-   evidence, and assistive-tech proxy evidence current without claiming a true screen-reader/manual assistive-tech pass,
-   full WCAG conformance, or legal accessibility approval.
-7. Keep the final sanitized launch snapshot packet evidence available and copy only sanitized status into launch docs.
-8. Run the operator-watched first traffic test only after separate operator approval; first traffic remains `not_run`
-   until that run happens.
+1. Keep the created and validated final sanitized launch snapshot packet evidence available outside Git; do not treat it
+   as first-traffic evidence.
+2. Confirm the 2026-07-15 final snapshot is still inside the accepted freshness window, or rerun the GET-only public
+   readiness/latest-risk checks if the operator delays traffic.
+3. Obtain explicit operator approval for the watched first-traffic run.
+4. Run the operator-watched first traffic test only after that approval; first traffic remains `not_run` until the run
+   happens.
+5. Keep accepted limitations explicit: broader direct import provenance, dedicated API monitoring, alert delivery proof,
+   restore drill, true screen-reader/manual assistive-tech evidence, full WCAG/legal accessibility, and broader launch
+   claims remain unclaimed.
 
 ## Product Surface
 

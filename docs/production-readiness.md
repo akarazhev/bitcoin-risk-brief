@@ -30,8 +30,8 @@ Local pre-deployment tooling and evidence that is complete in the repository:
 
 Sanitized support/contact and account recovery readiness evidence recorded on 2026-07-12:
 
-- Gate status: partial, not passed. The support/contact blocker and account recovery blocker are completed for
-  first-traffic readiness, but first traffic remains blocked by the remaining evidence gates below.
+- Gate status at that time: partial, not passed. The support/contact blocker and account recovery blocker were completed
+  for first-traffic readiness, but first traffic still awaited later evidence gates recorded below.
 - Scope/safety: documentation-only evidence update. No deploy, push, tag, refresh/import, waitlist POST,
   Cloudflare/routing change, alert configuration, backup/off-server copy, first traffic, or production mutation was
   performed. Exact support addresses, provider details, account IDs, usernames, recovery text, private URLs, tokens,
@@ -67,8 +67,8 @@ Small-pilot external monitoring acceptance recorded on 2026-07-14:
 
 Fresh manual backup/off-server copy and public readiness evidence recorded on 2026-07-15:
 
-- Gate status: partial, not launched. The fresh manual backup plus off-server copy blocker is completed for the current
-  first-traffic evidence set, but first traffic remains blocked by the remaining gates below.
+- Gate status at that time: partial, not launched. The fresh manual backup plus off-server copy blocker was completed
+  for the current first-traffic evidence set, but first traffic still awaited later evidence gates recorded below.
 - Scope/safety: documentation/evidence update only. No deploy, push, tag, refresh/import, waitlist POST,
   Cloudflare/routing change, restore drill, first traffic, or production mutation was performed from this workspace. No
   raw backup contents, raw CSV contents, raw manifests, raw checksum files, `.env` values, tokens, account IDs, private
@@ -104,8 +104,8 @@ Fresh manual backup/off-server copy and public readiness evidence recorded on 20
 
 Manual/native browser QA evidence recorded on 2026-07-15:
 
-- Gate status: partial, not launched. Manual keyboard/native browser QA is completed for the small operator-watched
-  pilot, but first traffic remains blocked by the remaining evidence gates below.
+- Gate status at that time: partial, not launched. Manual keyboard/native browser QA was completed for the small
+  operator-watched pilot, but first traffic still awaited later evidence gates recorded below.
 - Scope/safety: documentation/evidence update only. No deploy, push, tag, refresh/import, waitlist POST,
   Cloudflare/routing change, public endpoint probe, monitor configuration, backup/off-server copy, restore drill, first
   traffic, or production mutation was performed from this workspace. No exact device model, user account, screenshot,
@@ -206,8 +206,8 @@ Final launch snapshot gate recorded on 2026-07-15:
 
 AI-resolvable pre-traffic readiness sweep recorded on 2026-07-12:
 
-- Gate status: AI-resolvable sweep completed; overall launch gate remains blocked, not passed. First traffic is not
-  allowed now because the remaining blockers require operator/manual or external-provider evidence.
+- Gate status at that time: AI-resolvable sweep completed; overall launch gate remained blocked, not passed. First
+  traffic was not allowed then because the remaining blockers required operator/manual or external-provider evidence.
 - Scope/safety: local verification, docs reconciliation, git-state inspection, and public GET-only endpoint validation
   only. No deploy, refresh/import, cache warmup, waitlist POST to production, Cloudflare/routing change, external provider
   configuration, alert delivery test, backup/off-server copy, restore drill, first traffic, raw SQL output capture,
@@ -230,14 +230,15 @@ AI-resolvable pre-traffic readiness sweep recorded on 2026-07-12:
   confirmed safe/non-mutating because it uses a local preview server and mocked API routes, including the waitlist route.
   The sandboxed smoke attempt was blocked by `listen EPERM` on `127.0.0.1:4173`; the approved local rerun passed 25
   Playwright checks.
-- Remaining true manual/external blockers after the later 2026-07-15 backup/readiness, manual/native QA, and
-  assistive-tech proxy QA evidence: sanitized production import/data-refresh proof if still required beyond public checks
-  and operator confirmation; fresh public readiness/latest-risk checks in the launch window; final launch snapshot packet
-  after remaining blockers are complete; and the operator-watched first traffic run. Dedicated external `/api/health` and
-  `/api/readiness` monitoring plus alert delivery remain pending for broader launch, not as a small-pilot first-traffic
-  blocker. A true screen-reader/manual assistive-tech pass remains deferred only as an accepted small-pilot limitation.
-- First traffic decision: not allowed now. Keep `first_traffic_status` at `not_run` until the manual/external blockers
-  above are completed, the final launch snapshot exists, and the operator separately approves the first traffic run.
+- Current first-traffic state after the later 2026-07-15 final launch snapshot: the final snapshot packet has been
+  created and validated outside Git, and fresh public readiness/latest-risk checks passed for that snapshot. The only
+  remaining pre-traffic action is separate operator approval, the watched first-traffic run, and a public
+  readiness/latest-risk recheck if the operator delays traffic beyond the current freshness window. Dedicated external
+  `/api/health` and `/api/readiness` monitoring plus alert delivery remain pending for broader launch, not as a
+  small-pilot first-traffic blocker. A true screen-reader/manual assistive-tech pass remains deferred only as an accepted
+  small-pilot limitation.
+- First traffic decision: ready for separate operator approval, not run. Keep `first_traffic_status` at `not_run` until
+  the operator separately approves and the watched first-traffic run happens.
 
 Production/operator evidence still pending before public launch:
 
@@ -277,27 +278,18 @@ External gates that cannot be closed from this local workspace include broader-l
 provider configuration, alert delivery tests, recurring production backup/off-server automation, restore target
 provisioning, legal/license approval, and first traffic.
 
-Recommended next production sequence before first traffic:
+Current first-traffic sequence:
 
-1. Confirm the 2026-07-15 final snapshot is still inside the accepted freshness window, or rerun the GET-only
-   public readiness/latest-risk checks if delayed.
-2. Deploy or update the selected production path and record project revision, health/readiness, public-host
-   privacy/metadata/accessibility smoke, and selected Cloudflare edge posture.
-3. Keep the final snapshot's public readiness/latest-risk and BTC CSV evidence available for the small pilot, and create
-   a broader direct production import provenance packet later from the real source, canonical output,
-   validation/readiness, cache evidence, and deployment context.
-4. Carry the completed 2026-07-15 fresh backup/off-server copy evidence into the final launch snapshot, keep recurring
-   backup automation as post-pilot work, and keep the restore drill pending until a safe restore target exists.
-5. Keep the accepted small-pilot monitoring coverage active, run the public endpoint probe with the selected freshness
-   policy for final evidence, and defer dedicated external `/api/health`, `/api/readiness`, stale-data, collector-failure,
-   backup-freshness, and alert-delivery monitoring evidence to broader launch.
-6. Keep public-host metadata, privacy/terms/disclaimer copy, browser/device smoke, manual/native browser evidence, and
-   assistive-tech proxy evidence current without claiming a true screen-reader/manual assistive-tech pass, full WCAG
-   conformance, or legal accessibility approval.
-7. Keep the created and validated final launch snapshot packet evidence available, and copy only sanitized outcomes into
-   launch docs.
-8. Run the operator-watched first traffic test only after separate operator approval; first traffic remains `not_run`
-   until that run happens.
+1. Keep the created and validated final sanitized launch snapshot packet evidence available outside Git; do not treat it
+   as first-traffic evidence.
+2. Confirm the 2026-07-15 final snapshot is still inside the accepted freshness window, or rerun the GET-only public
+   readiness/latest-risk checks if the operator delays traffic.
+3. Obtain explicit operator approval for the watched first-traffic run.
+4. Run the operator-watched first traffic test only after that approval; first traffic remains `not_run` until the run
+   happens.
+5. Keep accepted limitations explicit: broader direct import provenance, dedicated API monitoring, alert delivery proof,
+   restore drill, true screen-reader/manual assistive-tech evidence, full WCAG/legal accessibility, and broader launch
+   claims remain unclaimed.
 
 Consolidated first-traffic blocker and acceptance register recorded on 2026-07-12:
 
@@ -709,12 +701,11 @@ Launch Matrix, accessibility, and public-host QA evidence pass recorded on 2026-
   evidence stays pending.
 - Launch Matrix / Accessibility / Public-Host QA gate status: partial, not passed. Current public endpoint freshness,
   public homepage desktop/mobile Chromium smoke, public metadata/privacy smoke, local browser-profile smoke, local axe,
-  local mocked keyboard/focus, public-host axe evidence, the later 2026-07-15 manual/native browser QA evidence, and the
-  later 2026-07-15 assistive-tech proxy QA evidence are recorded. After the later 2026-07-14 monitoring acceptance,
-  2026-07-15 backup/readiness evidence, 2026-07-15 manual/native QA evidence, and 2026-07-15 assistive-tech proxy QA
-  evidence, first traffic remains blocked by direct production import proof if still required beyond public checks and
-  operator confirmation, fresh launch-window readiness/latest-risk checks, final launch snapshot, and separate operator
-  approval/run for first traffic. Dedicated external API monitoring, alert delivery, and a true screen-reader/manual
+  local mocked keyboard/focus, public-host axe evidence, the later 2026-07-15 manual/native browser QA evidence, the
+  later 2026-07-15 assistive-tech proxy QA evidence, and the 2026-07-15 final launch snapshot are recorded. After that
+  final snapshot, first traffic remains `not_run` pending separate operator approval and the watched first-traffic run;
+  recheck public readiness/latest-risk if the operator delays traffic beyond the current freshness window. Direct
+  production import proof, dedicated external API monitoring, alert delivery, and a true screen-reader/manual
   assistive-tech pass remain pending before broader launch or broader accessibility claims.
 
 ## Operator Launch Decision Register
@@ -1941,8 +1932,9 @@ Still required before treating the pilot as publicly launched:
   related launch, restore, or correction note.
 - Update external portfolio surfaces such as GitHub description/topics or the sibling product-ideas brief only by
   separate request; they were not changed by the tracked repository docs pass.
-- Capture the launch snapshot and run the first small traffic test only after the remaining blockers are completed and
-  the operator separately approves the run.
+- Keep the created and validated 2026-07-15 final launch snapshot evidence available outside Git, recheck public
+  readiness/latest-risk if the operator delays traffic, and run the first small traffic test only after separate operator
+  approval; `first_traffic_status` remains `not_run` until that run happens.
 
 ## Related Docs
 
