@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import json
 import logging
@@ -9,6 +10,7 @@ from typing import Any, Awaitable, Callable
 
 
 PayloadProducer = Callable[[], Awaitable[tuple[Any, int]]]
+CacheStorageKey = tuple[str, str]
 
 
 @dataclass(frozen=True)
@@ -36,7 +38,8 @@ class PublicEndpointCache:
     def __init__(self, *, ttl_seconds: int, clock: Callable[[], float] | None = None) -> None:
         self.ttl_seconds = max(0, ttl_seconds)
         self._clock = clock or time.monotonic
-        self._entries: dict[str, CachedEndpointPayload] = {}
+        self._entries: dict[CacheStorageKey, CachedEndpointPayload] = {}
+        self._inflight_builds: dict[CacheStorageKey, asyncio.Task[CachedEndpointPayload]] = {}
 
     async def get_or_build(
         self,
@@ -44,12 +47,33 @@ class PublicEndpointCache:
         data_version: str,
         producer: PayloadProducer,
     ) -> tuple[CachedEndpointPayload, bool]:
+        storage_key = (key, data_version)
         now = self._clock()
-        entry = self._entries.get(key)
-        if entry and entry.data_version == data_version and entry.expires_at > now:
+        entry = self._entries.get(storage_key)
+        if entry and entry.expires_at > now:
             return entry, True
 
+        inflight = self._inflight_builds.get(storage_key)
+        if inflight is not None:
+            return await inflight, True
+
+        task = asyncio.create_task(self._build_and_store(storage_key, key, data_version, producer))
+        self._inflight_builds[storage_key] = task
+        try:
+            return await task, False
+        finally:
+            if self._inflight_builds.get(storage_key) is task:
+                del self._inflight_builds[storage_key]
+
+    async def _build_and_store(
+        self,
+        storage_key: CacheStorageKey,
+        key: str,
+        data_version: str,
+        producer: PayloadProducer,
+    ) -> CachedEndpointPayload:
         content, status_code = await producer()
+        now = self._clock()
         entry = CachedEndpointPayload(
             content=content,
             status_code=status_code,
@@ -57,21 +81,21 @@ class PublicEndpointCache:
             etag=_build_etag(key, data_version, content),
             expires_at=now + self.ttl_seconds,
         )
-        self._entries[key] = entry
+        self._entries[storage_key] = entry
         self._prune(now)
-        return entry, False
+        return entry
 
     def invalidate(self) -> None:
         self._entries.clear()
 
     def _prune(self, now: float) -> None:
         expired_keys = [
-            key
-            for key, entry in self._entries.items()
+            storage_key
+            for storage_key, entry in self._entries.items()
             if entry.expires_at <= now
         ]
-        for key in expired_keys:
-            del self._entries[key]
+        for storage_key in expired_keys:
+            del self._entries[storage_key]
 
 
 async def warm_public_endpoint_cache(

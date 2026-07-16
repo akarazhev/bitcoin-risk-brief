@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import asyncio
+import contextlib
 import unittest
 
 from app.public_cache import (
@@ -76,6 +78,136 @@ class PublicEndpointCacheTest(unittest.IsolatedAsyncioTestCase):
 
         self.assertFalse(hit)
         self.assertEqual(entry.content["data"]["risk"], 0.43)
+
+    async def test_coalesces_concurrent_cold_misses_for_same_key_and_data_version(self) -> None:
+        calls = 0
+        producer_started = asyncio.Event()
+        release_producer = asyncio.Event()
+        cache = PublicEndpointCache(ttl_seconds=60, clock=lambda: 100.0)
+
+        async def producer():
+            nonlocal calls
+            calls += 1
+            producer_started.set()
+            await release_producer.wait()
+            return {"data": {"risk": 0.42}}, 200
+
+        first_task = asyncio.create_task(
+            cache.get_or_build("GET /api/risk/latest", "validation:ready", producer)
+        )
+        await producer_started.wait()
+        second_task = asyncio.create_task(
+            cache.get_or_build("GET /api/risk/latest", "validation:ready", producer)
+        )
+        await asyncio.sleep(0)
+
+        release_producer.set()
+        first_result, second_result = await asyncio.gather(first_task, second_task)
+        first_entry, first_hit = first_result
+        second_entry, second_hit = second_result
+
+        self.assertEqual(calls, 1)
+        self.assertFalse(first_hit)
+        self.assertTrue(second_hit)
+        self.assertEqual(second_entry.content, first_entry.content)
+        self.assertEqual(second_entry.etag, first_entry.etag)
+
+    async def test_coalesced_failure_does_not_poison_later_retry(self) -> None:
+        calls = 0
+        producer_started = asyncio.Event()
+        release_producer = asyncio.Event()
+        cache = PublicEndpointCache(ttl_seconds=60, clock=lambda: 100.0)
+
+        async def failing_producer():
+            nonlocal calls
+            calls += 1
+            producer_started.set()
+            await release_producer.wait()
+            raise RuntimeError("temporary build failure")
+
+        first_task = asyncio.create_task(
+            cache.get_or_build("GET /api/risk/latest", "validation:ready", failing_producer)
+        )
+        await producer_started.wait()
+        second_task = asyncio.create_task(
+            cache.get_or_build("GET /api/risk/latest", "validation:ready", failing_producer)
+        )
+        await asyncio.sleep(0)
+
+        release_producer.set()
+        with self.assertRaisesRegex(RuntimeError, "temporary build failure"):
+            await first_task
+        with self.assertRaisesRegex(RuntimeError, "temporary build failure"):
+            await second_task
+        self.assertEqual(calls, 1)
+
+        async def successful_producer():
+            nonlocal calls
+            calls += 1
+            return {"data": {"risk": 0.43}}, 200
+
+        entry, hit = await cache.get_or_build(
+            "GET /api/risk/latest",
+            "validation:ready",
+            successful_producer,
+        )
+
+        self.assertFalse(hit)
+        self.assertEqual(calls, 2)
+        self.assertEqual(entry.content["data"]["risk"], 0.43)
+
+    async def test_new_data_version_rebuilds_without_waiting_for_old_version_build(self) -> None:
+        cache = PublicEndpointCache(ttl_seconds=60, clock=lambda: 100.0)
+        old_started = asyncio.Event()
+        release_old = asyncio.Event()
+        old_calls = 0
+        new_calls = 0
+
+        async def old_producer():
+            nonlocal old_calls
+            old_calls += 1
+            old_started.set()
+            await release_old.wait()
+            return {"data": {"risk": 0.41}}, 200
+
+        old_task = asyncio.create_task(
+            cache.get_or_build("GET /api/risk/latest", "validation:old", old_producer)
+        )
+        await old_started.wait()
+
+        async def new_producer():
+            nonlocal new_calls
+            new_calls += 1
+            return {"data": {"risk": 0.44}}, 200
+
+        new_entry, new_hit = await cache.get_or_build(
+            "GET /api/risk/latest",
+            "validation:new",
+            new_producer,
+        )
+
+        release_old.set()
+        old_entry, old_hit = await old_task
+
+        self.assertFalse(new_hit)
+        self.assertFalse(old_hit)
+        self.assertEqual(old_calls, 1)
+        self.assertEqual(new_calls, 1)
+        self.assertEqual(old_entry.data_version, "validation:old")
+        self.assertEqual(new_entry.data_version, "validation:new")
+        self.assertEqual(new_entry.content["data"]["risk"], 0.44)
+
+        async def rebuild_should_not_run():
+            raise AssertionError("new version cache entry was not retained")
+
+        retained_entry, retained_hit = await cache.get_or_build(
+            "GET /api/risk/latest",
+            "validation:new",
+            rebuild_should_not_run,
+        )
+
+        self.assertTrue(retained_hit)
+        self.assertEqual(retained_entry.content["data"]["risk"], 0.44)
 
 
 class PublicEndpointCacheWarmupTest(unittest.IsolatedAsyncioTestCase):
