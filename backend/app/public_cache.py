@@ -80,15 +80,22 @@ class PublicEndpointCache:
 
         inflight = self._inflight_builds.get(storage_key)
         if inflight is not None:
-            return await inflight, True
+            return await asyncio.shield(inflight), True
 
         task = asyncio.create_task(self._build_and_store(storage_key, key, data_version, producer))
         self._inflight_builds[storage_key] = task
-        try:
-            return await task, False
-        finally:
-            if self._inflight_builds.get(storage_key) is task:
-                del self._inflight_builds[storage_key]
+        task.add_done_callback(
+            lambda completed_task: self._discard_inflight_build(storage_key, completed_task)
+        )
+        return await asyncio.shield(task), False
+
+    def _discard_inflight_build(
+        self,
+        storage_key: CacheStorageKey,
+        task: asyncio.Future[CachedEndpointPayload],
+    ) -> None:
+        if self._inflight_builds.get(storage_key) is task:
+            del self._inflight_builds[storage_key]
 
     async def _build_and_store(
         self,

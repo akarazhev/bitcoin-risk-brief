@@ -158,6 +158,51 @@ class PublicEndpointCacheTest(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(calls, 2)
         self.assertEqual(entry.content["data"]["risk"], 0.43)
 
+    async def test_cancelled_coalesced_waiter_does_not_cancel_shared_build(self) -> None:
+        calls = 0
+        producer_started = asyncio.Event()
+        release_producer = asyncio.Event()
+        cache = PublicEndpointCache(ttl_seconds=60, clock=lambda: 100.0)
+
+        async def producer():
+            nonlocal calls
+            calls += 1
+            producer_started.set()
+            await release_producer.wait()
+            return {"data": {"risk": 0.46}}, 200
+
+        first_task = asyncio.create_task(
+            cache.get_or_build("GET /api/risk/latest", "validation:ready", producer)
+        )
+        await producer_started.wait()
+        second_task = asyncio.create_task(
+            cache.get_or_build("GET /api/risk/latest", "validation:ready", producer)
+        )
+        await asyncio.sleep(0)
+
+        second_task.cancel()
+        with self.assertRaises(asyncio.CancelledError):
+            await second_task
+
+        release_producer.set()
+        first_entry, first_hit = await first_task
+
+        self.assertFalse(first_hit)
+        self.assertEqual(calls, 1)
+        self.assertEqual(first_entry.content["data"]["risk"], 0.46)
+
+        async def rebuild_should_not_run():
+            raise AssertionError("cancelled waiter prevented cache population")
+
+        retained_entry, retained_hit = await cache.get_or_build(
+            "GET /api/risk/latest",
+            "validation:ready",
+            rebuild_should_not_run,
+        )
+
+        self.assertTrue(retained_hit)
+        self.assertEqual(retained_entry.content["data"]["risk"], 0.46)
+
     async def test_new_data_version_rebuilds_without_waiting_for_old_version_build(self) -> None:
         cache = PublicEndpointCache(ttl_seconds=60, clock=lambda: 100.0)
         old_started = asyncio.Event()
