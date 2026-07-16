@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import unittest
 from datetime import date, timedelta
+from unittest.mock import patch
 
 from app.risk import (
     ROBUST_Z_MIN_PERIODS,
@@ -11,6 +12,7 @@ from app.risk import (
     calculate_risk_series,
     classify_risk,
 )
+import app.risk_levels as risk_levels_module
 from app.risk_levels import (
     RISK_STEP,
     build_risk_levels,
@@ -86,6 +88,20 @@ class RiskLevelSolverTest(unittest.TestCase):
         self.assertEqual(risk_rows[0]["risk"], 0.0)
         self.assertEqual(risk_rows[-1]["risk"], 1.0)
         self.assertAlmostEqual(risk_rows[1]["risk"] - risk_rows[0]["risk"], RISK_STEP)
+
+    def test_build_risk_levels_reuses_solver_context_for_all_targets(self) -> None:
+        rows = make_rows(days=1500)
+        stitch_validation = {"turnover_enabled": True}
+
+        with patch(
+            "app.risk_levels._build_level_context",
+            wraps=risk_levels_module._build_level_context,
+        ) as build_context:
+            levels = build_risk_levels(rows, stitch_validation)
+
+        self.assertEqual(build_context.call_count, 1)
+        self.assertEqual(len(levels["risk_level_rows"]), 41)
+        self.assertGreater(len(levels["price_level_rows"]), 0)
 
     def test_solver_verifies_target_risk_through_same_formula(self) -> None:
         rows = make_rows(days=1500)

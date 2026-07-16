@@ -145,15 +145,11 @@ def calculate_current_risk_for_price(
     return _calculate_current_risk_from_context(context, hypothetical_price)
 
 
-def solve_price_for_target_risk(
+def _solve_price_for_target_risk_from_context(
     rows: list[dict[str, Any]],
-    stitch_validation: dict[str, Any],
+    context: LevelContext,
     target_risk: float,
 ) -> float:
-    if not rows:
-        raise ValueError("rows must not be empty")
-
-    context = _build_level_context(rows, stitch_validation)
     effective_target_risk = _normalize_target_risk(target_risk, context)
     current_price = _compute_hlc3(rows[-1])
     current_risk = _calculate_current_risk_from_context(context, current_price)
@@ -194,6 +190,18 @@ def solve_price_for_target_risk(
     return float(low_price if low_distance <= high_distance else high_price)
 
 
+def solve_price_for_target_risk(
+    rows: list[dict[str, Any]],
+    stitch_validation: dict[str, Any],
+    target_risk: float,
+) -> float:
+    if not rows:
+        raise ValueError("rows must not be empty")
+
+    context = _build_level_context(rows, stitch_validation)
+    return _solve_price_for_target_risk_from_context(rows, context, target_risk)
+
+
 def build_risk_levels(rows: list[dict[str, Any]], stitch_validation: dict[str, Any]) -> dict[str, Any]:
     if not rows:
         raise ValueError("rows must not be empty")
@@ -203,8 +211,8 @@ def build_risk_levels(rows: list[dict[str, Any]], stitch_validation: dict[str, A
     context = _build_level_context(rows, stitch_validation)
     current_risk = _calculate_current_risk_from_context(context, current_price)
 
-    minimum_price = solve_price_for_target_risk(rows, stitch_validation, 0.0)
-    maximum_price = solve_price_for_target_risk(rows, stitch_validation, 1.0)
+    minimum_price = _solve_price_for_target_risk_from_context(rows, context, 0.0)
+    maximum_price = _solve_price_for_target_risk_from_context(rows, context, 1.0)
     price_step = _round_price_step(maximum_price - minimum_price, target_rows=PRICE_LADDER_TARGET_ROWS)
 
     ladder_start = max(1.0, math.floor(minimum_price / price_step) * price_step)
@@ -223,7 +231,7 @@ def build_risk_levels(rows: list[dict[str, Any]], stitch_validation: dict[str, A
     risk_level_rows = [
         {
             "risk": float(round(step_index * RISK_STEP, 6)),
-            "price": float(solve_price_for_target_risk(rows, stitch_validation, step_index * RISK_STEP)),
+            "price": float(_solve_price_for_target_risk_from_context(rows, context, step_index * RISK_STEP)),
         }
         for step_index in range(int(round(1 / RISK_STEP)) + 1)
     ]
