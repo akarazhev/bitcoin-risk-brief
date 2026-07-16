@@ -123,32 +123,81 @@ class PublicEndpointCache:
             del self._entries[storage_key]
 
 
+async def _warm_public_cache_target(
+    cache: PublicEndpointCache,
+    data_version: str,
+    target: PublicCacheWarmupTarget,
+    *,
+    logger: logging.Logger,
+    timer: Callable[[], float],
+) -> PublicCacheWarmupTargetResult:
+    start = timer()
+    try:
+        _entry, cache_hit = await cache.get_or_build(target.key, data_version, target.producer)
+    except Exception as exc:
+        duration_ms = max(0.0, (timer() - start) * 1000.0)
+        logger.warning(
+            "public_cache_warmup_failed key=%s duration_ms=%.1f error=%s",
+            target.key,
+            duration_ms,
+            exc,
+            exc_info=True,
+        )
+        return PublicCacheWarmupTargetResult(
+            target.key,
+            duration_ms,
+            cache_hit=False,
+            error=str(exc),
+        )
+
+    duration_ms = max(0.0, (timer() - start) * 1000.0)
+    return PublicCacheWarmupTargetResult(
+        target.key,
+        duration_ms,
+        cache_hit=cache_hit,
+    )
+
+
 async def warm_public_endpoint_cache(
     cache: PublicEndpointCache,
     data_version: str,
     targets: list[PublicCacheWarmupTarget] | tuple[PublicCacheWarmupTarget, ...],
     *,
     logger: logging.Logger | None = None,
+    timer: Callable[[], float] | None = None,
 ) -> PublicCacheWarmupResult:
     active_logger = logger or logging.getLogger(__name__)
-    warmed_keys: list[str] = []
-    failed_keys: list[str] = []
+    active_timer = timer or time.perf_counter
+    start = active_timer()
 
-    for target in targets:
-        try:
-            await cache.get_or_build(target.key, data_version, target.producer)
-        except Exception as exc:
-            failed_keys.append(target.key)
-            active_logger.warning(
-                "public_cache_warmup_failed key=%s error=%s",
-                target.key,
-                exc,
-                exc_info=True,
+    target_results = tuple(
+        await asyncio.gather(
+            *(
+                _warm_public_cache_target(
+                    cache,
+                    data_version,
+                    target,
+                    logger=active_logger,
+                    timer=active_timer,
+                )
+                for target in targets
             )
-            continue
-        warmed_keys.append(target.key)
+        )
+    )
 
-    return PublicCacheWarmupResult(tuple(warmed_keys), tuple(failed_keys))
+    total_duration_ms = max(0.0, (active_timer() - start) * 1000.0)
+    warmed_keys = tuple(
+        target_result.key for target_result in target_results if target_result.error is None
+    )
+    failed_keys = tuple(
+        target_result.key for target_result in target_results if target_result.error is not None
+    )
+    return PublicCacheWarmupResult(
+        warmed_keys,
+        failed_keys,
+        total_duration_ms=total_duration_ms,
+        target_results=target_results,
+    )
 
 
 def _build_etag(key: str, data_version: str, content: Any) -> str:

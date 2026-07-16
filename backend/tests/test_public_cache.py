@@ -239,7 +239,7 @@ class PublicEndpointCacheWarmupTest(unittest.IsolatedAsyncioTestCase):
             tuple(target.key for target in targets),
         )
         self.assertEqual(result.failed_keys, ())
-        self.assertEqual(calls, ["readiness", "latest", "history", "levels", "brief"])
+        self.assertCountEqual(calls, ["readiness", "latest", "history", "levels", "brief"])
 
         async def rebuild_should_not_run():
             raise AssertionError("warm cache entry was rebuilt")
@@ -247,6 +247,49 @@ class PublicEndpointCacheWarmupTest(unittest.IsolatedAsyncioTestCase):
         for target in targets:
             _entry, hit = await cache.get_or_build(target.key, "version-a", rebuild_should_not_run)
             self.assertTrue(hit)
+
+    async def test_warmup_runs_independent_targets_concurrently(self) -> None:
+        cache = PublicEndpointCache(ttl_seconds=60, clock=lambda: 100.0)
+        started: list[str] = []
+        both_started = asyncio.Event()
+        release = asyncio.Event()
+
+        def make_blocking_producer(name: str):
+            async def producer():
+                started.append(name)
+                if len(started) == 2:
+                    both_started.set()
+                await release.wait()
+                return {"data": {"name": name}}, 200
+
+            return producer
+
+        warmup_task = asyncio.create_task(
+            warm_public_endpoint_cache(
+                cache,
+                "validation:ready",
+                [
+                    PublicCacheWarmupTarget("GET /api/risk/latest", make_blocking_producer("latest")),
+                    PublicCacheWarmupTarget("GET /api/brief/latest", make_blocking_producer("brief")),
+                ],
+            )
+        )
+
+        try:
+            await asyncio.wait_for(both_started.wait(), timeout=0.2)
+        except asyncio.TimeoutError as exc:
+            release.set()
+            with contextlib.suppress(Exception):
+                await warmup_task
+            raise AssertionError("warmup targets did not start concurrently") from exc
+
+        release.set()
+        result = await warmup_task
+
+        self.assertEqual(result.warmed_keys, ("GET /api/risk/latest", "GET /api/brief/latest"))
+        self.assertEqual(result.failed_keys, ())
+        self.assertEqual([target.key for target in result.target_results], list(result.warmed_keys))
+        self.assertTrue(all(target.duration_ms >= 0.0 for target in result.target_results))
 
     async def test_warmup_validation_version_change_invalidates_warmed_payload(self) -> None:
         cache = PublicEndpointCache(ttl_seconds=60, clock=lambda: 100.0)
@@ -289,6 +332,13 @@ class PublicEndpointCacheWarmupTest(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result.warmed_keys, ("GET /api/brief/latest",))
         self.assertEqual(result.failed_keys, ("GET /api/risk/latest",))
         self.assertIn("public_cache_warmup_failed key=GET /api/risk/latest", "\n".join(logs.output))
+        self.assertIn("duration_ms=", "\n".join(logs.output))
+        self.assertEqual([target.key for target in result.target_results], [
+            "GET /api/risk/latest",
+            "GET /api/brief/latest",
+        ])
+        self.assertEqual(result.target_results[0].error, "Risk data has not been collected yet")
+        self.assertIsNone(result.target_results[1].error)
 
 
 class CacheHeaderTest(unittest.TestCase):
