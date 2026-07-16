@@ -44,6 +44,8 @@ from app.waitlist import InvalidWaitlistContact
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
     await connect()
+    global logger
+    logger = _configure_access_logger()
     try:
         await warm_public_read_cache_on_startup()
     except Exception:
@@ -61,7 +63,24 @@ class WaitlistRequest(BaseModel):
 
 
 app = FastAPI(title="Bitcoin Risk Brief API", version="0.1.0", lifespan=lifespan)
-logger = logging.getLogger("app.access")
+
+
+def _configure_access_logger() -> logging.Logger:
+    access_logger = logging.getLogger("app.access")
+    access_logger.setLevel(logging.INFO)
+
+    uvicorn_logger = logging.getLogger("uvicorn.error")
+    handlers = uvicorn_logger.handlers or logging.getLogger("uvicorn").handlers
+    if handlers:
+        for handler in handlers:
+            if handler not in access_logger.handlers:
+                access_logger.addHandler(handler)
+        access_logger.propagate = False
+
+    return access_logger
+
+
+logger = _configure_access_logger()
 waitlist_rate_limiter = FixedWindowRateLimiter(
     limit=max(1, settings.waitlist_rate_limit_per_hour),
     window_seconds=3600,
