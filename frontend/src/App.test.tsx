@@ -108,6 +108,23 @@ function textContentMatcher(text: string) {
   return (_: string, element: Element | null) => element?.textContent === text
 }
 
+function getLanguageTrigger() {
+  const trigger = document.querySelector<HTMLButtonElement>('.language-trigger')
+  expect(trigger).not.toBeNull()
+  return trigger as HTMLButtonElement
+}
+
+async function openLanguageMenu() {
+  const trigger = await waitFor(() => getLanguageTrigger())
+  fireEvent.click(trigger)
+  return screen.findByRole('listbox')
+}
+
+async function selectLanguage(optionName: RegExp | string) {
+  const listbox = await openLanguageMenu()
+  fireEvent.click(within(listbox).getByRole('option', { name: optionName }))
+}
+
 function deferred<T>() {
   let resolve: (value: T) => void = () => {}
   let reject: (error: Error) => void = () => {}
@@ -453,8 +470,7 @@ test('localizes accessible chart labels and unavailable methodology metadata', a
 
   render(<App />)
 
-  const languageSelector = await screen.findByRole('combobox', { name: /select language/i })
-  fireEvent.change(languageSelector, { target: { value: 'ru' } })
+  await selectLanguage(/^RU -/)
 
   expect(await screen.findByLabelText('Текущий риск')).toBeInTheDocument()
   expect(screen.getByLabelText('Порог риска')).toBeInTheDocument()
@@ -488,8 +504,7 @@ test('renders an expandable privacy terms and disclaimer note near the waitlist'
 test('localizes the privacy terms and disclaimer note', async () => {
   render(<App />)
 
-  const languageSelector = await screen.findByRole('combobox', { name: /select language/i })
-  fireEvent.change(languageSelector, { target: { value: 'ru' } })
+  await selectLanguage(/^RU -/)
 
   const summary = await screen.findByText('Приватность, условия и дисклеймер')
   const note = summary.closest('details')
@@ -616,8 +631,7 @@ test('renders localized model drivers from latest risk component directions', as
   expect(drivers.queryByText('-10.1')).not.toBeInTheDocument()
   expect(drivers.queryByText('0.05')).not.toBeInTheDocument()
 
-  const languageSelector = screen.getByRole('combobox', { name: /select language/i })
-  fireEvent.change(languageSelector, { target: { value: 'ru' } })
+  await selectLanguage(/^RU -/)
 
   const ruDriverSection = await findModelDriverSection('Драйверы модели')
   const ruDrivers = within(ruDriverSection)
@@ -696,8 +710,7 @@ test('preserves English and Russian labels for the price input group', async () 
   expect(priceMetric.getByText('Low')).toBeInTheDocument()
   expect(priceMetric.getByText('High')).toBeInTheDocument()
 
-  const languageSelector = screen.getByRole('combobox', { name: /select language/i })
-  fireEvent.change(languageSelector, { target: { value: 'ru' } })
+  await selectLanguage(/^RU -/)
 
   priceMetric = await findPriceMetric('Цена BTC в модели')
 
@@ -883,11 +896,22 @@ test('renders screen-reader chart data alternatives for current risk, recent his
 test('defines visible keyboard focus states for interactive controls', () => {
   const css = readFileSync(resolve(process.cwd(), 'src/App.css'), 'utf8')
 
-  expect(css).toContain('.language-select select:focus-visible')
+  expect(css).toContain('.language-trigger:focus-visible')
+  expect(css).toContain('.language-menu:focus-visible')
   expect(css).toContain('.lead-form input:focus-visible')
   expect(css).toContain('.lead-form button:focus-visible')
   expect(css).toContain('.privacy-note summary:focus-visible')
   expect(css).toContain('.bottom-panel-link:focus-visible')
+})
+
+test('defines app-controlled language listbox styling', () => {
+  const css = readFileSync(resolve(process.cwd(), 'src/App.css'), 'utf8')
+
+  expect(css).toContain('.language-select { position: relative')
+  expect(css).toContain('.language-trigger')
+  expect(css).toContain('.language-menu')
+  expect(css).toContain('.language-option.is-active')
+  expect(css).toContain('[dir="rtl"] .language-menu')
 })
 
 test('defines compact bottom panel layout and RTL styles', () => {
@@ -901,45 +925,140 @@ test('defines compact bottom panel layout and RTL styles', () => {
 test('offers all issue 28 languages and applies document language metadata', async () => {
   render(<App />)
 
-  const selector = await screen.findByRole('combobox', { name: /select language/i })
-  expect(within(selector).getAllByRole('option').map((option) => option.getAttribute('value'))).toEqual([
-    'en',
-    'ru',
-    'zh',
-    'de',
-    'fr',
-    'es',
-    'ar',
+  const trigger = await screen.findByRole('button', { name: /select language: english/i })
+  expect(trigger).toHaveTextContent('EN')
+  expect(trigger).toHaveAttribute('aria-haspopup', 'listbox')
+  expect(trigger).toHaveAttribute('aria-expanded', 'false')
+
+  fireEvent.click(trigger)
+  expect(trigger).toHaveAttribute('aria-expanded', 'true')
+  const listbox = screen.getByRole('listbox', { name: /select language/i })
+  expect(within(listbox).getAllByRole('option').map((option) => option.textContent)).toEqual([
+    'EN - English',
+    'RU - Русский',
+    'ZH - 简体中文',
+    'DE - Deutsch',
+    'FR - Français',
+    'ES - Español',
+    'AR - العربية',
   ])
 
-  fireEvent.change(selector, { target: { value: 'de' } })
+  fireEvent.click(within(listbox).getByRole('option', { name: /^DE -/ }))
   expect(await screen.findByText('Aktuelles Risiko')).toBeInTheDocument()
   expect(document.documentElement).toHaveAttribute('lang', 'de')
   expect(document.documentElement).toHaveAttribute('dir', 'ltr')
+  expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+  expect(getLanguageTrigger()).toHaveTextContent('DE')
 
-  fireEvent.change(selector, { target: { value: 'fr' } })
+  await selectLanguage(/^FR -/)
   expect(await screen.findByText('Risque actuel')).toBeInTheDocument()
   expect(document.documentElement).toHaveAttribute('lang', 'fr')
+  expect(getLanguageTrigger()).toHaveTextContent('FR')
 
-  fireEvent.change(selector, { target: { value: 'es' } })
+  await selectLanguage(/^ES -/)
   expect(await screen.findByText('Riesgo actual')).toBeInTheDocument()
   expect(document.documentElement).toHaveAttribute('lang', 'es')
+  expect(getLanguageTrigger()).toHaveTextContent('ES')
 
-  fireEvent.change(selector, { target: { value: 'zh' } })
+  await selectLanguage(/^ZH -/)
   expect(await screen.findByText('当前风险')).toBeInTheDocument()
   expect(document.documentElement).toHaveAttribute('lang', 'zh-CN')
+  expect(getLanguageTrigger()).toHaveTextContent('ZH')
 
-  fireEvent.change(selector, { target: { value: 'ar' } })
+  await selectLanguage(/^AR -/)
   expect(await screen.findByText('المخاطر الحالية')).toBeInTheDocument()
   expect(document.documentElement).toHaveAttribute('lang', 'ar')
   expect(document.documentElement).toHaveAttribute('dir', 'rtl')
+  expect(getLanguageTrigger()).toHaveTextContent('AR')
+})
+
+test('opens and closes the custom language listbox from keyboard and outside pointer interaction', async () => {
+  render(<App />)
+
+  const trigger = await screen.findByRole('button', { name: /select language: english/i })
+  fireEvent.keyDown(trigger, { key: 'Enter' })
+
+  const listbox = await screen.findByRole('listbox', { name: /select language/i })
+  expect(listbox).toHaveFocus()
+  expect(trigger).toHaveAttribute('aria-expanded', 'true')
+
+  fireEvent.keyDown(listbox, { key: 'Escape' })
+  expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+  expect(trigger).toHaveFocus()
+  expect(trigger).toHaveAttribute('aria-expanded', 'false')
+
+  fireEvent.keyDown(trigger, { key: ' ' })
+  expect(await screen.findByRole('listbox')).toBeInTheDocument()
+  fireEvent.pointerDown(document.body)
+  expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+  expect(trigger).toHaveAttribute('aria-expanded', 'false')
+})
+
+test('closes the custom language listbox on Tab without returning focus to the trigger', async () => {
+  render(<App />)
+
+  const trigger = await screen.findByRole('button', { name: /select language: english/i })
+  fireEvent.keyDown(trigger, { key: 'Enter' })
+
+  const listbox = await screen.findByRole('listbox', { name: /select language/i })
+  expect(listbox).toHaveFocus()
+  expect(trigger).toHaveAttribute('aria-expanded', 'true')
+
+  fireEvent.keyDown(listbox, { key: 'Tab' })
+
+  expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+  expect(trigger).toHaveAttribute('aria-expanded', 'false')
+  expect(trigger).not.toHaveFocus()
+})
+
+test('supports arrow navigation and keyboard selection in the custom language listbox', async () => {
+  render(<App />)
+
+  const trigger = await screen.findByRole('button', { name: /select language: english/i })
+  fireEvent.keyDown(trigger, { key: 'ArrowDown' })
+
+  let listbox = await screen.findByRole('listbox', { name: /select language/i })
+  expect(listbox.getAttribute('aria-activedescendant')).toMatch(/-ru$/)
+
+  fireEvent.keyDown(listbox, { key: ' ' })
+  expect(await screen.findByText('Текущий риск')).toBeInTheDocument()
+  expect(document.documentElement).toHaveAttribute('lang', 'ru')
+  expect(document.documentElement).toHaveAttribute('dir', 'ltr')
+  expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+  expect(getLanguageTrigger()).toHaveFocus()
+
+  fireEvent.keyDown(getLanguageTrigger(), { key: 'ArrowUp' })
+  listbox = await screen.findByRole('listbox')
+  expect(listbox.getAttribute('aria-activedescendant')).toMatch(/-en$/)
+  fireEvent.keyDown(listbox, { key: 'ArrowUp' })
+  expect(listbox.getAttribute('aria-activedescendant')).toMatch(/-ar$/)
+  fireEvent.keyDown(listbox, { key: 'Enter' })
+
+  expect(await screen.findByText('المخاطر الحالية')).toBeInTheDocument()
+  expect(document.documentElement).toHaveAttribute('lang', 'ar')
+  expect(document.documentElement).toHaveAttribute('dir', 'rtl')
+  expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+})
+
+test('isolates mixed-direction language option labels as LTR while Arabic is active', async () => {
+  render(<App />)
+
+  await selectLanguage(/^AR -/)
+  fireEvent.click(getLanguageTrigger())
+
+  const listbox = await screen.findByRole('listbox')
+  const arabicOption = within(listbox).getByRole('option', { name: /^AR - العربية$/ })
+  const isolatedLabel = arabicOption.querySelector('bdi')
+
+  expect(isolatedLabel).not.toBeNull()
+  expect(isolatedLabel as HTMLElement).toHaveAttribute('dir', 'ltr')
+  expect(isolatedLabel as HTMLElement).toHaveTextContent('AR - العربية')
 })
 
 test('isolates visible Arabic numeric, date, and currency values as LTR', async () => {
   render(<App />)
 
-  const selector = await screen.findByRole('combobox', { name: /select language/i })
-  fireEvent.change(selector, { target: { value: 'ar' } })
+  await selectLanguage(/^AR -/)
 
   const metrics = document.querySelector('.metrics-strip')
   expect(metrics).not.toBeNull()
@@ -998,8 +1117,7 @@ test('isolates visible Arabic degraded freshness counts as LTR', async () => {
 
   render(<App />)
 
-  const selector = await screen.findByRole('combobox', { name: /select language/i })
-  fireEvent.change(selector, { target: { value: 'ar' } })
+  await selectLanguage(/^AR -/)
 
   const freshnessValues = document.querySelectorAll('.freshness-metric .numeric-value')
   expect(Array.from(freshnessValues).map((element) => element.textContent)).toEqual(expect.arrayContaining([
@@ -1016,8 +1134,7 @@ test('isolates visible Arabic degraded freshness counts as LTR', async () => {
 test('submits the selected expanded locale to the waitlist API', async () => {
   render(<App />)
 
-  const selector = await screen.findByRole('combobox', { name: /select language/i })
-  fireEvent.change(selector, { target: { value: 'fr' } })
+  await selectLanguage(/^FR -/)
   fireEvent.change(await screen.findByPlaceholderText('email ou @telegram'), { target: { value: 'USER@example.com' } })
   fireEvent.click(screen.getByRole('button', { name: /rejoindre la liste/i }))
 
@@ -1029,8 +1146,7 @@ test('submits the selected expanded locale to the waitlist API', async () => {
 test('keeps Arabic waitlist contact entry LTR and submits locale metadata', async () => {
   render(<App />)
 
-  const selector = await screen.findByRole('combobox', { name: /select language/i })
-  fireEvent.change(selector, { target: { value: 'ar' } })
+  await selectLanguage(/^AR -/)
 
   const input = await screen.findByPlaceholderText('email أو @telegram')
   expect(input).toHaveAttribute('dir', 'ltr')
@@ -1046,8 +1162,7 @@ test('keeps Arabic waitlist contact entry LTR and submits locale metadata', asyn
 test('falls back to the English generated brief when selected locale is absent from an old snapshot', async () => {
   render(<App />)
 
-  const selector = await screen.findByRole('combobox', { name: /select language/i })
-  fireEvent.change(selector, { target: { value: 'de' } })
+  await selectLanguage(/^DE -/)
 
   expect(await screen.findByText('Heutiger Brief')).toBeInTheDocument()
   expect(screen.getByText('Risk elevated')).toBeInTheDocument()

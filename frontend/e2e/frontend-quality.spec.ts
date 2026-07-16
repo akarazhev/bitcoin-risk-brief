@@ -196,7 +196,8 @@ test('keeps Arabic RTL layout numeric data isolated and readable', async ({ page
   await mockApi(page, degradedReadiness)
 
   await page.goto('/')
-  await page.getByRole('combobox', { name: /select language/i }).selectOption('ar')
+  await page.getByRole('button', { name: /select language: english/i }).click()
+  await page.getByRole('option', { name: /^AR -/ }).click()
 
   await expect(page.locator('html')).toHaveAttribute('lang', 'ar')
   await expect(page.locator('html')).toHaveAttribute('dir', 'rtl')
@@ -244,7 +245,9 @@ test('supports keyboard focus navigation through public controls with mocked wai
 
   await expect(page.getByRole('heading', { name: 'Bitcoin Risk Brief' })).toBeVisible()
   const methodologyLink = page.getByRole('link', { name: /methodology/i })
-  const languageSelector = page.getByRole('combobox', { name: /select language/i })
+  const languageSelector = page.getByRole('button', { name: /select language: english/i })
+  const languageListbox = page.getByRole('listbox', { name: /select language/i })
+  const dataSourceLink = page.getByRole('link', { name: /coinmarketcap/i })
   const waitlistInput = page.getByLabel('email or @telegram')
   const submitButton = page.getByRole('button', { name: /join waitlist/i })
 
@@ -253,8 +256,15 @@ test('supports keyboard focus navigation through public controls with mocked wai
     await pressTab()
   }
   await expect(languageSelector).toBeFocused()
-  const tabsFromLanguageToWaitlist = await pressUntilFocused(pressTab, waitlistInput, 6)
-  expect(tabsFromLanguageToWaitlist).toBeGreaterThan(0)
+  await page.keyboard.press('Enter')
+  await expect(languageListbox).toBeVisible()
+  await expect(languageListbox).toBeFocused()
+  await pressTab()
+  await expect(languageListbox).toBeHidden()
+  await expect(languageSelector).not.toBeFocused()
+  await expect(dataSourceLink).toBeFocused()
+  const tabsFromDataSourceToWaitlist = await pressUntilFocused(pressTab, waitlistInput, 6)
+  expect(tabsFromDataSourceToWaitlist).toBeGreaterThan(0)
   await page.keyboard.type('keyboard@example.invalid')
   await pressTab()
   await expect(submitButton).toBeFocused()

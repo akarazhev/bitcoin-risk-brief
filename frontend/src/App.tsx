@@ -1,8 +1,9 @@
 import { Suspense, lazy, useEffect, useMemo, useState } from 'react'
 import type { FormEvent, ReactNode } from 'react'
 import type { EChartsOption } from 'echarts'
-import { Bell, CheckCircle2, ExternalLink, Languages, Radio, Send, ShieldAlert, TriangleAlert } from 'lucide-react'
+import { Bell, CheckCircle2, ExternalLink, Radio, Send, ShieldAlert, TriangleAlert } from 'lucide-react'
 import { fetchBrief, fetchLatestRisk, fetchReadiness, fetchRiskHistory, fetchRiskLevels, joinWaitlist } from './api'
+import { LanguageSelect } from './LanguageSelect'
 import { copy, getLocaleOption, localeOptions, stateLabel } from './locales'
 import type { BriefPayload, Locale, ReadinessPayload, RiskLevel, RiskLevelsMeta, RiskPoint } from './types'
 
@@ -457,21 +458,12 @@ export default function App() {
         <div className="brand"><Radio size={18} /> BTC Risk Brief</div>
         <div className="top-actions">
           <a className="methodology-link" href="#methodology"><ExternalLink size={15} /> {t.methodologyLink}</a>
-          <label className="language-select">
-            <Languages size={16} aria-hidden="true" />
-            <span className="sr-only">{t.languageSelector}</span>
-            <select
-              value={locale}
-              onChange={(event) => setLocale(event.target.value as Locale)}
-              aria-label={t.languageSelector}
-            >
-              {localeOptions.map((option) => (
-                <option key={option.code} value={option.code}>
-                  {option.shortLabel}
-                </option>
-              ))}
-            </select>
-          </label>
+          <LanguageSelect
+            label={t.languageSelector}
+            locale={locale}
+            options={localeOptions}
+            onLocaleChange={setLocale}
+          />
         </div>
       </nav>
 
