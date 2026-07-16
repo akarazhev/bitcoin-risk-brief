@@ -221,9 +221,11 @@ async def warm_public_read_cache_on_startup() -> PublicCacheWarmupResult:
         logger=logger,
     )
     logger.info(
-        "public_cache_warmup_complete warmed=%d failed=%d",
+        "public_cache_warmup_complete warmed=%d failed=%d duration_ms=%.1f slowest=%s",
         len(result.warmed_keys),
         len(result.failed_keys),
+        result.total_duration_ms,
+        result.slowest_summary(),
     )
     return result
 

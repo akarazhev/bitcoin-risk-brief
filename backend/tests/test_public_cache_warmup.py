@@ -8,6 +8,7 @@ from app import main
 from app.brief import SUPPORTED_BRIEF_LOCALES
 from app.public_cache import (
     PublicCacheWarmupResult,
+    PublicCacheWarmupTargetResult,
     PublicEndpointCache,
     warm_public_endpoint_cache,
 )
@@ -56,6 +57,47 @@ class StandardPublicWarmupTargetTest(MainPatchMixin, unittest.IsolatedAsyncioTes
 
         self.assertEqual(result, PublicCacheWarmupResult((), ()))
         self.assertIn("public_cache_warmup_skipped reason=no_validation", "\n".join(logs.output))
+
+    async def test_startup_warmup_logs_duration_and_slowest_targets(self) -> None:
+        self.patch_main("get_pool", lambda: object())
+
+        async def ready_version(_pool):
+            return "validation:ready"
+
+        async def healthy_readiness():
+            return {"status": "ready"}, 200
+
+        async def fake_warmup(_cache, _data_version, _targets, *, logger, **_kwargs):
+            return PublicCacheWarmupResult(
+                warmed_keys=("GET /api/risk/latest",),
+                failed_keys=("GET /api/risk/levels",),
+                total_duration_ms=18.5,
+                target_results=(
+                    PublicCacheWarmupTargetResult("GET /api/risk/latest", 3.2, cache_hit=False),
+                    PublicCacheWarmupTargetResult(
+                        "GET /api/risk/levels",
+                        15.3,
+                        cache_hit=False,
+                        error="solver unavailable",
+                    ),
+                ),
+            )
+
+        self.patch_main("fetch_public_data_version", ready_version)
+        self.patch_main("_produce_readiness_payload", healthy_readiness)
+        self.patch_main("warm_public_endpoint_cache", fake_warmup)
+
+        with self.assertLogs("app.access", level="INFO") as logs:
+            result = await main.warm_public_read_cache_on_startup()
+
+        self.assertEqual(result.total_duration_ms, 18.5)
+        log_output = "\n".join(logs.output)
+        self.assertIn("public_cache_warmup_complete warmed=1 failed=1", log_output)
+        self.assertIn("duration_ms=18.5", log_output)
+        self.assertIn(
+            "slowest=GET /api/risk/levels:15.3ms,GET /api/risk/latest:3.2ms",
+            log_output,
+        )
 
 
 class WarmedEndpointResponseTest(MainPatchMixin, unittest.IsolatedAsyncioTestCase):
