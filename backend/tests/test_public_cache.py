@@ -5,7 +5,9 @@ import contextlib
 import unittest
 
 from app.public_cache import (
+    PublicCacheWarmupResult,
     PublicCacheWarmupTarget,
+    PublicCacheWarmupTargetResult,
     PublicEndpointCache,
     build_cache_headers,
     etag_matches,
@@ -290,6 +292,25 @@ class PublicEndpointCacheWarmupTest(unittest.IsolatedAsyncioTestCase):
 
 
 class CacheHeaderTest(unittest.TestCase):
+    def test_warmup_result_formats_slowest_targets(self) -> None:
+        result = PublicCacheWarmupResult(
+            warmed_keys=("fast", "slow", "medium"),
+            failed_keys=(),
+            total_duration_ms=20.0,
+            target_results=(
+                PublicCacheWarmupTargetResult("fast", 1.2, cache_hit=False),
+                PublicCacheWarmupTargetResult("slow", 12.4, cache_hit=False),
+                PublicCacheWarmupTargetResult("medium", 6.8, cache_hit=True),
+            ),
+        )
+
+        self.assertEqual(result.slowest_summary(limit=2), "slow:12.4ms,medium:6.8ms")
+
+    def test_warmup_result_formats_empty_slowest_targets(self) -> None:
+        result = PublicCacheWarmupResult(warmed_keys=(), failed_keys=())
+
+        self.assertEqual(result.slowest_summary(), "none")
+
     def test_build_cache_headers_marks_hit_and_validator(self) -> None:
         headers = build_cache_headers(
             etag='"abc123"',

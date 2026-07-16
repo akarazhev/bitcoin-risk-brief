@@ -29,9 +29,34 @@ class PublicCacheWarmupTarget:
 
 
 @dataclass(frozen=True)
+class PublicCacheWarmupTargetResult:
+    key: str
+    duration_ms: float
+    cache_hit: bool
+    error: str | None = None
+
+
+@dataclass(frozen=True)
 class PublicCacheWarmupResult:
     warmed_keys: tuple[str, ...]
     failed_keys: tuple[str, ...]
+    total_duration_ms: float = 0.0
+    target_results: tuple[PublicCacheWarmupTargetResult, ...] = ()
+
+    def slowest_summary(self, *, limit: int = 3) -> str:
+        if not self.target_results:
+            return "none"
+        slowest = sorted(
+            self.target_results,
+            key=lambda target_result: target_result.duration_ms,
+            reverse=True,
+        )[: max(0, limit)]
+        if not slowest:
+            return "none"
+        return ",".join(
+            f"{target_result.key}:{target_result.duration_ms:.1f}ms"
+            for target_result in slowest
+        )
 
 
 class PublicEndpointCache:
