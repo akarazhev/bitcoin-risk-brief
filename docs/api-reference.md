@@ -46,7 +46,7 @@ Cached responses include:
 
 | Header | Meaning |
 | --- | --- |
-| `Cache-Control` | Defaults to `public, max-age=60, stale-while-revalidate=300`; tune with `PUBLIC_CACHE_MAX_AGE_SECONDS` and `PUBLIC_CACHE_STALE_WHILE_REVALIDATE_SECONDS`. |
+| `Cache-Control` | Defaults to `public, max-age=60, stale-while-revalidate=300`; tune with `PUBLIC_CACHE_MAX_AGE_SECONDS` and `PUBLIC_CACHE_STALE_WHILE_REVALIDATE_SECONDS`. The stale-while-revalidate directive is for browser and edge caches; backend in-process stale-while-revalidate is intentionally deferred. |
 | `ETag` | Strong validator for conditional browser and edge revalidation. |
 | `X-Cache` | `MISS` when the backend rebuilt the payload, `HIT` when the in-process cache served it. |
 | `X-Cache-Version` | Validation marker derived from the latest `btc_risk_validation` row. It changes after successful imports. |
@@ -54,6 +54,12 @@ Cached responses include:
 Clients may send `If-None-Match` with the last `ETag`; unchanged responses return HTTP 304. The backend cache TTL is
 controlled by `PUBLIC_CACHE_TTL_SECONDS` and defaults to 300 seconds. The cache key includes the full request path and
 query string, so filtered history requests are cached separately.
+
+Concurrent backend cold misses for the same request key and `X-Cache-Version` are coalesced so one rebuild is shared by
+matching requests. When an in-process entry expires and the validation marker is unchanged, the backend rebuilds
+synchronously rather than serving an expired in-process payload. When the validation marker changes, the next matching
+public read also rebuilds synchronously for the new version; stale in-process data is not served across
+`X-Cache-Version` boundaries.
 
 The backend may warm these product cache keys during startup or via an operator command, but the response body shape and
 cache headers are the same as a normal request. Operator warmup should target a local or private origin, for example

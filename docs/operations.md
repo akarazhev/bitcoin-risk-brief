@@ -408,8 +408,10 @@ curl -sD - -o /tmp/bitcoin-risk-latest.json http://localhost:3001/api/risk/lates
 ```
 
 The backend warms standard public product payloads during startup after the database pool is ready and readiness is
-healthy. If validation data is missing, readiness cannot be probed, or readiness returns a non-200 status, startup
-warmup is skipped and logged so degraded or stale data is not hidden.
+healthy. Startup warmup runs the standard product targets concurrently, isolates per-target failures, and logs
+`public_cache_warmup_complete` with warmed count, failed count, total duration, and the slowest targets. If validation
+data is missing, readiness cannot be probed, or readiness returns a non-200 status, startup warmup is skipped and logged
+so degraded or stale data is not hidden.
 
 Warm the standard public product payloads after manual or scheduled imports before active traffic:
 
@@ -468,6 +470,10 @@ key. If Cloudflare cache is enabled, purge the hostname or wait for `PUBLIC_CACH
 public data for a launch snapshot.
 
 `POST /api/waitlist` must remain uncached. Confirm it returns `Cache-Control: no-store` during launch checks.
+
+For issue #35, local verification can cover backend cache correctness, warmup timing, and header behavior. Keep the issue
+open until a deployed production version has been checked with GET-only public endpoint smoke tests and startup/import
+warmup log review.
 
 ## Launch Snapshot Packet
 
