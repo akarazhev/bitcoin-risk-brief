@@ -402,6 +402,7 @@ export default function App() {
     setJoinError(null)
     try {
       await joinWaitlist({ contact: value, locale, source: 'landing' })
+      setLead('')
       setJoined(true)
     } catch {
       setJoined(false)

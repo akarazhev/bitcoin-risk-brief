@@ -517,15 +517,20 @@ test('localizes the privacy terms and disclaimer note', async () => {
   expect(noteElement).toHaveTextContent('платный SLA поддержки не предоставляется')
 })
 
-test('submits waitlist contacts to the backend API', async () => {
+test('submits waitlist contacts to the backend API and clears the input on success', async () => {
   render(<App />)
 
-  fireEvent.change(await screen.findByPlaceholderText('email or @telegram'), { target: { value: 'USER@example.com' } })
+  const input = await screen.findByPlaceholderText('email or @telegram')
+  fireEvent.change(input, { target: { value: 'USER@example.com' } })
   fireEvent.click(screen.getByRole('button', { name: /join waitlist/i }))
 
   await waitFor(() => {
     expect(apiMocks.joinWaitlist).toHaveBeenCalledWith({ contact: 'USER@example.com', locale: 'en', source: 'landing' })
   })
+  await waitFor(() => {
+    expect(input).toHaveValue('')
+  })
+  expect(screen.getByRole('status')).toHaveTextContent('Saved. You are on the Bitcoin Risk Brief waitlist.')
 })
 
 test('announces waitlist submitting and success states politely', async () => {
@@ -552,7 +557,7 @@ test('announces waitlist submitting and success states politely', async () => {
   expect(screen.getByRole('button', { name: /join waitlist/i })).toHaveAttribute('aria-busy', 'false')
 })
 
-test('announces waitlist errors assertively and links them to the input', async () => {
+test('announces waitlist errors assertively, links them to the input, and preserves the contact', async () => {
   apiMocks.joinWaitlist.mockRejectedValueOnce(new Error('invalid contact'))
   render(<App />)
 
@@ -564,8 +569,8 @@ test('announces waitlist errors assertively and links them to the input', async 
   expect(alert).toHaveTextContent('Enter a valid email or Telegram handle.')
   expect(input).toHaveAttribute('aria-invalid', 'true')
   expect(input).toHaveAccessibleDescription('Enter a valid email or Telegram handle.')
+  expect(input).toHaveValue('not-a-contact')
 })
-
 
 test('does not persist waitlist contacts in browser storage', async () => {
   const setItemSpy = vi.spyOn(Storage.prototype, 'setItem')
