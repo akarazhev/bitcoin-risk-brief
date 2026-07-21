@@ -25,7 +25,11 @@ class WaitlistExportScriptTests(unittest.TestCase):
             "set -euo pipefail\n"
             "printf '%s\\n' \"$@\" > \"${ARGS_CAPTURE}\"\n"
             "cat > \"${SQL_CAPTURE}\"\n"
-            "if grep -q '^\\\\copy ' \"${SQL_CAPTURE}\"; then\n"
+            "if grep -qxF '\\copy (' \"${SQL_CAPTURE}\"; then\n"
+            "  printf '\\\\copy: parse error at end of line\\n' >&2\n"
+            "  exit 3\n"
+            "fi\n"
+            "if grep -q '^COPY ' \"${SQL_CAPTURE}\"; then\n"
             "  printf 'id,contact,normalized_contact,contact_type,locale,source,status,created_at,updated_at\\n'\n"
             "  printf 'lead-1,user@example.com,user@example.com,email,en,landing,active,2026-07-20T12:00:00Z,2026-07-20T12:00:00Z\\n'\n"
             "else\n"
@@ -113,7 +117,8 @@ class WaitlistExportScriptTests(unittest.TestCase):
         mode = stat.S_IMODE(output_path.stat().st_mode)
         self.assertEqual(mode, 0o600)
         sql = self.sql_capture.read_text()
-        self.assertIn("\\copy", sql)
+        self.assertIn("COPY (", sql)
+        self.assertNotIn("\\copy", sql)
         self.assertIn("contact,", sql)
 
 

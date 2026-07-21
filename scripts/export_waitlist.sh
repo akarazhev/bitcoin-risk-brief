@@ -111,7 +111,7 @@ if [[ "${INCLUDE_CONTACTS}" == "true" ]]; then
   trap cleanup EXIT
 
   run_psql -q <<'SQL' > "${temp_path}"
-\copy (
+COPY (
   SELECT
     id::text,
     contact,
@@ -124,7 +124,7 @@ if [[ "${INCLUDE_CONTACTS}" == "true" ]]; then
     updated_at
   FROM waitlist_leads
   ORDER BY created_at DESC, id DESC
-) TO STDOUT WITH CSV HEADER
+) TO STDOUT WITH CSV HEADER;
 SQL
 
   chmod 600 "${temp_path}"
