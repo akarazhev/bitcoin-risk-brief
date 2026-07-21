@@ -40,6 +40,8 @@ class PrepareUsbKitTests(unittest.TestCase):
         write_file(self.source / ".env.production.example", "APP_ENV=production\n")
         write_file(self.source / "scripts" / "manage.sh", "#!/usr/bin/env bash\necho manage\n")
         make_executable(self.source / "scripts" / "manage.sh")
+        write_file(self.source / "scripts" / "export_waitlist.sh", "#!/usr/bin/env bash\necho waitlist\n")
+        make_executable(self.source / "scripts" / "export_waitlist.sh")
         write_file(self.source / "backend" / "app" / "main.py", "print('backend')\n")
         write_file(self.source / "frontend" / "src" / "App.tsx", "export default function App() { return null }\n")
         write_file(self.source / "frontend" / "tsconfig.tsbuildinfo", "build cache\n")
@@ -153,6 +155,7 @@ class PrepareUsbKitTests(unittest.TestCase):
         self.assertTrue((project / "podman-compose.yml").is_file())
         self.assertTrue((project / ".env.production.example").is_file())
         self.assertTrue((project / "collector" / "btc-csv" / "btc_usd_daily.csv").is_file())
+        self.assertTrue(os.access(project / "scripts" / "export_waitlist.sh", os.X_OK))
 
     def test_project_snapshot_excludes_git_ignored_local_artifacts(self) -> None:
         result = self.run_packager()

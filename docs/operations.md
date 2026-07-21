@@ -129,6 +129,25 @@ Open the app:
 http://localhost:3001
 ```
 
+## Waitlist Review
+
+Review aggregate waitlist counts and recent masked leads from the local or deployed project checkout:
+
+```bash
+./scripts/export_waitlist.sh
+```
+
+The default mode does not export full contact values. For manual founder/operator follow-up, write a full-contact CSV to
+an operator-controlled location outside the repository:
+
+```bash
+./scripts/export_waitlist.sh --include-contacts --output /secure/path/waitlist.csv
+```
+
+Treat that CSV as PII. Do not store it under the project checkout, Git history, dependency caches, browser profiles, or
+ad hoc public folders. The USB server kit includes this script in the deployed project snapshot, so it is available after
+fresh installs and backup-gated updates.
+
 ## Production Import Provenance
 
 Capture a sanitized evidence packet for every production import, including scheduled imports, one-off public

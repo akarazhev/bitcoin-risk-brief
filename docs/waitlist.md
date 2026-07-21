@@ -63,6 +63,27 @@ The public note summarizes this storage behavior: the app stores the submitted c
 type, locale, source, status, and timestamps. Backend access logs may include method, path, status, client key,
 Cloudflare ray ID, cache status, and duration, but they do not intentionally log submitted contact values.
 
+## Local Review And Export
+
+Operators can review waitlist leads from the local or deployed project checkout with:
+
+```bash
+./scripts/export_waitlist.sh
+```
+
+The default report prints aggregate counts and recent leads with masked contacts. It is safe for quick operational
+review, but still should not be copied into Git if it contains private operational context.
+
+For manual founder/operator follow-up, export full contacts only to an operator-controlled path:
+
+```bash
+./scripts/export_waitlist.sh --include-contacts --output /secure/path/waitlist.csv
+```
+
+The full CSV contains raw waitlist contacts and is PII. Store it outside the project checkout, dependency caches, browser
+profiles, and Git history. The script writes the file with owner-only permissions and refuses to overwrite an existing
+file.
+
 ## Rate Limiting
 
 `POST /api/waitlist` uses an in-memory fixed-window per-client limit. The default is:
