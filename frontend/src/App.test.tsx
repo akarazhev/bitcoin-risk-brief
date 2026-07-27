@@ -824,6 +824,42 @@ test('uses accessible risk threshold labels outside the chart canvas', async () 
   expect(riskOption.series[0].markLine.data).toEqual([{ yAxis: 0.30 }, { yAxis: 0.70 }])
 })
 
+test('limits the risk levels chart to the practical public risk window', async () => {
+  apiMocks.fetchLatestRisk.mockResolvedValueOnce({ data: latestRisk({ risk: 0.2158 }) })
+  apiMocks.fetchRiskLevels.mockResolvedValueOnce({ data: [
+    { risk: 0.00, price_usd: 16256 },
+    { risk: 0.10, price_usd: 43658 },
+    { risk: 0.20, price_usd: 62340 },
+    { risk: 0.30, price_usd: 79024 },
+    { risk: 0.50, price_usd: 114797 },
+    { risk: 0.70, price_usd: 166961 },
+    { risk: 0.80, price_usd: 212058 },
+    { risk: 0.90, price_usd: 304364 },
+    { risk: 1.00, price_usd: 439659 },
+  ], meta: {
+    base: latestRisk({ risk: 0.2158 }),
+    methodology_version: 'crypto-scout-canonical-v1.1',
+    evaluation_date: '2026-07-26',
+    current_price: 65026,
+    current_risk: 0.2158,
+    turnover_enabled: false,
+    risk_step: 0.025,
+    source_row_count: 5858,
+  } })
+
+  render(<App />)
+
+  const priceChart = await screen.findByTestId('chart-price')
+  const priceOption = JSON.parse(priceChart.dataset.option ?? '{}')
+
+  expect(priceOption.xAxis.data).toEqual(['20%', '30%', '50%', '70%', '80%'])
+  expect(priceOption.series[0].data).toEqual([62340, 79024, 114797, 166961, 212058])
+  expect(priceOption.series[0].data).not.toContain(16256)
+  expect(priceOption.series[0].data).not.toContain(439659)
+  expect(priceOption.series[0].markLine.data).toEqual([{ xAxis: '20%' }])
+  expect(priceOption.series[0].markLine.label.formatter).toBe('Current risk: 22%')
+})
+
 test('marks the current risk on levels chart using levels snapshot metadata', async () => {
   apiMocks.fetchLatestRisk.mockResolvedValueOnce({ data: latestRisk({ risk: 0.2 }) })
   apiMocks.fetchRiskLevels.mockResolvedValueOnce({ data: [
@@ -873,6 +909,35 @@ test('falls back to latest risk for levels marker when levels metadata omits cur
   expect(priceOption.series[0].markLine.data).toEqual([{ xAxis: '35%' }])
   expect(priceOption.series[0].markLine.label.formatter).toBe('Current risk: 35%')
 })
+
+test.each([0.1, 0.9])(
+  'does not clamp a current risk marker outside the public risk levels chart window: %s',
+  async (currentRisk) => {
+    apiMocks.fetchLatestRisk.mockResolvedValueOnce({ data: latestRisk({ risk: currentRisk }) })
+    apiMocks.fetchRiskLevels.mockResolvedValueOnce({ data: [
+      { risk: 0.20, price_usd: 62340 },
+      { risk: 0.30, price_usd: 79024 },
+      { risk: 0.70, price_usd: 166961 },
+      { risk: 0.80, price_usd: 212058 },
+    ], meta: {
+      base: latestRisk({ risk: currentRisk }),
+      methodology_version: 'crypto-scout-canonical-v1.1',
+      evaluation_date: '2026-07-26',
+      current_price: 65026,
+      current_risk: currentRisk,
+      turnover_enabled: false,
+      risk_step: 0.025,
+      source_row_count: 5858,
+    } })
+
+    render(<App />)
+
+    const priceChart = await screen.findByTestId('chart-price')
+    const priceOption = JSON.parse(priceChart.dataset.option ?? '{}')
+
+    expect(priceOption.series[0].markLine).toBeUndefined()
+  },
+)
 
 test('renders screen-reader chart data alternatives for current risk, recent history, and thresholds', async () => {
   render(<App />)

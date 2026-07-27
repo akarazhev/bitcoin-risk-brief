@@ -189,7 +189,7 @@ Detailed response shapes are documented in [API Reference](docs/api-reference.md
 
 Risk uses `crypto-scout-canonical-v1.1`, aligned with `crypto-scout-analytics`: HLC3 price, EMA365 trend deviation, 30-day realized volatility, turnover as `ln(volume / market_cap)`, robust rolling z-scores with a 1460-day window and 365-day minimum, and canonical weights of `0.60/0.25/0.15` when turnover is enabled.
 
-Risk levels are solved through the same risk model at `0.025` risk increments. They are scenario outputs, not trading instructions.
+Risk levels are solved through the same risk model at `0.025` risk increments. They are scenario outputs, not trading instructions. The API keeps the full `0.00` to `1.00` ladder; the public chart displays the practical `0.20` to `0.80` window so extreme solver endpoints do not dominate the price scale.
 
 ## Production Configuration
 

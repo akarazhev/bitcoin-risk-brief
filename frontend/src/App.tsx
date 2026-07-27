@@ -37,6 +37,8 @@ const COMPACT_CHART_QUERY = '(max-width: 640px)'
 const ACCESSIBLE_HISTORY_POINTS = 6
 const DRIVER_NEUTRAL_BAND = 0.25
 const RISK_STATE_THRESHOLDS = [0.30, 0.70] as const
+const PUBLIC_RISK_LEVEL_WINDOW = { min: 0.20, max: 0.80 } as const
+const RISK_LEVEL_WINDOW_EPSILON = 1e-9
 const AUTO_CHART_SIZE = { width: 'auto', height: 'auto' } as const
 const COINMARKETCAP_HISTORICAL_DATA_URL = 'https://coinmarketcap.com/currencies/bitcoin/historical-data/'
 const SUPPORT_EMAIL = 'support@minihub.app'
@@ -189,6 +191,15 @@ function nearestRiskLevel(levels: RiskLevel[], targetRisk: number) {
   }, null)
 }
 
+function riskInPublicChartWindow(risk: number) {
+  return risk >= PUBLIC_RISK_LEVEL_WINDOW.min - RISK_LEVEL_WINDOW_EPSILON
+    && risk <= PUBLIC_RISK_LEVEL_WINDOW.max + RISK_LEVEL_WINDOW_EPSILON
+}
+
+function riskLevelInPublicChartWindow(level: RiskLevel) {
+  return riskInPublicChartWindow(level.risk)
+}
+
 function emptyRiskLevelsChartData(): RiskLevelsChartData {
   return { levels: [], meta: null }
 }
@@ -205,6 +216,7 @@ function buildCurrentRiskMarker(
   const metadataRisk = levelsMeta?.current_risk
   const currentRisk = isRiskValue(metadataRisk) ? metadataRisk : fallbackRisk
   if (!isRiskValue(currentRisk)) return null
+  if (!riskInPublicChartWindow(currentRisk)) return null
 
   const nearestLevel = nearestRiskLevel(levels, currentRisk)
   if (!nearestLevel) return null
@@ -257,6 +269,7 @@ export default function App() {
   const history = historyState.data
   const levels = levelsState.data.levels
   const levelsMeta = levelsState.data.meta
+  const visibleRiskLevels = useMemo(() => levels.filter(riskLevelInPublicChartWindow), [levels])
   const waitlistStatusId = 'waitlist-status'
   const waitlistErrorId = 'waitlist-error'
 
@@ -338,8 +351,8 @@ export default function App() {
   }), [compactCharts, history])
 
   const currentRiskMarker = useMemo(
-    () => buildCurrentRiskMarker(levels, levelsMeta, latest?.risk),
-    [levels, levelsMeta, latest?.risk],
+    () => buildCurrentRiskMarker(visibleRiskLevels, levelsMeta, latest?.risk),
+    [visibleRiskLevels, levelsMeta, latest?.risk],
   )
 
   const levelsOption = useMemo<EChartsOption>(() => ({
@@ -352,13 +365,13 @@ export default function App() {
       bottom: compactCharts ? 30 : 36,
     },
     tooltip: { trigger: 'axis' },
-    xAxis: { type: 'category', data: levels.map((row) => riskLevelAxisLabel(row.risk)), axisLabel: { color: '#7e8794', hideOverlap: compactCharts }, axisLine: { lineStyle: { color: '#2a3441' } } },
+    xAxis: { type: 'category', data: visibleRiskLevels.map((row) => riskLevelAxisLabel(row.risk)), axisLabel: { color: '#7e8794', hideOverlap: compactCharts }, axisLine: { lineStyle: { color: '#2a3441' } } },
     yAxis: { type: 'value', axisLabel: { color: '#7e8794', formatter: (value: number) => `$${Math.round(value / 1000)}k` }, splitLine: { lineStyle: { color: '#26303b' } } },
     series: [{
       name: 'Price',
       type: 'bar',
       barMaxWidth: compactCharts ? 5 : 9,
-      data: levels.map((row) => row.price_usd),
+      data: visibleRiskLevels.map((row) => row.price_usd),
       itemStyle: { color: '#5bd6c6', borderRadius: [4, 4, 0, 0] },
       markLine: currentRiskMarker ? {
         symbol: 'none',
@@ -377,7 +390,7 @@ export default function App() {
         lineStyle: { color: '#f2b84b', width: 2, type: 'solid' },
       } : undefined,
     }],
-  }), [compactCharts, currentRiskMarker, levels, t.currentRisk])
+  }), [compactCharts, currentRiskMarker, visibleRiskLevels, t.currentRisk])
 
   const thresholdCallouts = useMemo<ThresholdCallout[]>(() => {
     return RISK_STATE_THRESHOLDS.flatMap((targetRisk, index) => {
@@ -706,7 +719,7 @@ export default function App() {
             <div className="chart-placeholder" role="status">{t.chartLoading}</div>
           ) : levelsState.status === 'error' ? (
             <div className="chart-empty chart-error" role="alert">{t.levelsError}</div>
-          ) : levels.length > 0 ? (
+          ) : visibleRiskLevels.length > 0 ? (
             <div className="chart-visual" role="img" aria-labelledby="risk-levels-heading" aria-describedby="risk-levels-chart-summary">
               <Suspense fallback={<div className="chart-placeholder" role="status">{t.chartLoading}</div>}>
                 <Chart option={levelsOption} notMerge opts={AUTO_CHART_SIZE} onChartReady={resizeChartWhenReady} style={{ height: 360, width: '100%' }} />

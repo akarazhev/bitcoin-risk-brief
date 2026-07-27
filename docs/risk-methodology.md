@@ -124,6 +124,8 @@ The solver:
 
 The latest risk from `/api/risk/latest` and `meta.current_risk` from `/api/risk/levels` are expected to match when the database is consistent.
 
+The `/api/risk/levels` response keeps the full `0.00` to `1.00` scenario ladder. The public frontend chart displays the practical `0.20` to `0.80` window so clipped solver endpoints remain available for diagnostics without stretching the user-facing price scale.
+
 ## Interpretation Limits
 
 The risk metric and risk levels are analytics outputs. They are not financial advice, investment advice, or trading recommendations. Risk levels are scenario estimates based on the current methodology and input data quality.
