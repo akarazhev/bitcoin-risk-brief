@@ -65,6 +65,8 @@ type Copy = {
   chartCurrentRange: (low: string, high: string) => string
   riskHistoryAlternativeNote: (count: number) => string
   riskLevelsAlternativeNote: string
+  riskLevelsBelowWindow: (risk: string) => string
+  riskLevelsAboveWindow: (risk: string) => string
   dateColumn: string
   riskColumn: string
   priceColumn: string
@@ -192,6 +194,8 @@ export const copy: Record<Locale, Copy> = {
     chartCurrentRange: (low, high) => `, with latest daily low ${low} and high ${high}`,
     riskHistoryAlternativeNote: (count) => `The table lists the ${count} most recent risk history observations available to the chart.`,
     riskLevelsAlternativeNote: 'The table lists the key risk threshold prices used with the risk levels chart.',
+    riskLevelsBelowWindow: (risk) => `Current risk: ${risk} is below the displayed risk-level window.`,
+    riskLevelsAboveWindow: (risk) => `Current risk: ${risk} is above the displayed risk-level window.`,
     dateColumn: 'Date',
     riskColumn: 'Risk',
     priceColumn: 'BTC price',
@@ -284,6 +288,8 @@ export const copy: Record<Locale, Copy> = {
     chartCurrentRange: (low, high) => `, дневной минимум ${low}, максимум ${high}`,
     riskHistoryAlternativeNote: (count) => `Таблица показывает ${count} последних наблюдений риска, доступных на графике.`,
     riskLevelsAlternativeNote: 'Таблица показывает ключевые пороговые цены, используемые с графиком уровней риска.',
+    riskLevelsBelowWindow: (risk) => `Текущий риск ${risk} ниже отображаемого окна уровней риска.`,
+    riskLevelsAboveWindow: (risk) => `Текущий риск ${risk} выше отображаемого окна уровней риска.`,
     dateColumn: 'Дата',
     riskColumn: 'Риск',
     priceColumn: 'Цена BTC',
@@ -376,6 +382,8 @@ export const copy: Record<Locale, Copy> = {
     chartCurrentRange: (low, high) => `，最新日内低点 ${low}，高点 ${high}`,
     riskHistoryAlternativeNote: (count) => `表格列出图表中最近 ${count} 条风险历史观测。`,
     riskLevelsAlternativeNote: '表格列出风险等级图表使用的关键风险阈值价格。',
+    riskLevelsBelowWindow: (risk) => `当前风险 ${risk} 低于显示的风险等级窗口。`,
+    riskLevelsAboveWindow: (risk) => `当前风险 ${risk} 高于显示的风险等级窗口。`,
     dateColumn: '日期',
     riskColumn: '风险',
     priceColumn: 'BTC 价格',
@@ -468,6 +476,8 @@ export const copy: Record<Locale, Copy> = {
     chartCurrentRange: (low, high) => `, mit letztem Tagestief ${low} und Tageshoch ${high}`,
     riskHistoryAlternativeNote: (count) => `Die Tabelle zeigt die ${count} neuesten Risikobeobachtungen, die im Chart verfügbar sind.`,
     riskLevelsAlternativeNote: 'Die Tabelle zeigt die wichtigsten Risiko-Schwellenpreise, die im Risikostufen-Chart verwendet werden.',
+    riskLevelsBelowWindow: (risk) => `Aktuelles Risiko ${risk} liegt unter dem angezeigten Risikostufenfenster.`,
+    riskLevelsAboveWindow: (risk) => `Aktuelles Risiko ${risk} liegt über dem angezeigten Risikostufenfenster.`,
     dateColumn: 'Datum',
     riskColumn: 'Risiko',
     priceColumn: 'BTC-Preis',
@@ -560,6 +570,8 @@ export const copy: Record<Locale, Copy> = {
     chartCurrentRange: (low, high) => `, avec un plus bas quotidien récent à ${low} et un plus haut à ${high}`,
     riskHistoryAlternativeNote: (count) => `Le tableau liste les ${count} observations de risque les plus récentes disponibles dans le graphique.`,
     riskLevelsAlternativeNote: 'Le tableau liste les principaux prix de seuil utilisés avec le graphique des niveaux de risque.',
+    riskLevelsBelowWindow: (risk) => `Le risque actuel ${risk} est sous la fenêtre de niveaux de risque affichée.`,
+    riskLevelsAboveWindow: (risk) => `Le risque actuel ${risk} est au-dessus de la fenêtre de niveaux de risque affichée.`,
     dateColumn: 'Date',
     riskColumn: 'Risque',
     priceColumn: 'Prix BTC',
@@ -652,6 +664,8 @@ export const copy: Record<Locale, Copy> = {
     chartCurrentRange: (low, high) => `, con mínimo diario reciente ${low} y máximo ${high}`,
     riskHistoryAlternativeNote: (count) => `La tabla muestra las ${count} observaciones más recientes de historial de riesgo disponibles para el gráfico.`,
     riskLevelsAlternativeNote: 'La tabla muestra los precios clave de umbral usados con el gráfico de niveles de riesgo.',
+    riskLevelsBelowWindow: (risk) => `El riesgo actual ${risk} está por debajo de la ventana de niveles de riesgo mostrada.`,
+    riskLevelsAboveWindow: (risk) => `El riesgo actual ${risk} está por encima de la ventana de niveles de riesgo mostrada.`,
     dateColumn: 'Fecha',
     riskColumn: 'Riesgo',
     priceColumn: 'Precio BTC',
@@ -744,6 +758,8 @@ export const copy: Record<Locale, Copy> = {
     chartCurrentRange: (low, high) => `، مع أدنى سعر يومي حديث ${low} وأعلى سعر ${high}`,
     riskHistoryAlternativeNote: (count) => `يعرض الجدول أحدث ${count} ملاحظات مخاطر متاحة للمخطط.`,
     riskLevelsAlternativeNote: 'يعرض الجدول أسعار عتبات المخاطر الرئيسية المستخدمة مع مخطط مستويات المخاطر.',
+    riskLevelsBelowWindow: (risk) => `المخاطر الحالية ${risk} أقل من نافذة مستويات المخاطر المعروضة.`,
+    riskLevelsAboveWindow: (risk) => `المخاطر الحالية ${risk} أعلى من نافذة مستويات المخاطر المعروضة.`,
     dateColumn: 'التاريخ',
     riskColumn: 'المخاطر',
     priceColumn: 'سعر BTC',

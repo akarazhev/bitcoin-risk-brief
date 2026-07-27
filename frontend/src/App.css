@@ -226,6 +226,7 @@ h1 { margin: 0; font-size: clamp(3rem, 9vw, 7rem); line-height: 0.9; letter-spac
 .risk-thresholds span { border: 1px solid #30343b; border-radius: 999px; padding: 4px 8px; background: #111316; }
 .threshold-callouts { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; color: #f4f0e8; font-size: 0.85rem; }
 .threshold-callouts span { border: 1px solid rgba(91, 214, 198, 0.32); border-radius: 8px; padding: 8px 10px; background: rgba(91, 214, 198, 0.08); }
+.risk-level-window-note { margin: 4px 0 12px; color: #f4d58e; font-size: 0.85rem; line-height: 1.45; }
 .chart-placeholder, .chart-empty {
   min-height: 360px;
   display: grid;

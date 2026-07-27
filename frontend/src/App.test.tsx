@@ -939,6 +939,35 @@ test.each([0.1, 0.9])(
   },
 )
 
+test.each([
+  { currentRisk: 0.1, expected: 'Current risk: 10% is below the displayed risk-level window.' },
+  { currentRisk: 0.9, expected: 'Current risk: 90% is above the displayed risk-level window.' },
+])('explains current risk when it is outside the public risk levels chart window: $currentRisk', async ({ currentRisk, expected }) => {
+  apiMocks.fetchLatestRisk.mockResolvedValueOnce({ data: latestRisk({ risk: currentRisk }) })
+  apiMocks.fetchRiskLevels.mockResolvedValueOnce({ data: [
+    { risk: 0.20, price_usd: 62340 },
+    { risk: 0.30, price_usd: 79024 },
+    { risk: 0.70, price_usd: 166961 },
+    { risk: 0.80, price_usd: 212058 },
+  ], meta: {
+    base: latestRisk({ risk: currentRisk }),
+    methodology_version: 'crypto-scout-canonical-v1.1',
+    evaluation_date: '2026-07-26',
+    current_price: 65026,
+    current_risk: currentRisk,
+    turnover_enabled: false,
+    risk_step: 0.025,
+    source_row_count: 5858,
+  } })
+
+  render(<App />)
+
+  expect(await screen.findByText(expected)).toBeInTheDocument()
+
+  const levelsChart = screen.getByRole('img', { name: 'Risk levels' })
+  expect(levelsChart).toHaveAccessibleDescription(new RegExp(expected.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')))
+})
+
 test('renders screen-reader chart data alternatives for current risk, recent history, and thresholds', async () => {
   render(<App />)
 

@@ -16,6 +16,9 @@ type CurrentRiskMarker = {
   risk: number
   xAxisLabel: string
 }
+type CurrentRiskWindowNotice = {
+  text: string
+}
 type DriverStatus = 'raises' | 'neutral' | 'lowers' | 'unavailable'
 type ReadinessLabels = {
   freshnessCurrent: string
@@ -208,14 +211,19 @@ function isRiskValue(value: unknown): value is number {
   return typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= 1
 }
 
+function currentRiskValue(levelsMeta: RiskLevelsMeta | null, fallbackRisk: number | null | undefined) {
+  const metadataRisk = levelsMeta?.current_risk
+  const currentRisk = isRiskValue(metadataRisk) ? metadataRisk : fallbackRisk
+  return isRiskValue(currentRisk) ? currentRisk : null
+}
+
 function buildCurrentRiskMarker(
   levels: RiskLevel[],
   levelsMeta: RiskLevelsMeta | null,
   fallbackRisk: number | null | undefined,
 ): CurrentRiskMarker | null {
-  const metadataRisk = levelsMeta?.current_risk
-  const currentRisk = isRiskValue(metadataRisk) ? metadataRisk : fallbackRisk
-  if (!isRiskValue(currentRisk)) return null
+  const currentRisk = currentRiskValue(levelsMeta, fallbackRisk)
+  if (currentRisk === null) return null
   if (!riskInPublicChartWindow(currentRisk)) return null
 
   const nearestLevel = nearestRiskLevel(levels, currentRisk)
@@ -224,6 +232,22 @@ function buildCurrentRiskMarker(
   return {
     risk: currentRisk,
     xAxisLabel: riskLevelAxisLabel(nearestLevel.risk),
+  }
+}
+
+function buildCurrentRiskWindowNotice(
+  levelsMeta: RiskLevelsMeta | null,
+  fallbackRisk: number | null | undefined,
+  labels: typeof copy[Locale],
+): CurrentRiskWindowNotice | null {
+  const currentRisk = currentRiskValue(levelsMeta, fallbackRisk)
+  if (currentRisk === null || riskInPublicChartWindow(currentRisk)) return null
+
+  const riskLabel = formatPercent(currentRisk)
+  return {
+    text: currentRisk < PUBLIC_RISK_LEVEL_WINDOW.min
+      ? labels.riskLevelsBelowWindow(riskLabel)
+      : labels.riskLevelsAboveWindow(riskLabel),
   }
 }
 
@@ -354,6 +378,10 @@ export default function App() {
     () => buildCurrentRiskMarker(visibleRiskLevels, levelsMeta, latest?.risk),
     [visibleRiskLevels, levelsMeta, latest?.risk],
   )
+  const currentRiskWindowNotice = useMemo(
+    () => buildCurrentRiskWindowNotice(levelsMeta, latest?.risk, t),
+    [levelsMeta, latest?.risk, t],
+  )
 
   const levelsOption = useMemo<EChartsOption>(() => ({
     backgroundColor: 'transparent',
@@ -459,6 +487,8 @@ export default function App() {
   )
   const riskLevelsSummary = currentRiskMarker
     ? `${t.riskLevelsAlternativeNote} ${t.currentRisk}: ${formatPercent(currentRiskMarker.risk)}.`
+    : currentRiskWindowNotice
+      ? `${t.riskLevelsAlternativeNote} ${currentRiskWindowNotice.text}`
     : t.riskLevelsAlternativeNote
   const modelDrivers = buildModelDrivers(latest, t)
   const reportDate = ready && readiness.checks.data_fresh && readiness.data.latest_date
@@ -688,6 +718,9 @@ export default function App() {
         </article>
         <article className="chart-panel" aria-labelledby="risk-levels-heading">
           <h2 id="risk-levels-heading">{t.levels}</h2>
+          {currentRiskWindowNotice && visibleRiskLevels.length > 0 && (
+            <p className="risk-level-window-note">{currentRiskWindowNotice.text}</p>
+          )}
           {levels.length > 0 && (
             <section className="sr-only" aria-labelledby="risk-levels-alternative-heading">
               <h3 id="risk-levels-alternative-heading">{t.riskLevelsAlternative}</h3>
