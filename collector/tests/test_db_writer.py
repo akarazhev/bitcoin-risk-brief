@@ -92,7 +92,7 @@ class RiskLevelSnapshotWriterTest(unittest.IsolatedAsyncioTestCase):
         query, params = pool.calls[0]
         self.assertIn("risk_level_snapshots", query)
         self.assertEqual(params[0], datetime(2026, 6, 25, tzinfo=timezone.utc))
-        self.assertEqual(params[1], "crypto-scout-canonical-v1")
+        self.assertEqual(params[1], "crypto-scout-canonical-v1.1")
         payload = json.loads(params[2])
         self.assertEqual(payload["data"], [{"risk": 0.35, "price_usd": 82000.12}])
         self.assertEqual(payload["meta"]["base"]["timestamp"], "2026-06-25T00:00:00+00:00")

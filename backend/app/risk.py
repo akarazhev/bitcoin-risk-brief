@@ -7,7 +7,9 @@ from statistics import median, pstdev
 from typing import Any
 
 EPSILON = 1e-12
-METHODOLOGY_VERSION = "crypto-scout-canonical-v1"
+METHODOLOGY_VERSION = "crypto-scout-canonical-v1.1"
+LOW_RISK_THRESHOLD = 0.30
+HIGH_RISK_THRESHOLD = 0.70
 ROBUST_Z_WINDOW = 1460
 ROBUST_Z_MIN_PERIODS = 365
 ROBUST_Z_CLIP = 6.0
@@ -167,9 +169,9 @@ def _sigmoid(value: float) -> float:
 
 
 def classify_risk(risk: float) -> str:
-    if risk < 0.35:
+    if risk < LOW_RISK_THRESHOLD:
         return "low"
-    if risk >= 0.65:
+    if risk >= HIGH_RISK_THRESHOLD:
         return "high"
     return "neutral"
 

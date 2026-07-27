@@ -18,10 +18,10 @@ class ReadinessPayloadTest(unittest.TestCase):
             "risk_range_ok": True,
             "validation_json": {
                 "source": "coinmarketcap_csv",
-                "methodology_version": "crypto-scout-canonical-v1",
+                "methodology_version": "crypto-scout-canonical-v1.1",
                 "validation": {
                     "source_strategy": "coinmarketcap_csv",
-                    "methodology_version": "crypto-scout-canonical-v1",
+                    "methodology_version": "crypto-scout-canonical-v1.1",
                 },
             },
         }
@@ -37,7 +37,7 @@ class ReadinessPayloadTest(unittest.TestCase):
         self.assertEqual(payload["status"], "ready")
         self.assertTrue(all(payload["checks"].values()))
         self.assertEqual(payload["data"]["source"], "coinmarketcap_csv")
-        self.assertEqual(payload["data"]["methodology_version"], "crypto-scout-canonical-v1")
+        self.assertEqual(payload["data"]["methodology_version"], "crypto-scout-canonical-v1.1")
         self.assertEqual(payload["data"]["data_age_days"], 1)
 
     def test_degraded_when_data_is_stale_or_source_is_wrong(self) -> None:

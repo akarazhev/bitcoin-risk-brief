@@ -5,6 +5,7 @@ from datetime import date, timedelta
 from unittest.mock import patch
 
 from app.risk import (
+    METHODOLOGY_VERSION,
     ROBUST_Z_MIN_PERIODS,
     ROBUST_Z_WINDOW,
     TURNOVER_DISABLED_WEIGHTS,
@@ -46,6 +47,7 @@ def make_rows(*, days: int = 1500, final_multiplier: float = 1.0) -> list[dict]:
 
 class RiskCalculationTest(unittest.TestCase):
     def test_canonical_constants_match_crypto_scout_methodology(self) -> None:
+        self.assertEqual(METHODOLOGY_VERSION, "crypto-scout-canonical-v1.1")
         self.assertEqual(ROBUST_Z_WINDOW, 1460)
         self.assertEqual(ROBUST_Z_MIN_PERIODS, 365)
         self.assertEqual(TURNOVER_ENABLED_WEIGHTS, {"trend_dev": 0.60, "vol_regime": 0.25, "turnover": 0.15})
@@ -75,9 +77,11 @@ class RiskCalculationTest(unittest.TestCase):
         self.assertGreater(shocked.risk, baseline.risk)
 
     def test_classify_risk_uses_stable_buckets(self) -> None:
-        self.assertEqual(classify_risk(0.20), "low")
+        self.assertEqual(classify_risk(0.299999), "low")
+        self.assertEqual(classify_risk(0.30), "neutral")
         self.assertEqual(classify_risk(0.50), "neutral")
-        self.assertEqual(classify_risk(0.82), "high")
+        self.assertEqual(classify_risk(0.699999), "neutral")
+        self.assertEqual(classify_risk(0.70), "high")
 
 
 class RiskLevelSolverTest(unittest.TestCase):

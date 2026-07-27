@@ -228,8 +228,8 @@ class PublicPayloadSchemaRegressionTest(MainPatchMixin, unittest.IsolatedAsyncio
             self.assertIsNone(end_date)
             self.assertEqual(limit, 2000)
             return [
-                {"timestamp": "2026-06-24T00:00:00+00:00", "risk": 0.31, "risk_state": "low"},
-                {"timestamp": "2026-06-25T00:00:00+00:00", "risk": 0.32, "risk_state": "low"},
+                {"timestamp": "2026-06-24T00:00:00+00:00", "risk": 0.31, "risk_state": "neutral"},
+                {"timestamp": "2026-06-25T00:00:00+00:00", "risk": 0.32, "risk_state": "neutral"},
             ]
 
         self.patch_main("get_pool", lambda: object())
@@ -305,7 +305,7 @@ class PublicPayloadSchemaRegressionTest(MainPatchMixin, unittest.IsolatedAsyncio
             "data": [{"risk": 0.35, "price_usd": 82000.0}],
             "meta": {
                 "base": {"timestamp": "2026-06-26T00:00:00+00:00", "risk": 0.7},
-                "methodology_version": "crypto-scout-canonical-v1",
+                "methodology_version": "crypto-scout-canonical-v1.1",
                 "evaluation_date": "2026-06-26",
                 "current_price": 100000.0,
                 "current_risk": 0.7,

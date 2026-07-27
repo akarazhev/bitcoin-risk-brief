@@ -7,7 +7,7 @@ This directory documents the current Bitcoin Risk Brief mini-product in English.
 - [Product Spec and Alignment Review](01-bitcoin-risk-brief.md): original validation-product spec plus current implementation alignment and remaining production-pilot operations.
 - [Architecture](architecture.md): service layout, runtime flow, repository structure, and database responsibilities.
 - [Data Pipeline](data-pipeline.md): canonical CSV source, automatic public CoinMarketCap download, manual downloaded CSV intake, optional CoinMarketCap API refresh, validation, import, and failure behavior.
-- [Risk Methodology](risk-methodology.md): `crypto-scout-canonical-v1`, features, weights, risk states, and risk levels.
+- [Risk Methodology](risk-methodology.md): `crypto-scout-canonical-v1.1`, features, weights, risk states, and risk levels.
 - [API Reference](api-reference.md): public endpoints, request/response shapes, cache headers, latest model-price/OHLC fields, and readiness semantics.
 - [Waitlist](waitlist.md): lead capture behavior, validation rules, storage model, and privacy notes.
 - [Security and Privacy](security-and-privacy.md): headers, input validation, rate limiting, bot/abuse protection, caching safety, secrets, and PII handling.

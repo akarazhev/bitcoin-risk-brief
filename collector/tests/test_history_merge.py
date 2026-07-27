@@ -90,7 +90,7 @@ class CollectorRecordBuilderTest(unittest.TestCase):
         )
 
         self.assertEqual(payload["source"], "coinmarketcap_csv")
-        self.assertEqual(payload["methodology_version"], "crypto-scout-canonical-v1")
+        self.assertEqual(payload["methodology_version"], "crypto-scout-canonical-v1.1")
         self.assertEqual(payload["validation"]["missing_date_count"], 0)
 
 

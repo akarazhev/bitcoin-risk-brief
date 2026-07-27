@@ -80,7 +80,7 @@ beforeEach(() => {
       max_age_days: 2,
       source: 'coinmarketcap_csv',
       row_count: 5827,
-      methodology_version: 'crypto-scout-canonical-v1',
+      methodology_version: 'crypto-scout-canonical-v1.1',
     },
   })
   apiMocks.fetchRiskHistory.mockReturnValue(new Promise(() => {}))

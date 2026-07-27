@@ -26,8 +26,8 @@ const riskHistory = {
     { timestamp: '2026-06-20T00:00:00Z', price_usd: 94000, risk: 0.42, score: 0.42, risk_state: 'neutral', trend_dev: 1, vol_regime: 0.1, turnover: null, z_trend_dev: 1, z_vol_regime: 1, z_turnover: null, turnover_enabled: false },
     { timestamp: '2026-06-21T00:00:00Z', price_usd: 96000, risk: 0.5, score: 0.5, risk_state: 'neutral', trend_dev: 1, vol_regime: 0.1, turnover: null, z_trend_dev: 1, z_vol_regime: 1, z_turnover: null, turnover_enabled: false },
     { timestamp: '2026-06-22T00:00:00Z', price_usd: 98500, risk: 0.58, score: 0.58, risk_state: 'neutral', trend_dev: 1, vol_regime: 0.1, turnover: null, z_trend_dev: 1, z_vol_regime: 1, z_turnover: null, turnover_enabled: false },
-    { timestamp: '2026-06-23T00:00:00Z', price_usd: 100500, risk: 0.66, score: 0.66, risk_state: 'high', trend_dev: 1, vol_regime: 0.1, turnover: null, z_trend_dev: 1, z_vol_regime: 1, z_turnover: null, turnover_enabled: false },
-    { timestamp: '2026-06-24T00:00:00Z', price_usd: 101500, risk: 0.69, score: 0.69, risk_state: 'high', trend_dev: 1, vol_regime: 0.1, turnover: null, z_trend_dev: 1, z_vol_regime: 1, z_turnover: null, turnover_enabled: false },
+    { timestamp: '2026-06-23T00:00:00Z', price_usd: 100500, risk: 0.66, score: 0.66, risk_state: 'neutral', trend_dev: 1, vol_regime: 0.1, turnover: null, z_trend_dev: 1, z_vol_regime: 1, z_turnover: null, turnover_enabled: false },
+    { timestamp: '2026-06-24T00:00:00Z', price_usd: 101500, risk: 0.69, score: 0.69, risk_state: 'neutral', trend_dev: 1, vol_regime: 0.1, turnover: null, z_trend_dev: 1, z_vol_regime: 1, z_turnover: null, turnover_enabled: false },
     { timestamp: '2026-06-25T00:00:00Z', price_usd: 100000, risk: 0.7, score: 0.7, risk_state: 'high', trend_dev: 1, vol_regime: 0.1, turnover: null, z_trend_dev: 1, z_vol_regime: 1, z_turnover: null, turnover_enabled: false },
   ],
   meta: { returned_points: 6 },
@@ -36,9 +36,9 @@ const riskHistory = {
 const riskLevels = {
   data: [
     { risk: 0.2, price_usd: 72000 },
-    { risk: 0.35, price_usd: 82000 },
+    { risk: 0.30, price_usd: 78000 },
     { risk: 0.5, price_usd: 97000 },
-    { risk: 0.65, price_usd: 118000 },
+    { risk: 0.70, price_usd: 125000 },
     { risk: 0.8, price_usd: 143000 },
   ],
   meta: { base: latestRisk.data },
@@ -87,7 +87,7 @@ const readyReadiness = {
     max_age_days: 2,
     source: 'coinmarketcap_csv',
     row_count: 5827,
-    methodology_version: 'crypto-scout-canonical-v1',
+    methodology_version: 'crypto-scout-canonical-v1.1',
   },
 }
 
@@ -183,11 +183,11 @@ test('renders desktop and mobile layouts with non-empty chart canvases', async (
   await expect(currentState.getByText('High', { exact: true })).toBeVisible()
   await expect(currentState.getByText('$96,500')).toBeVisible()
   await expect(currentState.getByText('$104,250')).toBeVisible()
-  await expect(page.getByText('Low / Neutral near $82,000')).toBeVisible()
-  await expect(page.getByText('Neutral / High near $118,000')).toBeVisible()
+  await expect(page.getByText('Low / Neutral near $78,000')).toBeVisible()
+  await expect(page.getByText('Neutral / High near $125,000')).toBeVisible()
   await expect(page.getByRole('img', { name: 'Risk history' })).toHaveAttribute('aria-describedby', /risk-history-chart-summary/)
   await expect(page.getByRole('table', { name: 'Recent risk history table' })).toContainText('2026-06-25')
-  await expect(page.getByRole('table', { name: 'Risk threshold price table' })).toContainText('$118,000')
+  await expect(page.getByRole('table', { name: 'Risk threshold price table' })).toContainText('$125,000')
   await expectNoHorizontalOverflow(page)
   await expectNonBlankCharts(page, testInfo.project.name.startsWith('mobile') ? 280 : 440)
 })
@@ -207,7 +207,7 @@ test('keeps Arabic RTL layout numeric data isolated and readable', async ({ page
   await expect(page.locator('.freshness-metric .numeric-value', { hasText: /^6$/ })).toHaveAttribute('dir', 'ltr')
   await expect(page.locator('.trust-panel .numeric-value', { hasText: '2026-06-20' })).toHaveAttribute('dir', 'ltr')
   await expect(page.locator('.trust-panel .numeric-value', { hasText: '2026-06-19' })).toHaveAttribute('dir', 'ltr')
-  await expect(page.locator('.threshold-callouts .numeric-value', { hasText: '$118,000' })).toHaveAttribute('dir', 'ltr')
+  await expect(page.locator('.threshold-callouts .numeric-value', { hasText: '$125,000' })).toHaveAttribute('dir', 'ltr')
   await expectNoHorizontalOverflow(page)
   await expectNonBlankCharts(page, testInfo.project.name.startsWith('mobile') ? 280 : 440)
 })

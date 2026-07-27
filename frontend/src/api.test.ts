@@ -24,7 +24,7 @@ test('parses degraded readiness payloads returned with a 503 status', async () =
       max_age_days: 2,
       source: 'coinmarketcap_csv',
       row_count: 5827,
-      methodology_version: 'crypto-scout-canonical-v1',
+      methodology_version: 'crypto-scout-canonical-v1.1',
     },
   }
   vi.stubGlobal('fetch', vi.fn(async () => ({
@@ -55,7 +55,7 @@ test('requests readiness with browser cache disabled', async () => {
       max_age_days: 2,
       source: 'coinmarketcap_csv',
       row_count: 5841,
-      methodology_version: 'crypto-scout-canonical-v1',
+      methodology_version: 'crypto-scout-canonical-v1.1',
     },
   }
   const fetchMock = vi.fn(async () => ({

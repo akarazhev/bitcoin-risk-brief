@@ -48,7 +48,7 @@ const apiMocks = vi.hoisted(() => ({
       max_age_days: 2,
       source: 'coinmarketcap_csv',
       row_count: 5827,
-      methodology_version: 'crypto-scout-canonical-v1',
+      methodology_version: 'crypto-scout-canonical-v1.1',
     },
   })),
   joinWaitlist: vi.fn(async () => ({ data: { contact_type: 'email', locale: 'en', created: true } })),
@@ -169,11 +169,11 @@ beforeEach(() => {
   ], meta: { returned_points: 2 } })
   apiMocks.fetchRiskLevels.mockReset()
   apiMocks.fetchRiskLevels.mockResolvedValue({ data: [
-    { risk: 0.35, price_usd: 82000 },
-    { risk: 0.65, price_usd: 118000 },
+    { risk: 0.30, price_usd: 78000 },
+    { risk: 0.70, price_usd: 125000 },
   ], meta: {
     base: latestRisk(),
-    methodology_version: 'crypto-scout-canonical-v1',
+    methodology_version: 'crypto-scout-canonical-v1.1',
     evaluation_date: '2026-06-26',
     current_price: 100000,
     current_risk: 0.7,
@@ -202,7 +202,7 @@ beforeEach(() => {
       max_age_days: 2,
       source: 'coinmarketcap_csv',
       row_count: 5827,
-      methodology_version: 'crypto-scout-canonical-v1',
+      methodology_version: 'crypto-scout-canonical-v1.1',
     },
   })
   apiMocks.joinWaitlist.mockClear()
@@ -316,7 +316,7 @@ test('rolls the report date across UTC year boundaries', async () => {
       max_age_days: 2,
       source: 'coinmarketcap_csv',
       row_count: 5827,
-      methodology_version: 'crypto-scout-canonical-v1',
+      methodology_version: 'crypto-scout-canonical-v1.1',
     },
   })
 
@@ -347,7 +347,7 @@ test('does not render a report date when readiness is degraded despite fresh dat
       max_age_days: 2,
       source: 'coinmarketcap_csv',
       row_count: 5827,
-      methodology_version: 'crypto-scout-canonical-v1',
+      methodology_version: 'crypto-scout-canonical-v1.1',
     },
   })
 
@@ -360,7 +360,7 @@ test('does not render a report date when readiness is degraded despite fresh dat
   expect(screen.getByText('Validation needs attention')).toBeInTheDocument()
 
   const methodology = within(screen.getByRole('region', { name: 'Methodology' }))
-  expect(methodology.getByText('crypto-scout-canonical-v1')).toBeInTheDocument()
+  expect(methodology.getByText('crypto-scout-canonical-v1.1')).toBeInTheDocument()
   expect(methodology.getByText('Latest completed day')).toBeInTheDocument()
   expect(methodology.getByText('2026-06-26')).toBeInTheDocument()
   expect(methodology.getByText('Coverage through')).toBeInTheDocument()
@@ -386,7 +386,7 @@ test('renders degraded readiness copy without hiding the latest risk', async () 
       max_age_days: 2,
       source: 'coinmarketcap_csv',
       row_count: 5827,
-      methodology_version: 'crypto-scout-canonical-v1',
+      methodology_version: 'crypto-scout-canonical-v1.1',
     },
   })
 
@@ -432,7 +432,7 @@ test('renders methodology reference, public data-source copy, and no-advice disc
 
   const methodology = within(screen.getByRole('region', { name: 'Methodology' }))
   expect(methodology.getByText('The public signal uses the canonical BTC risk model and validated daily Bitcoin market data.')).toBeInTheDocument()
-  expect(methodology.getByText('crypto-scout-canonical-v1')).toBeInTheDocument()
+  expect(methodology.getByText('crypto-scout-canonical-v1.1')).toBeInTheDocument()
   expect(methodology.getByText('Data source')).toBeInTheDocument()
 
   const sourceLink = methodology.getByRole('link', { name: 'CoinMarketCap' })
@@ -810,8 +810,8 @@ test('uses accessible risk threshold labels outside the chart canvas', async () 
   const visibleThresholds = within(await screen.findByLabelText('Risk threshold'))
   expect(visibleThresholds.getByText('Low / Neutral')).toBeInTheDocument()
   expect(visibleThresholds.getByText('Neutral / High')).toBeInTheDocument()
-  expect(await screen.findByText(textContentMatcher('Low / Neutral near $82,000'))).toBeInTheDocument()
-  expect(await screen.findByText(textContentMatcher('Neutral / High near $118,000'))).toBeInTheDocument()
+  expect(await screen.findByText(textContentMatcher('Low / Neutral near $78,000'))).toBeInTheDocument()
+  expect(await screen.findByText(textContentMatcher('Neutral / High near $125,000'))).toBeInTheDocument()
 
   const riskChart = await screen.findByTestId('chart-risk')
   const riskOption = JSON.parse(riskChart.dataset.option ?? '{}')
@@ -821,17 +821,17 @@ test('uses accessible risk threshold labels outside the chart canvas', async () 
   expect(riskOption.animation).toBe(false)
   expect(priceOption.animation).toBe(false)
   expect(riskOption.series[0].markLine.label.show).toBe(false)
-  expect(riskOption.series[0].markLine.data).toEqual([{ yAxis: 0.35 }, { yAxis: 0.65 }])
+  expect(riskOption.series[0].markLine.data).toEqual([{ yAxis: 0.30 }, { yAxis: 0.70 }])
 })
 
 test('marks the current risk on levels chart using levels snapshot metadata', async () => {
   apiMocks.fetchLatestRisk.mockResolvedValueOnce({ data: latestRisk({ risk: 0.2 }) })
   apiMocks.fetchRiskLevels.mockResolvedValueOnce({ data: [
-    { risk: 0.35, price_usd: 82000 },
-    { risk: 0.65, price_usd: 118000 },
+    { risk: 0.30, price_usd: 78000 },
+    { risk: 0.70, price_usd: 125000 },
   ], meta: {
     base: latestRisk({ risk: 0.7 }),
-    methodology_version: 'crypto-scout-canonical-v1',
+    methodology_version: 'crypto-scout-canonical-v1.1',
     evaluation_date: '2026-06-26',
     current_price: 100000,
     current_risk: 0.7,
@@ -848,7 +848,7 @@ test('marks the current risk on levels chart using levels snapshot metadata', as
   expect(priceOption.series[0].markLine).toMatchObject({
     symbol: 'none',
     silent: true,
-    data: [{ xAxis: '65%' }],
+    data: [{ xAxis: '70%' }],
     lineStyle: { color: '#f2b84b', width: 2 },
   })
   expect(priceOption.series[0].markLine.label).toMatchObject({
@@ -860,8 +860,9 @@ test('marks the current risk on levels chart using levels snapshot metadata', as
 test('falls back to latest risk for levels marker when levels metadata omits current risk', async () => {
   apiMocks.fetchLatestRisk.mockResolvedValueOnce({ data: latestRisk({ risk: 0.35 }) })
   apiMocks.fetchRiskLevels.mockResolvedValueOnce({ data: [
-    { risk: 0.35, price_usd: 82000 },
-    { risk: 0.65, price_usd: 118000 },
+    { risk: 0.30, price_usd: 78000 },
+    { risk: 0.35, price_usd: 86000 },
+    { risk: 0.70, price_usd: 125000 },
   ], meta: { base: latestRisk({ risk: 0.35 }) } })
 
   render(<App />)
@@ -892,10 +893,10 @@ test('renders screen-reader chart data alternatives for current risk, recent his
   expect(levelsChart).toHaveAccessibleDescription(/Current risk: 70%/)
 
   const thresholdTable = screen.getByRole('table', { name: 'Risk threshold price table' })
-  expect(within(thresholdTable).getByText('35%')).toBeInTheDocument()
-  expect(within(thresholdTable).getByText('65%')).toBeInTheDocument()
-  expect(within(thresholdTable).getByText('$82,000')).toBeInTheDocument()
-  expect(within(thresholdTable).getByText('$118,000')).toBeInTheDocument()
+  expect(within(thresholdTable).getByText('30%')).toBeInTheDocument()
+  expect(within(thresholdTable).getByText('70%')).toBeInTheDocument()
+  expect(within(thresholdTable).getByText('$78,000')).toBeInTheDocument()
+  expect(within(thresholdTable).getByText('$125,000')).toBeInTheDocument()
 })
 
 test('defines visible keyboard focus states for interactive controls', () => {
@@ -1081,8 +1082,8 @@ test('isolates visible Arabic numeric, date, and currency values as LTR', async 
 
   const thresholdValues = document.querySelectorAll('.threshold-callouts .numeric-value')
   expect(Array.from(thresholdValues).map((element) => element.textContent)).toEqual(expect.arrayContaining([
-    '$82,000',
-    '$118,000',
+    '$78,000',
+    '$125,000',
   ]))
   for (const value of thresholdValues) {
     expect(value).toHaveAttribute('dir', 'ltr')
@@ -1116,7 +1117,7 @@ test('isolates visible Arabic degraded freshness counts as LTR', async () => {
       max_age_days: 2,
       source: 'coinmarketcap_csv',
       row_count: 5827,
-      methodology_version: 'crypto-scout-canonical-v1',
+      methodology_version: 'crypto-scout-canonical-v1.1',
     },
   })
 

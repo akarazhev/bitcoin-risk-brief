@@ -1,6 +1,6 @@
 # Bitcoin Risk Brief
 
-Bitcoin Risk Brief is a standalone seven-locale mini-product for validating demand around a focused daily Bitcoin risk signal. It collects canonical BTC/USD daily data, computes a `crypto-scout-canonical-v1` risk metric, exposes read-only API endpoints, renders risk charts and risk levels, and stores waitlist leads in PostgreSQL.
+Bitcoin Risk Brief is a standalone seven-locale mini-product for validating demand around a focused daily Bitcoin risk signal. It collects canonical BTC/USD daily data, computes a `crypto-scout-canonical-v1.1` risk metric, exposes read-only API endpoints, renders risk charts and risk levels, and stores waitlist leads in PostgreSQL.
 
 ## Current Status
 
@@ -187,7 +187,7 @@ Detailed response shapes are documented in [API Reference](docs/api-reference.md
 
 ## Risk Methodology
 
-Risk uses `crypto-scout-canonical-v1`, aligned with `crypto-scout-analytics`: HLC3 price, EMA365 trend deviation, 30-day realized volatility, turnover as `ln(volume / market_cap)`, robust rolling z-scores with a 1460-day window and 365-day minimum, and canonical weights of `0.60/0.25/0.15` when turnover is enabled.
+Risk uses `crypto-scout-canonical-v1.1`, aligned with `crypto-scout-analytics`: HLC3 price, EMA365 trend deviation, 30-day realized volatility, turnover as `ln(volume / market_cap)`, robust rolling z-scores with a 1460-day window and 365-day minimum, and canonical weights of `0.60/0.25/0.15` when turnover is enabled.
 
 Risk levels are solved through the same risk model at `0.025` risk increments. They are scenario outputs, not trading instructions.
 

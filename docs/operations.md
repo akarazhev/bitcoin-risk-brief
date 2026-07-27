@@ -274,7 +274,7 @@ treating it as evidence:
   "validation_row_count": "<rows>",
   "validation_covered_end": "<YYYY-MM-DD>",
   "validation_source_strategy": "<source strategy>",
-  "methodology_version": "crypto-scout-canonical-v1",
+  "methodology_version": "crypto-scout-canonical-v1.1",
   "readiness_status_after_import": "<ready|degraded>",
   "latest_risk_date": "<YYYY-MM-DD>",
   "latest_risk_value": "<risk value>",

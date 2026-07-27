@@ -5,7 +5,7 @@
 Current methodology version:
 
 ```text
-crypto-scout-canonical-v1
+crypto-scout-canonical-v1.1
 ```
 
 The mini-product methodology is aligned with the canonical risk model from `crypto-scout-analytics` for the implemented BTC risk surface.
@@ -107,9 +107,9 @@ The stored risk value is always expected to be in `[0.0, 1.0]`.
 
 | Range | State |
 | --- | --- |
-| `< 0.35` | `low` |
-| `>= 0.35` and `< 0.65` | `neutral` |
-| `>= 0.65` | `high` |
+| `< 0.30` | `low` |
+| `>= 0.30` and `< 0.70` | `neutral` |
+| `>= 0.70` | `high` |
 
 ## Risk Levels
 

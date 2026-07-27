@@ -97,7 +97,7 @@ class PublicEndpointProbeTests(unittest.TestCase):
                         "max_age_days": 2,
                         "source": "coinmarketcap_csv",
                         "row_count": 5841,
-                        "methodology_version": "crypto-scout-canonical-v1",
+                        "methodology_version": "crypto-scout-canonical-v1.1",
                     },
                 },
                 headers=readiness_headers,
@@ -200,7 +200,7 @@ class PublicEndpointProbeTests(unittest.TestCase):
                     "max_age_days": 2,
                     "source": "coinmarketcap_csv",
                     "row_count": 5841,
-                    "methodology_version": "crypto-scout-canonical-v1",
+                    "methodology_version": "crypto-scout-canonical-v1.1",
                 },
             },
         )
@@ -237,7 +237,7 @@ class PublicEndpointProbeTests(unittest.TestCase):
                         "max_age_days": 2,
                         "source": "coinmarketcap_csv",
                         "row_count": 5841,
-                        "methodology_version": "crypto-scout-canonical-v1",
+                        "methodology_version": "crypto-scout-canonical-v1.1",
                     },
                 }
                 readiness_body["data"].pop(field)
@@ -272,7 +272,7 @@ class PublicEndpointProbeTests(unittest.TestCase):
                 "max_age_days": 2,
                 "source": "coinmarketcap_csv",
                 "row_count": 5841,
-                "methodology_version": "crypto-scout-canonical-v1",
+                "methodology_version": "crypto-scout-canonical-v1.1",
             },
         }
         responses["/api/readiness"] = FakeResponse(200, readiness_body)

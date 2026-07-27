@@ -102,7 +102,7 @@ Response shape:
     "max_age_days": 2,
     "source": "coinmarketcap_csv",
     "row_count": 5827,
-    "methodology_version": "crypto-scout-canonical-v1"
+    "methodology_version": "crypto-scout-canonical-v1.1"
   }
 }
 ```
@@ -128,7 +128,7 @@ Response shape:
     "high_usd": 61584.0,
     "risk": 0.3025,
     "score": -0.82,
-    "risk_state": "low",
+    "risk_state": "neutral",
     "trend_dev": 0.0,
     "vol_regime": 0.0,
     "turnover": -10.2,
@@ -157,7 +157,7 @@ Response shape:
 ```json
 {
   "data": [
-    { "timestamp": "2026-06-24T00:00:00+00:00", "risk": 0.31, "risk_state": "low" }
+    { "timestamp": "2026-06-24T00:00:00+00:00", "risk": 0.31, "risk_state": "neutral" }
   ],
   "meta": { "returned_points": 1 }
 }
@@ -185,7 +185,7 @@ Response shape:
   ],
   "meta": {
     "base": { "timestamp": "2026-06-25T00:00:00+00:00", "risk": 0.3025 },
-    "methodology_version": "crypto-scout-canonical-v1",
+    "methodology_version": "crypto-scout-canonical-v1.1",
     "evaluation_date": "2026-06-25",
     "current_price": 60100.0,
     "current_risk": 0.3025,

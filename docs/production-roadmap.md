@@ -107,7 +107,7 @@ readiness/freshness monitoring and alert delivery, restore drill, or commercial/
 | Phase 7: Backups, Restore, And Monitoring | Partially verified; small-pilot monitoring accepted with limitation | One checksum-verified off-server USB backup copy is recorded for 2026-07-07, the 2026-07-11 backup-gated USB update records copied/off-server freshness/checksum checker status valid and fresh for `20260711T190355Z`, and the 2026-07-15 fresh manual backup/off-server copy records timestamp basename `20260715T082457Z` with PostgreSQL dump, BTC CSV, manifest, and checksum categories present plus copied-backup SHA-256 verification passed. The local backup freshness/off-server copy checker and public endpoint probe are implemented and tested, and the latest public readiness/latest-risk checks were healthy and fresh through `latest_date=2026-07-14`. The 2026-07-14 operator decision accepts Cloudflare Tunnel Health Alert plus public homepage availability monitoring for the small operator-watched pilot. Restore drill remains deferred because the current setup has only the live production server and no separate restore target; recurring production backup scheduling/off-server-copy evidence, dedicated external `/api/health` and `/api/readiness` monitoring, alert delivery, backup freshness alert, collector failure alert, direct production validation/import metadata, and exact import source path/category remain pending for broader launch or later operations. |
 | Phase 8: Launch Checklist And First Traffic Test | Completed for the small operator-watched pilot | 2026-07-15 evidence records public readiness/latest fresh for `2026-07-14`, `row_count=5846`, `risk_state=low`, readiness `no-store`, latest-risk cache/version headers present, final launch snapshot packet basename `launch-snapshot-20260715T121952Z.json`, operator approval from the continuation request, and watched first-traffic evidence with no waitlist POST or production mutation. The 2026-07-15 fresh backup/off-server copy, manual/native browser QA, and assistive-tech proxy QA support the small-pilot run. Broader direct import provenance, dedicated API monitoring, alert delivery, restore drill, true manual assistive-tech pass, full WCAG/legal accessibility, and commercial/broader-launch readiness remain broader-launch work. |
 | Phase 9: Post-Launch Learning Loop | Active for small pilot | Starts from the completed 2026-07-15 watched first-traffic observation; collect sanitized feedback, repeat-use, source, endpoint-demand, and waitlist signals without raw contacts or private analytics. |
-| Phase 10: Risk Methodology Research | Pending | Starts only after launch evidence justifies method work; current production metric remains `crypto-scout-canonical-v1` |
+| Phase 10: Risk Methodology Research | Pending | Starts only after launch evidence justifies method work; current production metric remains `crypto-scout-canonical-v1.1` |
 | Phase 11: Distribution Channel Research | Pending | Evaluates PWA, Telegram Mini App, browser extension, and other channel packaging after launch evidence |
 
 Current production-pilot progress after Phase 1-5:
@@ -189,8 +189,8 @@ Deliverables:
 - Render a compact freshness and validation badge near the latest data date.
 - Show methodology version, latest date, covered end, and data age.
 - Add a concise disclaimer: risk levels are scenario outputs, not financial advice or trading instructions.
-- Add a public methodology link or compact methodology section that references `crypto-scout-canonical-v1`.
-- Derive and render next-band price callouts for the nearest `0.35` and `0.65` risk thresholds.
+- Add a public methodology link or compact methodology section that references `crypto-scout-canonical-v1.1`.
+- Derive and render next-band price callouts for the nearest `0.30` and `0.70` risk thresholds.
 
 Acceptance criteria:
 
@@ -580,7 +580,7 @@ public product.
 
 Deliverables:
 
-- Keep `crypto-scout-canonical-v1` stable through the production pilot and initial demand test.
+- Keep `crypto-scout-canonical-v1.1` stable through the production pilot and initial demand test.
 - Define what "more accurate" means before changing any formula.
 - Compare the current methodology against candidate inputs only after launch evidence justifies research work.
 - Treat the Fear and Greed Index as external context or a confirmation signal, not as a default core-score component.
@@ -605,7 +605,7 @@ Acceptance criteria:
 - On-chain candidates are evaluated for data quality and operational reliability before any production integration.
 - The first research pass does not require paid data or a self-hosted node unless the source review justifies that
   infrastructure.
-- If evidence is weak, the product keeps `crypto-scout-canonical-v1` and avoids methodology churn.
+- If evidence is weak, the product keeps `crypto-scout-canonical-v1.1` and avoids methodology churn.
 
 ### Phase 11: Distribution Channel Research
 

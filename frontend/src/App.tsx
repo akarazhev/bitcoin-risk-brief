@@ -36,6 +36,7 @@ type ChartLoadState<T> = {
 const COMPACT_CHART_QUERY = '(max-width: 640px)'
 const ACCESSIBLE_HISTORY_POINTS = 6
 const DRIVER_NEUTRAL_BAND = 0.25
+const RISK_STATE_THRESHOLDS = [0.30, 0.70] as const
 const AUTO_CHART_SIZE = { width: 'auto', height: 'auto' } as const
 const COINMARKETCAP_HISTORICAL_DATA_URL = 'https://coinmarketcap.com/currencies/bitcoin/historical-data/'
 const SUPPORT_EMAIL = 'support@minihub.app'
@@ -333,7 +334,7 @@ export default function App() {
     tooltip: { trigger: 'axis', valueFormatter: formatTooltipPercent },
     xAxis: { type: 'category', data: history.map((point) => formatDateLabel(point.timestamp, compactCharts)), axisLabel: { color: '#7e8794', hideOverlap: compactCharts }, axisLine: { lineStyle: { color: '#2a3441' } } },
     yAxis: { type: 'value', min: 0, max: 1, axisLabel: { color: '#7e8794', formatter: (value: number) => `${value * 100}%` }, splitLine: { lineStyle: { color: '#26303b' } } },
-    series: [{ name: 'Risk', type: 'line', smooth: true, showSymbol: false, data: history.map((point) => point.risk), lineStyle: { width: 3, color: '#f2b84b' }, areaStyle: { color: 'rgba(242,184,75,0.12)' }, markLine: { symbol: 'none', label: { show: false }, data: [{ yAxis: 0.35 }, { yAxis: 0.65 }], lineStyle: { color: '#596473', type: 'dashed' } } }],
+    series: [{ name: 'Risk', type: 'line', smooth: true, showSymbol: false, data: history.map((point) => point.risk), lineStyle: { width: 3, color: '#f2b84b' }, areaStyle: { color: 'rgba(242,184,75,0.12)' }, markLine: { symbol: 'none', label: { show: false }, data: RISK_STATE_THRESHOLDS.map((risk) => ({ yAxis: risk })), lineStyle: { color: '#596473', type: 'dashed' } } }],
   }), [compactCharts, history])
 
   const currentRiskMarker = useMemo(
@@ -379,7 +380,7 @@ export default function App() {
   }), [compactCharts, currentRiskMarker, levels, t.currentRisk])
 
   const thresholdCallouts = useMemo<ThresholdCallout[]>(() => {
-    return [0.35, 0.65].flatMap((targetRisk, index) => {
+    return RISK_STATE_THRESHOLDS.flatMap((targetRisk, index) => {
       const level = nearestRiskLevel(levels, targetRisk)
       if (!level) return []
       const label = t.riskZones[index]
