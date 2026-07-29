@@ -121,7 +121,7 @@ async function mockApi(
   waitlistHandler?: (route: Route) => Promise<void>,
 ) {
   await page.route('**/api/risk/latest', (route) => fulfillJson(route, latestRisk))
-  await page.route('**/api/risk/history?limit=2000', (route) => fulfillJson(route, riskHistory))
+  await page.route(/\/api\/risk\/history\?limit=\d+$/, (route) => fulfillJson(route, riskHistory))
   await page.route('**/api/risk/levels', (route) => fulfillJson(route, riskLevels))
   await page.route('**/api/brief/latest', (route) => fulfillJson(route, brief))
   await page.route('**/api/readiness', (route) => fulfillJson(route, readiness, readiness.status === 'ready' ? 200 : 503))

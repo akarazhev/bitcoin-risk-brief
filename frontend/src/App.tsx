@@ -368,8 +368,29 @@ export default function App() {
     backgroundColor: 'transparent',
     animation: false,
     grid: { left: compactCharts ? 36 : 44, right: compactCharts ? 10 : 28, top: compactCharts ? 14 : 18, bottom: compactCharts ? 30 : 36 },
-    tooltip: { trigger: 'axis', valueFormatter: formatTooltipPercent },
-    xAxis: { type: 'category', data: history.map((point) => formatDateLabel(point.timestamp, compactCharts)), axisLabel: { color: '#7e8794', hideOverlap: compactCharts }, axisLine: { lineStyle: { color: '#2a3441' } } },
+    tooltip: {
+      trigger: 'axis',
+      valueFormatter: formatTooltipPercent,
+      confine: true,
+      axisPointer: {
+        type: compactCharts ? 'cross' : 'line',
+        label: {
+          show: compactCharts,
+          backgroundColor: '#151a22',
+          color: '#f8fafc',
+        },
+      },
+    },
+    xAxis: {
+      type: 'category',
+      data: history.map((point) => point.timestamp.slice(0, 10)),
+      axisLabel: {
+        color: '#7e8794',
+        formatter: (value: string) => formatDateLabel(value, compactCharts),
+        hideOverlap: compactCharts,
+      },
+      axisLine: { lineStyle: { color: '#2a3441' } },
+    },
     yAxis: { type: 'value', min: 0, max: 1, axisLabel: { color: '#7e8794', formatter: (value: number) => `${value * 100}%` }, splitLine: { lineStyle: { color: '#26303b' } } },
     series: [{ name: 'Risk', type: 'line', smooth: true, showSymbol: false, data: history.map((point) => point.risk), lineStyle: { width: 3, color: '#f2b84b' }, areaStyle: { color: 'rgba(242,184,75,0.12)' }, markLine: { symbol: 'none', label: { show: false }, data: RISK_STATE_THRESHOLDS.map((risk) => ({ yAxis: risk })), lineStyle: { color: '#596473', type: 'dashed' } } }],
   }), [compactCharts, history])

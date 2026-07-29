@@ -7,6 +7,7 @@ import type { RiskPoint } from './types'
 
 const chartMocks = vi.hoisted(() => ({
   resize: vi.fn(),
+  optionsByName: new Map<string, unknown>(),
 }))
 
 vi.mock('./Chart', () => ({
@@ -20,10 +21,29 @@ vi.mock('./Chart', () => ({
     opts?: { width?: string; height?: string }
   }) => {
     const name = option.series?.[0]?.name?.toLowerCase() ?? 'unknown'
+    chartMocks.optionsByName.set(name, option)
     onChartReady?.({ resize: chartMocks.resize })
     return <div data-testid={`chart-${name}`} data-has-ready={String(typeof onChartReady === 'function')} data-option={JSON.stringify(option)} data-opts={JSON.stringify(opts ?? {})} />
   },
 }))
+
+type RiskChartOptionForTest = {
+  tooltip?: {
+    axisPointer?: { type?: string; label?: { show?: boolean } }
+    confine?: boolean
+    valueFormatter?: (value: unknown) => string
+  }
+  xAxis?: {
+    data?: string[]
+    axisLabel?: {
+      formatter?: (value: string) => string
+      hideOverlap?: boolean
+    }
+  }
+  series?: Array<{
+    markLine?: { label?: { show?: boolean } }
+  }>
+}
 
 const apiMocks = vi.hoisted(() => ({
   fetchLatestRisk: vi.fn(),
@@ -160,6 +180,7 @@ beforeEach(() => {
   document.documentElement.lang = 'en'
   document.documentElement.dir = 'ltr'
   chartMocks.resize.mockClear()
+  chartMocks.optionsByName.clear()
   apiMocks.fetchLatestRisk.mockReset()
   apiMocks.fetchLatestRisk.mockResolvedValue({ data: latestRisk() })
   apiMocks.fetchRiskHistory.mockReset()
@@ -784,9 +805,26 @@ test('uses compact chart options on narrow viewports', async () => {
 
   expect(riskOption.animation).toBe(false)
   expect(riskOption.grid.left).toBeLessThanOrEqual(38)
-  expect(riskOption.xAxis.data[0]).toBe('06-24')
+  expect(riskOption.xAxis.data[0]).toBe('2026-06-24')
   expect(riskOption.xAxis.axisLabel.hideOverlap).toBe(true)
   expect(riskOption.series[0].markLine.label.show).toBe(false)
+})
+
+test('keeps full dates and a clear pointer in compact risk chart touch tooltips', async () => {
+  setCompactViewport(true)
+  render(<App />)
+
+  await screen.findByTestId('chart-risk')
+  const riskOption = chartMocks.optionsByName.get('risk') as RiskChartOptionForTest
+
+  expect(riskOption.xAxis?.data?.[0]).toBe('2026-06-24')
+  expect(riskOption.xAxis?.axisLabel?.formatter?.('2026-06-24')).toBe('06-24')
+  expect(riskOption.tooltip?.valueFormatter?.(0.52)).toBe('52%')
+  expect(riskOption.tooltip?.confine).toBe(true)
+  expect(riskOption.tooltip?.axisPointer).toMatchObject({
+    type: 'cross',
+    label: { show: true },
+  })
 })
 
 test('resizes charts after ECharts reports readiness', async () => {
