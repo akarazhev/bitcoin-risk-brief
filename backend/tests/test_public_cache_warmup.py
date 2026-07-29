@@ -38,7 +38,7 @@ class StandardPublicWarmupTargetTest(MainPatchMixin, unittest.IsolatedAsyncioTes
             [target.key for target in targets],
             [
                 "GET /api/risk/latest",
-                "GET /api/risk/history?limit=2000",
+                "GET /api/risk/history?limit=730",
                 "GET /api/risk/levels",
                 "GET /api/brief/latest",
             ],

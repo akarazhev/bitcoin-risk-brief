@@ -11,6 +11,10 @@ The frontend form accepts one value:
 
 On successful submission, the UI shows a saved state. The contact is not persisted in browser storage.
 
+The public CTA positions the first test cohort for free BTC risk-alert access plus the two-year risk history and
+risk-level views during the pilot. In the current implementation, the submission still stores only a lead for manual
+founder/operator follow-up; automated email or Telegram delivery is not implemented yet.
+
 The frontend also shows a compact privacy/terms/disclaimer note near the waitlist. The note is local UI copy only; it
 does not add notification delivery, accounts, deletion handling, unsubscribe handling, or a public support channel.
 

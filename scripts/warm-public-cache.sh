@@ -10,7 +10,7 @@ echo "readiness ok ${base_url}${readiness_path}"
 
 paths=(
   "/api/risk/latest"
-  "/api/risk/history?limit=2000"
+  "/api/risk/history?limit=730"
   "/api/risk/levels"
   "/api/brief/latest"
 )

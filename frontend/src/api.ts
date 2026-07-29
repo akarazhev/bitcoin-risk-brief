@@ -25,7 +25,7 @@ export async function fetchLatestRisk() {
 }
 
 export async function fetchRiskHistory() {
-  return getJson<{ data: RiskPoint[]; meta: { returned_points: number } }>('/api/risk/history?limit=2000')
+  return getJson<{ data: RiskPoint[]; meta: { returned_points: number } }>('/api/risk/history?limit=730')
 }
 
 export async function fetchRiskLevels() {

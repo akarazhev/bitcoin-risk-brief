@@ -71,7 +71,7 @@ Current first-traffic status:
 
 - Daily BTC risk metric from `0.0` to `1.0`.
 - Stable states: `low`, `neutral`, `high`.
-- Historical risk chart.
+- Historical risk chart, shown as a two-year public UI window.
 - Risk-level price ladder at `0.025` risk increments.
 - Latest completed daily candle context: `Model price` is the HLC3 value; `Low` and `High` are daily candle values when
   the matching OHLCV row exists. These fields are not live spot-price ticks or close-only pricing.
@@ -178,7 +178,7 @@ configured, and manual `import-cmc-csv` remains the operator fallback when publi
 - `GET /api/health`
 - `GET /api/readiness`
 - `GET /api/risk/latest`
-- `GET /api/risk/history?limit=2000`
+- `GET /api/risk/history?limit=730`
 - `GET /api/risk/levels`
 - `GET /api/brief/latest`
 - `POST /api/waitlist`

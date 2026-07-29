@@ -748,7 +748,9 @@ test('places the waitlist call to action before the charts', async () => {
   render(<App />)
 
   const waitlistTitle = await screen.findByText('Get the daily signal')
-  const riskHistoryTitle = await screen.findByText('Risk history')
+  expect(screen.getByText('Leave an email or Telegram handle. The first test cohort gets the BTC risk alert free, plus access to the 2-year risk history and risk-level views during the pilot.')).toBeInTheDocument()
+
+  const riskHistoryTitle = await screen.findByText('Risk history, 2Y')
 
   expect(waitlistTitle.compareDocumentPosition(riskHistoryTitle) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
 })
@@ -971,7 +973,7 @@ test.each([
 test('renders screen-reader chart data alternatives for current risk, recent history, and thresholds', async () => {
   render(<App />)
 
-  const riskChart = await screen.findByRole('img', { name: 'Risk history' })
+  const riskChart = await screen.findByRole('img', { name: 'Risk history, 2Y' })
   expect(riskChart).toHaveAccessibleDescription(/Latest observation 2026-06-26: current risk is 70% \(High\)/)
   expect(riskChart).toHaveAccessibleDescription(/model price is \$100,000/)
   expect(riskChart).toHaveAccessibleDescription(/latest daily low \$96,500 and high \$104,250/)

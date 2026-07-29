@@ -435,7 +435,7 @@ so degraded or stale data is not hidden.
 Warm the standard public product payloads after manual or scheduled imports before active traffic:
 
 - `/api/risk/latest`
-- `/api/risk/history?limit=2000`
+- `/api/risk/history?limit=730`
 - `/api/risk/levels`
 - `/api/brief/latest`
 

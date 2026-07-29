@@ -1,5 +1,5 @@
 import { beforeEach, expect, test, vi } from 'vitest'
-import { fetchReadiness } from './api'
+import { fetchReadiness, fetchRiskHistory } from './api'
 
 beforeEach(() => {
   vi.restoreAllMocks()
@@ -68,4 +68,18 @@ test('requests readiness with browser cache disabled', async () => {
   await expect(fetchReadiness()).resolves.toEqual(payload)
 
   expect(fetchMock).toHaveBeenCalledWith('/api/readiness', { cache: 'no-store' })
+})
+
+test('requests the default public risk history as a two-year window', async () => {
+  const payload = { data: [], meta: { returned_points: 0 } }
+  const fetchMock = vi.fn(async () => ({
+    ok: true,
+    status: 200,
+    json: async () => payload,
+  }))
+  vi.stubGlobal('fetch', fetchMock)
+
+  await expect(fetchRiskHistory()).resolves.toEqual(payload)
+
+  expect(fetchMock).toHaveBeenCalledWith('/api/risk/history?limit=730')
 })

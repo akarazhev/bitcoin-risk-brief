@@ -258,7 +258,7 @@ class PublicEndpointCacheTest(unittest.IsolatedAsyncioTestCase):
 
 
 class PublicEndpointCacheWarmupTest(unittest.IsolatedAsyncioTestCase):
-    async def test_warmup_populates_standard_cache_keys(self) -> None:
+    async def test_warmup_populates_requested_cache_keys(self) -> None:
         cache = PublicEndpointCache(ttl_seconds=60, clock=lambda: 100.0)
         calls: list[str] = []
 
@@ -272,7 +272,7 @@ class PublicEndpointCacheWarmupTest(unittest.IsolatedAsyncioTestCase):
         targets = [
             PublicCacheWarmupTarget("GET /api/readiness", make_producer("readiness")),
             PublicCacheWarmupTarget("GET /api/risk/latest", make_producer("latest")),
-            PublicCacheWarmupTarget("GET /api/risk/history?limit=2000", make_producer("history")),
+            PublicCacheWarmupTarget("GET /api/risk/history?limit=730", make_producer("history")),
             PublicCacheWarmupTarget("GET /api/risk/levels", make_producer("levels")),
             PublicCacheWarmupTarget("GET /api/brief/latest", make_producer("brief")),
         ]

@@ -207,7 +207,7 @@ async def _produce_brief_latest_payload() -> tuple[dict[str, Any], int]:
 def _standard_public_cache_warmup_targets() -> tuple[PublicCacheWarmupTarget, ...]:
     return (
         PublicCacheWarmupTarget("GET /api/risk/latest", _produce_risk_latest_payload),
-        PublicCacheWarmupTarget("GET /api/risk/history?limit=2000", _risk_history_producer(limit=2000)),
+        PublicCacheWarmupTarget("GET /api/risk/history?limit=730", _risk_history_producer(limit=730)),
         PublicCacheWarmupTarget("GET /api/risk/levels", _produce_risk_levels_payload),
         PublicCacheWarmupTarget("GET /api/brief/latest", _produce_brief_latest_payload),
     )
