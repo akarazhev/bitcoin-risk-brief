@@ -159,6 +159,7 @@ Use `AGENTS.md` as the agent-facing source for repository rules. For human-drive
 - [Security and Privacy](docs/security-and-privacy.md)
 - [Operations](docs/operations.md)
 - [Pilot Learning Loop](docs/pilot-learning-loop.md)
+- [Marketing and Growth](docs/marketing-and-growth.md)
 - [Ubuntu and Cloudflare Tunnel Deployment](docs/deploy-ubuntu-cloudflare.md)
 - [Production Readiness](docs/production-readiness.md)
 - [Production Evidence Log](docs/production-evidence-log.md)

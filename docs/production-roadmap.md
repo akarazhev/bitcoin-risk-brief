@@ -523,6 +523,8 @@ Goal: decide whether the single BTC risk signal is worth extending.
 
 Operator runbook and first evidence-packet template: [Pilot Learning Loop](pilot-learning-loop.md).
 
+Founder-led acquisition test, campaign assets, and decision scorecard: [Marketing and Growth](marketing-and-growth.md).
+
 Deliverables:
 
 - Review waitlist conversion, repeat visits, and direct user questions through sanitized aggregate counts and themes only.

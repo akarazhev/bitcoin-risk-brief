@@ -5,7 +5,8 @@ documentation source. For current behavior, use the core docs in `docs/README.md
 
 Unchecked boxes inside files marked completed, historical, or superseded are original plan tracking, not current TODOs.
 
-Last reviewed: 2026-07-06.
+Last reviewed: 2026-07-06. The marketing-growth entries added below were reviewed on 2026-07-31; earlier rows were not
+globally re-audited.
 
 ## Current Implementation Summary
 
@@ -72,6 +73,7 @@ Last reviewed: 2026-07-06.
 | `specs/2026-07-01-usb-update-install-kit-v2-design.md` | Implemented locally, production use pending | Phase 6/7 operational hardening for reproducible USB preparation, install/update flows, and backup-before-update. Production benefit still requires preparing a real USB kit and running the flow on the production host. |
 | `specs/2026-07-01-risk-methodology-research-design.md` | Future-facing | Phase 10 research track; v1 remains the production metric until evidence supports a versioned v2. |
 | `specs/2026-07-01-distribution-channel-research-design.md` | Future-facing | Phase 11 distribution track; evaluates PWA, Telegram Mini App, browser extensions, and conditional platform wrappers. |
+| `specs/2026-07-31-marketing-growth-design.md` | Approved, implemented locally | Design for issue #44: a focused founder-led four-week acquisition and demand test for the existing web product. |
 | `specs/2026-06-30-usb-server-kit-design.md` | Completed in repository | Templates and scripts exist under `server-kit/`; USB copy remains an operator action. |
 | `plans/2026-06-26-bitcoin-risk-brief-implementation.md` | Completed, historical | Some unchecked boxes reflect stale tracking, not current work. |
 | `plans/2026-06-26-canonical-risk-methodology-implementation.md` | Completed, historical | Current code uses Python 3.13 in CI and canonical CMC CSV data. |
@@ -86,6 +88,7 @@ Last reviewed: 2026-07-06.
 | `plans/2026-07-05-usb-update-install-kit-v2-implementation.md` | Implemented locally, production use pending | Local implementation is tagged `usb-kit-v2-local-complete-2026-07-05`; a real USB package and production-host update remain pending. |
 | `plans/2026-07-05-price-model-input-ohlc-display-implementation.md` | Implemented locally, production deploy pending | Local implementation is tagged `price-model-ohlc-local-complete-2026-07-06`; production browser verification remains pending. |
 | `plans/2026-07-06-documentation-portfolio-presentation-implementation.md` | Planned | Current plan for README/docs presentation alignment; status changes only after the scoped docs pass is executed and verified. |
+| `plans/2026-07-31-marketing-growth-documentation.md` | Implemented locally | Adds the issue #44 marketing playbook, campaign assets, scorecard, and canonical documentation links; push and issue closure remain separate actions. |
 
 ## Reading Rule
 
