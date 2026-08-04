@@ -1056,14 +1056,16 @@ curl -fsS http://127.0.0.1:3001/api/readiness
 
 - Where to look first: public waitlist response headers, backend access logs, backend error logs, Cloudflare security
   events for `POST /api/waitlist`, and `waitlist_leads` aggregate counts without copying contact values.
-- A missing, invalid, expired, replayed, wrong-action, or wrong-hostname token returns `403`; unavailable Siteverify or
-  incomplete server configuration returns `503`. Neither result may write a lead, and every result must be no-store.
+- An omitted or empty `turnstile_token` is an invalid request payload and returns `422` before Siteverify. A present
+  token that is invalid, expired, replayed, wrong-action, or wrong-hostname returns `403`; unavailable Siteverify or
+  incomplete server configuration returns `503`. None of these results may write a lead, and every result must be
+  no-store.
 - Check:
 
 Use a real browser for the user-path smoke: it obtains the required single-use token from
-`challenges.cloudflare.com`. Do not attempt a successful Turnstile smoke with curl. Curl without a token is useful only
-to confirm that a rejected request is no-store and makes no database write; default curl can also match the repo-managed
-edge challenge and return Cloudflare `403` before the application.
+`challenges.cloudflare.com`. Do not attempt a successful Turnstile smoke with curl. Curl with a non-empty invalid token
+is useful only to confirm the expected rejected, no-store path and absence of a database write; default curl can also
+match the repo-managed edge challenge and return Cloudflare `403` before the application.
 
 ```bash
 PUBLIC_BASE_URL=https://bitcoinriskbrief.minihub.app
