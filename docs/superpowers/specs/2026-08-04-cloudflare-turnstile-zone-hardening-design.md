@@ -21,7 +21,7 @@ changed further.
 - Enable HSTS for six months with subdomains included and preload disabled.
 - Publish a strict DMARC policy for `minihub.app`, with aggregate reports sent to the existing
   `dmarc@minihub.app` alias.
-- Create a Cloudflare Turnstile Managed widget for `bitcoinriskbrief.minihub.app`.
+- Create a Cloudflare Turnstile Managed widget for `bitcoinriskbrief.minihub.app`, `localhost`, and `127.0.0.1`.
 - Integrate Turnstile into the React waitlist form without a third-party React wrapper.
 - Verify every production waitlist token in FastAPI before writing a lead.
 - Update CSP, environment templates, Compose/build wiring, tests, privacy copy, API documentation, security docs, and
@@ -88,10 +88,11 @@ on a client-provided value.
 
 ### Configuration
 
-The backend receives the secret through `TURNSTILE_SECRET_KEY` and the expected production hostname through
-`TURNSTILE_EXPECTED_HOSTNAME`. The expected action is the repository-owned constant `waitlist`. The secret must not be
-committed, printed, placed in command arguments, embedded in frontend assets, or included in a USB package. Environment
-example files contain placeholders or documented test values only.
+The backend receives the secret through `TURNSTILE_SECRET` and the deployment-specific hostname allowlist through
+`TURNSTILE_HOSTNAMES`. Production sets the allowlist to `bitcoinriskbrief.minihub.app` and never includes `localhost` or
+`127.0.0.1`. The expected action is the repository-owned constant `waitlist`. The secret must not be committed, printed,
+placed in command arguments, embedded in frontend assets, or included in a USB package. Environment example files
+contain placeholders or documented test values only.
 
 ### Verification module
 
