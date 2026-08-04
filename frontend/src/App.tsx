@@ -292,6 +292,7 @@ export default function App() {
   const [joining, setJoining] = useState(false)
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
   const turnstileRef = useRef<TurnstileHandle>(null)
+  const turnstileErrorRef = useRef(false)
   const [compactCharts, setCompactCharts] = useState(getCompactChartPreference)
   const t = copy[locale]
   const turnstileSiteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY
@@ -465,7 +466,12 @@ export default function App() {
   async function submitWaitlist(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const value = lead.trim()
-    if (!value || joining || !turnstileToken) return
+    if (joining || !turnstileToken) return
+    if (!value) {
+      setTurnstileToken(null)
+      turnstileRef.current?.reset()
+      return
+    }
     setJoining(true)
     setJoinError(null)
     try {
@@ -541,7 +547,10 @@ export default function App() {
             label={t.languageSelector}
             locale={locale}
             options={localeOptions}
-            onLocaleChange={setLocale}
+            onLocaleChange={(nextLocale) => {
+              setTurnstileToken(null)
+              setLocale(nextLocale)
+            }}
           />
         </div>
       </nav>
@@ -663,8 +672,15 @@ export default function App() {
             sitekey={turnstileSiteKey}
             action="waitlist"
             language={getLocaleOption(locale).lang}
-            onVerify={setTurnstileToken}
+            onVerify={(token) => {
+              setTurnstileToken(token)
+              if (token && turnstileErrorRef.current) {
+                turnstileErrorRef.current = false
+                setJoinError(null)
+              }
+            }}
             onError={() => {
+              turnstileErrorRef.current = true
               setTurnstileToken(null)
               setJoined(false)
               setJoinError(t.turnstileError)

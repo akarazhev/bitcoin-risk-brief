@@ -612,6 +612,39 @@ test('disables waitlist submission until Turnstile returns a token', async () =>
   expect(turnstileMocks.language).toBe('en')
 })
 
+test('clears and resets a verified token after a whitespace-only submission', async () => {
+  render(<App />)
+
+  const input = await screen.findByPlaceholderText('email or @telegram')
+  const button = screen.getByRole('button', { name: /join waitlist/i })
+  fireEvent.change(input, { target: { value: '   ' } })
+  verifyTurnstile()
+  expect(button).toBeEnabled()
+
+  fireEvent.click(button)
+
+  expect(apiMocks.joinWaitlist).not.toHaveBeenCalled()
+  expect(turnstileMocks.reset).toHaveBeenCalled()
+  expect(button).toBeDisabled()
+})
+
+test('invalidates a verified token when the widget language changes', async () => {
+  render(<App />)
+
+  const englishButton = await screen.findByRole('button', { name: /join waitlist/i })
+  verifyTurnstile('old-token')
+  expect(englishButton).toBeEnabled()
+
+  await selectLanguage(/^FR -/)
+
+  const frenchButton = screen.getByRole('button', { name: /rejoindre la liste/i })
+  expect(turnstileMocks.language).toBe('fr')
+  expect(frenchButton).toBeDisabled()
+
+  verifyTurnstile('new-token')
+  expect(frenchButton).toBeEnabled()
+})
+
 test('submits the Turnstile token, clears the input, and resets the widget on success', async () => {
   render(<App />)
 
@@ -718,6 +751,25 @@ test('announces a localized widget error and clears the current token', async ()
 
   expect(screen.getByRole('alert')).toHaveTextContent('Complete the bot check and try again.')
   expect(button).toBeDisabled()
+})
+
+test('clears a stale widget error when a fresh token arrives', async () => {
+  render(<App />)
+
+  const input = await screen.findByPlaceholderText('email or @telegram')
+  verifyTurnstile()
+  act(() => turnstileCallbacks.onError())
+
+  expect(screen.getByRole('alert')).toHaveTextContent('Complete the bot check and try again.')
+  expect(input).toHaveAttribute('aria-invalid', 'true')
+
+  await selectLanguage(/^FR -/)
+  verifyTurnstile('replacement-token')
+
+  expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  expect(input).not.toHaveAttribute('aria-invalid')
+  expect(input).not.toHaveAttribute('aria-describedby')
+  expect(screen.getByRole('button', { name: /rejoindre la liste/i })).toBeEnabled()
 })
 
 test('does not persist waitlist contacts in browser storage', async () => {
