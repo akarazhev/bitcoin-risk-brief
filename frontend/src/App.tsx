@@ -1,10 +1,12 @@
-import { Suspense, lazy, useEffect, useMemo, useState } from 'react'
+import { Suspense, lazy, useEffect, useMemo, useRef, useState } from 'react'
 import type { FormEvent, ReactNode } from 'react'
 import type { EChartsOption } from 'echarts'
 import { Bell, CheckCircle2, ExternalLink, Radio, Send, ShieldAlert, TriangleAlert } from 'lucide-react'
-import { fetchBrief, fetchLatestRisk, fetchReadiness, fetchRiskHistory, fetchRiskLevels, joinWaitlist } from './api'
+import { ApiError, fetchBrief, fetchLatestRisk, fetchReadiness, fetchRiskHistory, fetchRiskLevels, joinWaitlist } from './api'
 import { LanguageSelect } from './LanguageSelect'
 import { copy, getLocaleOption, localeOptions, stateLabel } from './locales'
+import Turnstile from './Turnstile'
+import type { TurnstileHandle } from './Turnstile'
 import type { BriefPayload, Locale, ReadinessPayload, RiskLevel, RiskLevelsMeta, RiskPoint } from './types'
 
 type ThresholdCallout = { risk: number; label: string; price: string; text: string }
@@ -288,8 +290,11 @@ export default function App() {
   const [joined, setJoined] = useState(false)
   const [joinError, setJoinError] = useState<string | null>(null)
   const [joining, setJoining] = useState(false)
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
+  const turnstileRef = useRef<TurnstileHandle>(null)
   const [compactCharts, setCompactCharts] = useState(getCompactChartPreference)
   const t = copy[locale]
+  const turnstileSiteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY
   const history = historyState.data
   const levels = levelsState.data.levels
   const levelsMeta = levelsState.data.meta
@@ -460,17 +465,25 @@ export default function App() {
   async function submitWaitlist(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const value = lead.trim()
-    if (!value || joining) return
+    if (!value || joining || !turnstileToken) return
     setJoining(true)
     setJoinError(null)
     try {
-      await joinWaitlist({ contact: value, locale, source: 'landing' })
+      await joinWaitlist({ contact: value, locale, source: 'landing', turnstile_token: turnstileToken })
       setLead('')
       setJoined(true)
-    } catch {
+    } catch (error) {
       setJoined(false)
-      setJoinError(t.joinError)
+      if (error instanceof ApiError && error.status === 403) {
+        setJoinError(t.turnstileError)
+      } else if (error instanceof ApiError && error.status === 503) {
+        setJoinError(t.turnstileUnavailable)
+      } else {
+        setJoinError(t.joinError)
+      }
     } finally {
+      setTurnstileToken(null)
+      turnstileRef.current?.reset()
       setJoining(false)
     }
   }
@@ -645,7 +658,19 @@ export default function App() {
             aria-describedby={joinError ? waitlistErrorId : undefined}
             dir="ltr"
           />
-          <button type="submit" disabled={joining} aria-busy={joining}>
+          <Turnstile
+            ref={turnstileRef}
+            sitekey={turnstileSiteKey}
+            action="waitlist"
+            language={getLocaleOption(locale).lang}
+            onVerify={setTurnstileToken}
+            onError={() => {
+              setTurnstileToken(null)
+              setJoined(false)
+              setJoinError(t.turnstileError)
+            }}
+          />
+          <button type="submit" disabled={joining || !turnstileToken} aria-busy={joining}>
             <Send size={16} /> {joining ? t.joining : t.join}
           </button>
         </form>
@@ -669,6 +694,7 @@ export default function App() {
           <div className="privacy-note-body">
             <p>{t.privacyNoteIntro}</p>
             <p>{t.privacyNoteWaitlist}</p>
+            <p>{t.privacyNoteTurnstile}</p>
             <p>{t.privacyNoteLogs}</p>
             <p>{t.privacyNoteLimits}</p>
             <p>{t.privacyNoteAnalytics}</p>

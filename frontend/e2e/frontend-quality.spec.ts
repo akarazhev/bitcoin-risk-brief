@@ -120,6 +120,16 @@ async function mockApi(
   readiness: typeof readyReadiness | typeof degradedReadiness = readyReadiness,
   waitlistHandler?: (route: Route) => Promise<void>,
 ) {
+  await page.addInitScript(() => {
+    window.turnstile = {
+      render: (_container, options) => {
+        options.callback('e2e-turnstile-token')
+        return 'e2e-widget'
+      },
+      reset: () => {},
+      remove: () => {},
+    }
+  })
   await page.route('**/api/risk/latest', (route) => fulfillJson(route, latestRisk))
   await page.route(/\/api\/risk\/history\?limit=\d+$/, (route) => fulfillJson(route, riskHistory))
   await page.route('**/api/risk/levels', (route) => fulfillJson(route, riskLevels))
@@ -275,7 +285,12 @@ test('supports keyboard focus navigation through public controls with mocked wai
   await page.keyboard.press('Enter')
 
   await expect(page.locator('#waitlist-status')).toHaveText('Saved. You are on the Bitcoin Risk Brief waitlist.')
-  expect(waitlistPayloads).toEqual([{ contact: 'keyboard@example.invalid', locale: 'en', source: 'landing' }])
+  expect(waitlistPayloads).toEqual([{
+    contact: 'keyboard@example.invalid',
+    locale: 'en',
+    source: 'landing',
+    turnstile_token: 'e2e-turnstile-token',
+  }])
 })
 
 test('renders degraded readiness as a visible degraded state', async ({ page }) => {
