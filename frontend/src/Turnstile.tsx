@@ -68,6 +68,7 @@ const Turnstile = forwardRef<TurnstileHandle, TurnstileProps>(function Turnstile
   const widgetIdRef = useRef<string | undefined>(undefined)
   const onVerifyRef = useRef(onVerify)
   const onErrorRef = useRef(onError)
+  const generationRef = useRef(0)
 
   onVerifyRef.current = onVerify
   onErrorRef.current = onError
@@ -84,9 +85,12 @@ const Turnstile = forwardRef<TurnstileHandle, TurnstileProps>(function Turnstile
   useEffect(() => {
     let cancelled = false
     let widgetId: string | undefined
+    const generation = generationRef.current + 1
+    generationRef.current = generation
+    const isCurrentWidget = () => !cancelled && generationRef.current === generation
 
     const renderWidget = () => {
-      if (cancelled || !containerRef.current || !window.turnstile) {
+      if (!isCurrentWidget() || !containerRef.current || !window.turnstile) {
         return
       }
 
@@ -96,11 +100,21 @@ const Turnstile = forwardRef<TurnstileHandle, TurnstileProps>(function Turnstile
         language,
         theme: 'auto',
         size: 'flexible',
-        callback: (token) => onVerifyRef.current(token),
-        'expired-callback': () => onVerifyRef.current(null),
+        callback: (token) => {
+          if (isCurrentWidget()) {
+            onVerifyRef.current(token)
+          }
+        },
+        'expired-callback': () => {
+          if (isCurrentWidget()) {
+            onVerifyRef.current(null)
+          }
+        },
         'error-callback': () => {
-          onVerifyRef.current(null)
-          onErrorRef.current()
+          if (isCurrentWidget()) {
+            onVerifyRef.current(null)
+            onErrorRef.current()
+          }
         },
       })
       widgetIdRef.current = widgetId
@@ -110,7 +124,7 @@ const Turnstile = forwardRef<TurnstileHandle, TurnstileProps>(function Turnstile
       renderWidget()
     } else {
       void loadTurnstileScript().then(renderWidget).catch(() => {
-        if (!cancelled) {
+        if (isCurrentWidget()) {
           onErrorRef.current()
         }
       })

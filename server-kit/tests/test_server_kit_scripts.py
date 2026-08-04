@@ -10,6 +10,39 @@ REPO_ROOT = ROOT.parent
 
 
 class ServerKitScriptTests(unittest.TestCase):
+    def test_deploy_script_requires_safe_production_turnstile_values_before_copying_project(self) -> None:
+        script = (ROOT / "scripts" / "03-deploy-bitcoin-risk-brief.sh").read_text()
+
+        preflight_index = script.index("validate_turnstile_environment\n\nif", script.index('if ! id "${APP_USER}"'))
+        copy_index = script.index('log "Copying project to ${PROJECT_DEST}"')
+
+        self.assertIn('VITE_TURNSTILE_SITE_KEY', script)
+        self.assertIn('TURNSTILE_SECRET', script)
+        self.assertIn('TURNSTILE_HOSTNAMES', script)
+        self.assertIn('bitcoinriskbrief.minihub.app', script)
+        self.assertIn('1x00000000000000000000AA', script)
+        self.assertIn('replace-with-public-turnstile-sitekey', script)
+        self.assertIn('replace-with-private-turnstile-secret', script)
+        self.assertLess(preflight_index, copy_index)
+        self.assertNotIn('Creating ${env_file} from .env.production.example', script)
+
+    def test_update_script_runs_turnstile_preflight_before_backup(self) -> None:
+        script = (ROOT / "scripts" / "07-update-bitcoin-risk-brief-from-usb.sh").read_text()
+
+        preflight_index = script.index('TURNSTILE_PREFLIGHT_ONLY=true bash "${script_dir}/03-deploy-bitcoin-risk-brief.sh"')
+        backup_index = script.index('log "Creating backup before deploying update"')
+
+        self.assertLess(preflight_index, backup_index)
+
+    def test_runbook_requires_turnstile_values_before_fresh_and_update_deployments(self) -> None:
+        runbook = (ROOT / "README-RUN-ON-SERVER.md").read_text()
+
+        self.assertIn('VITE_TURNSTILE_SITE_KEY', runbook)
+        self.assertIn('TURNSTILE_SECRET', runbook)
+        self.assertIn('`TURNSTILE_HOSTNAMES` exactly to\n`bitcoinriskbrief.minihub.app`', runbook)
+        self.assertIn('Before running `03-deploy-bitcoin-risk-brief.sh`', runbook)
+        self.assertIn('Before the backup-gated update', runbook)
+
     def test_deploy_from_usb_defaults_to_deploy_without_backup_gate(self) -> None:
         script = (ROOT / "deploy-from-usb.sh").read_text()
 

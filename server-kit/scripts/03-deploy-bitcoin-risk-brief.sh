@@ -5,6 +5,7 @@ APP_USER="${APP_USER:-apps}"
 PROJECT_NAME="${PROJECT_NAME:-bitcoin-risk-brief}"
 PROJECT_DEST="${PROJECT_DEST:-/srv/projects/${PROJECT_NAME}}"
 PUBLIC_HOSTNAME="${PUBLIC_HOSTNAME:-}"
+TURNSTILE_PREFLIGHT_ONLY="${TURNSTILE_PREFLIGHT_ONLY:-false}"
 
 log() {
   printf '\n==> %s\n' "$*"
@@ -29,6 +30,59 @@ run_as_app() {
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 kit_dir="$(cd "${script_dir}/.." && pwd)"
 PROJECT_SRC="${PROJECT_SRC:-${kit_dir}/project/${PROJECT_NAME}}"
+env_file="${PROJECT_DEST}/.env"
+
+read_env_value() {
+  local key="$1"
+
+  as_root awk -v key="${key}" '
+    index($0, key "=") == 1 {
+      value = substr($0, length(key) + 2)
+      sub(/^[[:space:]]+/, "", value)
+      sub(/[[:space:]]+$/, "", value)
+      print value
+      exit
+    }
+  ' "${env_file}"
+}
+
+is_documented_unsafe_turnstile_value() {
+  case "$1" in
+    ""|\
+    "1x00000000000000000000AA"|\
+    "1x0000000000000000000000000000000AA"|\
+    "replace-with-public-turnstile-sitekey"|\
+    "replace-with-private-turnstile-secret"|\
+    "replace-with-turnstile-sitekey"|\
+    "replace-with-turnstile-secret"|\
+    "example-turnstile-sitekey"|\
+    "example-turnstile-secret"|\
+    "placeholder-turnstile-sitekey"|\
+    "placeholder-turnstile-secret")
+      return 0
+      ;;
+  esac
+  return 1
+}
+
+validate_turnstile_environment() {
+  if ! as_root test -f "${env_file}"; then
+    echo "Turnstile preflight failed: production .env is required before deployment." >&2
+    exit 1
+  fi
+
+  local site_key secret hostnames
+  site_key="$(read_env_value "VITE_TURNSTILE_SITE_KEY")"
+  secret="$(read_env_value "TURNSTILE_SECRET")"
+  hostnames="$(read_env_value "TURNSTILE_HOSTNAMES")"
+
+  if is_documented_unsafe_turnstile_value "${site_key}" || \
+    is_documented_unsafe_turnstile_value "${secret}" || \
+    [[ "${hostnames}" != "bitcoinriskbrief.minihub.app" ]]; then
+    echo "Turnstile preflight failed: production configuration is missing or invalid." >&2
+    exit 1
+  fi
+}
 
 case "${PROJECT_DEST}" in
   /srv/projects/*) ;;
@@ -53,6 +107,12 @@ if ! id "${APP_USER}" >/dev/null 2>&1; then
   exit 1
 fi
 
+validate_turnstile_environment
+
+if [[ "${TURNSTILE_PREFLIGHT_ONLY}" == "true" ]]; then
+  exit 0
+fi
+
 log "Copying project to ${PROJECT_DEST}"
 as_root mkdir -p "${PROJECT_DEST}"
 as_root rsync -a --delete \
@@ -73,34 +133,14 @@ if [[ -d "${PROJECT_DEST}/scripts" ]]; then
   as_root find "${PROJECT_DEST}/scripts" -type f -name '*.sh' -exec chmod 750 {} +
 fi
 
-env_file="${PROJECT_DEST}/.env"
-if ! as_root test -f "${env_file}"; then
-  log "Creating ${env_file} from .env.production.example"
-  as_root install -o "${APP_USER}" -g "${APP_USER}" -m 600 \
-    "${PROJECT_DEST}/.env.production.example" "${env_file}"
-
-  db_password="$(openssl rand -hex 32)"
-  as_root sed -i "s|^DB_PASSWORD=.*|DB_PASSWORD=${db_password}|" "${env_file}"
-  as_root sed -i "s|^DATABASE_URL=.*|DATABASE_URL=postgresql://postgres:${db_password}@timescaledb:5432/bitcoin_risk_brief|" "${env_file}"
-
-  if [[ -n "${PUBLIC_HOSTNAME}" ]]; then
-    as_root sed -i "s|^CORS_ORIGINS=.*|CORS_ORIGINS=https://${PUBLIC_HOSTNAME}|" "${env_file}"
-  fi
-else
-  log "Keeping existing ${env_file}"
-  as_root chmod 600 "${env_file}"
-  as_root chown "${APP_USER}:${APP_USER}" "${env_file}"
-fi
+log "Keeping existing ${env_file}"
+as_root chmod 600 "${env_file}"
+as_root chown "${APP_USER}:${APP_USER}" "${env_file}"
 
 log "Validating compose configuration as ${APP_USER}"
 run_as_app bash -lc "cd '${PROJECT_DEST}' && ./scripts/manage.sh validate"
 
 log "Deployment copy complete"
 cat <<EOF
-Review before starting the service:
-  sudoedit ${env_file}
-
-Important values:
-  CORS_ORIGINS=https://your-domain.example
-  COINMARKETCAP_API_KEY=   # optional
+The existing production .env was preflight-validated before deployment work.
 EOF

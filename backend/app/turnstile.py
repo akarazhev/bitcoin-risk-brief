@@ -10,6 +10,7 @@ SITEVERIFY_URL = "https://challenges.cloudflare.com/turnstile/v0/siteverify"
 TURNSTILE_ACTION = "waitlist"
 TURNSTILE_TIMEOUT_SECONDS = 10.0
 TURNSTILE_TOKEN_MAX_LENGTH = 2048
+TOKEN_FAILURE_CODES = frozenset({"invalid-input-response", "timeout-or-duplicate"})
 
 
 class TurnstileRejected(Exception):
@@ -50,11 +51,21 @@ async def verify_turnstile_token(
         if owns_client:
             await active_client.aclose()
 
-    if not isinstance(payload, Mapping):
+    if not isinstance(payload, Mapping) or not isinstance(payload.get("success"), bool):
         raise TurnstileUnavailable("siteverify returned a malformed payload")
-    if (
-        payload.get("success") is not True
-        or payload.get("action") != TURNSTILE_ACTION
-        or payload.get("hostname") not in expected_hostnames
-    ):
+
+    if payload["success"]:
+        action = payload.get("action")
+        hostname = payload.get("hostname")
+        if not isinstance(action, str) or not isinstance(hostname, str):
+            raise TurnstileUnavailable("siteverify returned a malformed success result")
+        if action != TURNSTILE_ACTION or hostname not in expected_hostnames:
+            raise TurnstileRejected("siteverify rejected the token")
+        return
+
+    error_codes = payload.get("error-codes")
+    if not isinstance(error_codes, list) or not all(isinstance(code, str) for code in error_codes):
+        raise TurnstileUnavailable("siteverify returned a malformed failure result")
+    if error_codes and set(error_codes).issubset(TOKEN_FAILURE_CODES):
         raise TurnstileRejected("siteverify rejected the token")
+    raise TurnstileUnavailable("siteverify returned an unavailable failure result")

@@ -137,6 +137,55 @@ test('removes the widget when unmounted', async () => {
   expect(removeWidget).toHaveBeenCalledWith('widget-1')
 })
 
+test('ignores callbacks from a widget removed by a language change', async () => {
+  const { renderWidget } = installTurnstileStub(vi.fn((_container, _options) => `widget-${renderWidget.mock.calls.length + 1}`))
+  const onVerify = vi.fn()
+  const onError = vi.fn()
+  const { rerender } = renderTurnstile({ onVerify, onError })
+
+  await waitFor(() => expect(renderWidget).toHaveBeenCalledTimes(1))
+  const staleOptions = renderWidget.mock.calls[0][1]
+  rerender(
+    <Turnstile
+      sitekey="1x00000000000000000000AA"
+      action="waitlist"
+      language="de"
+      onVerify={onVerify}
+      onError={onError}
+    />,
+  )
+  await waitFor(() => expect(renderWidget).toHaveBeenCalledTimes(2))
+
+  act(() => {
+    staleOptions.callback('stale-token')
+    staleOptions['expired-callback']()
+    staleOptions['error-callback']()
+  })
+
+  expect(onVerify).not.toHaveBeenCalled()
+  expect(onError).not.toHaveBeenCalled()
+})
+
+test('ignores callbacks from a widget after unmount', async () => {
+  const { renderWidget } = installTurnstileStub()
+  const onVerify = vi.fn()
+  const onError = vi.fn()
+  const { unmount } = renderTurnstile({ onVerify, onError })
+
+  await waitFor(() => expect(renderWidget).toHaveBeenCalledTimes(1))
+  const staleOptions = renderWidget.mock.calls[0][1]
+  unmount()
+
+  act(() => {
+    staleOptions.callback('stale-token')
+    staleOptions['expired-callback']()
+    staleOptions['error-callback']()
+  })
+
+  expect(onVerify).not.toHaveBeenCalled()
+  expect(onError).not.toHaveBeenCalled()
+})
+
 test('reports failed script loading and lets a later mount retry', async () => {
   const firstError = vi.fn()
   renderTurnstile({ onError: firstError })

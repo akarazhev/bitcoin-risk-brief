@@ -43,15 +43,53 @@ class TurnstileVerifierTest(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(client.calls[0][1], {"secret": "test-secret", "response": "fresh-token"})
 
-    async def test_rejects_failed_wrong_action_and_wrong_hostname_results(self) -> None:
+    async def test_rejects_wrong_action_and_wrong_hostname_success_results(self) -> None:
         payloads = (
-            {"success": False, "action": "waitlist", "hostname": "bitcoinriskbrief.minihub.app"},
             {"success": True, "action": "login", "hostname": "bitcoinriskbrief.minihub.app"},
             {"success": True, "action": "waitlist", "hostname": "localhost"},
         )
         for payload in payloads:
             with self.subTest(payload=payload):
                 with self.assertRaises(TurnstileRejected):
+                    await verify_turnstile_token(
+                        "token",
+                        secret="secret",
+                        expected_hostnames=frozenset({"bitcoinriskbrief.minihub.app"}),
+                        client=FakeClient(response(200, payload)),
+                    )
+
+    async def test_rejects_only_known_token_failure_codes(self) -> None:
+        for error_codes in (
+            ["invalid-input-response"],
+            ["timeout-or-duplicate"],
+        ):
+            with self.subTest(error_codes=error_codes):
+                with self.assertRaises(TurnstileRejected):
+                    await verify_turnstile_token(
+                        "token",
+                        secret="secret",
+                        expected_hostnames=frozenset({"bitcoinriskbrief.minihub.app"}),
+                        client=FakeClient(response(200, {"success": False, "error-codes": error_codes})),
+                    )
+
+    async def test_treats_malformed_and_non_token_failure_results_as_unavailable(self) -> None:
+        payloads = (
+            {},
+            {"success": "true"},
+            {"success": 1},
+            {"success": True},
+            {"success": True, "action": 1, "hostname": "bitcoinriskbrief.minihub.app"},
+            {"success": True, "action": "waitlist", "hostname": None},
+            {"success": False},
+            {"success": False, "error-codes": "invalid-input-response"},
+            {"success": False, "error-codes": ["invalid-input-response", "invalid-input-secret"]},
+            {"success": False, "error-codes": ["invalid-input-secret"]},
+            {"success": False, "error-codes": ["unexpected-code"]},
+            {"success": False, "error-codes": ["invalid-input-response", 1]},
+        )
+        for payload in payloads:
+            with self.subTest(payload=payload):
+                with self.assertRaises(TurnstileUnavailable):
                     await verify_turnstile_token(
                         "token",
                         secret="secret",
