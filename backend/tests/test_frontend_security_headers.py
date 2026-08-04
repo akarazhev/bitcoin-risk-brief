@@ -60,6 +60,10 @@ def _named_yaml_block(config: str, name: str) -> str:
     return match.group("body")
 
 
+def _yaml_block_names(config: str) -> list[str]:
+    return re.findall(r"^  ([\w-]+):\n", config, re.MULTILINE)
+
+
 def _tracked_frontend_files() -> list[Path]:
     result = subprocess.run(
         ["git", "ls-files", "--", "frontend"],
@@ -68,11 +72,7 @@ def _tracked_frontend_files() -> list[Path]:
         capture_output=True,
         text=True,
     )
-    return [
-        ROOT / relative_path
-        for relative_path in result.stdout.splitlines()
-        if not Path(relative_path).name.startswith(".env")
-    ]
+    return [ROOT / relative_path for relative_path in result.stdout.splitlines()]
 
 
 def _run_frontend_prebuild(sitekey: str | None) -> subprocess.CompletedProcess[str]:
@@ -224,9 +224,13 @@ class FrontendSecurityHeaderTests(unittest.TestCase):
     def test_frontend_ci_jobs_never_receive_or_log_backend_secret(self) -> None:
         workflow = CI_WORKFLOW.read_text()
         workflow_prelude = workflow.split("\njobs:\n", 1)[0]
+        frontend_jobs = [
+            job for job in _yaml_block_names(workflow) if job.startswith("frontend-")
+        ]
 
         self.assertNotIn("TURNSTILE_SECRET", workflow_prelude)
-        for job in ("frontend-build", "frontend-smoke", "compose-validation"):
+        self.assertIn("frontend-tests", frontend_jobs)
+        for job in (*frontend_jobs, "compose-validation"):
             with self.subTest(job=job):
                 self.assertNotIn("TURNSTILE_SECRET", _named_yaml_block(workflow, job))
 
