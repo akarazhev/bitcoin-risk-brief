@@ -137,6 +137,36 @@ test('removes the widget when unmounted', async () => {
   expect(removeWidget).toHaveBeenCalledWith('widget-1')
 })
 
+test('reports failed script loading and lets a later mount retry', async () => {
+  const firstError = vi.fn()
+  renderTurnstile({ onError: firstError })
+
+  const firstScript = await waitFor(() => {
+    const script = document.querySelector<HTMLScriptElement>(`script[src="${TURNSTILE_SCRIPT_SRC}"]`)
+    expect(script).not.toBeNull()
+    return script as HTMLScriptElement
+  })
+
+  act(() => firstScript.dispatchEvent(new Event('error')))
+
+  await waitFor(() => expect(firstError).toHaveBeenCalledTimes(1))
+  expect(firstScript).not.toBeInTheDocument()
+
+  const secondError = vi.fn()
+  renderTurnstile({ onError: secondError })
+
+  const retryScript = await waitFor(() => {
+    const script = document.querySelector<HTMLScriptElement>(`script[src="${TURNSTILE_SCRIPT_SRC}"]`)
+    expect(script).not.toBeNull()
+    return script as HTMLScriptElement
+  })
+
+  expect(retryScript).not.toBe(firstScript)
+
+  act(() => retryScript.dispatchEvent(new Event('error')))
+  await waitFor(() => expect(secondError).toHaveBeenCalledTimes(1))
+})
+
 test('injects one explicit Turnstile script when the API is absent', async () => {
   const onVerify = vi.fn()
 

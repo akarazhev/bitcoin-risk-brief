@@ -40,7 +40,11 @@ function loadTurnstileScript() {
       script.src = TURNSTILE_SCRIPT_SRC
       script.async = true
       script.addEventListener('load', () => resolve(), { once: true })
-      script.addEventListener('error', () => reject(new Error('Unable to load Turnstile')), { once: true })
+      script.addEventListener('error', () => {
+        script.remove()
+        scriptPromise = undefined
+        reject(new Error('Unable to load Turnstile'))
+      }, { once: true })
       document.head.appendChild(script)
     })
   }
@@ -105,7 +109,11 @@ const Turnstile = forwardRef<TurnstileHandle, TurnstileProps>(function Turnstile
     if (window.turnstile) {
       renderWidget()
     } else {
-      void loadTurnstileScript().then(renderWidget).catch(() => undefined)
+      void loadTurnstileScript().then(renderWidget).catch(() => {
+        if (!cancelled) {
+          onErrorRef.current()
+        }
+      })
     }
 
     return () => {
