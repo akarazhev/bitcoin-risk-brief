@@ -72,6 +72,8 @@ jobs:
 
   frontend-build:
     runs-on: ubuntu-latest
+    env:
+      VITE_TURNSTILE_SITE_KEY: 1x00000000000000000000AA
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -86,6 +88,8 @@ jobs:
 
   frontend-smoke:
     runs-on: ubuntu-latest
+    env:
+      VITE_TURNSTILE_SITE_KEY: 1x00000000000000000000AA
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -102,6 +106,8 @@ jobs:
 
   compose-validation:
     runs-on: ubuntu-latest
+    env:
+      VITE_TURNSTILE_SITE_KEY: 1x00000000000000000000AA
     steps:
       - uses: actions/checkout@v4
       - name: Validate compose file

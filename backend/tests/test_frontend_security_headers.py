@@ -7,6 +7,7 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[2]
 NGINX_CONF = ROOT / "frontend" / "nginx.conf"
+COMPOSE_FILE = ROOT / "podman-compose.yml"
 
 EXPECTED_FRONTEND_SECURITY_HEADERS = {
     "X-Content-Type-Options": "nosniff",
@@ -18,6 +19,10 @@ EXPECTED_FRONTEND_SECURITY_HEADERS = {
 
 def _read_nginx_conf() -> str:
     return NGINX_CONF.read_text()
+
+
+def _read_compose_file() -> str:
+    return COMPOSE_FILE.read_text()
 
 
 def _add_header_values(config: str, header_name: str) -> list[str]:
@@ -56,8 +61,16 @@ def _csp_directives(csp: str) -> dict[str, list[str]]:
 
 def _assert_strict_csp(test_case: unittest.TestCase, csp: str) -> None:
     directives = _csp_directives(csp)
-    test_case.assertEqual(["'self'"], directives["script-src"])
+    test_case.assertEqual(
+        ["'self'", "https://challenges.cloudflare.com"], directives["script-src"]
+    )
     test_case.assertNotIn("script-src-elem", directives)
+    test_case.assertEqual(
+        ["https://challenges.cloudflare.com"], directives["frame-src"]
+    )
+    test_case.assertEqual(
+        ["'self'", "https://challenges.cloudflare.com"], directives["connect-src"]
+    )
     test_case.assertEqual(["'none'"], directives["frame-ancestors"])
     test_case.assertNotIn("static.cloudflareinsights.com", csp)
     test_case.assertNotIn("cloudflareinsights.com", csp)
@@ -76,7 +89,7 @@ def _assert_security_headers_repeated(
 
 
 class FrontendSecurityHeaderTests(unittest.TestCase):
-    def test_all_frontend_csp_headers_keep_scripts_self_only(self) -> None:
+    def test_all_frontend_csp_headers_allow_only_required_turnstile_origin(self) -> None:
         config = _read_nginx_conf()
         server_headers = _add_header_values(
             _server_block_before_locations(config), "Content-Security-Policy"
@@ -116,6 +129,31 @@ class FrontendSecurityHeaderTests(unittest.TestCase):
 
         self.assertEqual([], _add_header_values(block, "Cache-Control"))
         self.assertIn("proxy_pass http://backend:8000/api/;", block)
+
+    def test_compose_wires_turnstile_without_exposing_secret_to_frontend_build(
+        self,
+    ) -> None:
+        compose = _read_compose_file()
+        backend_block = compose.split("\n  backend:\n", 1)[1].split(
+            "\n  frontend:\n", 1
+        )[0]
+        frontend_block = compose.split("\n  frontend:\n", 1)[1].split(
+            "\n  data-collector:\n", 1
+        )[0]
+        frontend_build = frontend_block.split("\n    restart:", 1)[0]
+
+        self.assertIn(
+            "TURNSTILE_SECRET: ${TURNSTILE_SECRET:-}", backend_block
+        )
+        self.assertIn(
+            "TURNSTILE_HOSTNAMES: ${TURNSTILE_HOSTNAMES:-}", backend_block
+        )
+        self.assertIn(
+            "VITE_TURNSTILE_SITE_KEY: "
+            "${VITE_TURNSTILE_SITE_KEY:?VITE_TURNSTILE_SITE_KEY is required}",
+            frontend_build,
+        )
+        self.assertNotIn("TURNSTILE_SECRET", frontend_build)
 
 
 if __name__ == "__main__":
