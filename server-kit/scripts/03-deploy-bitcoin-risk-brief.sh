@@ -32,53 +32,8 @@ kit_dir="$(cd "${script_dir}/.." && pwd)"
 PROJECT_SRC="${PROJECT_SRC:-${kit_dir}/project/${PROJECT_NAME}}"
 env_file="${PROJECT_DEST}/.env"
 
-read_env_value() {
-  local key="$1"
-
-  as_root awk -v key="${key}" '
-    index($0, key "=") == 1 {
-      value = substr($0, length(key) + 2)
-      sub(/^[[:space:]]+/, "", value)
-      sub(/[[:space:]]+$/, "", value)
-      print value
-      exit
-    }
-  ' "${env_file}"
-}
-
-is_documented_unsafe_turnstile_value() {
-  case "$1" in
-    ""|\
-    "1x00000000000000000000AA"|\
-    "1x0000000000000000000000000000000AA"|\
-    "replace-with-public-turnstile-sitekey"|\
-    "replace-with-private-turnstile-secret"|\
-    "replace-with-turnstile-sitekey"|\
-    "replace-with-turnstile-secret"|\
-    "example-turnstile-sitekey"|\
-    "example-turnstile-secret"|\
-    "placeholder-turnstile-sitekey"|\
-    "placeholder-turnstile-secret")
-      return 0
-      ;;
-  esac
-  return 1
-}
-
 validate_turnstile_environment() {
-  if ! as_root test -f "${env_file}"; then
-    echo "Turnstile preflight failed: production .env is required before deployment." >&2
-    exit 1
-  fi
-
-  local site_key secret hostnames
-  site_key="$(read_env_value "VITE_TURNSTILE_SITE_KEY")"
-  secret="$(read_env_value "TURNSTILE_SECRET")"
-  hostnames="$(read_env_value "TURNSTILE_HOSTNAMES")"
-
-  if is_documented_unsafe_turnstile_value "${site_key}" || \
-    is_documented_unsafe_turnstile_value "${secret}" || \
-    [[ "${hostnames}" != "bitcoinriskbrief.minihub.app" ]]; then
+  if ! as_root python3 "${script_dir}/turnstile-env-preflight.py" --env-file "${env_file}"; then
     echo "Turnstile preflight failed: production configuration is missing or invalid." >&2
     exit 1
   fi

@@ -33,6 +33,7 @@ REQUIRED_SERVER_SCRIPTS = (
     "04-enable-bitcoin-risk-service.sh",
     "05-health-check.sh",
     "06-debug-bitcoin-risk-service.sh",
+    "turnstile-env-preflight.py",
 )
 OPTIONAL_SERVER_SCRIPTS = (
     "07-update-bitcoin-risk-brief-from-usb.sh",

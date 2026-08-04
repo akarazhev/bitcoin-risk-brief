@@ -57,6 +57,7 @@ Expected script list:
 - `scripts/05-health-check.sh`
 - `scripts/06-debug-bitcoin-risk-service.sh`
 - `scripts/07-update-bitcoin-risk-brief-from-usb.sh`
+- `scripts/turnstile-env-preflight.py`
 
 ## Mount The USB On The Server
 

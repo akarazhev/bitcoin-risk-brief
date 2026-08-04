@@ -78,6 +78,7 @@ class PrepareUsbKitTests(unittest.TestCase):
             script = self.source / "server-kit" / "scripts" / name
             write_file(script, "#!/usr/bin/env bash\necho script\n")
             make_executable(script)
+        write_file(self.source / "server-kit" / "scripts" / "turnstile-env-preflight.py", "#!/usr/bin/env python3\n")
 
         forbidden_files = [
             ".env",
@@ -156,6 +157,11 @@ class PrepareUsbKitTests(unittest.TestCase):
         self.assertTrue((project / ".env.production.example").is_file())
         self.assertTrue((project / "collector" / "btc-csv" / "btc_usd_daily.csv").is_file())
         self.assertTrue(os.access(project / "scripts" / "export_waitlist.sh", os.X_OK))
+
+    def test_turnstile_preflight_validator_is_shipped_with_server_scripts(self) -> None:
+        result = self.run_packager()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertTrue((self.target / KIT_NAME / "scripts" / "turnstile-env-preflight.py").is_file())
 
     def test_project_snapshot_excludes_git_ignored_local_artifacts(self) -> None:
         result = self.run_packager()
