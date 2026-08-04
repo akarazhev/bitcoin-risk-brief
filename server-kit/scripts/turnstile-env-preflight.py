@@ -36,7 +36,7 @@ PLACEHOLDER_MARKERS = (
     "<",
     ">",
 )
-ASSIGNMENT = re.compile(r"^\s*([A-Za-z_][A-Za-z0-9_]*)\s*(=|:)\s*(.*)$")
+ASSIGNMENT = re.compile(r"^\s*(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)$")
 SAFE_CREDENTIAL = re.compile(r"[A-Za-z0-9_-]{16,}")
 
 
@@ -46,7 +46,10 @@ class InvalidTurnstileEnvironment(Exception):
 
 def _is_relevant_malformed_assignment(line: str) -> bool:
     stripped = line.lstrip()
-    return any(re.match(rf"{re.escape(key)}(?:\s|=|:|$)", stripped) for key in REQUIRED_KEYS)
+    return any(
+        re.match(rf"(?:export\s+)?{re.escape(key)}(?:\s|=|:|$)", stripped)
+        for key in REQUIRED_KEYS
+    )
 
 
 def _parse_compose_value(raw_value: str) -> str:
@@ -86,7 +89,7 @@ def _read_turnstile_values(env_file: Path) -> dict[str, str]:
             if _is_relevant_malformed_assignment(line):
                 raise InvalidTurnstileEnvironment
             continue
-        key, _delimiter, raw_value = match.groups()
+        key, raw_value = match.groups()
         if key not in REQUIRED_KEYS:
             continue
         if key in values:

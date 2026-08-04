@@ -101,6 +101,9 @@ class ServerKitScriptTests(unittest.TestCase):
             ("commented blank sitekey", self._turnstile_env(sitekey=" # comment")),
             ("duplicate sitekey", self._turnstile_env() + f"VITE_TURNSTILE_SITE_KEY={VALID_SITEKEY}\n"),
             ("invalid sitekey assignment", self._turnstile_env().replace(f"VITE_TURNSTILE_SITE_KEY={VALID_SITEKEY}", "VITE_TURNSTILE_SITE_KEY")),
+            ("colon-delimited sitekey", self._turnstile_env().replace(f"VITE_TURNSTILE_SITE_KEY={VALID_SITEKEY}", f"VITE_TURNSTILE_SITE_KEY: {VALID_SITEKEY}")),
+            ("colon-delimited secret", self._turnstile_env().replace(f"TURNSTILE_SECRET={VALID_SECRET}", f"TURNSTILE_SECRET: {VALID_SECRET}")),
+            ("colon-delimited hostname", self._turnstile_env().replace(f"TURNSTILE_HOSTNAMES={EXPECTED_HOSTNAME}", f"TURNSTILE_HOSTNAMES: {EXPECTED_HOSTNAME}")),
             ("placeholder sitekey", self._turnstile_env(sitekey="replace-with-public-turnstile-sitekey")),
             ("placeholder secret", self._turnstile_env(secret="replace-with-private-turnstile-secret")),
             ("localhost hostname", self._turnstile_env(hostname="localhost")),
@@ -138,7 +141,10 @@ class ServerKitScriptTests(unittest.TestCase):
         for env_text in (
             self._turnstile_env(),
             self._turnstile_env(sitekey=f'"{VALID_SITEKEY}"', secret=f"'{VALID_SECRET}'", hostname=f'"{EXPECTED_HOSTNAME}" # production'),
-            f"VITE_TURNSTILE_SITE_KEY: {VALID_SITEKEY}\nTURNSTILE_SECRET: {VALID_SECRET}\nTURNSTILE_HOSTNAMES: {EXPECTED_HOSTNAME}\n",
+            "\n".join(
+                f"export {assignment}"
+                for assignment in self._turnstile_env().splitlines()
+            ) + "\n",
         ):
             with self.subTest(env_text=env_text):
                 completed, calls = self._run_turnstile_preflight("03-deploy-bitcoin-risk-brief.sh", env_text, preflight_only=True)
