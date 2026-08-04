@@ -56,6 +56,86 @@ class ServerKitScriptTests(unittest.TestCase):
             f"TURNSTILE_HOSTNAMES={hostname}\n"
         )
 
+    def _stage_turnstile_installer(self, tmp_path: Path, fragment: str) -> tuple[Path, Path]:
+        usb_root = tmp_path / "usb"
+        scripts = usb_root / "bitcoin-risk-brief-server-kit" / "scripts"
+        scripts.mkdir(parents=True)
+        installer = scripts / "08-install-turnstile-env-from-usb.sh"
+        installer_source = ROOT / "scripts" / installer.name
+        self.assertTrue(installer_source.is_file(), f"missing installer: {installer_source}")
+        installer.write_bytes(installer_source.read_bytes())
+        installer.chmod(0o755)
+        validator = scripts / "turnstile-env-preflight.py"
+        validator.write_bytes((ROOT / "scripts" / validator.name).read_bytes())
+        validator.chmod(0o755)
+        (usb_root / "bitcoin-risk-brief-turnstile.env").write_text(fragment)
+
+        project = tmp_path / "project"
+        project.mkdir()
+        env_file = project / ".env"
+        env_file.write_text(
+            "APP_ENV=production\n"
+            "VITE_TURNSTILE_SITE_KEY=old-sitekey-value\n"
+            "TURNSTILE_SECRET=old-secret-value\n"
+            "TURNSTILE_HOSTNAMES=localhost\n"
+            "CORS_ORIGINS=https://bitcoinriskbrief.minihub.app\n"
+        )
+        return installer, env_file
+
+    def test_turnstile_installer_replaces_only_turnstile_values_as_app_without_printing_them(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            installer, env_file = self._stage_turnstile_installer(tmp_path, self._turnstile_env())
+            app_user = subprocess.run(["id", "-un"], check=True, capture_output=True, text=True).stdout.strip()
+            env = os.environ.copy()
+            env.update({"APP_USER": app_user, "PROJECT_DEST": str(env_file.parent)})
+
+            completed = subprocess.run(
+                ["bash", str(installer)],
+                env=env,
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+
+            self.assertEqual(completed.returncode, 0, completed.stderr)
+            installed = env_file.read_text()
+            self.assertIn("APP_ENV=production\n", installed)
+            self.assertIn("CORS_ORIGINS=https://bitcoinriskbrief.minihub.app\n", installed)
+            self.assertEqual(installed.count("VITE_TURNSTILE_SITE_KEY="), 1)
+            self.assertEqual(installed.count("TURNSTILE_SECRET="), 1)
+            self.assertEqual(installed.count("TURNSTILE_HOSTNAMES="), 1)
+            self.assertIn(self._turnstile_env(), installed)
+            self.assertEqual(env_file.stat().st_mode & 0o777, 0o600)
+            output = completed.stdout + completed.stderr
+            self.assertNotIn(VALID_SITEKEY, output)
+            self.assertNotIn(VALID_SECRET, output)
+            self.assertNotIn("deploy", output.lower())
+
+    def test_turnstile_installer_rejects_invalid_fragment_without_changing_env(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            installer, env_file = self._stage_turnstile_installer(
+                tmp_path,
+                self._turnstile_env(secret=OFFICIAL_DUMMY_SECRETS[0]),
+            )
+            original = env_file.read_bytes()
+            app_user = subprocess.run(["id", "-un"], check=True, capture_output=True, text=True).stdout.strip()
+            env = os.environ.copy()
+            env.update({"APP_USER": app_user, "PROJECT_DEST": str(env_file.parent)})
+
+            completed = subprocess.run(
+                ["bash", str(installer)],
+                env=env,
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+
+            self.assertEqual(completed.returncode, 1)
+            self.assertEqual(env_file.read_bytes(), original)
+            self.assertNotIn(OFFICIAL_DUMMY_SECRETS[0], completed.stdout + completed.stderr)
+
     def _run_turnstile_preflight(self, script_name: str, env_text: str, *, preflight_only: bool) -> tuple[subprocess.CompletedProcess[str], list[str]]:
         with tempfile.TemporaryDirectory() as tmp:
             tmp_path = Path(tmp)

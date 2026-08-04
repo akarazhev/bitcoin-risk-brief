@@ -74,6 +74,7 @@ class PrepareUsbKitTests(unittest.TestCase):
             "05-health-check.sh",
             "06-debug-bitcoin-risk-service.sh",
             "07-update-bitcoin-risk-brief-from-usb.sh",
+            "08-install-turnstile-env-from-usb.sh",
         ):
             script = self.source / "server-kit" / "scripts" / name
             write_file(script, "#!/usr/bin/env bash\necho script\n")
@@ -238,6 +239,9 @@ class PrepareUsbKitTests(unittest.TestCase):
         update_script = kit / "scripts" / "07-update-bitcoin-risk-brief-from-usb.sh"
         self.assertTrue(update_script.is_file())
         self.assertTrue(os.access(update_script, os.X_OK))
+        installer_script = kit / "scripts" / "08-install-turnstile-env-from-usb.sh"
+        self.assertTrue(installer_script.is_file())
+        self.assertTrue(os.access(installer_script, os.X_OK))
 
         manifest = (kit / "manifest.txt").read_text()
         self.assertIn(f"source_commit={self.commit}", manifest)
@@ -246,11 +250,13 @@ class PrepareUsbKitTests(unittest.TestCase):
         self.assertIn("copied_categories=server-kit-readme,server-entrypoints,server-scripts,deployment-docs,project-snapshot", manifest)
         self.assertIn("project_snapshot=project/bitcoin-risk-brief", manifest)
         self.assertIn("entrypoints=deploy-from-usb.sh", manifest)
+        self.assertIn("scripts/08-install-turnstile-env-from-usb.sh", manifest)
 
         checksums = (kit / "SHA256SUMS").read_text()
         self.assertIn("manifest.txt", checksums)
         self.assertIn("README-RUN-ON-SERVER.md", checksums)
         self.assertIn("deploy-from-usb.sh", checksums)
+        self.assertIn("scripts/08-install-turnstile-env-from-usb.sh", checksums)
         verify = subprocess.run(
             ["shasum", "-a", "256", "-c", "SHA256SUMS"],
             cwd=kit,
