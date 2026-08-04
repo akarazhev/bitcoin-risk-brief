@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+import re
 import subprocess
 import tempfile
 import unittest
@@ -20,11 +21,34 @@ OFFICIAL_DUMMY_SECRETS = (
     "3x0000000000000000000000000000000AA",
 )
 VALID_SITEKEY = "0x4AAAAAAABbCcDdEeFfGgHhIi"
-VALID_SECRET = "0x4AAAAAAAJjKkLlMmNnOoPpQqRrSsTtUuVvWw"
+VALID_SECRET = "synthetic-test-credential-0001"
 EXPECTED_HOSTNAME = "bitcoinriskbrief.minihub.app"
 
 
 class ServerKitScriptTests(unittest.TestCase):
+    def test_tracked_files_do_not_contain_production_shaped_turnstile_secrets(self) -> None:
+        tracked_files = subprocess.run(
+            ["git", "ls-files", "-z"],
+            cwd=REPO_ROOT,
+            check=True,
+            capture_output=True,
+        ).stdout.split(b"\0")
+        secret_pattern = re.compile(rb"(?<![A-Za-z0-9_-])0x4[A-Za-z0-9_-]{30,}")
+        occurrences = []
+
+        for relative_path in tracked_files:
+            if not relative_path:
+                continue
+            path = REPO_ROOT / os.fsdecode(relative_path)
+            try:
+                content = path.read_bytes()
+            except OSError:
+                continue
+            if secret_pattern.search(content):
+                occurrences.append(os.fsdecode(relative_path))
+
+        self.assertEqual(occurrences, [], f"production-shaped Turnstile secret in: {occurrences}")
+
     def _turnstile_env(self, sitekey: str = VALID_SITEKEY, secret: str = VALID_SECRET, hostname: str = EXPECTED_HOSTNAME) -> str:
         return (
             f"VITE_TURNSTILE_SITE_KEY={sitekey}\n"
@@ -137,7 +161,7 @@ class ServerKitScriptTests(unittest.TestCase):
                 for credential in (VALID_SITEKEY, VALID_SECRET, *OFFICIAL_DUMMY_SITEKEYS, *OFFICIAL_DUMMY_SECRETS):
                     self.assertNotIn(credential, output)
 
-    def test_turnstile_preflight_accepts_unquoted_and_quoted_production_shaped_values_without_printing_them(self) -> None:
+    def test_turnstile_preflight_accepts_unquoted_and_quoted_safe_values_without_printing_them(self) -> None:
         for env_text in (
             self._turnstile_env(),
             self._turnstile_env(sitekey=f'"{VALID_SITEKEY}"', secret=f"'{VALID_SECRET}'", hostname=f'"{EXPECTED_HOSTNAME}" # production'),
