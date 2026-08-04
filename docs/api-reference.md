@@ -245,7 +245,8 @@ Request:
 {
   "contact": "user@example.com",
   "locale": "en",
-  "source": "landing"
+  "source": "landing",
+  "turnstile_token": "single-use-client-token"
 }
 ```
 
@@ -274,5 +275,10 @@ Status codes:
 | Status | Meaning |
 | --- | --- |
 | `201` | Lead saved. |
+| `403` | Turnstile rejected a missing, invalid, expired, replayed, wrong-action, or wrong-hostname token. |
+| `503` | Turnstile verification is temporarily unavailable or server configuration is incomplete. |
 | `422` | Invalid contact payload. |
 | `429` | Too many waitlist submissions from the same client key. |
+
+Every waitlist outcome is returned with `Cache-Control: no-store` and `Pragma: no-cache`. Failed Turnstile
+verification never writes a lead.

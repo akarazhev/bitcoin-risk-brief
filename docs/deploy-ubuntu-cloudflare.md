@@ -75,10 +75,18 @@ CORS_ORIGINS=https://risk.example.com
 COINMARKETCAP_API_KEY=
 DATA_FRESHNESS_MAX_AGE_DAYS=2
 WAITLIST_RATE_LIMIT_PER_HOUR=20
+VITE_TURNSTILE_SITE_KEY=<public-sitekey-from-operator-controlled-widget-record>
+TURNSTILE_SECRET=<matching-private-secret-from-operator-controlled-storage>
+TURNSTILE_HOSTNAMES=bitcoinriskbrief.minihub.app
 ```
 
 Set `COINMARKETCAP_API_KEY` only when using the optional API refresh path. Without a paid API account, leave it empty and
 refresh the canonical BTC CSV through the documented automatic public or manual downloaded CSV workflow.
+
+For Turnstile, `VITE_TURNSTILE_SITE_KEY` receives the public sitekey returned when the Managed widget was created,
+`TURNSTILE_SECRET` receives its matching private secret from operator-controlled storage, and
+`TURNSTILE_HOSTNAMES` is exactly `bitcoinriskbrief.minihub.app`. Do not record those key values in documentation or Git.
+The site key is a frontend build input; the secret is backend runtime configuration.
 
 Generate a database password on the server:
 
@@ -367,30 +375,22 @@ bash scripts/05-health-check.sh
 
 Existing production deployments should use the top-level deploy entrypoint:
 
+Before the update build/restart, the operator must edit the server's existing `.env` with the three Turnstile values
+above. The production `.env` is preserved on the server and excluded from the USB kit. Then run:
+
 ```bash
 cd /mnt/deploy-usb/bitcoin-risk-brief-server-kit
-bash deploy-from-usb.sh
-```
-
-For the public readiness check after Cloudflare Tunnel is configured:
-
-```bash
-bash deploy-from-usb.sh https://bitcoinriskbrief.minihub.app
-```
-
-The default path verifies `SHA256SUMS`, deploys the USB project snapshot, preserves the existing production `.env` and
-database volume, recreates/restarts the user service, and runs local health/readiness plus optional public readiness
-checks. It does not run `pg_dump`; the USB kit does not provide production secrets.
-
-For the stricter backup-gated path, run:
-
-```bash
 bash deploy-from-usb.sh --with-backup https://bitcoinriskbrief.minihub.app
 ```
 
-That mode runs `./scripts/backup.sh` before copying new code, verifies the backup, copies the verified backup to the USB
-default `backups-from-server/` or an operator-provided `BACKUP_COPY_DEST`, verifies the copied backup, then deploys and
-checks the service.
+The command verifies `SHA256SUMS`, deploys the USB project snapshot, preserves the existing production `.env` and
+database volume, recreates/restarts the user service, and runs local health/readiness plus optional public readiness
+checks. The backup-gated mode runs `./scripts/backup.sh` before copying new code, verifies the backup, copies the
+verified backup to the USB default `backups-from-server/` or an operator-provided `BACKUP_COPY_DEST`, verifies the
+copied backup, then deploys and checks the service.
+
+This integration has not yet been USB-deployed or production-validated. Do not treat this procedure as evidence until
+the operator completes the update and records sanitized verification results.
 
 Automatic live restore is not part of the USB kit. Restore remains a separate operator action from a verified backup and
 only after taking the app offline or using a staging/empty restore target.

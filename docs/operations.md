@@ -489,6 +489,8 @@ key. If Cloudflare cache is enabled, purge the hostname or wait for `PUBLIC_CACH
 public data for a launch snapshot.
 
 `POST /api/waitlist` must remain uncached. Confirm it returns `Cache-Control: no-store` during launch checks.
+Every waitlist outcome, including Turnstile rejection (`403`) and temporary verification/configuration failure (`503`),
+must remain no-store; failed verification must not create a lead.
 
 For issue #35, local verification can cover backend cache correctness, warmup timing, and header behavior. Keep the issue
 open until a deployed production version has been checked with GET-only public endpoint smoke tests and startup/import
@@ -753,30 +755,22 @@ bash scripts/05-health-check.sh
 
 For an existing production deployment, use the top-level deploy entrypoint:
 
+Before the update build/restart, edit the existing server `.env`: set `VITE_TURNSTILE_SITE_KEY` to the public sitekey in
+the operator-controlled Managed-widget record, `TURNSTILE_SECRET` to its matching private secret from
+operator-controlled storage, and `TURNSTILE_HOSTNAMES` exactly to `bitcoinriskbrief.minihub.app`. The production `.env`
+stays on the server, is preserved by the update, and is excluded from the USB kit. Then run:
+
 ```bash
 cd /mnt/deploy-usb/bitcoin-risk-brief-server-kit
-bash deploy-from-usb.sh
-```
-
-After Cloudflare Tunnel is configured, include the public readiness URL:
-
-```bash
-bash deploy-from-usb.sh https://bitcoinriskbrief.minihub.app
-```
-
-The default path verifies `SHA256SUMS`, deploys the project snapshot, preserves the existing production `.env` and
-database volume, restarts the service, and runs local health/readiness plus optional public readiness checks. It does not
-run `pg_dump`.
-
-For a stricter backup-gated update, use:
-
-```bash
 bash deploy-from-usb.sh --with-backup https://bitcoinriskbrief.minihub.app
 ```
 
-That mode runs a backup from the current deployed project before copying new code, verifies the backup checksums, copies
-the verified backup to the USB default `backups-from-server/` or an operator-provided `BACKUP_COPY_DEST`, verifies the
-copied backup, then deploys and checks the service.
+The backup-gated command verifies `SHA256SUMS`, runs a backup from the current deployed project before copying new code,
+verifies the backup checksums, copies the verified backup to the USB default `backups-from-server/` or an
+operator-provided `BACKUP_COPY_DEST`, verifies the copied backup, then deploys and checks the service.
+
+The Turnstile integration is not yet USB-deployed or production-validated. Do not infer that status from the earlier
+backup-gated update evidence below; record new sanitized operator evidence only after this update completes.
 
 Production update evidence recorded on 2026-07-11 confirms this backup-gated flow for target commit
 `86cb2dad889baf24a7464a105bbe2224f75b14ef`: the server-reported exit code was 0, the copied/off-server
@@ -1062,10 +1056,14 @@ curl -fsS http://127.0.0.1:3001/api/readiness
 
 - Where to look first: public waitlist response headers, backend access logs, backend error logs, Cloudflare security
   events for `POST /api/waitlist`, and `waitlist_leads` aggregate counts without copying contact values.
+- A missing, invalid, expired, replayed, wrong-action, or wrong-hostname token returns `403`; unavailable Siteverify or
+  incomplete server configuration returns `503`. Neither result may write a lead, and every result must be no-store.
 - Check:
 
-Use a real browser for the user-path smoke when possible. If using curl through Cloudflare, include a browser-like
-User-Agent; default curl is expected to match the repo-managed waitlist bot challenge and can return Cloudflare 403.
+Use a real browser for the user-path smoke: it obtains the required single-use token from
+`challenges.cloudflare.com`. Do not attempt a successful Turnstile smoke with curl. Curl without a token is useful only
+to confirm that a rejected request is no-store and makes no database write; default curl can also match the repo-managed
+edge challenge and return Cloudflare `403` before the application.
 
 ```bash
 PUBLIC_BASE_URL=https://bitcoinriskbrief.minihub.app
@@ -1073,9 +1071,8 @@ WAITLIST_TEST_CONTACT="<operator-controlled-test-contact>"
 SMOKE_SOURCE="ops-smoke-$(date -u +%Y%m%d%H%M%S)"
 curl -sD - -o /tmp/bitcoin-risk-waitlist.json \
   -H 'Content-Type: application/json' \
-  -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36' \
   -X POST "${PUBLIC_BASE_URL}/api/waitlist" \
-  --data "{\"contact\":\"${WAITLIST_TEST_CONTACT}\",\"locale\":\"en\",\"source\":\"${SMOKE_SOURCE}\"}"
+  --data "{\"contact\":\"${WAITLIST_TEST_CONTACT}\",\"locale\":\"en\",\"source\":\"${SMOKE_SOURCE}\",\"turnstile_token\":\"invalid-turnstile-token\"}"
 podman-compose -f podman-compose.yml logs --tail=200 backend
 podman-compose -f podman-compose.yml exec timescaledb psql -U postgres -d bitcoin_risk_brief -t -A -c "SELECT count(*), max(created_at) FROM waitlist_leads WHERE source='${SMOKE_SOURCE}' AND contact_type='email' AND locale='en';"
 ```

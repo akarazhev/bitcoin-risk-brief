@@ -21,6 +21,7 @@ Production-sensitive variables:
 - `DB_PASSWORD`
 - `DATABASE_URL`
 - `COINMARKETCAP_API_KEY`, if the optional API refresh path is used
+- `TURNSTILE_SECRET`
 - `CLOUDFLARE_API_TOKEN`, if the edge rules helper is used
 - `CLOUDFLARE_TUNNEL_TOKEN`
 
@@ -33,6 +34,7 @@ The backend validates:
 - waitlist contacts;
 - locale values;
 - waitlist source strings;
+- required Turnstile tokens before waitlist persistence;
 - API query parameters through FastAPI/Pydantic;
 - risk source rows before computing risk.
 
@@ -59,6 +61,16 @@ provider details stay outside Git. The 2026-07-11 desktop/mobile public smoke ob
 without any waitlist POSTs.
 
 The product currently has no authentication and no user accounts. Waitlist contacts are operational lead data and should be handled as PII.
+
+Turnstile is bot verification for waitlist submissions, not product analytics. The browser contacts
+`challenges.cloudflare.com` to obtain a token; the application sends that token only to Cloudflare Siteverify from the
+server. Tokens are single-use, are not written to application logs, and are not persisted with leads. To minimize data
+sent by the application, its Siteverify request omits the optional visitor-IP field. Existing application and Cloudflare
+edge rate limits remain layered protection if Turnstile rejects a token or verification is unavailable.
+
+Local development and automated tests use documented test credentials and local hostname allowlists. Production instead
+uses the operator-controlled Managed-widget credentials and only `bitcoinriskbrief.minihub.app` in
+`TURNSTILE_HOSTNAMES`; test credentials and local hostnames must not be used for production.
 
 The dedicated support contact path for deletion and unsubscribe requests is created and ready, with exact addresses kept
 outside Git. If the project adds email or Telegram delivery later, update this section before sending recurring messages.
@@ -97,6 +109,7 @@ tokens, `.env` values, raw logs, dashboard URLs, and raw waitlist contacts out o
 
 As of the 2026-07-10 local source inspection, frontend and backend application code did not contain product analytics or
 tracking-cookie code. Future source changes must recheck this before making any public no-analytics or no-cookie claim.
+Turnstile's bot-verification traffic does not change that no-product-analytics statement.
 Cloudflare Web Analytics automatic setup and Beacon injection are intentionally disabled for the production pilot. The
 frontend CSP must not allow `static.cloudflareinsights.com` unless a later analytics/privacy design updates the public UI
 copy, retention rules, and operator runbooks. Static frontend responses include `Cache-Control` directives with
