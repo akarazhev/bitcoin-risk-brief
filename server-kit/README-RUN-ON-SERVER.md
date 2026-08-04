@@ -86,15 +86,21 @@ bash scripts/01-bootstrap-host.sh
 bash scripts/02-install-cloudflared-from-usb.sh
 sudo install -d -o apps -g apps -m 750 /srv/projects/bitcoin-risk-brief
 sudo install -o apps -g apps -m 600 project/bitcoin-risk-brief/.env.production.example /srv/projects/bitcoin-risk-brief/.env
+sudo bash scripts/08-install-turnstile-env-from-usb.sh
 sudoedit /srv/projects/bitcoin-risk-brief/.env
 bash scripts/03-deploy-bitcoin-risk-brief.sh
 bash scripts/04-enable-bitcoin-risk-service.sh
 bash scripts/05-health-check.sh
 ```
 
+`08-install-turnstile-env-from-usb.sh` only replaces `VITE_TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET`, and
+`TURNSTILE_HOSTNAMES` in the existing production `.env`; it does not deploy or restart the application. It expects the
+separate `bitcoin-risk-brief-turnstile.env` file beside the `bitcoin-risk-brief-server-kit` directory in the USB root.
+
 Before running `03-deploy-bitcoin-risk-brief.sh`, those commands create the production `.env` from the placeholder-only
-template already in the USB project snapshot. Fill in the normal production values and the Turnstile values below. The
-deploy script validates them without printing their values, before it copies the project, builds, or restarts anything:
+template already in the USB project snapshot. The installer adds the Turnstile values; use `sudoedit` to fill in the
+remaining production values below. The deploy script validates the Turnstile values without printing them, before it
+copies the project, builds, or restarts anything:
 
 ```env
 CORS_ORIGINS=https://your-production-domain.example

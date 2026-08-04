@@ -8,6 +8,8 @@
 
 **Tech Stack:** Bash, Python 3.13 `unittest`, existing `turnstile-env-preflight.py`, GNU/Linux `runuser`, `awk`, `cat`, `mktemp`, SHA-256 USB manifest verification.
 
+**Execution status:** Tasks 1 and 2 are implemented in `47a60f5`; Task 3 local tests and shell validation are complete.
+
 ## Global Constraints
 
 - The operator command is exactly `sudo bash scripts/08-install-turnstile-env-from-usb.sh` from the mounted kit.
