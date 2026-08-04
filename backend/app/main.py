@@ -38,6 +38,7 @@ from app.rate_limit import FixedWindowRateLimiter
 from app.readiness import build_readiness_payload
 from app.risk_levels import build_risk_levels, build_risk_levels_public_payload
 from app.security import build_security_headers
+from app.turnstile import TurnstileRejected, TurnstileUnavailable, verify_turnstile_token
 from app.waitlist import InvalidWaitlistContact
 
 
@@ -60,6 +61,7 @@ class WaitlistRequest(BaseModel):
     contact: str = Field(min_length=3, max_length=254)
     locale: str = Field(default="en")
     source: str = Field(default="landing", max_length=64)
+    turnstile_token: str = Field(min_length=1, max_length=2048)
 
 
 app = FastAPI(title="Bitcoin Risk Brief API", version="0.1.0", lifespan=lifespan)
@@ -336,6 +338,17 @@ async def brief_latest(request: Request) -> Response:
 
 @app.post("/api/waitlist", status_code=201)
 async def waitlist_join(payload: WaitlistRequest) -> JSONResponse:
+    try:
+        await verify_turnstile_token(
+            payload.turnstile_token,
+            secret=settings.turnstile_secret,
+            expected_hostnames=settings.turnstile_hostnames,
+        )
+    except TurnstileRejected as exc:
+        raise HTTPException(status_code=403, detail="Turnstile verification failed") from exc
+    except TurnstileUnavailable as exc:
+        raise HTTPException(status_code=503, detail="Turnstile verification unavailable") from exc
+
     try:
         lead = await upsert_waitlist_lead(
             get_pool(),

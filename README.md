@@ -205,6 +205,17 @@ Production must set at least:
 - `DATA_FRESHNESS_MAX_AGE_DAYS` to the accepted freshness threshold
 - `WAITLIST_RATE_LIMIT_PER_HOUR` to the expected traffic profile
 - `FRONTEND_BIND_IP=127.0.0.1` when Cloudflare Tunnel is the only public ingress
+- `VITE_TURNSTILE_SITE_KEY` to the public sitekey in the operator-controlled Managed-widget record
+- `TURNSTILE_SECRET` to the matching private secret in operator-controlled storage
+- `TURNSTILE_HOSTNAMES=bitcoinriskbrief.minihub.app`
+
+Write these settings as `KEY=value` assignments (or `export KEY=value`); the deployment's
+`podman-compose`/`python-dotenv` provider does not load `KEY: value` entries.
+
+The site key is a frontend build input and the secret is backend runtime configuration. Do not commit either value. The
+Turnstile integration has not yet been USB-deployed or production-validated; before that operator-run update, edit the
+server `.env` and use `bash deploy-from-usb.sh --with-backup https://bitcoinriskbrief.minihub.app`. The server `.env` is
+preserved by the update process and excluded from the USB kit.
 
 ## Disclaimer
 

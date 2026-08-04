@@ -25,9 +25,13 @@ class FakeRequest:
 
 class MainPatchMixin:
     def patch_main(self, name: str, value) -> None:
-        original = getattr(main, name)
+        missing = object()
+        original = getattr(main, name, missing)
         setattr(main, name, value)
-        self.addCleanup(setattr, main, name, original)
+        if original is missing:
+            self.addCleanup(delattr, main, name)
+        else:
+            self.addCleanup(setattr, main, name, original)
 
 
 class StandardPublicWarmupTargetTest(MainPatchMixin, unittest.IsolatedAsyncioTestCase):
@@ -154,14 +158,23 @@ class WarmedEndpointResponseTest(MainPatchMixin, unittest.IsolatedAsyncioTestCas
 
 class WaitlistNoStoreRegressionTest(MainPatchMixin, unittest.IsolatedAsyncioTestCase):
     async def test_waitlist_handler_remains_no_store(self) -> None:
+        async def fake_verify(_token: str, *, secret: str, expected_hostnames: frozenset[str]) -> None:
+            return None
+
         async def fake_upsert(_pool, *, contact: str, locale: str, source: str):
             return {"contact_type": "email", "locale": locale, "created": True}
 
         self.patch_main("get_pool", lambda: object())
+        self.patch_main("verify_turnstile_token", fake_verify)
         self.patch_main("upsert_waitlist_lead", fake_upsert)
 
         response = await main.waitlist_join(
-            main.WaitlistRequest(contact="user@example.com", locale="en", source="landing")
+            main.WaitlistRequest(
+                contact="user@example.com",
+                locale="en",
+                source="landing",
+                turnstile_token="test-token",
+            )
         )
 
         self.assertEqual(response.headers["cache-control"], "no-store")

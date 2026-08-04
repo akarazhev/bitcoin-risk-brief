@@ -57,6 +57,7 @@ Expected script list:
 - `scripts/05-health-check.sh`
 - `scripts/06-debug-bitcoin-risk-service.sh`
 - `scripts/07-update-bitcoin-risk-brief-from-usb.sh`
+- `scripts/turnstile-env-preflight.py`
 
 ## Mount The USB On The Server
 
@@ -83,18 +84,27 @@ Run the fresh install steps in order:
 ```bash
 bash scripts/01-bootstrap-host.sh
 bash scripts/02-install-cloudflared-from-usb.sh
-bash scripts/03-deploy-bitcoin-risk-brief.sh
+sudo install -d -o apps -g apps -m 750 /srv/projects/bitcoin-risk-brief
+sudo install -o apps -g apps -m 600 project/bitcoin-risk-brief/.env.production.example /srv/projects/bitcoin-risk-brief/.env
 sudoedit /srv/projects/bitcoin-risk-brief/.env
+bash scripts/03-deploy-bitcoin-risk-brief.sh
 bash scripts/04-enable-bitcoin-risk-service.sh
 bash scripts/05-health-check.sh
 ```
 
-`03-deploy-bitcoin-risk-brief.sh` creates `.env` only when it does not already exist. The script generates a random `DB_PASSWORD` and updates `DATABASE_URL`. Before starting the service, check at least:
+Before running `03-deploy-bitcoin-risk-brief.sh`, those commands create the production `.env` from the placeholder-only
+template already in the USB project snapshot. Fill in the normal production values and the Turnstile values below. The
+deploy script validates them without printing their values, before it copies the project, builds, or restarts anything:
 
 ```env
 CORS_ORIGINS=https://your-production-domain.example
 COINMARKETCAP_API_KEY=
 ```
+
+Set `VITE_TURNSTILE_SITE_KEY` to the public sitekey in the operator-controlled widget record and
+`TURNSTILE_SECRET` to its matching private secret. Set `TURNSTILE_HOSTNAMES` exactly to
+`bitcoinriskbrief.minihub.app`; do not add local or test hostnames. The site key and secret must be real production
+values, not Cloudflare test credentials or example placeholders.
 
 If there is no domain yet, leave the production hostname empty or temporary and use Quick Tunnel only for a short check:
 
@@ -153,6 +163,11 @@ Check that `source_commit` in `manifest.txt` matches the release commit you inte
 ```bash
 sudo test -f /srv/projects/bitcoin-risk-brief/.env
 ```
+
+Before the backup-gated update, set the same three Turnstile values in the existing `.env`: a real production
+`VITE_TURNSTILE_SITE_KEY`, its matching `TURNSTILE_SECRET`, and
+`TURNSTILE_HOSTNAMES` exactly to `bitcoinriskbrief.minihub.app`. The update runs this no-output preflight before any backup,
+project copy, build, or restart work.
 
 4. Run the backup-gated update:
 

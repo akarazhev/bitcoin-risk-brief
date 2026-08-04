@@ -6,6 +6,8 @@ import sys
 import types
 import unittest
 
+from pydantic import ValidationError
+
 sys.modules.setdefault("asyncpg", types.SimpleNamespace(Pool=object, Record=dict))
 
 from app.main import WaitlistRequest
@@ -63,14 +65,23 @@ class WaitlistValidationTest(unittest.TestCase):
 
 
 class WaitlistRequestModelTest(unittest.TestCase):
-    def test_model_allows_long_unsupported_locale_for_storage_normalization(self) -> None:
+    def test_model_requires_turnstile_token_and_accepts_maximum_length_token(self) -> None:
+        with self.assertRaises(ValidationError):
+            WaitlistRequest(
+                contact="user@example.com",
+                locale="unsupported-locale-value",
+                source="landing",
+            )
+
         payload = WaitlistRequest(
             contact="user@example.com",
             locale="unsupported-locale-value",
             source="landing",
+            turnstile_token="x" * 2048,
         )
 
         self.assertEqual(payload.locale, "unsupported-locale-value")
+        self.assertEqual(payload.turnstile_token, "x" * 2048)
 
 
 class WaitlistSchemaTest(unittest.TestCase):

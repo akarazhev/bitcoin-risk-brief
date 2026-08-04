@@ -1,5 +1,5 @@
 import { beforeEach, expect, test, vi } from 'vitest'
-import { fetchReadiness, fetchRiskHistory } from './api'
+import { ApiError, fetchReadiness, fetchRiskHistory, joinWaitlist } from './api'
 
 beforeEach(() => {
   vi.restoreAllMocks()
@@ -82,4 +82,49 @@ test('requests the default public risk history as a two-year window', async () =
   await expect(fetchRiskHistory()).resolves.toEqual(payload)
 
   expect(fetchMock).toHaveBeenCalledWith('/api/risk/history?limit=730')
+})
+
+test('posts the Turnstile token with the waitlist request', async () => {
+  const payload = { data: { contact_type: 'email', locale: 'en', created: true } }
+  const fetchMock = vi.fn(async () => ({
+    ok: true,
+    status: 201,
+    json: async () => payload,
+  }))
+  vi.stubGlobal('fetch', fetchMock)
+
+  await expect(joinWaitlist({
+    contact: 'USER@example.com',
+    locale: 'en',
+    source: 'landing',
+    turnstile_token: 'fresh-token',
+  })).resolves.toEqual(payload)
+
+  expect(fetchMock).toHaveBeenCalledWith('/api/waitlist', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contact: 'USER@example.com',
+      locale: 'en',
+      source: 'landing',
+      turnstile_token: 'fresh-token',
+    }),
+  })
+})
+
+test('throws a typed API error with the response status for failed waitlist requests', async () => {
+  vi.stubGlobal('fetch', vi.fn(async () => ({
+    ok: false,
+    status: 403,
+    json: async () => ({ detail: 'Turnstile verification failed' }),
+  })))
+
+  const request = joinWaitlist({
+    contact: 'USER@example.com',
+    locale: 'en',
+    source: 'landing',
+    turnstile_token: 'rejected-token',
+  })
+
+  await expect(request).rejects.toEqual(new ApiError(403))
 })

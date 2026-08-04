@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import '@testing-library/jest-dom'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
@@ -45,36 +45,59 @@ type RiskChartOptionForTest = {
   }>
 }
 
-const apiMocks = vi.hoisted(() => ({
-  fetchLatestRisk: vi.fn(),
-  fetchRiskHistory: vi.fn(),
-  fetchRiskLevels: vi.fn(),
-  fetchBrief: vi.fn(),
-  fetchReadiness: vi.fn(async () => ({
-    status: 'ready',
-    checks: {
-      risk_data_available: true,
-      validation_available: true,
-      risk_range_ok: true,
-      validation_has_rows: true,
-      latest_matches_validation_end: true,
-      source_is_canonical: true,
-      data_fresh: true,
-    },
-    data: {
-      latest_date: '2026-06-26',
-      covered_end: '2026-06-26',
-      data_age_days: 1,
-      max_age_days: 2,
-      source: 'coinmarketcap_csv',
-      row_count: 5827,
-      methodology_version: 'crypto-scout-canonical-v1.1',
-    },
-  })),
-  joinWaitlist: vi.fn(async () => ({ data: { contact_type: 'email', locale: 'en', created: true } })),
+const apiMocks = vi.hoisted(() => {
+  class ApiError extends Error {
+    constructor(readonly status: number) {
+      super(`Request failed: ${status}`)
+      this.name = 'ApiError'
+    }
+  }
+
+  return {
+    ApiError,
+    fetchLatestRisk: vi.fn(),
+    fetchRiskHistory: vi.fn(),
+    fetchRiskLevels: vi.fn(),
+    fetchBrief: vi.fn(),
+    fetchReadiness: vi.fn(async () => ({
+      status: 'ready',
+      checks: {
+        risk_data_available: true,
+        validation_available: true,
+        risk_range_ok: true,
+        validation_has_rows: true,
+        latest_matches_validation_end: true,
+        source_is_canonical: true,
+        data_fresh: true,
+      },
+      data: {
+        latest_date: '2026-06-26',
+        covered_end: '2026-06-26',
+        data_age_days: 1,
+        max_age_days: 2,
+        source: 'coinmarketcap_csv',
+        row_count: 5827,
+        methodology_version: 'crypto-scout-canonical-v1.1',
+      },
+    })),
+    joinWaitlist: vi.fn(async () => ({ data: { contact_type: 'email', locale: 'en', created: true } })),
+  }
+})
+
+const turnstileCallbacks = vi.hoisted(() => ({
+  onVerify: (_token: string | null) => {},
+  onError: () => {},
+}))
+
+const turnstileMocks = vi.hoisted(() => ({
+  reset: vi.fn(),
+  sitekey: '',
+  action: '',
+  language: '',
 }))
 
 vi.mock('./api', () => ({
+  ApiError: apiMocks.ApiError,
   fetchReadiness: apiMocks.fetchReadiness,
   fetchLatestRisk: apiMocks.fetchLatestRisk,
   fetchRiskHistory: apiMocks.fetchRiskHistory,
@@ -82,6 +105,31 @@ vi.mock('./api', () => ({
   fetchBrief: apiMocks.fetchBrief,
   joinWaitlist: apiMocks.joinWaitlist,
 }))
+
+vi.mock('./Turnstile', async () => {
+  const { forwardRef, useImperativeHandle } = await import('react')
+
+  const MockTurnstile = forwardRef<
+    { reset: () => void },
+    {
+      sitekey: string
+      action: string
+      language: string
+      onVerify: (token: string | null) => void
+      onError: () => void
+    }
+  >(function MockTurnstile({ sitekey, action, language, onVerify, onError }, ref) {
+    turnstileMocks.sitekey = sitekey
+    turnstileMocks.action = action
+    turnstileMocks.language = language
+    turnstileCallbacks.onVerify = onVerify
+    turnstileCallbacks.onError = onError
+    useImperativeHandle(ref, () => ({ reset: turnstileMocks.reset }))
+    return <div data-testid="turnstile" />
+  })
+
+  return { default: MockTurnstile }
+})
 
 function setCompactViewport(matches: boolean) {
   Object.defineProperty(window, 'matchMedia', {
@@ -145,6 +193,10 @@ async function selectLanguage(optionName: RegExp | string) {
   fireEvent.click(within(listbox).getByRole('option', { name: optionName }))
 }
 
+function verifyTurnstile(token = 'fresh-token') {
+  act(() => turnstileCallbacks.onVerify(token))
+}
+
 function deferred<T>() {
   let resolve: (value: T) => void = () => {}
   let reject: (error: Error) => void = () => {}
@@ -177,6 +229,7 @@ function latestRisk(overrides: Partial<RiskPoint> = {}): RiskPoint {
 }
 
 beforeEach(() => {
+  vi.stubEnv('VITE_TURNSTILE_SITE_KEY', '1x00000000000000000000AA')
   document.documentElement.lang = 'en'
   document.documentElement.dir = 'ltr'
   chartMocks.resize.mockClear()
@@ -227,6 +280,12 @@ beforeEach(() => {
     },
   })
   apiMocks.joinWaitlist.mockClear()
+  turnstileMocks.reset.mockClear()
+  turnstileMocks.sitekey = ''
+  turnstileMocks.action = ''
+  turnstileMocks.language = ''
+  turnstileCallbacks.onVerify = () => {}
+  turnstileCallbacks.onError = () => {}
   setCompactViewport(false)
 })
 
@@ -520,6 +579,7 @@ test('renders an expandable privacy terms and disclaimer note near the waitlist'
   expect(noteElement).toHaveTextContent('No buy, sell, portfolio, or trading action is recommended')
   expect(noteElement).toHaveTextContent('no paid support SLA is provided')
   expect(noteElement).toHaveTextContent('does not include product analytics or tracking-cookie code')
+  expect(noteElement).toHaveTextContent('Cloudflare Turnstile checks waitlist submissions for automated abuse.')
 })
 
 test('localizes the privacy terms and disclaimer note', async () => {
@@ -538,20 +598,75 @@ test('localizes the privacy terms and disclaimer note', async () => {
   expect(noteElement).toHaveTextContent('платный SLA поддержки не предоставляется')
 })
 
-test('submits waitlist contacts to the backend API and clears the input on success', async () => {
+test('disables waitlist submission until Turnstile returns a token', async () => {
+  render(<App />)
+
+  const button = await screen.findByRole('button', { name: /join waitlist/i })
+  expect(button).toBeDisabled()
+
+  verifyTurnstile()
+
+  expect(button).toBeEnabled()
+  expect(turnstileMocks.sitekey).toBe('1x00000000000000000000AA')
+  expect(turnstileMocks.action).toBe('waitlist')
+  expect(turnstileMocks.language).toBe('en')
+})
+
+test('clears and resets a verified token after a whitespace-only submission', async () => {
+  render(<App />)
+
+  const input = await screen.findByPlaceholderText('email or @telegram')
+  const button = screen.getByRole('button', { name: /join waitlist/i })
+  fireEvent.change(input, { target: { value: '   ' } })
+  verifyTurnstile()
+  expect(button).toBeEnabled()
+
+  fireEvent.click(button)
+
+  expect(apiMocks.joinWaitlist).not.toHaveBeenCalled()
+  expect(turnstileMocks.reset).toHaveBeenCalled()
+  expect(button).toBeDisabled()
+})
+
+test('invalidates a verified token when the widget language changes', async () => {
+  render(<App />)
+
+  const englishButton = await screen.findByRole('button', { name: /join waitlist/i })
+  verifyTurnstile('old-token')
+  expect(englishButton).toBeEnabled()
+
+  await selectLanguage(/^FR -/)
+
+  const frenchButton = screen.getByRole('button', { name: /rejoindre la liste/i })
+  expect(turnstileMocks.language).toBe('fr')
+  expect(frenchButton).toBeDisabled()
+
+  verifyTurnstile('new-token')
+  expect(frenchButton).toBeEnabled()
+})
+
+test('submits the Turnstile token, clears the input, and resets the widget on success', async () => {
   render(<App />)
 
   const input = await screen.findByPlaceholderText('email or @telegram')
   fireEvent.change(input, { target: { value: 'USER@example.com' } })
+  verifyTurnstile()
   fireEvent.click(screen.getByRole('button', { name: /join waitlist/i }))
 
   await waitFor(() => {
-    expect(apiMocks.joinWaitlist).toHaveBeenCalledWith({ contact: 'USER@example.com', locale: 'en', source: 'landing' })
+    expect(apiMocks.joinWaitlist).toHaveBeenCalledWith({
+      contact: 'USER@example.com',
+      locale: 'en',
+      source: 'landing',
+      turnstile_token: 'fresh-token',
+    })
   })
   await waitFor(() => {
     expect(input).toHaveValue('')
   })
   expect(screen.getByRole('status')).toHaveTextContent('Saved. You are on the Bitcoin Risk Brief waitlist.')
+  expect(turnstileMocks.reset).toHaveBeenCalled()
+  expect(screen.getByRole('button', { name: /join waitlist/i })).toBeDisabled()
 })
 
 test('announces waitlist submitting and success states politely', async () => {
@@ -562,6 +677,7 @@ test('announces waitlist submitting and success states politely', async () => {
   render(<App />)
 
   fireEvent.change(await screen.findByPlaceholderText('email or @telegram'), { target: { value: '@status_smoke' } })
+  verifyTurnstile()
   fireEvent.click(screen.getByRole('button', { name: /join waitlist/i }))
 
   const submittingStatus = await screen.findByRole('status')
@@ -578,12 +694,13 @@ test('announces waitlist submitting and success states politely', async () => {
   expect(screen.getByRole('button', { name: /join waitlist/i })).toHaveAttribute('aria-busy', 'false')
 })
 
-test('announces waitlist errors assertively, links them to the input, and preserves the contact', async () => {
+test('announces contact validation errors assertively, preserves the contact, and resets Turnstile', async () => {
   apiMocks.joinWaitlist.mockRejectedValueOnce(new Error('invalid contact'))
   render(<App />)
 
   const input = await screen.findByPlaceholderText('email or @telegram')
   fireEvent.change(input, { target: { value: 'not-a-contact' } })
+  verifyTurnstile()
   fireEvent.click(screen.getByRole('button', { name: /join waitlist/i }))
 
   const alert = await screen.findByRole('alert')
@@ -591,6 +708,68 @@ test('announces waitlist errors assertively, links them to the input, and preser
   expect(input).toHaveAttribute('aria-invalid', 'true')
   expect(input).toHaveAccessibleDescription('Enter a valid email or Telegram handle.')
   expect(input).toHaveValue('not-a-contact')
+  expect(turnstileMocks.reset).toHaveBeenCalled()
+  expect(screen.getByRole('button', { name: /join waitlist/i })).toBeDisabled()
+})
+
+test('shows the localized verification error and preserves the contact after a 403', async () => {
+  apiMocks.joinWaitlist.mockRejectedValueOnce(new apiMocks.ApiError(403))
+  render(<App />)
+
+  const input = await screen.findByPlaceholderText('email or @telegram')
+  fireEvent.change(input, { target: { value: 'USER@example.com' } })
+  verifyTurnstile()
+  fireEvent.click(screen.getByRole('button', { name: /join waitlist/i }))
+
+  expect(await screen.findByRole('alert')).toHaveTextContent('Complete the bot check and try again.')
+  expect(input).toHaveValue('USER@example.com')
+  expect(turnstileMocks.reset).toHaveBeenCalled()
+})
+
+test('shows the localized temporary-unavailability error and preserves the contact after a 503', async () => {
+  apiMocks.joinWaitlist.mockRejectedValueOnce(new apiMocks.ApiError(503))
+  render(<App />)
+
+  const input = await screen.findByPlaceholderText('email or @telegram')
+  fireEvent.change(input, { target: { value: 'USER@example.com' } })
+  verifyTurnstile()
+  fireEvent.click(screen.getByRole('button', { name: /join waitlist/i }))
+
+  expect(await screen.findByRole('alert')).toHaveTextContent('Bot verification is temporarily unavailable. Try again shortly.')
+  expect(input).toHaveValue('USER@example.com')
+  expect(turnstileMocks.reset).toHaveBeenCalled()
+})
+
+test('announces a localized widget error and clears the current token', async () => {
+  render(<App />)
+
+  const button = await screen.findByRole('button', { name: /join waitlist/i })
+  verifyTurnstile()
+  expect(button).toBeEnabled()
+
+  act(() => turnstileCallbacks.onError())
+
+  expect(screen.getByRole('alert')).toHaveTextContent('Complete the bot check and try again.')
+  expect(button).toBeDisabled()
+})
+
+test('clears a stale widget error when a fresh token arrives', async () => {
+  render(<App />)
+
+  const input = await screen.findByPlaceholderText('email or @telegram')
+  verifyTurnstile()
+  act(() => turnstileCallbacks.onError())
+
+  expect(screen.getByRole('alert')).toHaveTextContent('Complete the bot check and try again.')
+  expect(input).toHaveAttribute('aria-invalid', 'true')
+
+  await selectLanguage(/^FR -/)
+  verifyTurnstile('replacement-token')
+
+  expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  expect(input).not.toHaveAttribute('aria-invalid')
+  expect(input).not.toHaveAttribute('aria-describedby')
+  expect(screen.getByRole('button', { name: /rejoindre la liste/i })).toBeEnabled()
 })
 
 test('does not persist waitlist contacts in browser storage', async () => {
@@ -598,10 +777,16 @@ test('does not persist waitlist contacts in browser storage', async () => {
   render(<App />)
 
   fireEvent.change(await screen.findByPlaceholderText('email or @telegram'), { target: { value: 'USER@example.com' } })
+  verifyTurnstile()
   fireEvent.click(screen.getByRole('button', { name: /join waitlist/i }))
 
   await waitFor(() => {
-    expect(apiMocks.joinWaitlist).toHaveBeenCalledWith({ contact: 'USER@example.com', locale: 'en', source: 'landing' })
+    expect(apiMocks.joinWaitlist).toHaveBeenCalledWith({
+      contact: 'USER@example.com',
+      locale: 'en',
+      source: 'landing',
+      turnstile_token: 'fresh-token',
+    })
   })
   expect(setItemSpy).not.toHaveBeenCalled()
   setItemSpy.mockRestore()
@@ -1275,11 +1460,18 @@ test('submits the selected expanded locale to the waitlist API', async () => {
   render(<App />)
 
   await selectLanguage(/^FR -/)
+  await waitFor(() => expect(turnstileMocks.language).toBe('fr'))
   fireEvent.change(await screen.findByPlaceholderText('email ou @telegram'), { target: { value: 'USER@example.com' } })
+  verifyTurnstile()
   fireEvent.click(screen.getByRole('button', { name: /rejoindre la liste/i }))
 
   await waitFor(() => {
-    expect(apiMocks.joinWaitlist).toHaveBeenCalledWith({ contact: 'USER@example.com', locale: 'fr', source: 'landing' })
+    expect(apiMocks.joinWaitlist).toHaveBeenCalledWith({
+      contact: 'USER@example.com',
+      locale: 'fr',
+      source: 'landing',
+      turnstile_token: 'fresh-token',
+    })
   })
 })
 
@@ -1292,10 +1484,16 @@ test('keeps Arabic waitlist contact entry LTR and submits locale metadata', asyn
   expect(input).toHaveAttribute('dir', 'ltr')
 
   fireEvent.change(input, { target: { value: '@arabic_test' } })
+  verifyTurnstile()
   fireEvent.click(screen.getByRole('button', { name: /انضم/ }))
 
   await waitFor(() => {
-    expect(apiMocks.joinWaitlist).toHaveBeenCalledWith({ contact: '@arabic_test', locale: 'ar', source: 'landing' })
+    expect(apiMocks.joinWaitlist).toHaveBeenCalledWith({
+      contact: '@arabic_test',
+      locale: 'ar',
+      source: 'landing',
+      turnstile_token: 'fresh-token',
+    })
   })
 })
 

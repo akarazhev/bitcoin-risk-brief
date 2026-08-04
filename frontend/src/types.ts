@@ -89,6 +89,7 @@ export interface WaitlistRequest {
   contact: string
   locale: Locale
   source: string
+  turnstile_token: string
 }
 
 export interface WaitlistResponse {

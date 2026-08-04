@@ -11,6 +11,10 @@ The frontend form accepts one value:
 
 On successful submission, the UI shows a saved state. The contact is not persisted in browser storage.
 
+Before a submission can be sent, the browser renders Cloudflare Turnstile and contacts
+`challenges.cloudflare.com` to obtain a single-use token. The frontend sends that token with the waitlist payload and
+resets the widget after each same-page attempt. The backend verifies the token server-side before it can write a lead.
+
 The public CTA positions the first test cohort for free BTC risk-alert access plus the two-year risk history and
 risk-level views during the pilot. In the current implementation, the submission still stores only a lead for manual
 founder/operator follow-up; automated email or Telegram delivery is not implemented yet.
@@ -31,7 +35,8 @@ Payload:
 {
   "contact": "user@example.com",
   "locale": "en",
-  "source": "landing"
+  "source": "landing",
+  "turnstile_token": "single-use-client-token"
 }
 ```
 
@@ -45,6 +50,7 @@ Contacts are validated server-side.
 | Telegram | Must match `@[A-Za-z0-9_]{5,32}`. |
 | locale | `en`, `ru`, `zh`, `de`, `fr`, `es`, and `ar` are accepted; invalid values fall back to `en`. |
 | source | Must match `[A-Za-z0-9_.:-]{1,64}`; invalid values fall back to `landing`. |
+| turnstile_token | Required single-use token (1-2048 characters). It must pass server-side Siteverify for the `waitlist` action and an allowed hostname. |
 
 ## Storage
 
@@ -62,6 +68,7 @@ Important columns:
 - `updated_at`
 
 `normalized_contact` is unique. Re-submitting the same normalized contact updates metadata instead of creating a duplicate.
+No failed, expired, replayed, wrong-action, wrong-hostname, or unavailable Turnstile verification writes a lead.
 
 The public note summarizes this storage behavior: the app stores the submitted contact value, a normalized copy, contact
 type, locale, source, status, and timestamps. Backend access logs may include method, path, status, client key,
@@ -98,7 +105,8 @@ WAITLIST_RATE_LIMIT_PER_HOUR=20
 
 For public production, complement this with the repo-managed Cloudflare edge rule from
 `scripts/cloudflare_edge_rules.py`, which limits `POST /api/waitlist` to 5 requests per minute per IP and bypasses cache
-for waitlist submissions.
+for waitlist submissions. These existing application and edge limits remain layered protection alongside Turnstile;
+Turnstile is not a replacement for rate limiting.
 
 ## Current Scope
 

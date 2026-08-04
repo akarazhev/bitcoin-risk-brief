@@ -89,9 +89,12 @@ type Copy = {
   joined: string
   joinError: string
   joining: string
+  turnstileError: string
+  turnstileUnavailable: string
   privacyNoteTitle: string
   privacyNoteIntro: string
   privacyNoteWaitlist: string
+  privacyNoteTurnstile: string
   privacyNoteLogs: string
   privacyNoteLimits: string
   privacyNoteAnalytics: string
@@ -218,9 +221,12 @@ export const copy: Record<Locale, Copy> = {
     joined: 'Saved. You are on the Bitcoin Risk Brief waitlist.',
     joinError: 'Enter a valid email or Telegram handle.',
     joining: 'Saving...',
+    turnstileError: 'Complete the bot check and try again.',
+    turnstileUnavailable: 'Bot verification is temporarily unavailable. Try again shortly.',
     privacyNoteTitle: 'Privacy, terms, and disclaimer',
     privacyNoteIntro: 'Bitcoin Risk Brief is informational research only, not financial advice, investment advice, or a trading recommendation.',
     privacyNoteWaitlist: 'The waitlist stores the contact you submit, a normalized copy, contact type, locale, source, status, and timestamps.',
+    privacyNoteTurnstile: 'Cloudflare Turnstile checks waitlist submissions for automated abuse.',
     privacyNoteLogs: 'Operational logs may include request method, path, status, client key, Cloudflare ray ID, cache status, and timing.',
     privacyNoteLimits: 'Do not enter sensitive information. No buy, sell, portfolio, or trading action is recommended, and no paid support SLA is provided.',
     privacyNoteAnalytics: 'The current app source does not include product analytics or tracking-cookie code.',
@@ -312,9 +318,12 @@ export const copy: Record<Locale, Copy> = {
     joined: 'Сохранено. Вы в листе ожидания Bitcoin Risk Brief.',
     joinError: 'Укажите корректный email или Telegram.',
     joining: 'Сохранение...',
+    turnstileError: 'Пройдите проверку на бота и повторите попытку.',
+    turnstileUnavailable: 'Проверка на бота временно недоступна. Повторите попытку чуть позже.',
     privacyNoteTitle: 'Приватность, условия и дисклеймер',
     privacyNoteIntro: 'Bitcoin Risk Brief - только информационная аналитика, не финансовый или инвестиционный совет и не торговая рекомендация.',
     privacyNoteWaitlist: 'Лист ожидания хранит введенный контакт, нормализованную копию, тип контакта, язык, источник, статус и временные метки.',
+    privacyNoteTurnstile: 'Cloudflare Turnstile проверяет отправку формы листа ожидания на автоматические злоупотребления.',
     privacyNoteLogs: 'Операционные логи могут включать метод запроса, путь, статус, client key, Cloudflare ray ID, cache-статус и время выполнения.',
     privacyNoteLimits: 'Не вводите конфиденциальную информацию. Покупка, продажа, портфельное или торговое действие не рекомендуется, платный SLA поддержки не предоставляется.',
     privacyNoteAnalytics: 'В текущем исходном коде приложения нет product analytics или tracking-cookie кода.',
@@ -406,9 +415,12 @@ export const copy: Record<Locale, Copy> = {
     joined: '已保存。您已加入 Bitcoin Risk Brief 候补名单。',
     joinError: '请输入有效邮箱或 Telegram 用户名。',
     joining: '保存中...',
+    turnstileError: '请完成人机验证后重试。',
+    turnstileUnavailable: '人机验证暂时不可用，请稍后重试。',
     privacyNoteTitle: '隐私、条款和免责声明',
     privacyNoteIntro: 'Bitcoin Risk Brief 仅用于信息研究，不是财务建议、投资建议或交易推荐。',
     privacyNoteWaitlist: '候补名单会存储您提交的联系方式、规范化副本、联系方式类型、语言、来源、状态和时间戳。',
+    privacyNoteTurnstile: 'Cloudflare Turnstile 会检查候补名单提交，以防止自动化滥用。',
     privacyNoteLogs: '运营日志可能包含请求方法、路径、状态、client key、Cloudflare ray ID、缓存状态和耗时。',
     privacyNoteLimits: '请勿输入敏感信息。我们不建议任何买入、卖出、组合或交易操作，也不提供付费支持 SLA。',
     privacyNoteAnalytics: '当前应用源码不包含产品分析或跟踪 cookie 代码。',
@@ -500,9 +512,12 @@ export const copy: Record<Locale, Copy> = {
     joined: 'Gespeichert. Sie sind auf der Bitcoin Risk Brief Warteliste.',
     joinError: 'Geben Sie eine gültige E-Mail oder einen Telegram-Handle ein.',
     joining: 'Speichern...',
+    turnstileError: 'Schließen Sie die Bot-Prüfung ab und versuchen Sie es erneut.',
+    turnstileUnavailable: 'Die Bot-Prüfung ist vorübergehend nicht verfügbar. Versuchen Sie es gleich noch einmal.',
     privacyNoteTitle: 'Datenschutz, Bedingungen und Hinweis',
     privacyNoteIntro: 'Bitcoin Risk Brief ist nur informationsbezogenes Research, keine Finanzberatung, Anlageberatung oder Handelsempfehlung.',
     privacyNoteWaitlist: 'Die Warteliste speichert den eingereichten Kontakt, eine normalisierte Kopie, Kontakttyp, Sprache, Quelle, Status und Zeitstempel.',
+    privacyNoteTurnstile: 'Cloudflare Turnstile prüft Wartelistenanmeldungen auf automatisierten Missbrauch.',
     privacyNoteLogs: 'Betriebslogs können Anfragemethode, Pfad, Status, client key, Cloudflare ray ID, Cache-Status und Laufzeit enthalten.',
     privacyNoteLimits: 'Geben Sie keine sensiblen Informationen ein. Es wird keine Kauf-, Verkaufs-, Portfolio- oder Handelsaktion empfohlen, und es gibt kein bezahltes Support-SLA.',
     privacyNoteAnalytics: 'Der aktuelle App-Quellcode enthält keine Produktanalyse- oder Tracking-Cookie-Logik.',
@@ -594,9 +609,12 @@ export const copy: Record<Locale, Copy> = {
     joined: 'Enregistré. Vous êtes sur la liste d’attente Bitcoin Risk Brief.',
     joinError: 'Saisissez une adresse e-mail ou un identifiant Telegram valide.',
     joining: 'Enregistrement...',
+    turnstileError: 'Effectuez la vérification anti-robot puis réessayez.',
+    turnstileUnavailable: 'La vérification anti-robot est temporairement indisponible. Réessayez dans un instant.',
     privacyNoteTitle: 'Confidentialité, conditions et avertissement',
     privacyNoteIntro: 'Bitcoin Risk Brief est une recherche informative uniquement, pas un conseil financier, un conseil en investissement ni une recommandation de trading.',
     privacyNoteWaitlist: 'La liste d’attente stocke le contact soumis, une copie normalisée, le type de contact, la langue, la source, le statut et les horodatages.',
+    privacyNoteTurnstile: 'Cloudflare Turnstile vérifie les inscriptions à la liste d’attente contre les abus automatisés.',
     privacyNoteLogs: 'Les journaux opérationnels peuvent inclure méthode de requête, chemin, statut, client key, Cloudflare ray ID, statut de cache et durée.',
     privacyNoteLimits: 'Ne saisissez pas d’informations sensibles. Aucune action d’achat, de vente, de portefeuille ou de trading n’est recommandée, et aucun SLA de support payant n’est fourni.',
     privacyNoteAnalytics: 'Le code source actuel de l’application ne contient pas d’analyse produit ni de code de cookie de suivi.',
@@ -688,9 +706,12 @@ export const copy: Record<Locale, Copy> = {
     joined: 'Guardado. Estás en la lista de espera de Bitcoin Risk Brief.',
     joinError: 'Introduce un email o usuario de Telegram válido.',
     joining: 'Guardando...',
+    turnstileError: 'Completa la verificación anti-bot y vuelve a intentarlo.',
+    turnstileUnavailable: 'La verificación anti-bot no está disponible temporalmente. Inténtalo de nuevo en breve.',
     privacyNoteTitle: 'Privacidad, términos y aviso legal',
     privacyNoteIntro: 'Bitcoin Risk Brief es solo investigación informativa, no asesoramiento financiero, asesoramiento de inversión ni recomendación de trading.',
     privacyNoteWaitlist: 'La lista de espera almacena el contacto enviado, una copia normalizada, tipo de contacto, idioma, fuente, estado y marcas de tiempo.',
+    privacyNoteTurnstile: 'Cloudflare Turnstile comprueba los envíos a la lista de espera para evitar abusos automatizados.',
     privacyNoteLogs: 'Los registros operativos pueden incluir método de solicitud, ruta, estado, client key, Cloudflare ray ID, estado de caché y tiempos.',
     privacyNoteLimits: 'No introduzcas información sensible. No se recomienda ninguna acción de compra, venta, cartera o trading, y no se ofrece SLA de soporte pagado.',
     privacyNoteAnalytics: 'El código fuente actual de la app no incluye analítica de producto ni código de cookies de seguimiento.',
@@ -782,9 +803,12 @@ export const copy: Record<Locale, Copy> = {
     joined: 'تم الحفظ. أنت الآن في قائمة انتظار Bitcoin Risk Brief.',
     joinError: 'أدخل بريدا إلكترونيا صالحا أو معرف Telegram.',
     joining: 'جار الحفظ...',
+    turnstileError: 'أكمل التحقق من الروبوت ثم حاول مرة أخرى.',
+    turnstileUnavailable: 'التحقق من الروبوت غير متاح مؤقتا. حاول مرة أخرى بعد قليل.',
     privacyNoteTitle: 'الخصوصية والشروط وإخلاء المسؤولية',
     privacyNoteIntro: 'Bitcoin Risk Brief هو بحث معلوماتي فقط، وليس نصيحة مالية أو استثمارية أو توصية تداول.',
     privacyNoteWaitlist: 'تخزن قائمة الانتظار جهة الاتصال التي ترسلها، ونسخة موحدة منها، ونوع جهة الاتصال، واللغة، والمصدر، والحالة، والطوابع الزمنية.',
+    privacyNoteTurnstile: 'يتحقق Cloudflare Turnstile من طلبات قائمة الانتظار لمنع إساءة الاستخدام الآلي.',
     privacyNoteLogs: 'قد تتضمن سجلات التشغيل طريقة الطلب، والمسار، والحالة، وclient key، وCloudflare ray ID، وحالة التخزين المؤقت، والتوقيت.',
     privacyNoteLimits: 'لا تدخل معلومات حساسة. لا يوصى بأي شراء أو بيع أو إجراء محفظة أو تداول، ولا يتم تقديم اتفاقية مستوى خدمة مدفوعة.',
     privacyNoteAnalytics: 'لا يتضمن مصدر التطبيق الحالي تحليلات منتج أو كود ملفات تعريف ارتباط للتتبع.',

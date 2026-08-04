@@ -106,6 +106,8 @@ if [[ ! -f "${PROJECT_SRC}/scripts/backup.sh" ]]; then
   exit 1
 fi
 
+TURNSTILE_PREFLIGHT_ONLY=true bash "${script_dir}/03-deploy-bitcoin-risk-brief.sh"
+
 timestamp="$(date -u +%Y%m%dT%H%M%SZ)"
 backup_log="/tmp/bitcoin-risk-update-backup-${timestamp}.log"
 

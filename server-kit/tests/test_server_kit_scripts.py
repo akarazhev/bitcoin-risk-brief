@@ -7,9 +7,163 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
 REPO_ROOT = ROOT.parent
+OFFICIAL_DUMMY_SITEKEYS = (
+    "1x00000000000000000000AA",
+    "2x00000000000000000000AB",
+    "1x00000000000000000000BB",
+    "2x00000000000000000000BB",
+    "3x00000000000000000000FF",
+)
+OFFICIAL_DUMMY_SECRETS = (
+    "1x0000000000000000000000000000000AA",
+    "2x0000000000000000000000000000000AA",
+    "3x0000000000000000000000000000000AA",
+)
+VALID_SITEKEY = "0x4AAAAAAABbCcDdEeFfGgHhIi"
+VALID_SECRET = "0x4AAAAAAAJjKkLlMmNnOoPpQqRrSsTtUuVvWw"
+EXPECTED_HOSTNAME = "bitcoinriskbrief.minihub.app"
 
 
 class ServerKitScriptTests(unittest.TestCase):
+    def _turnstile_env(self, sitekey: str = VALID_SITEKEY, secret: str = VALID_SECRET, hostname: str = EXPECTED_HOSTNAME) -> str:
+        return (
+            f"VITE_TURNSTILE_SITE_KEY={sitekey}\n"
+            f"TURNSTILE_SECRET={secret}\n"
+            f"TURNSTILE_HOSTNAMES={hostname}\n"
+        )
+
+    def _run_turnstile_preflight(self, script_name: str, env_text: str, *, preflight_only: bool) -> tuple[subprocess.CompletedProcess[str], list[str]]:
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            project = tmp_path / "project"
+            project.mkdir()
+            (project / "podman-compose.yml").write_text("services: {}\n")
+            scripts = project / "scripts"
+            scripts.mkdir()
+            (scripts / "backup.sh").write_text("#!/usr/bin/env bash\nexit 0\n")
+            fixture_env = tmp_path / "fixture.env"
+            fixture_env.write_text(env_text)
+            fake_bin = tmp_path / "bin"
+            fake_bin.mkdir()
+            log_path = tmp_path / "calls.log"
+            (fake_bin / "sudo").write_text(
+                "#!/usr/bin/env bash\n"
+                "set -euo pipefail\n"
+                "printf '%s\\n' \"$1\" >> \"${PREFLIGHT_LOG:?}\"\n"
+                "if [[ \"$1\" == \"-u\" ]]; then exit 73; fi\n"
+                "command=\"$1\"\n"
+                "shift\n"
+                "case \"${command}\" in\n"
+                "  test)\n"
+                "    if [[ \"$1\" == \"-f\" && \"$2\" == */.env ]]; then test -f \"${PREFLIGHT_FIXTURE_ENV:?}\"; else exit 0; fi\n"
+                "    ;;\n"
+                "  realpath) printf '%s\\n' \"$1\" ;;\n"
+                "  python3)\n"
+                "    arguments=()\n"
+                "    for argument in \"$@\"; do\n"
+                "      if [[ \"${argument}\" == /srv/projects/*/.env ]]; then argument=\"${PREFLIGHT_FIXTURE_ENV:?}\"; fi\n"
+                "      arguments+=(\"${argument}\")\n"
+                "    done\n"
+                "    exec python3 \"${arguments[@]}\"\n"
+                "    ;;\n"
+                "  mkdir|rsync|chown|chmod|find) exit 73 ;;\n"
+                "  *) exit 74 ;;\n"
+                "esac\n"
+            )
+            (fake_bin / "sudo").chmod(0o755)
+            app_user = subprocess.run(["id", "-un"], check=True, capture_output=True, text=True).stdout.strip()
+            env = os.environ.copy()
+            env.update({
+                "APP_USER": app_user,
+                "PATH": f"{fake_bin}{os.pathsep}{env['PATH']}",
+                "PREFLIGHT_FIXTURE_ENV": str(fixture_env),
+                "PREFLIGHT_LOG": str(log_path),
+                "PROJECT_DEST": "/srv/projects/turnstile-fixture",
+                "PROJECT_SRC": str(project),
+                "TURNSTILE_PREFLIGHT_ONLY": "true" if preflight_only else "false",
+            })
+            completed = subprocess.run(
+                ["bash", str(ROOT / "scripts" / script_name)],
+                cwd=ROOT,
+                env=env,
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+            calls = log_path.read_text().splitlines() if log_path.exists() else []
+            return completed, calls
+
+    def test_turnstile_preflight_rejects_invalid_effective_values_without_mutating_or_printing_credentials(self) -> None:
+        invalid_envs = [
+            ("missing sitekey", "TURNSTILE_SECRET=secret\nTURNSTILE_HOSTNAMES=bitcoinriskbrief.minihub.app\n"),
+            ("blank sitekey", self._turnstile_env(sitekey="")),
+            ("quoted blank sitekey", self._turnstile_env(sitekey='""')),
+            ("commented blank sitekey", self._turnstile_env(sitekey=" # comment")),
+            ("duplicate sitekey", self._turnstile_env() + f"VITE_TURNSTILE_SITE_KEY={VALID_SITEKEY}\n"),
+            ("invalid sitekey assignment", self._turnstile_env().replace(f"VITE_TURNSTILE_SITE_KEY={VALID_SITEKEY}", "VITE_TURNSTILE_SITE_KEY")),
+            ("colon-delimited sitekey", self._turnstile_env().replace(f"VITE_TURNSTILE_SITE_KEY={VALID_SITEKEY}", f"VITE_TURNSTILE_SITE_KEY: {VALID_SITEKEY}")),
+            ("colon-delimited secret", self._turnstile_env().replace(f"TURNSTILE_SECRET={VALID_SECRET}", f"TURNSTILE_SECRET: {VALID_SECRET}")),
+            ("colon-delimited hostname", self._turnstile_env().replace(f"TURNSTILE_HOSTNAMES={EXPECTED_HOSTNAME}", f"TURNSTILE_HOSTNAMES: {EXPECTED_HOSTNAME}")),
+            ("placeholder sitekey", self._turnstile_env(sitekey="replace-with-public-turnstile-sitekey")),
+            ("placeholder secret", self._turnstile_env(secret="replace-with-private-turnstile-secret")),
+            ("localhost hostname", self._turnstile_env(hostname="localhost")),
+            ("hostname list", self._turnstile_env(hostname=f"{EXPECTED_HOSTNAME},localhost")),
+            ("loopback hostname", self._turnstile_env(hostname="127.0.0.1")),
+        ]
+        invalid_envs.extend((f"dummy sitekey {sitekey}", self._turnstile_env(sitekey=sitekey)) for sitekey in OFFICIAL_DUMMY_SITEKEYS)
+        invalid_envs.extend((f"quoted dummy sitekey {sitekey}", self._turnstile_env(sitekey=f'"{sitekey}"')) for sitekey in OFFICIAL_DUMMY_SITEKEYS)
+        invalid_envs.extend((f"dummy secret {secret}", self._turnstile_env(secret=secret)) for secret in OFFICIAL_DUMMY_SECRETS)
+        invalid_envs.extend((f"quoted dummy secret {secret}", self._turnstile_env(secret=f'"{secret}"')) for secret in OFFICIAL_DUMMY_SECRETS)
+        invalid_envs.extend((f"placeholder sitekey {sitekey}", self._turnstile_env(sitekey=sitekey)) for sitekey in (
+            "replace-with-turnstile-sitekey",
+            "example-turnstile-sitekey",
+            "placeholder-turnstile-sitekey",
+            "your-real-sitekey",
+        ))
+        invalid_envs.extend((f"placeholder secret {secret}", self._turnstile_env(secret=secret)) for secret in (
+            "replace-with-turnstile-secret",
+            "example-turnstile-secret",
+            "placeholder-turnstile-secret",
+            "your-real-secret-key",
+        ))
+
+        for label, env_text in invalid_envs:
+            with self.subTest(label=label):
+                completed, calls = self._run_turnstile_preflight("03-deploy-bitcoin-risk-brief.sh", env_text, preflight_only=True)
+                self.assertEqual(completed.returncode, 1, completed.stderr)
+                self.assertNotIn("mkdir", calls)
+                self.assertNotIn("rsync", calls)
+                output = completed.stdout + completed.stderr
+                for credential in (VALID_SITEKEY, VALID_SECRET, *OFFICIAL_DUMMY_SITEKEYS, *OFFICIAL_DUMMY_SECRETS):
+                    self.assertNotIn(credential, output)
+
+    def test_turnstile_preflight_accepts_unquoted_and_quoted_production_shaped_values_without_printing_them(self) -> None:
+        for env_text in (
+            self._turnstile_env(),
+            self._turnstile_env(sitekey=f'"{VALID_SITEKEY}"', secret=f"'{VALID_SECRET}'", hostname=f'"{EXPECTED_HOSTNAME}" # production'),
+            "\n".join(
+                f"export {assignment}"
+                for assignment in self._turnstile_env().splitlines()
+            ) + "\n",
+        ):
+            with self.subTest(env_text=env_text):
+                completed, calls = self._run_turnstile_preflight("03-deploy-bitcoin-risk-brief.sh", env_text, preflight_only=True)
+                self.assertEqual(completed.returncode, 0, completed.stderr)
+                self.assertIn("python3", calls)
+                self.assertNotIn(VALID_SITEKEY, completed.stdout + completed.stderr)
+                self.assertNotIn(VALID_SECRET, completed.stdout + completed.stderr)
+
+    def test_fresh_and_update_preflights_run_before_their_first_mutation(self) -> None:
+        fresh, fresh_calls = self._run_turnstile_preflight("03-deploy-bitcoin-risk-brief.sh", self._turnstile_env(), preflight_only=False)
+        update, update_calls = self._run_turnstile_preflight("07-update-bitcoin-risk-brief-from-usb.sh", self._turnstile_env(), preflight_only=False)
+
+        self.assertEqual(fresh.returncode, 73, fresh.stderr)
+        self.assertLess(fresh_calls.index("python3"), fresh_calls.index("mkdir"))
+        self.assertNotIn("rsync", fresh_calls)
+        self.assertEqual(update.returncode, 73, update.stderr)
+        self.assertLess(update_calls.index("python3"), update_calls.index("-u"))
+        self.assertNotIn("rsync", update_calls)
+
     def test_deploy_from_usb_defaults_to_deploy_without_backup_gate(self) -> None:
         script = (ROOT / "deploy-from-usb.sh").read_text()
 

@@ -1,5 +1,12 @@
 import type { BriefPayload, ReadinessPayload, RiskLevelsPayload, RiskPoint, WaitlistRequest, WaitlistResponse } from './types'
 
+export class ApiError extends Error {
+  constructor(readonly status: number) {
+    super(`Request failed: ${status}`)
+    this.name = 'ApiError'
+  }
+}
+
 async function getJson<T>(path: string): Promise<T> {
   const response = await fetch(path)
   if (!response.ok) {
@@ -15,7 +22,7 @@ async function postJson<T>(path: string, payload: unknown): Promise<T> {
     body: JSON.stringify(payload),
   })
   if (!response.ok) {
-    throw new Error(`Request failed: ${response.status}`)
+    throw new ApiError(response.status)
   }
   return (await response.json()) as T
 }
