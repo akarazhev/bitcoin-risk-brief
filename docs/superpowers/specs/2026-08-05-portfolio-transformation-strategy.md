@@ -1,0 +1,196 @@
+# Portfolio Transformation Strategy
+
+> Status: active decomposition, agreed 2026-08-05. This document defines the sub-project breakdown and the decisions
+> that constrain each one. Individual sub-projects get their own design spec and implementation plan.
+>
+> Supersedes [Documentation And Portfolio Presentation Design](2026-07-01-documentation-portfolio-presentation-design.md),
+> which assumed a private portfolio repository and explicitly excluded an open-source launch.
+
+## Goal
+
+Turn Bitcoin Risk Brief into a free, professional, publicly inspectable product that works as a portfolio artifact for
+clients, as an acquisition surface for users, as source material for articles and video, and as a first-class data
+source for AI agents.
+
+## Starting Position
+
+Verified 2026-08-05 against the live host and the repository.
+
+Production is healthy and the pipeline runs unattended:
+
+```
+GET /api/readiness  → ready, latest_date=2026-08-04, data_age_days=1, row_count=5867
+GET /api/risk/latest → risk=0.2395, risk_state=low, crypto-scout-canonical-v1.1
+```
+
+Strengths that are genuinely uncommon:
+
+- operational honesty as a product feature: `/api/readiness`, `data_fresh`, `X-Cache-Version`, and the methodology
+  version travel with the data;
+- a deterministic, reproducible metric rather than an opaque model;
+- a risk-level scenario ladder that answers "what price would change the state";
+- seven product locales including RTL;
+- CI, focused unit tests, Playwright and axe-core checks, strict CSP, Turnstile, rate limiting, ETag caching, USB
+  deploy kit, backup tooling, and evidence packets.
+
+Constraints that block portfolio value:
+
+- the repository is private and carries no licence, so none of the engineering above is visible or reusable;
+- the README leads with roughly sixty lines of accepted limitations before it states what the product does;
+- the SPA answers HTTP 200 for every path, including `/robots.txt`, `/sitemap.xml`, and `/llms.txt`, so there is
+  nothing addressable to link, crawl, or cite;
+- there is no agent-facing surface at all: the FastAPI OpenAPI schema exists but is unreachable because nginx proxies
+  only `/api/` while the default schema route sits outside that prefix;
+- Phase 9 of the roadmap gates every remaining product issue behind traffic evidence that zero traffic cannot produce.
+
+## Competitive Position
+
+Reviewed 2026-08-05. Directional only; re-check before publishing a named comparison.
+
+| Alternative | Model | Strength | Where this product differs |
+| --- | --- | --- | --- |
+| [AlphaSquared](https://alphasquared.io/) | Paid | ML risk metric, brand recognition | Deterministic and reproducible rather than a black box |
+| [btcriskindex.com](https://btcriskindex.com/) | Free | Live index, multiple timeframes | Visible freshness and readiness, scenario ladder, seven locales |
+| [bitcoinrisk.net](https://bitcoinrisk.net/) | Free | Public methodology, alerts, API | Operational transparency and explanation quality |
+| [CryptoQuant](https://cryptoquant.com/), Glassnode | Paid terminal | Data breadth, MCP server | Different ICP; not a competitor for the one-minute daily check |
+| [Bitcoin-Risk-Metric-V2](https://github.com/BitcoinRaven/Bitcoin-Risk-Metric-V2) | Open source | Code is public | A complete production pipeline rather than a script |
+
+Competing on "another risk score" is not winnable. Three positions are currently unoccupied:
+
+1. the only BTC risk product that shows the user whether the underlying data can be trusted today;
+2. the only one with a fully open, reproducible pipeline, once the repository is public;
+3. the first free BTC risk signal built to be consumed by AI agents.
+
+[CryptoQuant already ships an MCP server and `llms.txt`](https://coinpaprika.com/education/what-is-the-model-context-protocol-mcp/),
+which validates the agent channel at the professional tier while leaving the free niche empty. MCP has become the
+[de facto agent integration standard through 2026](https://dev.to/alexmercedcoder/the-state-of-agentic-ai-standards-in-2026-mcp-a2a-webmcp-osi-and-the-protocol-stack-taking-3o2l).
+
+## Evidence Posture
+
+The roadmap's evidence-first discipline is the strongest engineering signal in the project and must not be weakened.
+The problem is placement, not principle.
+
+Two registers apply from now on:
+
+- **Operational claims** — freshness, backups, monitoring, deployment, import provenance — keep the current strict
+  evidence language and stay in `docs/operations/`.
+- **Product and portfolio surfaces** — README, docs site, product pages, agent files — use ordinary descriptive
+  language. Stating that the product displays data freshness is a description of implemented behaviour, not a claim
+  requiring an evidence packet.
+
+This resolves the Phase 9 deadlock without lowering any operational standard.
+
+## Agreed Decisions
+
+| Decision | Choice | Rationale |
+| --- | --- | --- |
+| Portfolio artifact | Repository and live site, equally | Technical clients read code; everyone else reads the product |
+| Source availability | Fully public | Git history audit found no secrets, so no rewrite is required |
+| Licence | Apache-2.0 | Patent grant and attribution on modification; standard for data and infrastructure projects |
+| Horizon | One quarter, including content | Supports the full S1-S6 sequence |
+| Docs site | MkDocs Material on GitHub Pages | Docs are already Markdown; Python matches backend and collector |
+| Docs domain | `docs.bitcoinriskbrief.minihub.app` | Separate origin keeps the product CSP untouched and the server unloaded |
+| Operator evidence | Public, relabelled | Retained in `docs/operations/` under an explicit operational-log banner |
+| Email provider | ZeptoMail with the list in PostgreSQL | List, consent, and suppression stay in owned code; roughly zero cost at pilot volume |
+| First delivery channel | Public Telegram channel | No recipients, therefore no consent, opt-in, or schema migration |
+
+## Git History Audit
+
+Run 2026-08-05 across all 268 commits and two authors, as a precondition for going public.
+
+- `.env` was never tracked; `.gitignore` has been disciplined since the first commit.
+- No API keys, secrets, passwords, or tokens in tracked content.
+- No private IP addresses, server hostnames, or filesystem paths in `docs/`, `scripts/`, or `server-kit/`.
+- No personal email addresses in tracked files.
+
+No history rewrite is required. Re-run the scan immediately before flipping visibility.
+
+## Sub-Projects
+
+Each sub-project gets its own design spec and implementation plan.
+
+| ID | Sub-project | Resolves | Depends on | Estimate |
+| --- | --- | --- | --- | --- |
+| S1 | Open-source release | Private repo, no licence, README shape | — | ~1 week |
+| S2 | Agent surface and docs site | Agent discoverability, soft-404, docs hosting | — | ~1-1.5 weeks |
+| S5a | Telegram channel autoposting | Distribution and recurring value | #41 (soft) | ~3-4 days |
+| S3 | MCP server | Agent integration depth | S2 | ~1 week |
+| S4 | Public methodology and addressable URLs | #42, SEO, shareable links | S1, S2 | ~2 weeks |
+| S5b | Email delivery with consent | #43, #41, recurring delivery | S4, S5a | ~3 weeks |
+| S6 | Content engine and analytics | #45, articles, widget | S1, S4 | ~3 weeks |
+
+S1 and S2 are specified together in
+[Open Source And Agent Surface Design](2026-08-05-open-source-agent-surface-design.md).
+
+### Sequencing Constraints
+
+- GitHub Pages on the free tier publishes only from a public repository, so the docs site cannot exist before S1.
+- S3 needs the OpenAPI contract stabilised by S2.
+- S4 splits the methodology audience: the docs site holds the technical reference in English, while the in-product
+  `/methodology` page holds the localised interpretation guide that issue #42 actually asks for. They do not duplicate.
+- S5b requires a schema migration that S5a does not, because a public Telegram channel has no individual recipients.
+- Issue #41 is a soft dependency for S5a and a hard one for S5b: a templated brief is tolerable in a channel feed and
+  not tolerable in a personal inbox.
+
+## Delivery Channel Analysis
+
+Recorded here because the constraints are non-obvious and shape S5a and S5b.
+
+### Telegram
+
+A bot [cannot initiate a conversation with a user](https://community.make.com/t/telegram-bot-error-bot-cant-initiate-conversation-with-a-user/47720);
+`sendMessage` accepts a username only for channels, never for private chats. Every `@handle` already stored in
+`waitlist_leads` is therefore undeliverable by bot. Reaching those leads requires manual contact asking each person to
+press `/start`.
+
+A public channel avoids the problem entirely: the bot posts to the channel and users subscribe themselves. This makes
+S5a a distribution channel as much as a delivery mechanism.
+
+Direct bot delivery, if it is ever built in S5b, needs a deep link of the form `https://t.me/<bot>?start=<token>`, a
+webhook that binds the resulting `chat_id` to the lead record, and treatment of `/start` as the consent event.
+
+### Email
+
+Zoho Mail is mailbox hosting, not a sending platform:
+[200 messages per day per user on the free plan, with IMAP and SMTP moved behind Mail Lite](https://mail.mailbux.com/blog/email-comparisons/zoho-mail-free-plan-limitations-alternative).
+It has no `List-Unsubscribe` handling, no bounce processing, and no suppression list. Broadcasting through it damages
+domain reputation.
+
+[ZeptoMail is the transactional product at $2.50 per 10,000 messages with no monthly base and 10,000 free on signup](https://www.zoho.com/zeptomail/pricing.html);
+Zoho Campaigns is the marketing product. A band-change alert is event-triggered and fits ZeptoMail cleanly. A scheduled
+weekly digest is a marketing send and sits in a grey area under transactional terms; confirm against current ZeptoMail
+terms before building it, or route digests through Campaigns or a provider that permits both.
+
+### Schema Gap Blocking S5b
+
+`waitlist_leads` currently cannot express any state other than active:
+
+```sql
+CONSTRAINT waitlist_leads_status_check CHECK (status IN ('active'))
+```
+
+S5b must add consent records, confirmation and unsubscribe tokens, `telegram_chat_id`, bounce and suppression state,
+and a send log for idempotency. That is a backwards-compatible migration governed by the existing API/DB
+change-management gate.
+
+### Legal Frame For S5b
+
+The product is localised into German, French, and Spanish and quotes prices in EUR, so an EU audience must be assumed.
+Recurring email requires documented consent and easy withdrawal. The current single-field form records no consent, and
+issue #43 already documents that the copy overstates what happens. Delivery cannot be built on the existing list
+without double opt-in, including re-confirmation of existing email leads.
+
+## Non-Goals
+
+- Broadening into a general crypto dashboard or multi-indicator terminal.
+- Changing `crypto-scout-canonical-v1.1` as part of this transformation.
+- Paid tiers, accounts, billing, or SLA commitments.
+- Weakening the strict CSP, the no-financial-advice posture, or the operational evidence discipline.
+- Implementing more than one distribution channel at a time.
+
+## Acceptance Criteria
+
+- A technical reader reaches a working local stack from the public README without private context.
+- An AI agent can discover the product, read its contract, and call it correctly using only public files.
+- Every operational limitation remains documented and findable, without appearing on product surfaces.
+- Each sub-project ships with its own spec, plan, tests, and verification record.
