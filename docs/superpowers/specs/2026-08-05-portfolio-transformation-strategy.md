@@ -43,6 +43,53 @@ Constraints that block portfolio value:
   only `/api/` while the default schema route sits outside that prefix;
 - Phase 9 of the roadmap gates every remaining product issue behind traffic evidence that zero traffic cannot produce.
 
+## Demand Baseline
+
+Read 2026-08-05 from the checksum-verified server backup `20260804T183922Z`. Aggregates only; no contact value was
+extracted or retained.
+
+```
+waitlist_leads total   5
+
+contact_type           email 3, telegram 2
+locale                 en 4, ru 1
+source                 landing 5
+status                 active 5
+
+signups                2026-07-02  1
+                       2026-07-15  1
+                       2026-07-21  2
+                       2026-07-25  1
+```
+
+No lead carries a campaign source value, so the controlled vocabulary defined in
+[Marketing and Growth](../../marketing-and-growth.md) is not represented in the data. The last signup precedes the
+backup by eleven days.
+
+Against that document's own four-week scorecard, which sets Continue at ten or more leads with at least a hundred
+qualified visits and declares any cycle below a hundred visits distribution-inconclusive, the pilot is below every
+threshold.
+
+The binding constraint is therefore reach, not capability. Almost nobody has seen the product. Adding features cannot
+change that on its own.
+
+## Prioritisation Principle: Distribution Before Features
+
+Given the demand baseline, every sub-project below is justified primarily by the discovery channel it opens, not by
+the capability it adds:
+
+| Sub-project | Channel it opens |
+| --- | --- |
+| S1 | GitHub search, stars, forks, article references |
+| S2 | Agent discovery, crawlability, citable technical URLs |
+| S5a | Telegram channel subscribers, recurring visibility |
+| S3 | MCP registry listing |
+| S4 | Organic search, shareable per-date links |
+| S6 | Articles, embedded widget, measurable attribution |
+
+When this plan is revisited, re-rank by reach rather than by feature appeal. A sub-project that adds capability
+without opening a channel is a candidate for deferral, however attractive it looks.
+
 ## Competitive Position
 
 Reviewed 2026-08-05. Directional only; re-check before publishing a named comparison.
@@ -116,7 +163,7 @@ Each sub-project gets its own design spec and implementation plan.
 | S5a | Telegram channel autoposting | Distribution and recurring value | #41 (soft) | ~3-4 days |
 | S3 | MCP server | Agent integration depth | S2 | ~1 week |
 | S4 | Public methodology and addressable URLs | #42, SEO, shareable links | S1, S2 | ~2 weeks |
-| S5b | Email delivery with consent | #43, #41, recurring delivery | S4, S5a | ~3 weeks |
+| S5b | Email delivery with consent | #43, #41, recurring delivery | S4, S5a, **audience gate** | ~3 weeks |
 | S6 | Content engine and analytics | #45, articles, widget | S1, S4 | ~3 weeks |
 
 S1 and S2 are specified together in
@@ -131,6 +178,10 @@ S1 and S2 are specified together in
 - S5b requires a schema migration that S5a does not, because a public Telegram channel has no individual recipients.
 - Issue #41 is a soft dependency for S5a and a hard one for S5b: a templated brief is tolerable in a channel feed and
   not tolerable in a personal inbox.
+- **S5b is gated on audience size, not on the calendar.** Do not start it below fifty confirmed subscribers. At the
+  current list of three email addresses, the consent, opt-in, unsubscribe, suppression, and migration work would
+  exceed its own audience by an order of magnitude. Re-evaluate when S1, S2, S5a, and S4 have run long enough to move
+  the number.
 
 ## Delivery Channel Analysis
 
@@ -140,8 +191,10 @@ Recorded here because the constraints are non-obvious and shape S5a and S5b.
 
 A bot [cannot initiate a conversation with a user](https://community.make.com/t/telegram-bot-error-bot-cant-initiate-conversation-with-a-user/47720);
 `sendMessage` accepts a username only for channels, never for private chats. Every `@handle` already stored in
-`waitlist_leads` is therefore undeliverable by bot. Reaching those leads requires manual contact asking each person to
-press `/start`.
+`waitlist_leads` is therefore undeliverable by bot.
+
+In practice this affects two records, so it is an operator task rather than a planning constraint: contact both people
+directly and ask them to press `/start` if direct bot delivery is ever built.
 
 A public channel avoids the problem entirely: the bot posts to the channel and users subscribe themselves. This makes
 S5a a distribution channel as much as a delivery mechanism.
@@ -171,7 +224,8 @@ CONSTRAINT waitlist_leads_status_check CHECK (status IN ('active'))
 
 S5b must add consent records, confirmation and unsubscribe tokens, `telegram_chat_id`, bounce and suppression state,
 and a send log for idempotency. That is a backwards-compatible migration governed by the existing API/DB
-change-management gate.
+change-management gate, and it is the main reason S5b carries an audience gate: the migration is the same size whether
+the list holds three addresses or three thousand.
 
 ### Legal Frame For S5b
 
