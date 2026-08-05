@@ -9,8 +9,12 @@
 ## Goal
 
 Turn Bitcoin Risk Brief into a free, professional, publicly inspectable product that works as a portfolio artifact for
-clients, as an acquisition surface for users, as source material for articles and video, and as a first-class data
-source for AI agents.
+clients, as source material for articles and video, and as a first-class data source for AI agents.
+
+The product remains genuinely useful to Bitcoin holders and is never degraded to serve the portfolio goal. But user
+acquisition is deliberately not this quarter's objective: the aim is a product strong enough to be shown, rather than
+another public risk chart competing for retail attention. See
+[Prioritisation Principle](#prioritisation-principle-portfolio-audience-first).
 
 ## Starting Position
 
@@ -63,32 +67,45 @@ signups                2026-07-02  1
 ```
 
 No lead carries a campaign source value, so the controlled vocabulary defined in
-[Marketing and Growth](../../marketing-and-growth.md) is not represented in the data. The last signup precedes the
-backup by eleven days.
+[Marketing and Growth](../../marketing-and-growth.md) is not represented in the data.
 
-Against that document's own four-week scorecard, which sets Continue at ten or more leads with at least a hundred
-qualified visits and declares any cycle below a hundred visits distribution-inconclusive, the pilot is below every
-threshold.
+**These five leads are organic arrivals that predate any promotion.** The four-week acquisition test described in that
+playbook has never been run, by deliberate decision: the product is being built as a portfolio artifact first, not as
+another public risk chart competing for retail attention.
 
-The binding constraint is therefore reach, not capability. Almost nobody has seen the product. Adding features cannot
-change that on its own.
+The numbers are therefore a pre-promotion baseline, not evidence about demand. They say nothing about whether the
+product would find users, because nobody has asked. Read them as the starting line for a future test, and do not treat
+the marketing scorecard thresholds as failed — they have not been attempted.
 
-## Prioritisation Principle: Distribution Before Features
+What the baseline does establish is scale for planning: any work sized for an existing audience must account for an
+audience of five.
 
-Given the demand baseline, every sub-project below is justified primarily by the discovery channel it opens, not by
-the capability it adds:
+## Prioritisation Principle: Portfolio Audience First
 
-| Sub-project | Channel it opens |
-| --- | --- |
-| S1 | GitHub search, stars, forks, article references |
-| S2 | Agent discovery, crawlability, citable technical URLs |
-| S5a | Telegram channel subscribers, recurring visibility |
-| S3 | MCP registry listing |
-| S4 | Organic search, shareable per-date links |
-| S6 | Articles, embedded widget, measurable attribution |
+The product serves two audiences, and they are not the same people:
 
-When this plan is revisited, re-rank by reach rather than by feature appeal. A sub-project that adds capability
-without opening a channel is a candidate for deferral, however attractive it looks.
+- the **portfolio audience** — technical clients, collaborators, employers, and readers of articles, who judge the
+  engineering, the documentation, and the decisions behind them;
+- the **product audience** — long-horizon Bitcoin holders, who judge the daily signal.
+
+The current objective is the portfolio audience. Sub-projects are ranked by what that audience sees:
+
+| Sub-project | Portfolio value | Product value |
+| --- | --- | --- |
+| S1 open source | Highest — nothing is visible without it | — |
+| S2 agent surface and docs site | High — the docs site is itself an artifact | Low |
+| S3 MCP server | High — a strong 2026 signal, registry listing, article material | Low |
+| S6a articles and content | High — the stated reason for the whole transformation | Medium |
+| S4 methodology and addressable URLs | Medium — visible craft, organic search | High |
+| S5a Telegram channel | Low — but cheap, and shows the product is alive daily | High |
+| S5b email delivery and analytics | — | Medium, already gated |
+
+Two consequences follow. A sub-project that serves only the product audience is deferred until the portfolio objective
+is met, however useful it would be to users. And when this plan is revisited, re-rank by what a technical reader
+encounters, not by feature appeal.
+
+This ordering is a statement about sequence, not about worth. The product audience is not abandoned; it is simply not
+what the current quarter optimises for.
 
 ## Competitive Position
 
@@ -134,7 +151,7 @@ This resolves the Phase 9 deadlock without lowering any operational standard.
 | Portfolio artifact | Repository and live site, equally | Technical clients read code; everyone else reads the product |
 | Source availability | Fully public | Git history audit found no secrets, so no rewrite is required |
 | Licence | Apache-2.0 | Patent grant and attribution on modification; standard for data and infrastructure projects |
-| Horizon | One quarter, including content | Supports the full S1-S6 sequence |
+| Horizon | One quarter, including content | Supports the full S1 through S6a sequence |
 | Docs site | MkDocs Material on GitHub Pages | Docs are already Markdown; Python matches backend and collector |
 | Docs domain | `docs.bitcoinriskbrief.minihub.app` | Separate origin keeps the product CSP untouched and the server unloaded |
 | Operator evidence | Public, relabelled | Retained in `docs/operations/` under an explicit operational-log banner |
@@ -160,11 +177,11 @@ Each sub-project gets its own design spec and implementation plan.
 | --- | --- | --- | --- | --- |
 | S1 | Open-source release | Private repo, no licence, README shape | — | ~1 week |
 | S2 | Agent surface and docs site | Agent discoverability, soft-404, docs hosting | — | ~1-1.5 weeks |
-| S5a | Telegram channel autoposting | Distribution and recurring value | #41 (soft) | ~3-4 days |
-| S3 | MCP server | Agent integration depth | S2 | ~1 week |
+| S3 | MCP server | Agent integration depth, registry presence | S2 | ~1 week |
+| S6a | Articles and content | Source material for writing and video, OG images | S1, S2, S3 | ~2 weeks |
 | S4 | Public methodology and addressable URLs | #42, SEO, shareable links | S1, S2 | ~2 weeks |
-| S5b | Email delivery with consent | #43, #41, recurring delivery | S4, S5a, **audience gate** | ~3 weeks |
-| S6 | Content engine and analytics | #45, articles, widget | S1, S4 | ~3 weeks |
+| S5a | Telegram channel autoposting | Recurring visibility, daily proof of life | #41 (soft) | ~3-4 days |
+| S5b | Email delivery, consent, and analytics | #43, #41, #45 | S4, S5a, **audience gate** | ~3 weeks |
 
 S1 and S2 are specified together in
 [Open Source And Agent Surface Design](2026-08-05-open-source-agent-surface-design.md).
@@ -173,6 +190,10 @@ S1 and S2 are specified together in
 
 - GitHub Pages on the free tier publishes only from a public repository, so the docs site cannot exist before S1.
 - S3 needs the OpenAPI contract stabilised by S2.
+- S6a follows S3 so that the open-source release, the docs site, the agent surface, and the MCP server are all
+  available to write about. Publishing earlier would spend the strongest material before it exists.
+- Product analytics (#45) moved out of the content work and into S5b. Instrumenting traffic that is not being sought
+  produces noise, and the same measurement becomes meaningful once an acquisition test actually runs.
 - S4 splits the methodology audience: the docs site holds the technical reference in English, while the in-product
   `/methodology` page holds the localised interpretation guide that issue #42 actually asks for. They do not duplicate.
 - S5b requires a schema migration that S5a does not, because a public Telegram channel has no individual recipients.
