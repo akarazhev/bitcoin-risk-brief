@@ -163,17 +163,36 @@ New checks:
 
 ## Work Order
 
-GitHub Pages on the free tier requires a public repository, so the docs site cannot precede the flip.
+Two constraints shape the order. GitHub Pages on the free tier requires a public repository, so the docs site cannot
+precede the flip. And the MiniHub probe publication gate blocks every public-surface change until roughly 2026-08-20;
+see [Role In The MiniHub Probe](2026-08-05-portfolio-transformation-strategy.md#publication-gate).
+
+Steps 1 to 4 are branch work and run during the probe window. Steps 5 to 7 are publication and wait for the gate.
 
 1. Re-run the secret scan; add `LICENSE`, `CONTRIBUTING.md`, `SECURITY.md`
 2. Restructure `docs/`, write `mkdocs.yml`, verify locally with `mkdocs serve`
 3. Rewrite `README.md`
 4. Build the agent surface: `frontend/public/`, FastAPI constructor, nginx routes, JSON-LD
-5. **Flip the repository to public**, enable Pages, add the `docs.` DNS record
+5. — gate — **flip the repository to public**, enable Pages, add the `docs.` DNS record
 6. Deploy the product through the USB kit — agent files reach production only after this operator step
 7. Update GitHub metadata, enable Discussions, set topics and social preview
 
 Step 6 is operator work and gates public verification of the agent surface.
+
+Because everything lands in one flip, the branch must be complete and reviewed before the gate opens rather than
+after. Treat 2026-08-20 as a release date, not as a start date.
+
+## Freshness And Validation Page
+
+`docs/engineering/data-pipeline.md` gains, or is joined by, a page that explains the freshness and validation contract
+in its own terms: what `/api/readiness` asserts, how `data_fresh` and `data_age_days` are derived, what
+`latest_matches_validation_end` rules out, why staleness returns 503 rather than stale data, how `X-Cache-Version`
+binds cached payloads to a validation row, and what an import provenance packet records.
+
+This page is called out separately from the general documentation restructure because it carries a business
+dependency: it is the artifact that makes the product legible to the Data / Engineering Lead archetype in the MiniHub
+probe, whose stated problem is precisely undetectable feed degradation and unprovable incident windows. It describes
+implemented behaviour only, so it is documentation rather than an offer.
 
 ## Non-Goals
 

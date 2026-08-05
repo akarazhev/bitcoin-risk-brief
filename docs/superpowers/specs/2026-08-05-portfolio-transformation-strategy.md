@@ -80,6 +80,50 @@ the marketing scorecard thresholds as failed — they have not been attempted.
 What the baseline does establish is scale for planning: any work sized for an existing audience must account for an
 audience of five.
 
+## Role In The MiniHub Probe
+
+Bitcoin Risk Brief is not an abstract portfolio piece. It is the sole evidence artifact behind an outreach campaign
+that is live as of 2026-08-06, run from the sibling `minihub` workspace.
+
+`minihub.app` is deployed and lists exactly one project under `Live`, linking here. The probe letters carry no direct
+link to the Brief; the recipient's path is message signature → `minihub.app` → this product. The landing page exists
+specifically to survive that check.
+
+The campaign sends 34 messages to two buyer archetypes, six per weekday from 2026-08-06:
+
+| Archetype | Rows | Channel | Problem stated in the letter |
+| --- | ---: | --- | --- |
+| Treasury / COO | 22 | Governance forum direct messages | What a treasury could withdraw under stress, and at what price |
+| Data / Engineering Lead | 12 | Discord, X, Telegram | Feed degradation discovered downstream, unprovable after the fact |
+
+The probe records the Brief as a relevant evidence asset for the Data / Engineering Lead archetype only. For Treasury
+it demonstrates practice quality rather than their specific problem.
+
+### The Unexploited Overlap
+
+The Data / Engineering letter describes gaps, stale windows, silent sequence loss, and the inability to prove what a
+feed did during an incident window. The Brief is already a working answer to exactly that: `/api/readiness` exposing
+`data_fresh`, `data_age_days`, `covered_end`, and `latest_matches_validation_end`; the `btc_risk_validation` table;
+`X-Cache-Version` bound to the validation row; HTTP 503 on staleness; and import provenance packets.
+
+None of this is visible on the public surface. A Data Lead who follows the path sees a Bitcoin risk chart, not feed
+observability. The proof exists and cannot be found.
+
+Closing that gap needs two things already scoped: the public repository, which makes the pipeline inspectable, and one
+docs-site page on freshness and validation semantics. Neither is an offer, so neither is blocked by the portfolio's
+rule against offer artifacts before the minimum rate is fixed.
+
+### Publication Gate
+
+Improving the evidence artifact mid-campaign would make early and late responses within a segment incomparable, which
+is the one thing the probe's own measurement discipline forbids.
+
+**Nothing that changes the public surface ships until the last probe message is sent, around 2026-08-20.** This
+includes repository visibility, the docs site, the agent surface, and any product copy change.
+
+The gate applies to publication, not to preparation. All S1 and S2 work proceeds on a branch and lands in a single
+flip once the window closes, so the constraint costs sequencing rather than time.
+
 ## Prioritisation Principle: Portfolio Audience First
 
 The product serves two audiences, and they are not the same people:
@@ -88,7 +132,11 @@ The product serves two audiences, and they are not the same people:
   engineering, the documentation, and the decisions behind them;
 - the **product audience** — long-horizon Bitcoin holders, who judge the daily signal.
 
-The current objective is the portfolio audience. Sub-projects are ranked by what that audience sees:
+The current objective is the portfolio audience, and it currently has a concrete instance: the Data / Engineering Lead
+who arrives from the MiniHub probe with a few seconds of attention and a specific problem in mind. When a design
+question is ambiguous, resolve it for that reader.
+
+Sub-projects are ranked by what that audience sees:
 
 | Sub-project | Portfolio value | Product value |
 | --- | --- | --- |
@@ -157,6 +205,7 @@ This resolves the Phase 9 deadlock without lowering any operational standard.
 | Operator evidence | Public, relabelled | Retained in `docs/operations/` under an explicit operational-log banner |
 | Email provider | ZeptoMail with the list in PostgreSQL | List, consent, and suppression stay in owned code; roughly zero cost at pilot volume |
 | First delivery channel | Public Telegram channel | No recipients, therefore no consent, opt-in, or schema migration |
+| Publication timing | After the last probe message, ~2026-08-20 | Changing the evidence artifact mid-campaign would make responses within a segment incomparable |
 
 ## Git History Audit
 
@@ -188,6 +237,8 @@ S1 and S2 are specified together in
 
 ### Sequencing Constraints
 
+- **The probe publication gate precedes everything.** No public-surface change ships before roughly 2026-08-20; see
+  [Role In The MiniHub Probe](#publication-gate). Branch work is unaffected.
 - GitHub Pages on the free tier publishes only from a public repository, so the docs site cannot exist before S1.
 - S3 needs the OpenAPI contract stabilised by S2.
 - S6a follows S3 so that the open-source release, the docs site, the agent surface, and the MCP server are all
