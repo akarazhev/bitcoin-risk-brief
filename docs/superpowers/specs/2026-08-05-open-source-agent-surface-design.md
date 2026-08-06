@@ -164,7 +164,7 @@ New checks:
 ## Work Order
 
 Two constraints shape the order. GitHub Pages on the free tier requires a public repository, so the docs site cannot
-precede the flip. And the MiniHub probe publication gate blocks every public-surface change until roughly 2026-08-20;
+precede the flip. And the MiniHub probe publication gate blocks every public-surface change until 2026-08-13;
 see [Role In The MiniHub Probe](2026-08-05-portfolio-transformation-strategy.md#publication-gate).
 
 Steps 1 to 4 are branch work and run during the probe window. Steps 5 to 7 are publication and wait for the gate.
@@ -180,7 +180,7 @@ Steps 1 to 4 are branch work and run during the probe window. Steps 5 to 7 are p
 Step 6 is operator work and gates public verification of the agent surface.
 
 Because everything lands in one flip, the branch must be complete and reviewed before the gate opens rather than
-after. Treat 2026-08-20 as a release date, not as a start date.
+after. Treat 2026-08-13 as the earliest release date, not as a start date.
 
 ## Freshness And Validation Page
 

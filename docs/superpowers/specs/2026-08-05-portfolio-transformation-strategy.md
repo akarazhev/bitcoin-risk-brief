@@ -118,11 +118,19 @@ rule against offer artifacts before the minimum rate is fixed.
 Improving the evidence artifact mid-campaign would make early and late responses within a segment incomparable, which
 is the one thing the probe's own measurement discipline forbids.
 
-**Nothing that changes the public surface ships until the last probe message is sent, around 2026-08-20.** This
+**Nothing that changes the public surface ships until the last probe message is sent, on 2026-08-13.** This
 includes repository visibility, the docs site, the agent surface, and any product copy change.
+
+The campaign schedule is fixed: 34 messages at six per weekday from 2026-08-06, last message 2026-08-13, and the probe
+itself closes 2026-08-27 under its fourteen-day stop rule. The gate uses the send date rather than the close date
+because domain checks cluster at message receipt; waiting the extra fortnight would buy little additional purity.
 
 The gate applies to publication, not to preparation. All S1 and S2 work proceeds on a branch and lands in a single
 flip once the window closes, so the constraint costs sequencing rather than time.
+
+**The gate is a floor, not a target.** S1 and S2 are estimated at two to two and a half weeks from 2026-08-06, which
+lands after 2026-08-13 regardless. On current estimates the gate is not the binding constraint on the release date —
+readiness of the branch is.
 
 ## Prioritisation Principle: Portfolio Audience First
 
@@ -205,7 +213,7 @@ This resolves the Phase 9 deadlock without lowering any operational standard.
 | Operator evidence | Public, relabelled | Retained in `docs/operations/` under an explicit operational-log banner |
 | Email provider | ZeptoMail with the list in PostgreSQL | List, consent, and suppression stay in owned code; roughly zero cost at pilot volume |
 | First delivery channel | Public Telegram channel | No recipients, therefore no consent, opt-in, or schema migration |
-| Publication timing | After the last probe message, ~2026-08-20 | Changing the evidence artifact mid-campaign would make responses within a segment incomparable |
+| Publication timing | After the last probe message, 2026-08-13 | Changing the evidence artifact mid-campaign would make responses within a segment incomparable |
 
 ## Git History Audit
 
@@ -237,7 +245,7 @@ S1 and S2 are specified together in
 
 ### Sequencing Constraints
 
-- **The probe publication gate precedes everything.** No public-surface change ships before roughly 2026-08-20; see
+- **The probe publication gate precedes everything.** No public-surface change ships before 2026-08-13; see
   [Role In The MiniHub Probe](#publication-gate). Branch work is unaffected.
 - GitHub Pages on the free tier publishes only from a public repository, so the docs site cannot exist before S1.
 - S3 needs the OpenAPI contract stabilised by S2.
