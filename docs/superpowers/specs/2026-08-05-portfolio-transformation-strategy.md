@@ -153,8 +153,12 @@ Sub-projects are ranked by what that audience sees:
 | S3 MCP server | High — a strong 2026 signal, registry listing, article material | Low |
 | S6a articles and content | High — the stated reason for the whole transformation | Medium |
 | S4 methodology and addressable URLs | Medium — visible craft, organic search | High |
-| S5a Telegram channel | Low — but cheap, and shows the product is alive daily | High |
+| S5a Telegram channel and honest CTA | High — removes the one dishonest element on the page | High |
 | S5b email delivery and analytics | — | Medium, already gated |
+
+S5a was initially ranked low on portfolio value, on the reasoning that a delivery channel serves users rather than
+clients. That was wrong. It also carries the fix for the waitlist CTA, which is the single place where the product
+contradicts its own positioning — and the element a probe recipient is most likely to touch.
 
 Two consequences follow. A sub-project that serves only the product audience is deferred until the portfolio objective
 is met, however useful it would be to users. And when this plan is revisited, re-rank by what a technical reader
@@ -213,6 +217,8 @@ This resolves the Phase 9 deadlock without lowering any operational standard.
 | Operator evidence | Public, relabelled | Retained in `docs/operations/` under an explicit operational-log banner |
 | Email provider | ZeptoMail with the list in PostgreSQL | List, consent, and suppression stay in owned code; roughly zero cost at pilot volume |
 | First delivery channel | Public Telegram channel | No recipients, therefore no consent, opt-in, or schema migration |
+| Second delivery channel | Email, gated on channel subscribers | Adds reach, not capability; the signal is market-wide and identical for everyone |
+| S5b gate instrument | Telegram subscriber count | Visible from day one, costs nothing, needs no consent contour or analytics |
 | Publication timing | After the last probe message, 2026-08-13 | Changing the evidence artifact mid-campaign would make responses within a segment incomparable |
 
 ## Git History Audit
@@ -234,11 +240,19 @@ Each sub-project gets its own design spec and implementation plan.
 | --- | --- | --- | --- | --- |
 | S1 | Open-source release | Private repo, no licence, README shape | — | ~1 week |
 | S2 | Agent surface and docs site | Agent discoverability, soft-404, docs hosting | — | ~1-1.5 weeks |
+| S5a | Telegram channel, autoposting, and the honest CTA | #43, recurring visibility, the S5b measuring instrument | #41 (soft) | ~3-4 days |
 | S3 | MCP server | Agent integration depth, registry presence | S2 | ~1 week |
 | S6a | Articles and content | Source material for writing and video, OG images | S1, S2, S3 | ~2 weeks |
 | S4 | Public methodology and addressable URLs | #42, SEO, shareable links | S1, S2 | ~2 weeks |
-| S5a | Telegram channel autoposting | Recurring visibility, daily proof of life | #41 (soft) | ~3-4 days |
-| S5b | Email delivery, consent, and analytics | #43, #41, #45 | S4, S5a, **audience gate** | ~3 weeks |
+| S5b | Email delivery, consent, and analytics | #41, #45 | S4, S5a, **subscriber gate** | ~3 weeks |
+
+**S5a moves into the pre-publication block.** This is a consequence of connecting the CTA to the channel: the page
+must not ship a promise it does not keep, and the strongest fix for "Get the daily signal" is a link to a channel that
+exists. Publishing with an honest, working CTA also starts the subscriber count that gates S5b from day one rather
+than weeks later.
+
+The channel can be built and tested privately during the probe window. Making it public, and changing the CTA to point
+at it, are public-surface changes and ship with everything else at the gate.
 
 S1 and S2 are specified together in
 [Open Source And Agent Surface Design](2026-08-05-open-source-agent-surface-design.md).
@@ -258,12 +272,66 @@ S1 and S2 are specified together in
 - S5b requires a schema migration that S5a does not, because a public Telegram channel has no individual recipients.
 - Issue #41 is a soft dependency for S5a and a hard one for S5b: a templated brief is tolerable in a channel feed and
   not tolerable in a personal inbox.
-- **S5b is gated on audience size, not on the calendar.** Do not start it below fifty confirmed subscribers. At the
-  current list of three email addresses, the consent, opt-in, unsubscribe, suppression, and migration work would
-  exceed its own audience by an order of magnitude. Re-evaluate when S1, S2, S5a, and S4 have run long enough to move
-  the number.
+- **S5b is gated on the Telegram channel's subscriber count, not on the calendar.** The channel is the measuring
+  instrument: its subscriber count is visible from day one, costs nothing to collect, and needs no consent contour or
+  analytics. Around a hundred subscribers means recurring delivery is wanted and email earns its three weeks. A plateau
+  in single digits means those three weeks would have been spent on nobody. This replaces an earlier arbitrary
+  threshold of fifty confirmed subscribers, which had no instrument capable of producing it — the waitlist promises
+  something undeliverable, so subscribers had nowhere to come from.
+- Issue #43 moves out of S5b and into pre-publication work. The waitlist copy currently promises a BTC risk alert that
+  nobody receives, and presents already-public charts as gated benefits. Shipping that into the portfolio push would
+  contradict the product's only differentiator; see [Delivery Design](#delivery-design).
 
-## Delivery Channel Analysis
+## Delivery Design
+
+Both channels are wanted. They are not symmetric, and the asymmetry decides the order.
+
+| | Telegram channel | Email |
+| --- | --- | --- |
+| Effort | 3-4 days | ~3 weeks |
+| Consent surface | None — no individual recipients | Double opt-in, tokens, `List-Unsubscribe`, suppression, bounces |
+| Schema | Untouched | Migration; `status` cannot currently express `unsubscribed` |
+| GDPR | Outside the contour | Inside it: DE, FR, ES locales and EUR pricing |
+| Works at zero audience | Yes | No — the infrastructure would exceed its own audience |
+
+Almost the whole difference is consent and legal machinery rather than delivery. Sending the message itself is a couple
+of hours of work either way.
+
+### The Signal Is Market-Wide, Not Personal
+
+"Bitcoin risk changed band" is the same fact for every recipient. There is no per-user state, no threshold, no
+portfolio. Email therefore adds no capability over the channel; it adds reach in a different medium.
+
+That reframes the question from which channel delivers better to whether a second medium is worth three weeks of legal
+scaffolding. Today it is not. Later it likely is, because an email list is owned and a channel is not — Telegram can
+restrict reach or remove it.
+
+### Cadence Must Differ Between Channels
+
+Identical content in both media is a mistake that drives unsubscription.
+
+- **Channel** — a compact daily post carrying the delta, with band changes emphasised. Daily is normal in a feed.
+- **Email** — band-change alerts and a weekly digest only. **No daily email.** Risk is `0.2395` and `low`, and it can
+  hold there for weeks; a daily message saying "still low" earns an unsubscribe by the third one.
+
+### The Waitlist CTA
+
+The form offers what exists, and nothing else.
+
+Today the page says "Get the daily signal — leave an email or Telegram handle. The first test cohort gets the BTC risk
+alert free, plus access to the 2-year risk history and risk-level views." Both halves are wrong: no alert is ever sent,
+and the history and risk-level views are already public to everyone.
+
+Once the channel exists, "Get the daily signal" becomes a link rather than a form. The visitor clicks, subscribes, and
+actually receives the daily signal — immediately, with no contact stored, no consent record, and no migration. The
+form survives for a different and honest ask: whether a band-change alert would be useful, which is what #43 already
+specifies.
+
+This matters beyond tidiness. The product's single differentiator is operational honesty — readiness, freshness, 503
+rather than a stale number. The one interactive element on the page is currently the one place that honesty does not
+hold, and it is the element a probe recipient is most likely to touch.
+
+## Delivery Channel Constraints
 
 Recorded here because the constraints are non-obvious and shape S5a and S5b.
 
@@ -275,6 +343,10 @@ A bot [cannot initiate a conversation with a user](https://community.make.com/t/
 
 In practice this affects two records, so it is an operator task rather than a planning constraint: contact both people
 directly and ask them to press `/start` if direct bot delivery is ever built.
+
+**A channel, not a group.** A channel is one-way broadcast: the bot posts, subscribers read, and leaving is the
+unsubscribe. A group is a chat and carries moderation duty — a room of strangers discussing a financial signal is a
+liability the product has no reason to take on. Nothing in S5a creates a group.
 
 A public channel avoids the problem entirely: the bot posts to the channel and users subscribe themselves. This makes
 S5a a distribution channel as much as a delivery mechanism.
@@ -304,7 +376,7 @@ CONSTRAINT waitlist_leads_status_check CHECK (status IN ('active'))
 
 S5b must add consent records, confirmation and unsubscribe tokens, `telegram_chat_id`, bounce and suppression state,
 and a send log for idempotency. That is a backwards-compatible migration governed by the existing API/DB
-change-management gate, and it is the main reason S5b carries an audience gate: the migration is the same size whether
+change-management gate, and it is the main reason S5b carries a subscriber gate: the migration is the same size whether
 the list holds three addresses or three thousand.
 
 ### Legal Frame For S5b
