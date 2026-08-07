@@ -47,6 +47,14 @@ Constraints that block portfolio value:
   only `/api/` while the default schema route sits outside that prefix;
 - Phase 9 of the roadmap gates every remaining product issue behind traffic evidence that zero traffic cannot produce.
 
+The last of these deserves stating on its own, because it is the largest gap between what exists and what can be seen.
+
+**The strongest engineering in the product is invisible.** `/api/readiness` exposes `data_fresh`, `data_age_days`,
+`covered_end`, and `latest_matches_validation_end`; the `btc_risk_validation` table records what each import produced;
+`X-Cache-Version` binds cached payloads to a validation row; staleness returns HTTP 503 rather than a stale number;
+import provenance packets tie a published figure back to its source. A visitor sees a Bitcoin risk chart. A developer
+sees nothing at all, because the repository is closed. The proof exists and cannot be found.
+
 ## Demand Baseline
 
 Read 2026-08-05 from the checksum-verified server backup `20260804T183922Z`. Aggregates only; no contact value was
@@ -80,57 +88,14 @@ the marketing scorecard thresholds as failed — they have not been attempted.
 What the baseline does establish is scale for planning: any work sized for an existing audience must account for an
 audience of five.
 
-## Role In The MiniHub Probe
+## Scope Boundary
 
-Bitcoin Risk Brief is not an abstract portfolio piece. It is the sole evidence artifact behind an outreach campaign
-that is live as of 2026-08-06, run from the sibling `minihub` workspace.
+This project is developed independently of marketing. Acquisition campaigns, buyer research, and outreach are
+documented in the sibling `minihub` workspace and do not set the schedule, the priorities, or the design decisions
+here.
 
-`minihub.app` is deployed and lists exactly one project under `Live`, linking here. The probe letters carry no direct
-link to the Brief; the recipient's path is message signature → `minihub.app` → this product. The landing page exists
-specifically to survive that check.
-
-The campaign sends 34 messages to two buyer archetypes, six per weekday from 2026-08-06:
-
-| Archetype | Rows | Channel | Problem stated in the letter |
-| --- | ---: | --- | --- |
-| Treasury / COO | 22 | Governance forum direct messages | What a treasury could withdraw under stress, and at what price |
-| Data / Engineering Lead | 12 | Discord, X, Telegram | Feed degradation discovered downstream, unprovable after the fact |
-
-The probe records the Brief as a relevant evidence asset for the Data / Engineering Lead archetype only. For Treasury
-it demonstrates practice quality rather than their specific problem.
-
-### The Unexploited Overlap
-
-The Data / Engineering letter describes gaps, stale windows, silent sequence loss, and the inability to prove what a
-feed did during an incident window. The Brief is already a working answer to exactly that: `/api/readiness` exposing
-`data_fresh`, `data_age_days`, `covered_end`, and `latest_matches_validation_end`; the `btc_risk_validation` table;
-`X-Cache-Version` bound to the validation row; HTTP 503 on staleness; and import provenance packets.
-
-None of this is visible on the public surface. A Data Lead who follows the path sees a Bitcoin risk chart, not feed
-observability. The proof exists and cannot be found.
-
-Closing that gap needs two things already scoped: the public repository, which makes the pipeline inspectable, and one
-docs-site page on freshness and validation semantics. Neither is an offer, so neither is blocked by the portfolio's
-rule against offer artifacts before the minimum rate is fixed.
-
-### Publication Gate
-
-Improving the evidence artifact mid-campaign would make early and late responses within a segment incomparable, which
-is the one thing the probe's own measurement discipline forbids.
-
-**Nothing that changes the public surface ships until the last probe message is sent, on 2026-08-13.** This
-includes repository visibility, the docs site, the agent surface, and any product copy change.
-
-The campaign schedule is fixed: 34 messages at six per weekday from 2026-08-06, last message 2026-08-13, and the probe
-itself closes 2026-08-27 under its fourteen-day stop rule. The gate uses the send date rather than the close date
-because domain checks cluster at message receipt; waiting the extra fortnight would buy little additional purity.
-
-The gate applies to publication, not to preparation. All S1 and S2 work proceeds on a branch and lands in a single
-flip once the window closes, so the constraint costs sequencing rather than time.
-
-**The gate is a floor, not a target.** S1 and S2 are estimated at two to two and a half weeks from 2026-08-06, which
-lands after 2026-08-13 regardless. On current estimates the gate is not the binding constraint on the release date —
-readiness of the branch is.
+The two touch at exactly one point: `minihub.app` links to this product. That is a dependency on the product being
+good, not on either side's calendar. Release timing is determined by branch readiness alone.
 
 ## Prioritisation Principle: Portfolio Audience First
 
@@ -140,9 +105,9 @@ The product serves two audiences, and they are not the same people:
   engineering, the documentation, and the decisions behind them;
 - the **product audience** — long-horizon Bitcoin holders, who judge the daily signal.
 
-The current objective is the portfolio audience, and it currently has a concrete instance: the Data / Engineering Lead
-who arrives from the MiniHub probe with a few seconds of attention and a specific problem in mind. When a design
-question is ambiguous, resolve it for that reader.
+The current objective is the portfolio audience: a technical reader who arrives with a few minutes of attention, no
+prior context, and a habit of checking whether claims can be opened and verified. When a design question is ambiguous,
+resolve it for that reader.
 
 Sub-projects are ranked by what that audience sees:
 
@@ -158,7 +123,7 @@ Sub-projects are ranked by what that audience sees:
 
 S5a was initially ranked low on portfolio value, on the reasoning that a delivery channel serves users rather than
 clients. That was wrong. It also carries the fix for the waitlist CTA, which is the single place where the product
-contradicts its own positioning — and the element a probe recipient is most likely to touch.
+contradicts its own positioning — and the only interactive element on the page.
 
 Two consequences follow. A sub-project that serves only the product audience is deferred until the portfolio objective
 is met, however useful it would be to users. And when this plan is revisited, re-rank by what a technical reader
@@ -219,7 +184,6 @@ This resolves the Phase 9 deadlock without lowering any operational standard.
 | First delivery channel | Public Telegram channel | No recipients, therefore no consent, opt-in, or schema migration |
 | Second delivery channel | Email, gated on channel subscribers | Adds reach, not capability; the signal is market-wide and identical for everyone |
 | S5b gate instrument | Telegram subscriber count | Visible from day one, costs nothing, needs no consent contour or analytics |
-| Publication timing | After the last probe message, 2026-08-13 | Changing the evidence artifact mid-campaign would make responses within a segment incomparable |
 
 ## Git History Audit
 
@@ -251,16 +215,13 @@ must not ship a promise it does not keep, and the strongest fix for "Get the dai
 exists. Publishing with an honest, working CTA also starts the subscriber count that gates S5b from day one rather
 than weeks later.
 
-The channel can be built and tested privately during the probe window. Making it public, and changing the CTA to point
-at it, are public-surface changes and ship with everything else at the gate.
+The channel can be built and tested privately, then made public together with the rest of the release.
 
 S1 and S2 are specified together in
 [Open Source And Agent Surface Design](2026-08-05-open-source-agent-surface-design.md).
 
 ### Sequencing Constraints
 
-- **The probe publication gate precedes everything.** No public-surface change ships before 2026-08-13; see
-  [Role In The MiniHub Probe](#publication-gate). Branch work is unaffected.
 - GitHub Pages on the free tier publishes only from a public repository, so the docs site cannot exist before S1.
 - S3 needs the OpenAPI contract stabilised by S2.
 - S6a follows S3 so that the open-source release, the docs site, the agent surface, and the MCP server are all
@@ -329,7 +290,7 @@ specifies.
 
 This matters beyond tidiness. The product's single differentiator is operational honesty — readiness, freshness, 503
 rather than a stale number. The one interactive element on the page is currently the one place that honesty does not
-hold, and it is the element a probe recipient is most likely to touch.
+hold, and it is the only interactive element on the page.
 
 ## Delivery Channel Constraints
 

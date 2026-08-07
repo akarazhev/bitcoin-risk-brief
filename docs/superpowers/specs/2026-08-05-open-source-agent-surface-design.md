@@ -163,24 +163,23 @@ New checks:
 
 ## Work Order
 
-Two constraints shape the order. GitHub Pages on the free tier requires a public repository, so the docs site cannot
-precede the flip. And the MiniHub probe publication gate blocks every public-surface change until 2026-08-13;
-see [Role In The MiniHub Probe](2026-08-05-portfolio-transformation-strategy.md#publication-gate).
+One constraint shapes the order: GitHub Pages on the free tier requires a public repository, so the documentation
+site cannot precede the flip.
 
-Steps 1 to 4 are branch work and run during the probe window. Steps 5 to 7 are publication and wait for the gate.
+Steps 1 to 4 are branch work. Steps 5 to 7 are publication and land together.
 
 1. Re-run the secret scan; add `LICENSE`, `CONTRIBUTING.md`, `SECURITY.md`
 2. Restructure `docs/`, write `mkdocs.yml`, verify locally with `mkdocs serve`
 3. Rewrite `README.md`
 4. Build the agent surface: `frontend/public/`, FastAPI constructor, nginx routes, JSON-LD
-5. — gate — **flip the repository to public**, enable Pages, add the `docs.` DNS record
+5. **Flip the repository to public**, enable Pages, add the `docs.` DNS record
 6. Deploy the product through the USB kit — agent files reach production only after this operator step
 7. Update GitHub metadata, enable Discussions, set topics and social preview
 
 Step 6 is operator work and gates public verification of the agent surface.
 
-Because everything lands in one flip, the branch must be complete and reviewed before the gate opens rather than
-after. Treat 2026-08-13 as the earliest release date, not as a start date.
+Because everything lands in one flip, the branch must be complete and reviewed before step 5 begins. Release timing
+is determined by branch readiness.
 
 ## Freshness And Validation Page
 
@@ -189,10 +188,10 @@ in its own terms: what `/api/readiness` asserts, how `data_fresh` and `data_age_
 `latest_matches_validation_end` rules out, why staleness returns 503 rather than stale data, how `X-Cache-Version`
 binds cached payloads to a validation row, and what an import provenance packet records.
 
-This page is called out separately from the general documentation restructure because it carries a business
-dependency: it is the artifact that makes the product legible to the Data / Engineering Lead archetype in the MiniHub
-probe, whose stated problem is precisely undetectable feed degradation and unprovable incident windows. It describes
-implemented behaviour only, so it is documentation rather than an offer.
+This page is called out separately from the general documentation restructure because it carries the most weight per
+line in the whole set. Freshness and validation handling is the strongest engineering in the product and currently the
+least visible: a visitor sees a risk chart, and the machinery that decides whether that chart can be trusted is
+invisible. This page is where a technical reader finds it.
 
 ## Non-Goals
 
