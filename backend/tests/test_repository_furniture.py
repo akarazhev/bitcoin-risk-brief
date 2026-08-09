@@ -29,3 +29,29 @@ class RepositoryFurnitureTests(unittest.TestCase):
         self.assertIn("not financial advice", text.lower())
         self.assertIn("docs/engineering/security-and-privacy.md", text)
         self.assertNotIn("docs/security-and-privacy.md", text)
+
+
+class ReadmeTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.text = (ROOT / "README.md").read_text(encoding="utf-8")
+
+    def test_readme_is_a_shopfront_not_a_manual(self) -> None:
+        self.assertLess(
+            len(self.text.splitlines()),
+            160,
+            "the README should be an overview; operational detail belongs in docs/operations/",
+        )
+
+    def test_the_first_forty_lines_describe_the_product(self) -> None:
+        head = "\n".join(self.text.splitlines()[:40]).lower()
+        self.assertIn("bitcoin", head)
+        for phrase in ("accepted limitation", "remains pending", "unclaimed"):
+            self.assertNotIn(phrase, head, "limitation language belongs in the operations tier, not the first screen")
+
+    def test_readme_links_the_agent_surface_and_the_licence(self) -> None:
+        self.assertIn("llms.txt", self.text)
+        self.assertIn("/api/openapi.json", self.text)
+        self.assertIn("Apache-2.0", self.text)
+
+    def test_readme_keeps_the_advice_disclaimer(self) -> None:
+        self.assertIn("not financial advice", self.text.lower())
