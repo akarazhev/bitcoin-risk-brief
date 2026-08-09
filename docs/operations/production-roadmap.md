@@ -1,5 +1,7 @@
 # Production Roadmap
 
+> **Operational log.** These entries record what was verified and when. They are not claims about product capability.
+
 This roadmap tracks the work needed to move Bitcoin Risk Brief from a local validation product to a production-pilot
 service. The target is not a broad analytics platform. The target is one reliable public Bitcoin risk page, safe waitlist
 capture, daily data freshness, and an operator workflow that can be monitored and rolled back.
@@ -100,8 +102,8 @@ readiness/freshness monitoring and alert delivery, restore drill, or commercial/
 | --- | --- | --- |
 | Phase 1: Public Trust Layer | Complete | `ca85ad4`, `frontend/src/App.tsx`, `frontend/src/App.test.tsx` |
 | Phase 2: Data Source Resilience And Documentation Hygiene | Complete | `9fe25cd`, `7f7b8c4`, `collector/collector/main.py`, `collector/tests/test_downloaded_csv_import.py`, `collector/tests/test_public_cmc_download.py` |
-| Phase 3: CI And Quality Gates | Complete | `1b162a5`, `.github/workflows/ci.yml`, `docs/testing-and-quality.md` |
-| Phase 4: Frontend Production Quality | Complete | `22793fb`, `frontend/e2e/frontend-quality.spec.ts`, `frontend/src/Chart.tsx`, `docs/frontend-qa.md` |
+| Phase 3: CI And Quality Gates | Complete | `1b162a5`, `.github/workflows/ci.yml`, `docs/engineering/testing-and-quality.md` |
+| Phase 4: Frontend Production Quality | Complete | `22793fb`, `frontend/e2e/frontend-quality.spec.ts`, `frontend/src/Chart.tsx`, `docs/engineering/frontend-qa.md` |
 | Phase 5: Performance, Caching, And Abuse Protection | Complete in repository; post-deploy Cloudflare HIT/fast repeat behavior verified for public smoke | `3c66df9`, `5bb179d`, `cache-warmup-local-complete-2026-07-05`, 2026-07-07 repeated public cache requests about `0.14s` to `0.22s` with Cloudflare `cf-cache-status: HIT`, `backend/app/public_cache.py`, `backend/app/main.py`, `scripts/cloudflare_edge_rules.py`, `backend/tests/test_cloudflare_edge_rules.py` |
 | Phase 6: Production Environment And Deployment | Verified for USB deploy/update and public freshness; closed as stale-data blocker | 2026-07-11 backup-gated USB update passed for commit `86cb2dad889baf24a7464a105bbe2224f75b14ef` with server-reported exit code 0; public readiness/latest checks passed with `latest_date=2026-07-10`, `row_count=5842`, `data_fresh=True`, and required cache headers present. |
 | Phase 7: Backups, Restore, And Monitoring | Partially verified; small-pilot monitoring accepted with limitation | One checksum-verified off-server USB backup copy is recorded for 2026-07-07, the 2026-07-11 backup-gated USB update records copied/off-server freshness/checksum checker status valid and fresh for `20260711T190355Z`, and the 2026-07-15 fresh manual backup/off-server copy records timestamp basename `20260715T082457Z` with PostgreSQL dump, BTC CSV, manifest, and checksum categories present plus copied-backup SHA-256 verification passed. The local backup freshness/off-server copy checker and public endpoint probe are implemented and tested, and the latest public readiness/latest-risk checks were healthy and fresh through `latest_date=2026-07-14`. The 2026-07-14 operator decision accepts Cloudflare Tunnel Health Alert plus public homepage availability monitoring for the small operator-watched pilot. Restore drill remains deferred because the current setup has only the live production server and no separate restore target; recurring production backup scheduling/off-server-copy evidence, dedicated external `/api/health` and `/api/readiness` monitoring, alert delivery, backup freshness alert, collector failure alert, direct production validation/import metadata, and exact import source path/category remain pending for broader launch or later operations. |
@@ -223,12 +225,12 @@ Acceptance criteria:
 
 - A production operator can refresh BTC data from a downloaded CoinMarketCap historical CSV without a paid API key.
 - Invalid, partial, non-contiguous, or schema-incompatible CSV downloads do not replace the canonical CSV.
-- `docs/data-pipeline.md`, `docs/operations.md`, and `docs/production-readiness.md` agree on the supported refresh paths.
+- `docs/engineering/data-pipeline.md`, `docs/operations/operations.md`, and `docs/operations/production-readiness.md` agree on the supported refresh paths.
 - `docs/README.md` clearly identifies the current operational docs and the historical design/spec archive.
 
 ### Phase 3: CI And Quality Gates
 
-Status: Complete. Verified by commit `1b162a5`, `.github/workflows/ci.yml`, and `docs/testing-and-quality.md`.
+Status: Complete. Verified by commit `1b162a5`, `.github/workflows/ci.yml`, and `docs/engineering/testing-and-quality.md`.
 
 Goal: protect `main` and make future changes cheap to verify.
 
@@ -243,12 +245,12 @@ Acceptance criteria:
 
 - Every push to `main` runs the automated checks.
 - A failing backend, collector, frontend test, or frontend build blocks promotion.
-- The CI workflow is documented in `docs/testing-and-quality.md`.
+- The CI workflow is documented in `docs/engineering/testing-and-quality.md`.
 
 ### Phase 4: Frontend Production Quality
 
 Status: Complete. Verified by commit `22793fb`, `frontend/e2e/frontend-quality.spec.ts`, `frontend/src/Chart.tsx`, and
-`docs/frontend-qa.md`. Repeat a short manual pass on the public hostname for future broader-launch or promotion windows
+`docs/engineering/frontend-qa.md`. Repeat a short manual pass on the public hostname for future broader-launch or promotion windows
 when needed.
 
 Goal: reduce avoidable frontend and product-experience risk before pilot and broader public use.
@@ -313,7 +315,7 @@ Acceptance criteria:
 - Waitlist submissions cannot be cached and still store server-side only.
 - Standard public payload warmup has local evidence and is verified in production before active traffic.
 - Basic bot, spam, and burst-traffic tests are blocked or rate-limited without breaking normal page use.
-- Security and caching expectations are documented in `docs/security-and-privacy.md` and `docs/production-readiness.md`.
+- Security and caching expectations are documented in `docs/engineering/security-and-privacy.md` and `docs/operations/production-readiness.md`.
 
 ### Phase 6: Production Environment And Deployment
 
@@ -690,19 +692,19 @@ Before broader public launch, recurring daily backup/off-server-copy automation,
 
 ## Related Docs
 
-- [Product Spec and Alignment Review](01-bitcoin-risk-brief.md)
+- [Product Spec and Alignment Review](../product/product-spec.md)
 - [Production Readiness](production-readiness.md)
 - [Production Evidence Log](production-evidence-log.md)
 - [Operations](operations.md)
 - [Ubuntu and Cloudflare Tunnel Deployment](deploy-ubuntu-cloudflare.md)
-- [Testing and Quality](testing-and-quality.md)
-- [Security and Privacy](security-and-privacy.md)
-- [Agent Access And Risk-Signal Licensing Demand Test Design](superpowers/specs/2026-06-30-agent-access-demand-test-design.md)
-- [Product Analytics And Usage Attribution Design](superpowers/specs/2026-07-01-product-analytics-usage-attribution-design.md)
-- [Public Payload Cache Warmup And Precompute Design](superpowers/specs/2026-07-01-public-payload-cache-warmup-precompute-design.md)
-- [Launch Operations And Governance Checklist Design](superpowers/specs/2026-07-01-launch-operations-governance-checklist-design.md)
-- [Documentation And Portfolio Presentation Design](superpowers/specs/2026-07-01-documentation-portfolio-presentation-design.md)
-- [Localization Quality And Language Expansion Design](superpowers/specs/2026-07-01-localization-quality-language-expansion-design.md)
-- [Scheduled Public CoinMarketCap Refresh Design](superpowers/specs/2026-07-01-scheduled-public-cmc-refresh-design.md)
-- [Risk Methodology Research Design](superpowers/specs/2026-07-01-risk-methodology-research-design.md)
-- [Distribution Channel Research Design](superpowers/specs/2026-07-01-distribution-channel-research-design.md)
+- [Testing and Quality](../engineering/testing-and-quality.md)
+- [Security and Privacy](../engineering/security-and-privacy.md)
+- [Agent Access And Risk-Signal Licensing Demand Test Design](../superpowers/specs/2026-06-30-agent-access-demand-test-design.md)
+- [Product Analytics And Usage Attribution Design](../superpowers/specs/2026-07-01-product-analytics-usage-attribution-design.md)
+- [Public Payload Cache Warmup And Precompute Design](../superpowers/specs/2026-07-01-public-payload-cache-warmup-precompute-design.md)
+- [Launch Operations And Governance Checklist Design](../superpowers/specs/2026-07-01-launch-operations-governance-checklist-design.md)
+- [Documentation And Portfolio Presentation Design](../superpowers/specs/2026-07-01-documentation-portfolio-presentation-design.md)
+- [Localization Quality And Language Expansion Design](../superpowers/specs/2026-07-01-localization-quality-language-expansion-design.md)
+- [Scheduled Public CoinMarketCap Refresh Design](../superpowers/specs/2026-07-01-scheduled-public-cmc-refresh-design.md)
+- [Risk Methodology Research Design](../superpowers/specs/2026-07-01-risk-methodology-research-design.md)
+- [Distribution Channel Research Design](../superpowers/specs/2026-07-01-distribution-channel-research-design.md)

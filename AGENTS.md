@@ -2,7 +2,7 @@
 
 ## Project Structure & Module Organization
 
-This repository contains a small production-oriented Bitcoin risk product. `backend/app/` is the FastAPI API, with unit tests in `backend/tests/`. `collector/collector/` owns CSV refresh, CoinMarketCap integration, database writes, and risk recomputation support, with tests in `collector/tests/`. `frontend/src/` is the React/Vite public UI and API client; `frontend/src/App.test.tsx` covers UI behavior. Operational assets live in `scripts/`, `migrations/`, `docs/`, and `podman-compose.yml`. The canonical local BTC data source is `collector/btc-csv/btc_usd_daily.csv`.
+This repository contains a small production-oriented Bitcoin risk product. `backend/app/` is the FastAPI API, with unit tests in `backend/tests/`. `collector/collector/` owns CSV refresh, CoinMarketCap integration, database writes, and risk recomputation support, with tests in `collector/tests/`. `frontend/src/` is the React/Vite public UI and API client; `frontend/src/App.test.tsx` covers UI behavior. Operational assets live in `scripts/`, `migrations/`, `docs/`, and `podman-compose.yml`. The documentation layout is indexed in [docs/README.md](docs/README.md) and grouped into product, engineering, agents, and operations tiers. The canonical local BTC data source is `collector/btc-csv/btc_usd_daily.csv`.
 
 ## Build, Test, and Development Commands
 
@@ -22,8 +22,8 @@ Use `cp .env.example .env` before local container work. Key commands:
 Before implementation, read the project context that is relevant to the task:
 
 1. `README.md`
-2. `docs/production-roadmap.md`
-3. `docs/architecture.md`
+2. `docs/operations/production-roadmap.md`
+3. `docs/engineering/architecture.md`
 4. `docs/superpowers/README.md`
 5. a relevant current design spec under `docs/superpowers/specs/`, when one exists or the user selects one
 6. a relevant current implementation plan under `docs/superpowers/plans/`, when one exists or the user selects one
@@ -34,9 +34,10 @@ evidence requirements.
 
 Treat old specs and plans under `docs/superpowers/` as historical execution artifacts unless a user explicitly selects
 one as the active source for a new slice. Current-state claims live in `README.md`, `docs/README.md`,
-`docs/architecture.md`, `docs/data-pipeline.md`, `docs/risk-methodology.md`, `docs/production-readiness.md`,
-`docs/production-roadmap.md`, `docs/production-evidence-log.md`, `docs/security-and-privacy.md`, and
-`docs/operations.md`.
+`docs/engineering/architecture.md`, `docs/engineering/data-pipeline.md`, `docs/product/risk-methodology.md`,
+`docs/operations/production-readiness.md`, `docs/operations/production-roadmap.md`,
+`docs/operations/production-evidence-log.md`, `docs/engineering/security-and-privacy.md`, and
+`docs/operations/operations.md`.
 
 ## Superpowers Workflow
 

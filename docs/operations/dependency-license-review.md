@@ -1,5 +1,7 @@
 # Dependency And License Review
 
+> **Operational log.** These entries record what was verified and when. They are not claims about product capability.
+
 This file records local engineering evidence only. It is not legal advice, a full license compliance opinion, a
 vulnerability scan, or a production-launch approval.
 

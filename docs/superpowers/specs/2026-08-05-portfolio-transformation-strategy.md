@@ -75,7 +75,7 @@ signups                2026-07-02  1
 ```
 
 No lead carries a campaign source value, so the controlled vocabulary defined in
-[Marketing and Growth](../../marketing-and-growth.md) is not represented in the data.
+[Marketing and Growth](../../operations/marketing-and-growth.md) is not represented in the data.
 
 **These five leads are organic arrivals that predate any promotion.** The four-week acquisition test described in that
 playbook has never been run, by deliberate decision: the product is being built as a portfolio artifact first, not as

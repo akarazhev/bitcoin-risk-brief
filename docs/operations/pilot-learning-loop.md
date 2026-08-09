@@ -1,5 +1,7 @@
 # Pilot Learning Loop
 
+> **Operational log.** These entries record what was verified and when. They are not claims about product capability.
+
 Phase 9 is the small-pilot learning loop after the 2026-07-15 watched first-traffic observation. Its purpose is to
 collect enough sanitized evidence to decide the next narrow step without putting raw contacts, private messages,
 account details, or production artifacts into Git.

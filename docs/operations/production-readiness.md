@@ -1,5 +1,7 @@
 # Production Readiness
 
+> **Operational log.** These entries record what was verified and when. They are not claims about product capability.
+
 This document is the current production-pilot status and gate register for Bitcoin Risk Brief. Detailed dated evidence
 has been moved to [Production Evidence Log](production-evidence-log.md); the archive preserves older proof summaries,
 commit IDs, tags, dates, and historical blockers that may now be superseded.
@@ -101,6 +103,6 @@ unless application code or runtime configuration changes.
 - [Production Roadmap](production-roadmap.md)
 - [Pilot Learning Loop](pilot-learning-loop.md)
 - [Operations](operations.md)
-- [Security and Privacy](security-and-privacy.md)
-- [Frontend QA](frontend-qa.md)
+- [Security and Privacy](../engineering/security-and-privacy.md)
+- [Frontend QA](../engineering/frontend-qa.md)
 - [Dependency and License Review](dependency-license-review.md)

@@ -27,8 +27,8 @@ Current repository-local BTC CSV evidence tails at `2026-07-14`; tag
 `btc-csv-through-2026-07-14-evidence-2026-07-15` points at `e204acc`. Repository CSV evidence supports the small-pilot
 snapshot but does not replace broader direct production source/archive provenance.
 
-The detailed evidence history has moved to [Production Evidence Log](docs/production-evidence-log.md). The current gate
-register is [Production Readiness](docs/production-readiness.md).
+The detailed evidence history has moved to [Production Evidence Log](docs/operations/production-evidence-log.md). The
+current gate register is [Production Readiness](docs/operations/production-readiness.md).
 
 Still external/operator before broader public launch:
 
@@ -151,19 +151,19 @@ Use `AGENTS.md` as the agent-facing source for repository rules. For human-drive
 ## Documentation
 
 - [Documentation Index](docs/README.md)
-- [Architecture](docs/architecture.md)
-- [Data Pipeline](docs/data-pipeline.md)
-- [Risk Methodology](docs/risk-methodology.md)
-- [API Reference](docs/api-reference.md)
-- [Waitlist](docs/waitlist.md)
-- [Security and Privacy](docs/security-and-privacy.md)
-- [Operations](docs/operations.md)
-- [Pilot Learning Loop](docs/pilot-learning-loop.md)
-- [Marketing and Growth](docs/marketing-and-growth.md)
-- [Ubuntu and Cloudflare Tunnel Deployment](docs/deploy-ubuntu-cloudflare.md)
-- [Production Readiness](docs/production-readiness.md)
-- [Production Evidence Log](docs/production-evidence-log.md)
-- [Testing and Quality](docs/testing-and-quality.md)
+- [Architecture](docs/engineering/architecture.md)
+- [Data Pipeline](docs/engineering/data-pipeline.md)
+- [Risk Methodology](docs/product/risk-methodology.md)
+- [API Reference](docs/engineering/api-reference.md)
+- [Waitlist](docs/engineering/waitlist.md)
+- [Security and Privacy](docs/engineering/security-and-privacy.md)
+- [Operations](docs/operations/operations.md)
+- [Pilot Learning Loop](docs/operations/pilot-learning-loop.md)
+- [Marketing and Growth](docs/operations/marketing-and-growth.md)
+- [Ubuntu and Cloudflare Tunnel Deployment](docs/operations/deploy-ubuntu-cloudflare.md)
+- [Production Readiness](docs/operations/production-readiness.md)
+- [Production Evidence Log](docs/operations/production-evidence-log.md)
+- [Testing and Quality](docs/engineering/testing-and-quality.md)
 
 ## Data Source
 
@@ -184,7 +184,7 @@ configured, and manual `import-cmc-csv` remains the operator fallback when publi
 - `GET /api/brief/latest`
 - `POST /api/waitlist`
 
-Detailed response shapes are documented in [API Reference](docs/api-reference.md).
+Detailed response shapes are documented in [API Reference](docs/engineering/api-reference.md).
 
 ## Risk Methodology
 

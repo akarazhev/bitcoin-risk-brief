@@ -1,5 +1,7 @@
 # Monitoring Alert Evidence Packet Template
 
+> **Operational log.** These entries record what was verified and when. They are not claims about product capability.
+
 This template helps operators collect sanitized monitoring and alert proof for Bitcoin Risk Brief before the launch
 status is updated.
 

@@ -82,7 +82,7 @@ globally re-audited.
 | `plans/2026-06-26-full-bitcoin-risk-source-parity-implementation.md` | Superseded | CoinGecko-oriented plan is not a current implementation guide. |
 | `plans/2026-06-29-public-coinmarketcap-download.md` | Completed | Implemented by `collector/collector/public_cmc_download.py` and `./scripts/manage.sh download-cmc-csv`. |
 | `plans/2026-06-30-usb-server-kit.md` | Completed in repository, operator copy pending | Repository templates exist; physical USB staging is not committed state. |
-| `plans/2026-07-02-production-pilot-agent-handoff.md` | Historical coordination plan | Task tracking has been reconciled into the core docs and later focused implementation plans; remaining production gates are tracked in `docs/production-readiness.md` and `docs/production-roadmap.md`. |
+| `plans/2026-07-02-production-pilot-agent-handoff.md` | Historical coordination plan | Task tracking has been reconciled into the core docs and later focused implementation plans; remaining production gates are tracked in `docs/operations/production-readiness.md` and `docs/operations/production-roadmap.md`. |
 | `plans/2026-07-02-production-pilot-priority-implementation.md` | Historical coordination plan | Priority model remains useful context, but current status lives in the roadmap/readiness docs and the focused 2026-07-05/2026-07-06 plans below. |
 | `plans/2026-07-05-public-payload-cache-warmup-implementation.md` | Implemented locally, production deploy pending | Local implementation is tagged `cache-warmup-local-complete-2026-07-05`; production freshness and warmup measurement remain pending. |
 | `plans/2026-07-05-usb-update-install-kit-v2-implementation.md` | Implemented locally, production use pending | Local implementation is tagged `usb-kit-v2-local-complete-2026-07-05`; a real USB package and production-host update remain pending. |
@@ -92,5 +92,5 @@ globally re-audited.
 
 ## Reading Rule
 
-When a superpowers file conflicts with `docs/data-pipeline.md`, `docs/architecture.md`, `docs/api-reference.md`,
-`docs/operations.md`, `docs/production-readiness.md`, or the code, treat the core docs and code as authoritative.
+When a superpowers file conflicts with `docs/engineering/data-pipeline.md`, `docs/engineering/architecture.md`, `docs/engineering/api-reference.md`,
+`docs/operations/operations.md`, `docs/operations/production-readiness.md`, or the code, treat the core docs and code as authoritative.

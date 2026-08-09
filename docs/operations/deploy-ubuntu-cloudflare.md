@@ -1,5 +1,7 @@
 # Ubuntu and Cloudflare Tunnel Deployment
 
+> **Operational log.** These entries record what was verified and when. They are not claims about product capability.
+
 This guide covers the intended production-pilot deployment for a local Ubuntu server on a ByFly home or office connection in Belarus. The recommended public ingress is Cloudflare Tunnel, not direct router port forwarding.
 
 ## Target Topology

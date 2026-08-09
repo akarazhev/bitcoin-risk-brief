@@ -1,5 +1,7 @@
 # Backup Restore Evidence Packet Template
 
+> **Operational log.** These entries record what was verified and when. They are not claims about product capability.
+
 This template helps operators collect sanitized backup, off-server copy, backup freshness, scheduler, alert, and restore
 drill evidence for Bitcoin Risk Brief before launch status is updated.
 

@@ -1,5 +1,7 @@
 # Launch Snapshot Evidence Packet Template
 
+> **Operational log.** These entries record what was verified and when. They are not claims about product capability.
+
 This file is a template, not completed evidence. It does not prove that the final launch snapshot exists, that any launch
 gate has passed, that first traffic is allowed, or that first traffic has run. Do not treat example wording as launch
 evidence.

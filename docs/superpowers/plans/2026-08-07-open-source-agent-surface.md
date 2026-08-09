@@ -1088,7 +1088,7 @@ Target roughly 120 lines, in this order:
 Replace the current sixty-line Current Status block with one line:
 
 ```markdown
-Current operational status, evidence, and accepted limitations: [Production Readiness](docs/operations/production-readiness.md).
+Current operational status, evidence, and accepted limitations: [Production Readiness](../../operations/production-readiness.md).
 ```
 
 - [ ] **Step 4: Run the full check set**
