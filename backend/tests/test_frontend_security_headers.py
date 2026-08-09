@@ -140,16 +140,27 @@ def _assert_security_headers_repeated(
 
 
 class FrontendSecurityHeaderTests(unittest.TestCase):
-    def test_all_frontend_csp_headers_use_three_identical_exact_policies(self) -> None:
+    def test_all_frontend_csp_headers_use_four_identical_exact_policies(self) -> None:
         config = _read_nginx_conf()
         self.assertEqual(
-            3,
+            4,
             len(re.findall(r"\badd_header\s+Content-Security-Policy\b", config)),
         )
         headers = _add_header_values(config, "Content-Security-Policy")
-        self.assertEqual([EXPECTED_CSP, EXPECTED_CSP, EXPECTED_CSP], headers)
+        self.assertEqual(
+            [EXPECTED_CSP, EXPECTED_CSP, EXPECTED_CSP, EXPECTED_CSP], headers
+        )
         for csp in headers:
             _assert_strict_csp(self, csp)
+
+    def test_server_scope_csp_preserves_api_coverage(self) -> None:
+        config = _read_nginx_conf()
+        server_scope = config.split("location /api/", 1)[0]
+
+        self.assertEqual(
+            [EXPECTED_CSP],
+            _add_header_values(server_scope, "Content-Security-Policy"),
+        )
 
     def test_static_frontend_locations_repeat_security_headers(self) -> None:
         config = _read_nginx_conf()
