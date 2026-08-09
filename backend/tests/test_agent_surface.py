@@ -6,6 +6,7 @@ import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[2]
 PUBLIC_DIR = ROOT / "frontend" / "public"
+NGINX_CONF = ROOT / "frontend" / "nginx.conf"
 
 PRODUCT_URL = "https://bitcoinriskbrief.minihub.app/"
 DOCS_URL = "https://docs.bitcoinriskbrief.minihub.app/"
@@ -52,3 +53,22 @@ class AgentStaticFileTests(unittest.TestCase):
                 pattern.search(text),
                 f"{name} must not embed a concrete risk reading; it would go stale",
             )
+
+
+class NginxRouteTests(unittest.TestCase):
+    def test_unknown_paths_are_not_rewritten_to_the_app_shell(self) -> None:
+        text = NGINX_CONF.read_text(encoding="utf-8")
+        self.assertNotIn(
+            "try_files $uri $uri/ /index.html;",
+            text,
+            "the catch-all fallback answers 200 for every path, including nonexistent ones",
+        )
+
+    def test_root_serves_the_app_shell(self) -> None:
+        text = NGINX_CONF.read_text(encoding="utf-8")
+        self.assertIn("location = / {", text)
+        self.assertIn("try_files /index.html =404;", text)
+
+    def test_fallthrough_location_returns_404(self) -> None:
+        text = NGINX_CONF.read_text(encoding="utf-8")
+        self.assertIn("try_files $uri =404;", text)
