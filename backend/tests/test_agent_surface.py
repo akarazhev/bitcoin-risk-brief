@@ -10,6 +10,7 @@ NGINX_CONF = ROOT / "frontend" / "nginx.conf"
 
 PRODUCT_URL = "https://bitcoinriskbrief.minihub.app/"
 DOCS_URL = "https://docs.bitcoinriskbrief.minihub.app/"
+DOCS = ROOT / "docs"
 
 
 class AgentStaticFileTests(unittest.TestCase):
@@ -72,3 +73,33 @@ class NginxRouteTests(unittest.TestCase):
     def test_fallthrough_location_returns_404(self) -> None:
         text = NGINX_CONF.read_text(encoding="utf-8")
         self.assertIn("try_files $uri =404;", text)
+
+
+class AgentDocumentationTests(unittest.TestCase):
+    def test_the_three_agent_pages_exist(self) -> None:
+        for relative in (
+            "agents/agent-access-pack.md",
+            "agents/openapi.md",
+            "engineering/freshness-and-validation.md",
+        ):
+            self.assertTrue((DOCS / relative).is_file(), f"docs/{relative} must exist")
+
+    def test_the_access_pack_states_the_readiness_first_rule(self) -> None:
+        text = (DOCS / "agents" / "agent-access-pack.md").read_text(encoding="utf-8")
+        self.assertIn("/api/readiness", text)
+        self.assertIn("X-Cache-Version", text)
+        self.assertIn("not financial advice", text.lower())
+
+    def test_the_freshness_page_explains_every_readiness_check(self) -> None:
+        text = (DOCS / "engineering" / "freshness-and-validation.md").read_text(encoding="utf-8")
+        for token in (
+            "data_fresh",
+            "data_age_days",
+            "covered_end",
+            "latest_matches_validation_end",
+            "btc_risk_validation",
+            "X-Cache-Version",
+            "503",
+        ):
+            with self.subTest(token=token):
+                self.assertIn(token, text)
