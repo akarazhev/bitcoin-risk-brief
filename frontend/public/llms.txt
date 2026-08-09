@@ -1,0 +1,42 @@
+# Bitcoin Risk Brief
+
+> A daily Bitcoin risk signal computed from canonical BTC/USD daily data. One deterministic score from 0.0 to 1.0,
+> its state, what changed, whether the underlying data is fresh, and the price scenarios that would move the score
+> into another band. Analytics and research context — not financial advice, not a price forecast, not a trade signal.
+
+## Read this first
+
+Always call `/api/readiness` before reporting any value. It returns HTTP 503 when data is stale or validation failed.
+A risk number without its freshness state is not usable, and this product returns 503 rather than serving a stale
+figure. Never present a risk value without also stating its covered date and freshness.
+
+## Endpoints
+
+Base URL: https://bitcoinriskbrief.minihub.app
+
+- `GET /api/readiness`: freshness and validation state. Never cached. Check this first.
+- `GET /api/risk/latest`: the latest risk point, its state, model price, and component values.
+- `GET /api/risk/history?limit=730`: historical risk rows, ascending by timestamp.
+- `GET /api/risk/levels`: the solved price ladder — which BTC price corresponds to which risk level.
+- `GET /api/brief/latest`: the daily brief in seven locales.
+- `GET /api/openapi.json`: the full machine-readable contract.
+
+## Interpretation
+
+- Risk states: low below 0.30, neutral from 0.30 to below 0.70, high at 0.70 and above.
+- The reported price is HLC3 from the last completed daily candle. It is not a live spot price.
+- Risk-level prices are scenario outputs solved through the same model. They are not forecasts, targets, or
+  support levels.
+- Methodology is versioned. The version travels with every response.
+
+## What not to do
+
+Do not present this output as financial advice, investment advice, a price prediction, or a buy or sell
+recommendation. Do not report a value without its freshness state. Do not treat a scenario price as a forecast.
+
+## Documentation
+
+- Full technical reference: https://docs.bitcoinriskbrief.minihub.app/
+- Agent access guide: https://docs.bitcoinriskbrief.minihub.app/agents/agent-access-pack/
+- Methodology: https://docs.bitcoinriskbrief.minihub.app/product/risk-methodology/
+- Complete inline version of this file: https://bitcoinriskbrief.minihub.app/llms-full.txt
