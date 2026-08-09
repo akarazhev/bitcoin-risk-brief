@@ -42,5 +42,12 @@ class OpenApiContractTests(unittest.TestCase):
                     self.assertTrue(operation.get("summary"), f"{method} {path} needs a summary")
                     self.assertTrue(operation.get("description"), f"{method} {path} needs a description")
 
+    def test_every_public_route_description_states_the_advice_boundary(self) -> None:
+        paths = app.openapi()["paths"]
+        for path in sorted(PUBLIC_PATHS):
+            for method, operation in paths[path].items():
+                with self.subTest(path=path, method=method):
+                    self.assertIn("not financial advice", operation["description"].lower())
+
     def test_description_states_the_advice_boundary(self) -> None:
         self.assertIn("not financial advice", app.openapi()["info"]["description"].lower())

@@ -312,7 +312,7 @@ async def api_access_log_middleware(request, call_next):
     "/api/health",
     tags=["status"],
     summary="Service health",
-    description="Returns the service health status for deployment probes.",
+    description="Returns the service health status for deployment probes. This is not financial advice.",
 )
 async def health() -> dict[str, str]:
     return {"status": "ok"}
@@ -324,7 +324,7 @@ async def health() -> dict[str, str]:
     summary="Freshness and validation state",
     description=(
         "Returns HTTP 200 when every check passes and HTTP 503 when the data is stale or validation failed. "
-        "Never cached. Call this before reporting any risk value."
+        "Never cached. Call this before reporting any risk value. This is not financial advice."
     ),
 )
 async def readiness() -> Response:
@@ -338,7 +338,7 @@ async def readiness() -> Response:
     summary="Latest Bitcoin risk signal",
     description=(
         "Returns the latest completed daily Bitcoin risk point and its model context. "
-        "Call GET /api/readiness first to confirm the data is usable."
+        "Call GET /api/readiness first to confirm the data is usable. This is not financial advice."
     ),
 )
 async def risk_latest(request: Request) -> Response:
@@ -351,7 +351,7 @@ async def risk_latest(request: Request) -> Response:
     summary="Historical Bitcoin risk signals",
     description=(
         "Returns completed daily Bitcoin risk rows in ascending timestamp order. "
-        "Call GET /api/readiness first to confirm the data is usable."
+        "Call GET /api/readiness first to confirm the data is usable. This is not financial advice."
     ),
 )
 async def risk_history(
@@ -375,7 +375,7 @@ async def risk_history(
     summary="Bitcoin risk-level price scenarios",
     description=(
         "Returns model-solved price scenarios for each risk level. "
-        "These outputs are not forecasts, targets, or trading instructions."
+        "These outputs are not forecasts, targets, or trading instructions. This is not financial advice."
     ),
 )
 async def risk_levels(request: Request) -> Response:
@@ -388,7 +388,7 @@ async def risk_levels(request: Request) -> Response:
     summary="Latest daily Bitcoin brief",
     description=(
         "Returns the latest daily Bitcoin risk brief in the supported locales. "
-        "Call GET /api/readiness first to confirm the data is usable."
+        "Call GET /api/readiness first to confirm the data is usable. This is not financial advice."
     ),
 )
 async def brief_latest(request: Request) -> Response:
@@ -400,7 +400,10 @@ async def brief_latest(request: Request) -> Response:
     status_code=201,
     tags=["waitlist"],
     summary="Join the Bitcoin Risk Brief waitlist",
-    description="Stores a submitted email address or Telegram handle after Turnstile verification.",
+    description=(
+        "Stores a submitted email address or Telegram handle after Turnstile verification. "
+        "This is not financial advice."
+    ),
 )
 async def waitlist_join(payload: WaitlistRequest) -> JSONResponse:
     try:
