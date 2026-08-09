@@ -23,6 +23,40 @@
       content="Bitcoin Risk Brief is a Bitcoin risk analytics and research signal for market context, not financial advice."
     />
     <title>Bitcoin Risk Brief</title>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Dataset",
+        "name": "Bitcoin Risk Brief",
+        "description": "A daily Bitcoin risk signal from 0.0 to 1.0 computed from canonical BTC/USD daily data, with its state, freshness, and the price scenarios that would move it into another band. Analytics and research context, not financial advice.",
+        "url": "https://bitcoinriskbrief.minihub.app/",
+        "license": "https://www.apache.org/licenses/LICENSE-2.0",
+        "isAccessibleForFree": true,
+        "creator": { "@type": "Person", "name": "Andrey Karazhev" },
+        "temporalCoverage": "2010-07-17/..",
+        "variableMeasured": [
+          { "@type": "PropertyValue", "name": "risk", "description": "Modelled risk from 0.0 to 1.0" },
+          { "@type": "PropertyValue", "name": "risk_state", "description": "low, neutral, or high" },
+          { "@type": "PropertyValue", "name": "model_price_usd", "description": "HLC3 of the last completed daily candle" }
+        ],
+        "distribution": [
+          {
+            "@type": "DataDownload",
+            "encodingFormat": "application/json",
+            "contentUrl": "https://bitcoinriskbrief.minihub.app/api/risk/latest"
+          }
+        ]
+      }
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "Bitcoin Risk Brief",
+        "url": "https://bitcoinriskbrief.minihub.app/",
+        "inLanguage": ["en", "ru", "zh", "de", "fr", "es", "ar"]
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
