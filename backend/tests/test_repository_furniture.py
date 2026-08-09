@@ -52,6 +52,12 @@ class ReadmeTests(unittest.TestCase):
         self.assertIn("llms.txt", self.text)
         self.assertIn("/api/openapi.json", self.text)
         self.assertIn("Apache-2.0", self.text)
+        self.assertIn("[llms.txt](frontend/public/llms.txt)", self.text)
+        self.assertIn("[`/api/openapi.json`](backend/app/main.py)", self.text)
+        self.assertIn(
+            "[Agent Access Pack](docs/agents/agent-access-pack.md)",
+            self.text,
+        )
 
     def test_readme_keeps_the_advice_disclaimer(self) -> None:
         self.assertIn("not financial advice", self.text.lower())

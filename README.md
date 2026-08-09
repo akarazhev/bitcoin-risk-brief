@@ -62,7 +62,7 @@ Current operational status, evidence, and accepted limitations: [Production Read
 
 ## For AI agents
 
-Start with the deployed [`llms.txt`](https://bitcoinriskbrief.minihub.app/llms.txt). This branch exposes the machine-readable `/api/openapi.json` endpoint through the [FastAPI application](backend/app/main.py); use the [Agent Access Pack](docs/agents/agent-access-pack.md) for endpoint examples, cache semantics, and interpretation boundaries.
+Start with the repository [llms.txt](frontend/public/llms.txt). This branch defines the machine-readable [`/api/openapi.json`](backend/app/main.py) endpoint; deployment remains pending operator work. Use the [Agent Access Pack](docs/agents/agent-access-pack.md) for endpoint examples, cache semantics, and interpretation boundaries.
 
 Agents must call `/api/readiness` first, bind reported values to its dates and freshness state, and preserve the analytics-not-advice framing.
 
