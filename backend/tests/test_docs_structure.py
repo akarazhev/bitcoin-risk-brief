@@ -37,6 +37,12 @@ EXPECTED_LAYOUT = {
 }
 
 OPERATIONAL_BANNER = "**Operational log.**"
+FENCED_CODE_BLOCK_RE = re.compile(r"(?ms)^(`{3,}|~{3,})[^\n]*\n.*?^\1\s*$")
+
+
+def markdown_link_targets(markdown: str) -> list[str]:
+    prose = FENCED_CODE_BLOCK_RE.sub("", markdown)
+    return re.findall(r"\]\(([^)#]+\.md)[^)]*\)", prose)
 
 
 class DocsStructureTests(unittest.TestCase):
@@ -65,11 +71,29 @@ class DocsStructureTests(unittest.TestCase):
         for path in ROOT.rglob("*.md"):
             if ".git" in path.parts or "node_modules" in path.parts:
                 continue
-            for target in re.findall(r"\]\(([^)#]+\.md)[^)]*\)", path.read_text(encoding="utf-8")):
+            for target in markdown_link_targets(path.read_text(encoding="utf-8")):
                 candidate = (path.parent / target).resolve()
                 if candidate.name in moved and not candidate.exists():
                     broken.append(f"{path.relative_to(ROOT)} -> {target}")
         self.assertEqual([], broken, "links point at pre-restructure paths")
+
+    def test_markdown_link_scan_ignores_fenced_examples(self) -> None:
+        markdown = (
+            "[Current link](docs/operations/production-readiness.md)\n"
+            "```markdown\n"
+            "[README example](docs/operations/production-readiness.md)\n"
+            "```\n"
+        )
+        self.assertEqual(
+            ["docs/operations/production-readiness.md"], markdown_link_targets(markdown)
+        )
+
+    def test_task_9_readme_snippet_uses_root_docs_path(self) -> None:
+        plan = ROOT / "docs" / "superpowers" / "plans" / "2026-08-07-open-source-agent-surface.md"
+        self.assertIn(
+            "[Production Readiness](docs/operations/production-readiness.md)",
+            plan.read_text(encoding="utf-8"),
+        )
 
     def test_current_documentation_index_links_resolve(self) -> None:
         broken: list[str] = []
