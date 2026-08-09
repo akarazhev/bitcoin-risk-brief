@@ -208,7 +208,7 @@ Response shape:
     "snapshot_version": "bitcoin-risk-brief-v1",
     "as_of": "2026-06-25T00:00:00+00:00",
     "risk": 0.3025,
-    "risk_state": "low",
+    "risk_state": "neutral",
     "price_usd": 60100.0,
     "delta_risk": -0.01,
     "sections": {

@@ -90,6 +90,56 @@ class AgentDocumentationTests(unittest.TestCase):
         self.assertIn("X-Cache-Version", text)
         self.assertIn("not financial advice", text.lower())
 
+    def test_brief_shape_examples_use_a_state_matching_the_example_risk(self) -> None:
+        expected = (
+            '"as_of": "2026-06-25T00:00:00+00:00",\n'
+            '    "risk": 0.3025,\n'
+            '    "risk_state": "neutral"'
+        )
+        for relative in (
+            "agents/agent-access-pack.md",
+            "engineering/api-reference.md",
+        ):
+            text = (DOCS / relative).read_text(encoding="utf-8")
+            with self.subTest(relative=relative):
+                self.assertIn(expected, text)
+
+    def test_access_pack_binds_product_dates_to_current_readiness(self) -> None:
+        text = (DOCS / "agents" / "agent-access-pack.md").read_text(encoding="utf-8")
+        normalized = " ".join(text.split())
+        for token in (
+            "`data.timestamp`",
+            "`meta.evaluation_date`",
+            "`meta.base.timestamp`",
+            "`data.as_of`",
+            "`data[*].timestamp`",
+            "both readiness `latest_date` and `covered_end`",
+            "reject the value or label it as not matching current readiness",
+            "browser or edge cache",
+        ):
+            with self.subTest(token=token):
+                self.assertIn(token, normalized)
+
+    def test_access_pack_documents_agent_demand_tracking(self) -> None:
+        text = (DOCS / "agents" / "agent-access-pack.md").read_text(encoding="utf-8")
+        normalized = " ".join(text.split())
+        for token in (
+            "source=agent_access",
+            "source=risk_signal_license",
+            '"source": "agent_access"',
+            "Collect manual requests for",
+            "API keys",
+            "webhooks",
+            "MCP",
+            "SDKs",
+            "embeds",
+            "alerts",
+            "commercial use",
+            "one-product risk-signal licensing",
+        ):
+            with self.subTest(token=token):
+                self.assertIn(token, normalized)
+
     def test_the_freshness_page_explains_every_readiness_check(self) -> None:
         text = (DOCS / "engineering" / "freshness-and-validation.md").read_text(encoding="utf-8")
         for token in (

@@ -15,8 +15,22 @@ An agent must use this sequence for every request that could be described as cur
 2. Continue only when the response is HTTP 200, `status` is `ready`, and every item in `checks` is `true`.
 3. Record `latest_date`, `covered_end`, `data_age_days`, `max_age_days`, `source`, and `methodology_version` from the
    readiness response.
-4. Fetch the required risk, history, levels, or brief endpoint.
-5. Report the covered date and freshness state with any value. If readiness returns HTTP 503, report that the data is
+4. Fetch the required risk, history, levels, or brief endpoint and retain its `X-Cache-Version` response header.
+5. Before using a product payload as current, compare its applicable UTC date with both readiness `latest_date` and
+   `covered_end`:
+
+   - for latest risk, compare the date in `data.timestamp`;
+   - for risk levels, compare `meta.evaluation_date` or the date in `meta.base.timestamp`;
+   - for the brief, compare the date in `data.as_of`;
+   - for history intended to include the current tail, compare the newest date in `data[*].timestamp`. An intentionally
+     historical range is not expected to end on the readiness date and must not be presented as current.
+
+6. If the applicable date does not match both readiness dates, reject the value or label it as not matching current
+   readiness. A product response can come from a browser or edge cache even after the no-store readiness request has
+   returned newer state. `X-Cache-Version` identifies the validation version used for the product response, but it does
+   not replace the date comparison. Do not combine product responses with different `X-Cache-Version` values into one
+   current snapshot.
+7. Report the covered date and freshness state with any value. If readiness returns HTTP 503, report that the data is
    degraded and do not describe a stored or cached value as current.
 
 The model uses completed daily candles. A numeric value alone does not say whether the latest import completed,
@@ -180,7 +194,7 @@ curl --fail-with-body https://bitcoinriskbrief.minihub.app/api/brief/latest
     "snapshot_version": "bitcoin-risk-brief-v1",
     "as_of": "2026-06-25T00:00:00+00:00",
     "risk": 0.3025,
-    "risk_state": "low",
+    "risk_state": "neutral",
     "price_usd": 60100.0,
     "delta_risk": -0.01,
     "sections": {
@@ -213,7 +227,7 @@ curl --fail-with-body \
   --data '{
     "contact": "user@example.com",
     "locale": "en",
-    "source": "landing",
+    "source": "agent_access",
     "turnstile_token": "single-use-client-token"
   }' \
   https://bitcoinriskbrief.minihub.app/api/waitlist
@@ -232,6 +246,18 @@ curl --fail-with-body \
 Successful writes return HTTP 201. The endpoint can also return 403 for rejected Turnstile verification, 503 when
 verification is unavailable, 422 for an invalid payload, and 429 for rate limiting. Failed Turnstile verification does
 not write a lead. Every waitlist response uses `Cache-Control: no-store` and `Pragma: no-cache`.
+
+## Demand tracking
+
+Use `source=agent_access` for waitlist leads or direct contacts about agent and developer access. Use
+`source=risk_signal_license` when the request is specifically about paid reuse of the BTC risk metric in one product or
+AI agent. These values measure demand for a future experiment; they do not imply that authenticated, paid, or licensed
+access exists today.
+
+Collect manual requests for API keys, webhooks, MCP, SDKs, embeds, alerts, commercial use, and one-product risk-signal
+licensing. Keep those requests as sanitized demand themes under the project's privacy constraints; do not place raw
+contacts or private messages in repository evidence. Raw API traffic alone is not proof of integration or payment
+intent.
 
 ## Cache semantics
 
@@ -258,7 +284,8 @@ The cache key includes the full path and query string, so different history filt
 
 The backend cache storage key also includes `X-Cache-Version`. After the collector successfully writes a new validation
 row, an older in-process entry cannot satisfy a request for the new version; the next request rebuilds synchronously.
-Clients must still read readiness first because browser and edge caches follow their own `Cache-Control` lifetime.
+Clients must still read readiness first and compare product dates because browser and edge caches follow their own
+`Cache-Control` lifetime.
 
 ## Rate limits
 
