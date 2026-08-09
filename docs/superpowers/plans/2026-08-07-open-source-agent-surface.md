@@ -82,7 +82,7 @@ curl -fsSL https://www.apache.org/licenses/LICENSE-2.0.txt -o LICENSE
 
 Then append the copyright line to the end of `LICENSE`, replacing the bracketed placeholder block if present, and create `CONTRIBUTING.md`:
 
-```markdown
+````markdown
 # Contributing
 
 Thanks for looking at Bitcoin Risk Brief. This is a small, focused product, so the most useful contributions are
@@ -128,7 +128,7 @@ Run the checks that match what you changed:
 ## Licence
 
 Contributions are accepted under the Apache-2.0 licence in `LICENSE`.
-```
+````
 
 And `SECURITY.md`:
 
@@ -827,7 +827,7 @@ git commit -m "docs: restructure documentation into product, engineering, agents
 Create `docs/requirements.txt`:
 
 ```text
-mkdocs-material==9.5.44
+mkdocs-material==9.7.7
 ```
 
 Create `mkdocs.yml` at the repository root:
