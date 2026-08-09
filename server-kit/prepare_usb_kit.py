@@ -20,10 +20,10 @@ COPIED_CATEGORIES = (
 )
 SERVER_ENTRYPOINTS = ("deploy-from-usb.sh",)
 DOCS_TO_COPY = (
-    "docs/server-msi-cubi5-ubuntu-26.04.md",
-    "docs/deploy-ubuntu-cloudflare.md",
-    "docs/operations.md",
-    "docs/production-readiness.md",
+    "docs/operations/server-msi-cubi5-ubuntu-26.04.md",
+    "docs/operations/deploy-ubuntu-cloudflare.md",
+    "docs/operations/operations.md",
+    "docs/operations/production-readiness.md",
     "docs/superpowers/specs/2026-07-01-usb-update-install-kit-v2-design.md",
 )
 REQUIRED_SERVER_SCRIPTS = (

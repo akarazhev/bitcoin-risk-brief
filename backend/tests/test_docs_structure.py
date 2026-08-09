@@ -49,6 +49,11 @@ class DocsStructureTests(unittest.TestCase):
         stray = {path.name for path in DOCS.glob("*.md")} - {"README.md", "index.md"}
         self.assertEqual(set(), stray, f"unmoved documents remain at docs/: {stray}")
 
+    def test_agents_tier_has_a_public_landing_page(self) -> None:
+        landing = DOCS / "agents" / "index.md"
+        self.assertTrue(landing.is_file(), "docs/agents/index.md must keep the agents tier tracked")
+        self.assertIn("not financial advice", landing.read_text(encoding="utf-8").lower())
+
     def test_operations_pages_carry_the_operational_log_banner(self) -> None:
         for path in (DOCS / "operations").glob("*.md"):
             with self.subTest(path=path.name):
@@ -65,3 +70,16 @@ class DocsStructureTests(unittest.TestCase):
                 if candidate.name in moved and not candidate.exists():
                     broken.append(f"{path.relative_to(ROOT)} -> {target}")
         self.assertEqual([], broken, "links point at pre-restructure paths")
+
+    def test_current_documentation_index_links_resolve(self) -> None:
+        broken: list[str] = []
+        for path in (DOCS / "README.md", DOCS / "index.md"):
+            for target in re.findall(r"\]\(([^)#]+)[^)]*\)", path.read_text(encoding="utf-8")):
+                if "://" in target:
+                    continue
+                candidate = path.parent / target
+                if target.endswith("/"):
+                    candidate /= "index.md"
+                if not candidate.resolve().exists():
+                    broken.append(f"{path.relative_to(ROOT)} -> {target}")
+        self.assertEqual([], broken, "current documentation index links must resolve to tracked artifacts")

@@ -24,4 +24,4 @@ Bitcoin Risk Brief is an analytics and research product, not financial advice, i
 ## What this product stores
 
 The waitlist stores contacts submitted deliberately by visitors. There is no product analytics, no tracking cookie,
-and no third-party beacon. See `docs/security-and-privacy.md`.
+and no third-party beacon. See `docs/engineering/security-and-privacy.md`.

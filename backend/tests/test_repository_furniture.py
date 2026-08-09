@@ -27,4 +27,5 @@ class RepositoryFurnitureTests(unittest.TestCase):
     def test_security_policy_preserves_advice_boundary_and_current_privacy_link(self) -> None:
         text = (ROOT / "SECURITY.md").read_text(encoding="utf-8")
         self.assertIn("not financial advice", text.lower())
-        self.assertIn("docs/security-and-privacy.md", text)
+        self.assertIn("docs/engineering/security-and-privacy.md", text)
+        self.assertNotIn("docs/security-and-privacy.md", text)
