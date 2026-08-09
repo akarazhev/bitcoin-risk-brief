@@ -12,11 +12,17 @@ EXPECTED_LAYOUT = {
     "engineering": {
         "architecture.md",
         "data-pipeline.md",
+        "freshness-and-validation.md",
         "api-reference.md",
         "testing-and-quality.md",
         "security-and-privacy.md",
         "frontend-qa.md",
         "waitlist.md",
+    },
+    "agents": {
+        "index.md",
+        "agent-access-pack.md",
+        "openapi.md",
     },
     "operations": {
         "operations.md",
