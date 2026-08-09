@@ -6,9 +6,10 @@
 
 ## Read this first
 
-Always call `/api/readiness` before reporting any value. It returns HTTP 503 when data is stale or validation failed.
-A risk number without its freshness state is not usable, and this product returns 503 rather than serving a stale
-figure. Never present a risk value without also stating its covered date and freshness.
+Always call `/api/readiness` before reporting any value. It returns HTTP 200 with `status: ready` when checks pass and
+HTTP 503 with `status: degraded` when data is stale or validation failed. Product data endpoints can still return the
+latest stored rows; treat those rows as not current unless readiness is `ready` and their dates match readiness.
+Never present a risk value without also stating its covered date and freshness.
 
 ## Endpoints
 
@@ -19,7 +20,7 @@ Base URL: https://bitcoinriskbrief.minihub.app
 - `GET /api/risk/history?limit=730`: historical risk rows, ascending by timestamp.
 - `GET /api/risk/levels`: the solved price ladder — which BTC price corresponds to which risk level.
 - `GET /api/brief/latest`: the daily brief in seven locales.
-- `GET /api/openapi.json`: the full machine-readable contract.
+- `GET /api/openapi.json`: machine-readable route metadata, statuses, headers, and response examples.
 
 ## Interpretation
 
@@ -27,7 +28,8 @@ Base URL: https://bitcoinriskbrief.minihub.app
 - The reported price is HLC3 from the last completed daily candle. It is not a live spot price.
 - Risk-level prices are scenario outputs solved through the same model. They are not forecasts, targets, or
   support levels.
-- Methodology is versioned. The version travels with every response.
+- Methodology is versioned and appears where the endpoint payload includes methodology metadata; do not assume every
+  response carries it.
 
 ## What not to do
 
@@ -164,7 +166,7 @@ otherwise. It returns `Cache-Control: no-store` and `Pragma: no-cache`.
 
 ```json
 {
-  "status": "ready | not_ready",
+  "status": "ready | degraded",
   "checks": {
     "risk_data_available": "boolean",
     "validation_available": "boolean",

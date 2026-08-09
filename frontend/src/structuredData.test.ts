@@ -25,9 +25,22 @@ describe('structured data', () => {
     expect(String(dataset?.description).toLowerCase()).toContain('not financial advice')
   })
 
+  it('does not license third-party BTC market data as Apache-2.0', () => {
+    const dataset = extractJsonLd().find((entry) => entry['@type'] === 'Dataset')
+    expect(dataset?.license).toBeUndefined()
+    expect(String(dataset?.usageInfo).toLowerCase()).toContain('third-party btc/usd market data')
+    expect(String(dataset?.usageInfo).toLowerCase()).toContain('not financial advice')
+  })
+
+  it('uses the canonical CSV start date for temporal coverage', () => {
+    const dataset = extractJsonLd().find((entry) => entry['@type'] === 'Dataset')
+    expect(dataset?.temporalCoverage).toBe('2010-07-13/..')
+  })
+
   it('embeds no concrete risk reading', () => {
     for (const entry of extractJsonLd()) {
       expect(JSON.stringify(entry)).not.toMatch(/\brisk\b[^"]*?\b0\.\d{3,}/i)
+      expect(JSON.stringify(entry)).not.toMatch(/\\"risk\\"\s*:\s*0\.\d{3,}/i)
     }
   })
 })

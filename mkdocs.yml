@@ -45,6 +45,7 @@ nav:
       - Frontend QA: engineering/frontend-qa.md
       - Waitlist: engineering/waitlist.md
   - Agents:
+      - Overview: agents/index.md
       - Agent access pack: agents/agent-access-pack.md
       - OpenAPI: agents/openapi.md
   - Operations:

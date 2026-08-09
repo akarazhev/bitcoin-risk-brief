@@ -64,6 +64,160 @@ class WaitlistRequest(BaseModel):
     turnstile_token: str = Field(min_length=1, max_length=2048)
 
 
+def _response_headers(*names: str) -> dict[str, dict[str, Any]]:
+    descriptions = {
+        "Cache-Control": "Cache policy for this response.",
+        "ETag": "Opaque validator for conditional revalidation.",
+        "Pragma": "Legacy no-cache marker.",
+        "X-Cache": "In-process public read cache result.",
+        "X-Cache-Version": "Validation-derived public data version.",
+    }
+    return {
+        name: {"description": descriptions[name], "schema": {"type": "string"}}
+        for name in names
+    }
+
+
+NO_STORE_RESPONSE_HEADERS = _response_headers("Cache-Control", "Pragma")
+PUBLIC_CACHE_RESPONSE_HEADERS = _response_headers(
+    "Cache-Control",
+    "ETag",
+    "X-Cache",
+    "X-Cache-Version",
+)
+
+
+def _json_example_response(
+    description: str,
+    example: dict[str, Any],
+    *,
+    headers: dict[str, dict[str, Any]] | None = None,
+) -> dict[str, Any]:
+    response: dict[str, Any] = {
+        "description": description,
+        "content": {
+            "application/json": {
+                "examples": {
+                    "shape": {
+                        "summary": "Illustrative response shape, not a current market reading",
+                        "value": example,
+                    }
+                }
+            }
+        },
+    }
+    if headers:
+        response["headers"] = headers
+    return response
+
+
+def _empty_response(
+    description: str,
+    *,
+    headers: dict[str, dict[str, Any]] | None = None,
+) -> dict[str, Any]:
+    response: dict[str, Any] = {"description": description}
+    if headers:
+        response["headers"] = headers
+    return response
+
+
+def _error_response(
+    description: str,
+    detail: str,
+    *,
+    headers: dict[str, dict[str, Any]] | None = None,
+) -> dict[str, Any]:
+    return _json_example_response(description, {"detail": detail}, headers=headers)
+
+
+READINESS_READY_EXAMPLE = {
+    "status": "ready",
+    "checks": {
+        "risk_data_available": True,
+        "validation_available": True,
+        "risk_range_ok": True,
+        "validation_has_rows": True,
+        "latest_matches_validation_end": True,
+        "source_is_canonical": True,
+        "data_fresh": True,
+    },
+    "data": {
+        "latest_date": "2026-06-25",
+        "covered_end": "2026-06-25",
+        "data_age_days": 1,
+        "max_age_days": 2,
+        "source": "coinmarketcap_csv",
+        "row_count": 5800,
+        "methodology_version": "crypto-scout-canonical-v1.1",
+    },
+}
+READINESS_DEGRADED_EXAMPLE = {
+    **READINESS_READY_EXAMPLE,
+    "status": "degraded",
+    "checks": {**READINESS_READY_EXAMPLE["checks"], "data_fresh": False},
+    "data": {**READINESS_READY_EXAMPLE["data"], "data_age_days": 3},
+}
+RISK_POINT_EXAMPLE = {
+    "timestamp": "2026-06-25T00:00:00+00:00",
+    "price_usd": 65000.0,
+    "model_price_usd": 65000.0,
+    "low_usd": 64000.0,
+    "high_usd": 66000.0,
+    "risk": 0.5,
+    "score": 0.0,
+    "risk_state": "neutral",
+    "trend_dev": 0.0,
+    "vol_regime": 0.03,
+    "turnover": -9.0,
+    "z_trend_dev": 0.0,
+    "z_vol_regime": 0.0,
+    "z_turnover": 0.0,
+    "turnover_enabled": True,
+}
+RISK_LEVELS_EXAMPLE = {
+    "data": [
+        {"risk": 0.0, "price_usd": 10000.0},
+        {"risk": 0.5, "price_usd": 65000.0},
+    ],
+    "meta": {
+        "base": {"timestamp": "2026-06-25T00:00:00+00:00", "risk": 0.5},
+        "methodology_version": "crypto-scout-canonical-v1.1",
+        "evaluation_date": "2026-06-25",
+        "current_price": 65000.0,
+        "current_risk": 0.5,
+        "turnover_enabled": True,
+        "risk_step": 0.025,
+        "source_row_count": 5800,
+    },
+}
+BRIEF_EXAMPLE = {
+    "data": {
+        "snapshot_version": "bitcoin-risk-brief-v1",
+        "as_of": "2026-06-25T00:00:00+00:00",
+        "risk": 0.5,
+        "risk_state": "neutral",
+        "price_usd": 65000.0,
+        "delta_risk": 0.0,
+        "sections": {
+            "en": {
+                "summary": "Illustrative response shape only.",
+                "what_changed": "Use live data and readiness before reporting.",
+                "avoid_now": "Do not treat this as financial advice.",
+                "confirm_next": "Check readiness and dates again.",
+            }
+        },
+    }
+}
+WAITLIST_CREATED_EXAMPLE = {
+    "data": {
+        "contact_type": "email",
+        "locale": "en",
+        "created": "2026-06-25T00:00:00+00:00",
+    }
+}
+
+
 app = FastAPI(
     title="Bitcoin Risk Brief API",
     version="0.1.0",
@@ -313,6 +467,9 @@ async def api_access_log_middleware(request, call_next):
     tags=["status"],
     summary="Service health",
     description="Returns the service health status for deployment probes. This is not financial advice.",
+    responses={
+        200: _json_example_response("Service health probe succeeded.", {"status": "ok"}),
+    },
 )
 async def health() -> dict[str, str]:
     return {"status": "ok"}
@@ -326,6 +483,18 @@ async def health() -> dict[str, str]:
         "Returns HTTP 200 when every check passes and HTTP 503 when the data is stale or validation failed. "
         "Never cached. Call this before reporting any risk value. This is not financial advice."
     ),
+    responses={
+        200: _json_example_response(
+            "All freshness and validation checks passed.",
+            READINESS_READY_EXAMPLE,
+            headers=NO_STORE_RESPONSE_HEADERS,
+        ),
+        503: _json_example_response(
+            "One or more freshness or validation checks failed.",
+            READINESS_DEGRADED_EXAMPLE,
+            headers=NO_STORE_RESPONSE_HEADERS,
+        ),
+    },
 )
 async def readiness() -> Response:
     payload, status_code = await _produce_readiness_payload()
@@ -340,6 +509,18 @@ async def readiness() -> Response:
         "Returns the latest completed daily Bitcoin risk point and its model context. "
         "Call GET /api/readiness first to confirm the data is usable. This is not financial advice."
     ),
+    responses={
+        200: _json_example_response(
+            "Latest stored risk point.",
+            {"data": RISK_POINT_EXAMPLE},
+            headers=PUBLIC_CACHE_RESPONSE_HEADERS,
+        ),
+        304: _empty_response(
+            "The client's ETag matches the current public cache entry.",
+            headers=PUBLIC_CACHE_RESPONSE_HEADERS,
+        ),
+        404: _error_response("Risk data is not available yet.", "Risk data has not been collected yet"),
+    },
 )
 async def risk_latest(request: Request) -> Response:
     return await _cached_public_json_response(request, _produce_risk_latest_payload)
@@ -353,6 +534,18 @@ async def risk_latest(request: Request) -> Response:
         "Returns completed daily Bitcoin risk rows in ascending timestamp order. "
         "Call GET /api/readiness first to confirm the data is usable. This is not financial advice."
     ),
+    responses={
+        200: _json_example_response(
+            "Historical stored risk rows.",
+            {"data": [RISK_POINT_EXAMPLE], "meta": {"returned_points": 1}},
+            headers=PUBLIC_CACHE_RESPONSE_HEADERS,
+        ),
+        304: _empty_response(
+            "The client's ETag matches the current public cache entry.",
+            headers=PUBLIC_CACHE_RESPONSE_HEADERS,
+        ),
+        400: _error_response("The date range is invalid.", "start_date must be earlier than end_date"),
+    },
 )
 async def risk_history(
     request: Request,
@@ -377,6 +570,21 @@ async def risk_history(
         "Returns model-solved price scenarios for each risk level. "
         "These outputs are not forecasts, targets, or trading instructions. This is not financial advice."
     ),
+    responses={
+        200: _json_example_response(
+            "Risk-level price scenario ladder.",
+            RISK_LEVELS_EXAMPLE,
+            headers=PUBLIC_CACHE_RESPONSE_HEADERS,
+        ),
+        304: _empty_response(
+            "The client's ETag matches the current public cache entry.",
+            headers=PUBLIC_CACHE_RESPONSE_HEADERS,
+        ),
+        404: _error_response(
+            "Risk source data is not available yet.",
+            "Risk source data has not been collected yet",
+        ),
+    },
 )
 async def risk_levels(request: Request) -> Response:
     return await _cached_public_json_response(request, _produce_risk_levels_payload)
@@ -390,6 +598,18 @@ async def risk_levels(request: Request) -> Response:
         "Returns the latest daily Bitcoin risk brief in the supported locales. "
         "Call GET /api/readiness first to confirm the data is usable. This is not financial advice."
     ),
+    responses={
+        200: _json_example_response(
+            "Latest stored daily brief.",
+            BRIEF_EXAMPLE,
+            headers=PUBLIC_CACHE_RESPONSE_HEADERS,
+        ),
+        304: _empty_response(
+            "The client's ETag matches the current public cache entry.",
+            headers=PUBLIC_CACHE_RESPONSE_HEADERS,
+        ),
+        404: _error_response("Brief data is not available yet.", "Brief data has not been collected yet"),
+    },
 )
 async def brief_latest(request: Request) -> Response:
     return await _cached_public_json_response(request, _produce_brief_latest_payload)
@@ -404,6 +624,33 @@ async def brief_latest(request: Request) -> Response:
         "Stores a submitted email address or Telegram handle after Turnstile verification. "
         "This is not financial advice."
     ),
+    responses={
+        201: _json_example_response(
+            "Waitlist contact accepted.",
+            WAITLIST_CREATED_EXAMPLE,
+            headers=NO_STORE_RESPONSE_HEADERS,
+        ),
+        403: _error_response(
+            "Turnstile rejected the request.",
+            "Turnstile verification failed",
+            headers=NO_STORE_RESPONSE_HEADERS,
+        ),
+        422: _error_response(
+            "The submitted contact or request body is invalid.",
+            "Invalid contact",
+            headers=NO_STORE_RESPONSE_HEADERS,
+        ),
+        429: _error_response(
+            "Too many waitlist submissions from the same client.",
+            "Too many waitlist requests",
+            headers=NO_STORE_RESPONSE_HEADERS,
+        ),
+        503: _error_response(
+            "Turnstile verification is temporarily unavailable.",
+            "Turnstile verification unavailable",
+            headers=NO_STORE_RESPONSE_HEADERS,
+        ),
+    },
 )
 async def waitlist_join(payload: WaitlistRequest) -> JSONResponse:
     try:

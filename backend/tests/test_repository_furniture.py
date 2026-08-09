@@ -14,6 +14,16 @@ class RepositoryFurnitureTests(unittest.TestCase):
         self.assertIn("Apache License", text)
         self.assertIn("Version 2.0, January 2004", text)
 
+    def test_notice_scopes_apache_away_from_third_party_market_data(self) -> None:
+        notice = ROOT / "NOTICE"
+        self.assertTrue(notice.is_file(), "NOTICE must explain repository licensing boundaries")
+        text = notice.read_text(encoding="utf-8")
+        self.assertIn("Apache-2.0", text)
+        self.assertIn("owned source code, documentation, and configuration", text.lower())
+        self.assertIn("collector/btc-csv/btc_usd_daily.csv", text)
+        self.assertIn("third-party", text.lower())
+        self.assertIn("not financial advice", text.lower())
+
     def test_contributing_and_security_exist(self) -> None:
         for name in ("CONTRIBUTING.md", "SECURITY.md"):
             path = ROOT / name
@@ -52,6 +62,9 @@ class ReadmeTests(unittest.TestCase):
         self.assertIn("llms.txt", self.text)
         self.assertIn("/api/openapi.json", self.text)
         self.assertIn("Apache-2.0", self.text)
+        self.assertIn("owned source code, documentation, and configuration", self.text.lower())
+        self.assertIn("third-party BTC/USD market data", self.text)
+        self.assertIn("[NOTICE](NOTICE)", self.text)
         self.assertIn("[llms.txt](frontend/public/llms.txt)", self.text)
         self.assertIn("[`/api/openapi.json`](backend/app/main.py)", self.text)
         self.assertIn(

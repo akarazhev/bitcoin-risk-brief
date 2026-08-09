@@ -1,6 +1,6 @@
 # Bitcoin Risk Brief
 
-Bitcoin Risk Brief is an open-source production-pilot product that turns canonical daily BTC/USD data into a transparent risk score, freshness state, and scenario price ladder.
+Bitcoin Risk Brief is a production-pilot product that turns canonical daily BTC/USD data into a transparent risk score, freshness state, and scenario price ladder. The owned source code, documentation, and configuration are Apache-2.0; bundled third-party BTC/USD market data is not.
 
 [![CI](https://github.com/akarazhev/bitcoin-risk-brief/actions/workflows/ci.yml/badge.svg)](https://github.com/akarazhev/bitcoin-risk-brief/actions/workflows/ci.yml) [![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE) [![Live site](https://img.shields.io/website?url=https%3A%2F%2Fbitcoinriskbrief.minihub.app%2F&label=live%20site)](https://bitcoinriskbrief.minihub.app/)
 
@@ -115,4 +115,4 @@ Open: `http://localhost:3001`
 
 Bitcoin Risk Brief provides analytics and research context only. It is not financial advice, investment advice, a price forecast, or a trading recommendation.
 
-Licensed under [Apache-2.0](LICENSE).
+Owned source code, documentation, and configuration are licensed under [Apache-2.0](LICENSE). Bundled third-party BTC/USD market data remains subject to source-provider terms; see [NOTICE](NOTICE).

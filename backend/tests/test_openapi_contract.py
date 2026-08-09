@@ -14,6 +14,54 @@ PUBLIC_PATHS = {
     "/api/waitlist",
 }
 
+RESPONSE_METADATA_REQUIREMENTS = {
+    ("/api/health", "get"): {
+        "statuses": {"200"},
+        "example_status": "200",
+    },
+    ("/api/readiness", "get"): {
+        "statuses": {"200", "503"},
+        "example_status": "200",
+        "headers": {"Cache-Control", "Pragma"},
+        "header_statuses": {"200", "503"},
+    },
+    ("/api/risk/latest", "get"): {
+        "statuses": {"200", "304", "404"},
+        "example_status": "200",
+        "headers": {"Cache-Control", "ETag", "X-Cache", "X-Cache-Version"},
+        "header_statuses": {"200", "304"},
+    },
+    ("/api/risk/history", "get"): {
+        "statuses": {"200", "304", "400"},
+        "example_status": "200",
+        "headers": {"Cache-Control", "ETag", "X-Cache", "X-Cache-Version"},
+        "header_statuses": {"200", "304"},
+    },
+    ("/api/risk/levels", "get"): {
+        "statuses": {"200", "304", "404"},
+        "example_status": "200",
+        "headers": {"Cache-Control", "ETag", "X-Cache", "X-Cache-Version"},
+        "header_statuses": {"200", "304"},
+    },
+    ("/api/brief/latest", "get"): {
+        "statuses": {"200", "304", "404"},
+        "example_status": "200",
+        "headers": {"Cache-Control", "ETag", "X-Cache", "X-Cache-Version"},
+        "header_statuses": {"200", "304"},
+    },
+    ("/api/waitlist", "post"): {
+        "statuses": {"201", "403", "422", "429", "503"},
+        "example_status": "201",
+        "headers": {"Cache-Control", "Pragma"},
+        "header_statuses": {"201", "403", "422", "429", "503"},
+    },
+}
+
+
+def _json_response_has_example(response: dict) -> bool:
+    json_content = response.get("content", {}).get("application/json", {})
+    return bool(json_content.get("example") or json_content.get("examples"))
+
 
 class OpenApiContractTests(unittest.TestCase):
     def test_schema_is_served_under_the_api_prefix(self) -> None:
@@ -51,3 +99,36 @@ class OpenApiContractTests(unittest.TestCase):
 
     def test_description_states_the_advice_boundary(self) -> None:
         self.assertIn("not financial advice", app.openapi()["info"]["description"].lower())
+
+    def test_public_routes_declare_statuses_headers_and_examples(self) -> None:
+        paths = app.openapi()["paths"]
+        for (path, method), requirements in sorted(RESPONSE_METADATA_REQUIREMENTS.items()):
+            operation = paths[path][method]
+            responses = operation["responses"]
+            with self.subTest(path=path, method=method, check="statuses"):
+                self.assertTrue(requirements["statuses"].issubset(responses.keys()))
+
+            for status in requirements["statuses"]:
+                with self.subTest(path=path, method=method, status=status, check="description"):
+                    response = responses.get(status)
+                    self.assertIsNotNone(response)
+                    if response is not None:
+                        self.assertTrue(response.get("description"))
+
+            example_status = requirements["example_status"]
+            with self.subTest(path=path, method=method, status=example_status, check="example"):
+                response = responses.get(example_status)
+                self.assertIsNotNone(response)
+                if response is not None:
+                    self.assertTrue(
+                        _json_response_has_example(response),
+                        f"{method} {path} {example_status} needs a JSON response example",
+                    )
+
+            for status in requirements.get("header_statuses", set()):
+                with self.subTest(path=path, method=method, status=status, check="headers"):
+                    response = responses.get(status)
+                    self.assertIsNotNone(response)
+                    if response is not None:
+                        headers = response.get("headers", {})
+                        self.assertTrue(requirements["headers"].issubset(headers.keys()))

@@ -42,4 +42,5 @@ Run the checks that match what you changed:
 
 ## Licence
 
-Contributions are accepted under the Apache-2.0 licence in `LICENSE`.
+Contributions to owned source code, documentation, and configuration are accepted under the Apache-2.0 licence in
+`LICENSE`. Third-party BTC/USD market data is not covered by that licence.

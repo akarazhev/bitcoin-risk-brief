@@ -113,3 +113,27 @@ class DocsStructureTests(unittest.TestCase):
                 if not candidate.resolve().exists():
                     broken.append(f"{path.relative_to(ROOT)} -> {target}")
         self.assertEqual([], broken, "current documentation index links must resolve to tracked artifacts")
+
+    def test_current_published_docs_do_not_link_to_excluded_superpowers_archive(self) -> None:
+        offenders: list[str] = []
+        for path in DOCS.rglob("*.md"):
+            if "superpowers" in path.parts:
+                continue
+            for target in markdown_link_targets(path.read_text(encoding="utf-8")):
+                normalized = target.replace("\\", "/")
+                if "superpowers/" in normalized:
+                    offenders.append(f"{path.relative_to(ROOT)} -> {target}")
+        self.assertEqual([], offenders, "published docs must not Markdown-link into mkdocs-excluded docs/superpowers/")
+
+    def test_current_license_docs_record_scoped_apache_decision(self) -> None:
+        dependency_review = (DOCS / "operations" / "dependency-license-review.md").read_text(encoding="utf-8")
+        production_readiness = (DOCS / "operations" / "production-readiness.md").read_text(encoding="utf-8")
+
+        for text in (dependency_review, production_readiness):
+            with self.subTest(document=text[:40]):
+                self.assertIn("Apache-2.0", text)
+                self.assertIn("owned source code, documentation, and configuration", text.lower())
+                self.assertIn("third-party", text.lower())
+
+        self.assertNotIn("no committed `LICENSE` file", dependency_review)
+        self.assertNotIn("project license choice", production_readiness)

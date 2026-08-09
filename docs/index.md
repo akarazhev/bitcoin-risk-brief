@@ -8,5 +8,5 @@ advice, investment advice, or a trading recommendation.
 
 - [Product](product/product-spec.md)
 - [Engineering](engineering/architecture.md)
-- [Agents](agents/)
+- [Agents](agents/index.md)
 - [Operations](operations/production-readiness.md)

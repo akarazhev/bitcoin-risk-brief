@@ -472,8 +472,8 @@ stale/degraded readiness remains a blocker until the production data issue is fi
 only benefits production after the warmup implementation is deployed there.
 
 The expensive first-miss candidate is `/api/risk/levels`, because it reads full OHLCV history and builds risk-level rows
-on demand. See
-[Public Payload Cache Warmup And Precompute Design](../superpowers/specs/2026-07-01-public-payload-cache-warmup-precompute-design.md).
+on demand. Historical design context remains in
+`docs/superpowers/specs/2026-07-01-public-payload-cache-warmup-precompute-design.md`.
 
 Verify conditional revalidation:
 
@@ -939,8 +939,9 @@ evidence in [Production Readiness](production-readiness.md):
   root `docker-compose` ecosystem entry for Compose-style image references. GitHub-hosted Dependabot execution, first PR
   evidence, and Podman-specific filename handling remain pending until the config is merged/pushed and observed. Continue
   the monthly manual review for security advisories, vulnerability scan results if available, secret-scan output, Python
-  transitive inventory, container image and OS package licenses, GitHub Actions/license posture, project license choice,
-  and legal compatibility. Record only the date, scope, outcome, and required follow-up.
+  transitive inventory, container image and OS package licenses, GitHub Actions/license posture, scoped project-licence
+  boundaries, third-party market-data terms, and legal compatibility. Record only the date, scope, outcome, and required
+  follow-up.
 - Data-source terms review: accepted limitation for the unpaid/non-commercial pilot only. Record the CoinMarketCap public
   CSV and optional API usage terms/plan outcome before commercial claims, paid beta, or broader distribution. For future
   methodology sources, record terms and attribution before the source becomes production-critical.

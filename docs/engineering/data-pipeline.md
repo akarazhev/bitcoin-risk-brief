@@ -82,8 +82,8 @@ the scheduled run falls back to the optional official API delta refresh. With no
 visible in collector logs and the canonical CSV remains unchanged.
 
 Manual `import-cmc-csv` remains the operator fallback when public automation and any configured API fallback are
-unavailable. See
-[Scheduled Public CoinMarketCap Refresh Design](../superpowers/specs/2026-07-01-scheduled-public-cmc-refresh-design.md).
+unavailable. Historical design context remains in
+`docs/superpowers/specs/2026-07-01-scheduled-public-cmc-refresh-design.md`.
 
 ## Optional CoinMarketCap API Delta Fetch
 

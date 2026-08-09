@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 import unittest
 import xml.etree.ElementTree as ET
+import re
 
 ROOT = Path(__file__).resolve().parents[2]
 PUBLIC_DIR = ROOT / "frontend" / "public"
@@ -11,6 +12,10 @@ NGINX_CONF = ROOT / "frontend" / "nginx.conf"
 PRODUCT_URL = "https://bitcoinriskbrief.minihub.app/"
 DOCS_URL = "https://docs.bitcoinriskbrief.minihub.app/"
 DOCS = ROOT / "docs"
+CONCRETE_RISK_READING_RE = re.compile(
+    r"(?:\\?[\"']risk\\?[\"']|\brisk\b)\s*(?:[:=]|\s)\s*\\?[\"']?0\.\d{3,}\b",
+    re.IGNORECASE,
+)
 
 
 class AgentStaticFileTests(unittest.TestCase):
@@ -45,15 +50,45 @@ class AgentStaticFileTests(unittest.TestCase):
         self.assertIn("not financial advice", text.lower())
 
     def test_agent_files_never_embed_a_risk_value(self) -> None:
-        import re
-
-        pattern = re.compile(r"\brisk\b[^\n]*?\b0\.\d{3,}", re.IGNORECASE)
         for name in ("llms.txt", "llms-full.txt"):
             text = (PUBLIC_DIR / name).read_text(encoding="utf-8")
             self.assertIsNone(
-                pattern.search(text),
+                CONCRETE_RISK_READING_RE.search(text),
                 f"{name} must not embed a concrete risk reading; it would go stale",
             )
+
+    def test_concrete_risk_pattern_catches_json_key_examples_without_banning_shapes(self) -> None:
+        blocked = (
+            '"risk": 0.3025',
+            '\\"risk\\": 0.3025',
+            "risk = 0.3025",
+            "risk 0.3025",
+        )
+        allowed = (
+            '"risk": "number in [0.0, 1.0]"',
+            '"current_risk": "number in [0.0, 1.0]"',
+            "target risk values from `0.0` to `1.0`",
+        )
+        for sample in blocked:
+            with self.subTest(sample=sample):
+                self.assertIsNotNone(CONCRETE_RISK_READING_RE.search(sample))
+        for sample in allowed:
+            with self.subTest(sample=sample):
+                self.assertIsNone(CONCRETE_RISK_READING_RE.search(sample))
+
+    def test_agent_files_describe_runtime_readiness_semantics(self) -> None:
+        for name in ("llms.txt", "llms-full.txt"):
+            text = (PUBLIC_DIR / name).read_text(encoding="utf-8")
+            normalized = " ".join(text.split())
+            with self.subTest(name=name):
+                self.assertNotIn("not_ready", text)
+                self.assertNotIn("version travels with every response", normalized)
+                self.assertNotIn("product returns 503 rather than serving a stale figure", normalized)
+                self.assertIn("Product data endpoints can still return the latest stored rows", normalized)
+                self.assertIn("not current unless readiness is `ready`", normalized)
+
+        full_text = (PUBLIC_DIR / "llms-full.txt").read_text(encoding="utf-8")
+        self.assertIn('"status": "ready | degraded"', full_text)
 
 
 class NginxRouteTests(unittest.TestCase):

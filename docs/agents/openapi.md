@@ -7,9 +7,10 @@ https://bitcoinriskbrief.minihub.app/api/openapi.json
 ```
 
 It describes the seven public application endpoints: health, readiness, latest risk, risk history, risk levels, latest
-brief, and waitlist submission. Generated code does not enforce the product's interpretation rules: clients must still
-call `/api/readiness` first and must not present any output as financial advice, investment advice, a price forecast, or
-a trading recommendation.
+brief, and waitlist submission, including route summaries, status codes, cache/no-store headers, and illustrative
+response examples. Generated code does not enforce the product's interpretation rules: clients must still call
+`/api/readiness` first and must not present any output as financial advice, investment advice, a price forecast, or a
+trading recommendation.
 
 Interactive documentation is deliberately absent. The strict Content-Security-Policy blocks the CDN-loaded assets used
 by the default Swagger UI, so the backend exposes the schema while leaving Swagger UI and ReDoc disabled. The CSP is not

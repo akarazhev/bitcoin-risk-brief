@@ -699,12 +699,21 @@ Before broader public launch, recurring daily backup/off-server-copy automation,
 - [Ubuntu and Cloudflare Tunnel Deployment](deploy-ubuntu-cloudflare.md)
 - [Testing and Quality](../engineering/testing-and-quality.md)
 - [Security and Privacy](../engineering/security-and-privacy.md)
-- [Agent Access And Risk-Signal Licensing Demand Test Design](../superpowers/specs/2026-06-30-agent-access-demand-test-design.md)
-- [Product Analytics And Usage Attribution Design](../superpowers/specs/2026-07-01-product-analytics-usage-attribution-design.md)
-- [Public Payload Cache Warmup And Precompute Design](../superpowers/specs/2026-07-01-public-payload-cache-warmup-precompute-design.md)
-- [Launch Operations And Governance Checklist Design](../superpowers/specs/2026-07-01-launch-operations-governance-checklist-design.md)
-- [Documentation And Portfolio Presentation Design](../superpowers/specs/2026-07-01-documentation-portfolio-presentation-design.md)
-- [Localization Quality And Language Expansion Design](../superpowers/specs/2026-07-01-localization-quality-language-expansion-design.md)
-- [Scheduled Public CoinMarketCap Refresh Design](../superpowers/specs/2026-07-01-scheduled-public-cmc-refresh-design.md)
-- [Risk Methodology Research Design](../superpowers/specs/2026-07-01-risk-methodology-research-design.md)
-- [Distribution Channel Research Design](../superpowers/specs/2026-07-01-distribution-channel-research-design.md)
+- Agent Access And Risk-Signal Licensing Demand Test Design:
+  `docs/superpowers/specs/2026-06-30-agent-access-demand-test-design.md`
+- Product Analytics And Usage Attribution Design:
+  `docs/superpowers/specs/2026-07-01-product-analytics-usage-attribution-design.md`
+- Public Payload Cache Warmup And Precompute Design:
+  `docs/superpowers/specs/2026-07-01-public-payload-cache-warmup-precompute-design.md`
+- Launch Operations And Governance Checklist Design:
+  `docs/superpowers/specs/2026-07-01-launch-operations-governance-checklist-design.md`
+- Documentation And Portfolio Presentation Design:
+  `docs/superpowers/specs/2026-07-01-documentation-portfolio-presentation-design.md`
+- Localization Quality And Language Expansion Design:
+  `docs/superpowers/specs/2026-07-01-localization-quality-language-expansion-design.md`
+- Scheduled Public CoinMarketCap Refresh Design:
+  `docs/superpowers/specs/2026-07-01-scheduled-public-cmc-refresh-design.md`
+- Risk Methodology Research Design:
+  `docs/superpowers/specs/2026-07-01-risk-methodology-research-design.md`
+- Distribution Channel Research Design:
+  `docs/superpowers/specs/2026-07-01-distribution-channel-research-design.md`

@@ -5,6 +5,15 @@
 This file records local engineering evidence only. It is not legal advice, a full license compliance opinion, a
 vulnerability scan, or a production-launch approval.
 
+## 2026-08-09 Local Project Licence Scope Update
+
+Gate status: scoped local evidence recorded, not legal approval. The repository now includes a root `LICENSE` with the
+Apache-2.0 text and a root `NOTICE` that scopes that licence to owned source code, documentation, and configuration.
+This project licence decision does not license the third-party BTC/USD market data in
+`collector/btc-csv/btc_usd_daily.csv`, does not complete source-provider terms review, and does not make commercial,
+paid-beta, broader-distribution, or legal-readiness claims. Bitcoin Risk Brief remains analytics and research context,
+not financial advice, investment advice, a forecast, or a trading recommendation.
+
 ## 2026-07-10 Local Dependabot Configuration Pass
 
 Gate status: partial local evidence recorded, not launch-passed. `.github/dependabot.yml` was added locally at
@@ -154,8 +163,8 @@ needed before making stronger license or compliance claims.
 
 - GitHub-hosted Dependabot execution and first PR evidence are pending until the local config is merged/pushed and
   observed.
-- The project repository has no committed `LICENSE` file; do not claim open-source status unless a license is intentionally
-  chosen.
+- The Apache-2.0 project licence applies only to owned source code, documentation, and configuration; see root `NOTICE`
+  for the third-party BTC/USD market-data boundary.
 - Python dependency license metadata is unknown from repository files.
 - Python transitive dependencies are not locked in the repository.
 - Container base images, OS packages, Cloudflare tunnel image contents, TimescaleDB image contents, CI actions, and
