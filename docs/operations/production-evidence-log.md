@@ -1,5 +1,7 @@
 # Production Evidence Log
 
+> **Operational log.** These entries record what was verified and when. They are not claims about product capability.
+
 This archive preserves the detailed dated evidence that previously lived in
 [Production Readiness](production-readiness.md). Use [Production Readiness](production-readiness.md) for current status
 and current gates.
@@ -300,12 +302,12 @@ Production/operator evidence still pending before broader public launch:
   category, retrieval/import timestamp, row count/range, readiness/latest-risk output, and checksum if available. Public
   readiness/latest-risk plus the `btc-csv-through-2026-07-14-evidence-2026-07-15` tag are accepted for the small
   operator-watched pilot snapshot, but broader provenance remains unclaimed. Use
-  [docs/import-provenance-evidence-packet-template.md](import-provenance-evidence-packet-template.md) for a later
+  [docs/operations/import-provenance-evidence-packet-template.md](import-provenance-evidence-packet-template.md) for a later
   sanitized packet outside Git. The template is not completed evidence by itself.
 - Fresh manual backup plus off-server copy is completed for the current first-traffic evidence set by the 2026-07-15
   mounted-removable-media backup copy and checksum verification above. Recurring backup automation and backup freshness
   alerting remain deferred until after the initial operator-watched pilot. Use
-  [docs/backup-restore-evidence-packet-template.md](backup-restore-evidence-packet-template.md) for future backup/restore
+  [docs/operations/backup-restore-evidence-packet-template.md](backup-restore-evidence-packet-template.md) for future backup/restore
   evidence and any later restore-drill packet. The template is not completed evidence by itself.
 - Broader-launch monitoring proof: the 2026-07-14 operator decision accepts Cloudflare Tunnel Health Alert plus an
   external homepage availability monitor as sufficient for a small operator-watched pilot. Dedicated external
@@ -488,7 +490,7 @@ Backup-gated USB production update evidence recorded on 2026-07-11:
 
 External monitoring and alert delivery gate remains partial/blocked as of 2026-07-11:
 
-Use [docs/monitoring-alert-evidence-packet-template.md](monitoring-alert-evidence-packet-template.md) to collect
+Use [docs/operations/monitoring-alert-evidence-packet-template.md](monitoring-alert-evidence-packet-template.md) to collect
 sanitized monitoring and alert evidence outside Git before copying final outcomes into this gate. The template is not
 completed evidence and does not close monitor/provider or alert-delivery blockers by itself.
 
@@ -552,7 +554,7 @@ Fresh public endpoint readiness probe recorded on 2026-07-11:
 
 External monitoring and alert delivery evidence gap pass recorded on 2026-07-12:
 
-Use [docs/monitoring-alert-evidence-packet-template.md](monitoring-alert-evidence-packet-template.md) to collect
+Use [docs/operations/monitoring-alert-evidence-packet-template.md](monitoring-alert-evidence-packet-template.md) to collect
 sanitized monitoring and alert evidence outside Git before copying final outcomes into this gate. The template is not
 completed evidence and does not close monitor/provider or alert-delivery blockers by itself.
 
@@ -606,7 +608,7 @@ completed evidence and does not close monitor/provider or alert-delivery blocker
 
 Recurring backup, off-server copy, and backup freshness evidence gap pass recorded on 2026-07-12:
 
-Use [docs/backup-restore-evidence-packet-template.md](backup-restore-evidence-packet-template.md) to collect sanitized
+Use [docs/operations/backup-restore-evidence-packet-template.md](backup-restore-evidence-packet-template.md) to collect sanitized
 recurring backup, off-server copy, backup freshness, alert, and restore-drill evidence outside Git before copying final
 outcomes into this gate. The template is not completed evidence and does not close scheduler, copy, freshness-monitor,
 alert-delivery, or restore-drill blockers by itself.
@@ -656,7 +658,7 @@ alert-delivery, or restore-drill blockers by itself.
 
 Production import provenance evidence gap pass recorded on 2026-07-12:
 
-Use [docs/import-provenance-evidence-packet-template.md](import-provenance-evidence-packet-template.md) to collect
+Use [docs/operations/import-provenance-evidence-packet-template.md](import-provenance-evidence-packet-template.md) to collect
 sanitized production import provenance outside Git before copying final outcomes into this gate. The template is not
 completed evidence and does not close source/archive, production import metadata, validation, or cache-linkage blockers
 by itself.
@@ -826,7 +828,7 @@ list, account export, recovery path, source-terms text, dashboard URL, token, `.
 contact was available or written. This register does not prove deployment, data refresh/import, cache warmup, waitlist
 submission, Cloudflare/routing change, monitor configuration, first traffic, commit, push, or tag.
 
-Use [docs/operator-launch-decision-packet-template.md](operator-launch-decision-packet-template.md) to collect sanitized
+Use [docs/operations/operator-launch-decision-packet-template.md](operator-launch-decision-packet-template.md) to collect sanitized
 operator answers before updating this register. The template is not completed evidence and does not close any pending
 decision by itself.
 
@@ -836,7 +838,7 @@ decision by itself.
 | Support/contact identity | Superseded/completed by later 2026-07-12 evidence. The public note states no paid support SLA, and the later sanitized readiness evidence records a dedicated support mailbox with project-domain alias as created and ready. | Keep actual private addresses, handles, names, recipient lists, routing details, inbox URLs, account IDs, credential values, and support messages out of Git unless the operator intentionally publishes a public contact value. |
 | Credential/account ownership and recovery | Superseded/completed by later 2026-07-12 evidence. Required ownership categories are documented, owner roles are founder/operator, and the later sanitized readiness evidence records the outside-Git account recovery record as created and current. | Keep holders, personal contacts, account IDs, dashboard URLs, recovery paths, credential locations, credential values, and account details out of Git. |
 | Data-source terms and import governance | Pending operator decision/evidence. No completed CoinMarketCap public-download/manual CSV terms review, optional CoinMarketCap API usage review, attribution outcome, or accepted limitation is recorded. Production import provenance remains separate and still requires a real source/archive packet after production imports. No owner role for future source review is recorded. | Record a sanitized status for CoinMarketCap public CSV and optional API usage as passed, accepted limitation, or pending; record any attribution or usage limitation; choose the owner role for future source review; and keep private source terms, account details, raw CSV rows, and private archive paths out of Git. |
-| Dependency, security, and license posture | Partial local evidence. `.github/dependabot.yml` is configured locally for conservative monthly version-update checks across frontend npm, backend and collector pip requirements, GitHub Actions, Dockerfiles, and a root `docker-compose` ecosystem entry. The dependency/license review records local npm lockfile license metadata and known gaps. GitHub-hosted Dependabot execution, first PR evidence, vulnerability/advisory clearance, external/manual license confirmation, container/OS package license review, project license choice, and legal approval remain pending. A monthly manual review cadence is documented, but the owner role for security updates is not recorded. | Choose the owner role for dependency/security updates, keep or revise the monthly cadence, record GitHub-hosted Dependabot execution and first PR evidence when available, complete or explicitly defer vulnerability/advisory, credential-scan, license, container image, OS package, CI action, and legal compatibility review, and record only date/scope/outcome/follow-up. |
+| Dependency, security, and license posture | Partial local evidence. `.github/dependabot.yml` is configured locally for conservative monthly version-update checks across frontend npm, backend and collector pip requirements, GitHub Actions, Dockerfiles, and a root `docker-compose` ecosystem entry. The dependency/license review records local npm lockfile license metadata and known gaps. The later scoped Apache-2.0 decision covers owned source code, documentation, and configuration only; third-party BTC/USD market data remains outside that licence. GitHub-hosted Dependabot execution, first PR evidence, vulnerability/advisory clearance, external/manual dependency license confirmation, container/OS package license review, and legal approval remain pending. A monthly manual review cadence is documented, but the owner role for security updates is not recorded. | Choose the owner role for dependency/security updates, keep or revise the monthly cadence, record GitHub-hosted Dependabot execution and first PR evidence when available, complete or explicitly defer vulnerability/advisory, credential-scan, dependency license, container image, OS package, CI action, market-data source terms, and legal compatibility review, and record only date/scope/outcome/follow-up. |
 | Cloudflare Free-plan first-traffic decision | Superseded/accepted limitation for small operator-watched pilot. Historical public snapshots used the documented Free-plan-compatible subset, and later 2026-07-15 evidence records the small operator-watched pilot as run under the accepted Free-plan-compatible subset. Managed WAF execution, broader `/api/*` burst limiting, multiple rate-limit rules, and longer rate-limit windows are not proven active in the current subset. | Keep the current subset limited to the small pilot; require an upgrade/equivalent controls before broader traffic or observed abuse risk. Record future changes without Cloudflare account IDs, zone IDs, tunnel IDs, rule IDs, dashboard URLs, credential values, private event logs, or routing details. |
 | Accessibility and device evidence | Superseded by later evidence; small-pilot manual/native plus proxy scope completed with limitation. Local automated axe, browser-profile, chart-alternative, live-region, and keyboard/focus evidence exists. Public-host desktop/mobile Chromium smoke and public-host automated axe evidence are recorded through 2026-07-12. The later 2026-07-15 manual/native browser QA evidence completes the small-pilot manual keyboard/native desktop and mobile browser blocker, and the later 2026-07-15 assistive-tech proxy QA pass accepts the missing dedicated screen-reader/manual assistive-tech pass only as a small-pilot limitation. | Record true assistive-tech and broader accessibility evidence before broader launch or broader accessibility claims. Record only sanitized status and follow-up owner role; do not claim full WCAG/legal accessibility compliance. |
 | Resource monitoring and incident response | Superseded by the later 2026-07-12 operator decision pass and 2026-07-14 monitoring acceptance. The operations runbook documents local/public readiness checks, logs to inspect, backup checks, Cloudflare Tunnel checks, disk/database pressure checks, cache-stale handling, bad-data correction steps, pause/take-down conditions, and rollback-style recovery through known-good CSV/import/backup paths. | Current small-pilot coverage accepts Cloudflare Tunnel Health Alert plus public homepage availability monitoring. Dedicated external API monitor proof and alert delivery proof remain pending before broader launch; record only sanitized evidence when those broader-launch items are completed. |
@@ -1129,13 +1131,13 @@ Launch governance gap pass recorded on 2026-07-10:
 | Support/contact identity for questions, deletion, unsubscribe, API, and license interest | completed for first-traffic readiness | Support email status is created and ready. Support/contact path category is a dedicated support mailbox with a project-domain alias, exact addresses and provider details kept outside Git. No paid support SLA is implied. | Keep the actual address, routing, inbox URLs, account IDs, and support messages out of Git unless intentionally published. |
 | Credential/account ownership and recovery record | completed for first-traffic readiness | Required ownership categories are documented, the 2026-07-12 pass records founder/operator as the owner role for GitHub, Cloudflare/domain, server, secrets/.env, and backups, and the account recovery record is created outside Git and current. Actual owners/recovery paths are intentionally absent from the repository. | Keep private recovery details outside Git; record only sanitized completion status in Git if needed. |
 | Data-source terms and attribution review | accepted limitation for unpaid pilot; commercial/broader launch pending | The 2026-07-12 pass records unpaid/non-commercial pilot status and founder/operator as source terms owner. | Terms review or paid plan remains required before commercial claims, paid beta, or broader distribution. Do not claim legal approval or commercial readiness. |
-| Dependency/security maintenance cadence | partial; owner/cadence recorded and GitHub execution pending | [Security and Privacy](security-and-privacy.md), [Operations](operations.md), and `.github/dependabot.yml` record a conservative monthly Dependabot version-update configuration for frontend npm, backend and collector pip requirements, GitHub Actions, Dockerfiles, and a root `docker-compose` ecosystem entry for Compose-style image references. The 2026-07-12 pass records founder/operator ownership and monthly security review cadence during pilot. | Observe the first GitHub-hosted Dependabot run or PRs and continue manual checks for advisories, vulnerability scans, secret-scan output, Python transitive inventory, container image/OS package licenses, CI action/license posture, project license choice, and legal compatibility. |
+| Dependency/security maintenance cadence | partial; owner/cadence recorded and GitHub execution pending | [Security and Privacy](../engineering/security-and-privacy.md), [Operations](operations.md), and `.github/dependabot.yml` record a conservative monthly Dependabot version-update configuration for frontend npm, backend and collector pip requirements, GitHub Actions, Dockerfiles, and a root `docker-compose` ecosystem entry for Compose-style image references. The 2026-07-12 pass records founder/operator ownership and monthly security review cadence during pilot. The later scoped Apache-2.0 decision covers owned source code, documentation, and configuration only. | Observe the first GitHub-hosted Dependabot run or PRs and continue manual checks for advisories, vulnerability scans, secret-scan output, Python transitive inventory, container image/OS package licenses, CI action/license posture, third-party market-data terms, and legal compatibility. |
 | Accessibility pass evidence | proxy passed with accepted small-pilot limitation | Browser-capable public-hostname QA, source inspection, the 2026-07-10 focused local axe pass, local chart data alternative implementation, local waitlist live-region/keyboard smoke, the 2026-07-15 manual/native browser QA evidence, and the 2026-07-15 local assistive-tech proxy QA pass are recorded. `@axe-core/playwright` is in the Playwright smoke suite, the chart panels expose a screen-reader-only current summary plus recent history/threshold tables, waitlist submit feedback exposes status/alert semantics, and the updated `npm run smoke --prefix frontend` passed 30 checks outside the sandbox across Chromium, Firefox, WebKit, Pixel 5, and iPhone 13 profiles with focused axe and keyboard/focus checks. The manual/native browser evidence completes the small-pilot manual keyboard/native desktop and mobile browser blocker; the missing dedicated screen-reader/manual assistive-tech pass is accepted only as a small-pilot limitation. | Do not claim VoiceOver, NVDA, TalkBack, manual assistive-tech, full WCAG/legal accessibility compliance, or broader accessibility approval. Record true assistive-tech and broader compliance evidence before broader launch or broader accessibility claims. |
 | SEO/social metadata pass evidence | public-host verified for 2026-07-11 update | The 2026-07-11 public metadata check found `title`, description, canonical URL, Open Graph type/title/description/url/site name, and Twitter card/title/description. `og:image` and `twitter:image` were absent as expected because no real repo-served production image asset exists. | Keep public metadata current after future deployments. Keep image metadata omitted unless a real publicly served production image asset is added. |
 | Incident response readiness | passed with existing repo evidence | [Operations](operations.md) includes the first-response runbook, monitoring alert expectations, bad-data correction policy, restore guidance, and cache-safety procedures. | Keep the runbook aligned as new monitor, restore, and provenance evidence arrives. |
 | Release notes or decision log | passed with current repo evidence | This document and [Production Roadmap](production-roadmap.md) contain dated evidence notes and decision/status history; this document now records the 2026-07-15 final launch snapshot note and the separate 2026-07-15 operator-watched first-traffic evidence note. | Do not reuse the stale 2026-07-05 snapshot as a launch-ready note. Keep final snapshot evidence and first-traffic evidence separate. |
 | First-user feedback review path | passed with existing repo evidence | This document and [Operations](operations.md) define a post-window review path for waitlist conversion, repeat-use signals, direct questions, methodology confusion, and requests for alerts/API/agents/widgets/licensing. | First traffic has created the initial observation evidence; record only sanitized aggregate follow-up when user feedback exists, and do not copy raw waitlist contacts into summaries. |
-| Dependency-license review | partial; local evidence recorded, external/manual confirmation pending | [Dependency and License Review](dependency-license-review.md) records the 2026-07-10 local inventory from npm lockfile, Python requirements, container references, CI workflow references, and local Dependabot configuration. Local npm lockfile entries all include license metadata, including `@axe-core/playwright` and `axe-core` as `MPL-2.0`; Python and container license metadata remain unknown from repository files. | Confirm GitHub-hosted Dependabot execution and first PR evidence, Python package metadata, transitive dependencies, container image and OS package licenses, CI action/license posture, vulnerability/advisory status, project license choice, and legal compatibility before broader portfolio sharing or commercial claims. |
+| Dependency-license review | partial; local evidence recorded, scoped project licence recorded, external/manual confirmation pending | [Dependency and License Review](dependency-license-review.md) records the 2026-07-10 local inventory from npm lockfile, Python requirements, container references, CI workflow references, local Dependabot configuration, and the later Apache-2.0 decision for owned source code, documentation, and configuration. Local npm lockfile entries all include license metadata, including `@axe-core/playwright` and `axe-core` as `MPL-2.0`; Python and container license metadata remain unknown from repository files. Third-party BTC/USD market data remains outside the project licence. | Confirm GitHub-hosted Dependabot execution and first PR evidence, Python package metadata, transitive dependencies, container image and OS package licenses, CI action/license posture, vulnerability/advisory status, market-data source terms, and legal compatibility before broader portfolio sharing or commercial claims. |
 | Launch snapshot evidence | created and validated before first traffic | The 2026-07-05 launch snapshot is historical and was blocked by stale readiness. The current 2026-07-15 final launch snapshot packet basename `launch-snapshot-20260715T121952Z.json` was created and validated from collected evidence, and the sanitized final status is recorded above. | Preserve the snapshot separately from the later first-traffic evidence. Recheck public readiness/latest-risk during future pilot windows and after production updates. |
 | External monitoring and alert delivery | accepted/closed for small operator-watched pilot; broader launch pending | The 2026-07-14 monitoring acceptance records Cloudflare Tunnel Health Alert as configured, a HetrixTools/external uptime monitor provider category, and public homepage availability monitoring for the pilot. The 2026-07-12 local public GET-only probe still supports health, readiness, and latest-risk behavior, but no dedicated external `/api/health` monitor, dedicated external `/api/readiness` freshness monitor, stale-data after-window alert, collector-failure alert, recurring backup freshness alert, or explicit alert delivery test evidence is recorded. | Keep small-pilot monitoring limited to the accepted Tunnel health plus homepage availability coverage. Before broader traffic or broader readiness/freshness claims, record sanitized dedicated API monitor evidence and alert delivery proof without private provider details. |
 | Import provenance source archive and direct production metadata | accepted limitation for small-pilot snapshot; broader direct evidence pending | The 2026-07-15 final snapshot records public readiness/latest-risk, row count, latest date, cache evidence, and the BTC CSV evidence tag through 2026-07-14. Direct production source/archive, validation/import table metadata, and collector command evidence remain unclaimed for broader launch. | Capture sanitized broader-launch production import proof outside the repository with source category, retrieval/import timestamp, row counts/range, validation/readiness output, latest-risk output, and checksum if available. |
@@ -1305,7 +1307,8 @@ Dependency and license local evidence pass recorded on 2026-07-10:
 - Dependency/license gate status after this pass: partial local evidence recorded, not legal approval, not full license
   compliance, not vulnerability/advisory clearance, and not production launch readiness. Remaining checks include Python
   package metadata, npm external registry/tarball verification if required, container image and OS package SBOM/license
-  review, GitHub Actions/license posture, data-source terms, project license choice, and legal compatibility review.
+  review, GitHub Actions/license posture, data-source terms, scoped project-licence boundaries, and legal compatibility
+  review.
 
 Local dependency update automation config pass recorded on 2026-07-10:
 
@@ -1370,7 +1373,7 @@ Monitoring and first-response status recorded on 2026-07-05:
 | Monitor area | Current status | Required operator action |
 | --- | --- | --- |
 | Public `/api/health` | Broader-launch pending after the 2026-07-14 small-pilot acceptance. Endpoint exists and has previous smoke evidence, but no dedicated external uptime monitor evidence is recorded. | Configure an HTTP monitor for `https://bitcoinriskbrief.minihub.app/api/health`, alert on non-200, timeout, or TLS failure, and record the provider/dashboard name plus alert channel without account details before broader traffic. |
-| Public `/api/readiness` | Broader-launch pending after the 2026-07-14 small-pilot acceptance. Endpoint exists and has previous smoke evidence, but no dedicated external readiness alert evidence is recorded. | Configure an HTTP monitor for `https://bitcoinriskbrief.minihub.app/api/readiness`, alert on non-200, and route the alert to the `/api/readiness` first-response entry in `docs/operations.md` before broader traffic. |
+| Public `/api/readiness` | Broader-launch pending after the 2026-07-14 small-pilot acceptance. Endpoint exists and has previous smoke evidence, but no dedicated external readiness alert evidence is recorded. | Configure an HTTP monitor for `https://bitcoinriskbrief.minihub.app/api/readiness`, alert on non-200, and route the alert to the `/api/readiness` first-response entry in `docs/operations/operations.md` before broader traffic. |
 | Stale readiness after nightly update window | Broader-launch pending. No scheduled stale-data monitor evidence is recorded. | After the default 01:00 UTC collector window plus operator-defined grace period, check `/api/readiness`; alert if `status` is not `ready`, `latest_date`/`covered_end` is older than the last completed UTC day, or `data_age_days` exceeds `DATA_FRESHNESS_MAX_AGE_DAYS`. |
 | Collector refresh failure | Deferred broader-launch limitation. The scheduled public-download-first path is documented, but no production log alert evidence is recorded. | Configure production log/container alerts for `scheduled_refresh_failed`, `public_cmc_download_failed`, API fallback failure, and repeated `data-collector` restarts; record the alert source and latest passing scheduled run before broader traffic. |
 | Backup freshness | Partially blocked. One checksum-verified off-server USB backup copy is recorded for 2026-07-07, but no restore drill or recurring backup freshness monitor evidence is recorded here. | Schedule `./scripts/backup.sh`, copy verified backups off-server, alert when no checksum-verified backup and off-server copy exists inside the chosen freshness window, run a restore drill only on staging or an intentionally empty restore target, and record redacted evidence from the production host. |
@@ -1439,7 +1442,7 @@ Import provenance and bad-data correction status recorded on 2026-07-05:
 
 - Task 6 status: blocked pending operator evidence for the real production import evidence packet. The operator
   procedure and bad-data correction policy are documented in [Operations](operations.md), and the data-pipeline
-  provenance contract is documented in [Data Pipeline](data-pipeline.md).
+  provenance contract is documented in [Data Pipeline](../engineering/data-pipeline.md).
 - Real sample import evidence packet: not present in this repository and not created from this agent environment. This
   session has no access to the production host at `/srv/projects/bitcoin-risk-brief`, no mounted outside-repository
   provenance archive, and no Cloudflare/production host evidence source. A workstation-local or repository-local sample
@@ -1581,7 +1584,7 @@ Launch governance and release evidence status recorded on 2026-07-05:
   operator decision pass, while restore drill evidence remains deferred until a safe target exists.
 - Governance evidence process: keep privacy/terms/disclaimer posture, waitlist handling, credential/account ownership,
   data-source terms review, dependency/security maintenance, accessibility, and metadata status in
-  [Security and Privacy](security-and-privacy.md) and [Operations](operations.md). Unknown operator-owned facts must be
+  [Security and Privacy](../engineering/security-and-privacy.md) and [Operations](operations.md). Unknown operator-owned facts must be
   recorded as pending decisions, not guessed.
 - First-user feedback review path: after the first controlled traffic window, summarize waitlist conversion,
   repeat-use signals, direct questions, methodology confusion, and requests for alerts, daily briefs, API access,
@@ -1590,11 +1593,12 @@ Launch governance and release evidence status recorded on 2026-07-05:
 - Support/contact identity status: superseded by the 2026-07-12 support/contact readiness evidence. A dedicated support
   mailbox with a project-domain alias is created and ready, exact addresses are kept outside Git, and no public support
   portal, paid SLA, or guaranteed response time is implied for the first pilot.
-- Dependency-license review status: superseded by the 2026-07-10 local evidence pass above. Local npm lockfile license
-  metadata, Python manifest gaps, container references, and CI references are now recorded in
-  [Dependency and License Review](dependency-license-review.md). External/manual confirmation and project license choice
-  remain pending, and the project must not claim legal approval, full license compliance, or open-source status unless a
-  license is intentionally chosen.
+- Dependency-license review status: superseded by the 2026-07-10 local evidence pass above and the later scoped
+  Apache-2.0 project licence decision. Local npm lockfile license metadata, Python manifest gaps, container references,
+  CI references, and the owned-source/docs/config licence scope are now recorded in
+  [Dependency and License Review](dependency-license-review.md). External/manual confirmation, third-party BTC/USD
+  market-data terms, and legal compatibility remain pending; the project must not claim legal approval, full license
+  compliance, or Apache-2.0 rights for third-party market data.
 - Release evidence packet process: the final launch snapshot should reference the launch commit, public hostname,
   readiness payload, cache headers, selected refresh path, deployment path, backup/off-server and restore-drill evidence,
   waitlist smoke, browser QA, known limitations, and any related import provenance manifest. Store private artifacts, raw
@@ -1907,7 +1911,7 @@ Before public traffic, verify the page on current desktop Chrome, Safari, Firefo
 check should cover loading, degraded readiness, API errors, chart rendering, waitlist states, enabled-locale behavior,
 localized copy fit, first-viewport price model input labels, and common mobile/desktop viewport widths.
 
-The automated frontend smoke matrix and current results are recorded in [Frontend QA](frontend-qa.md). Treat that as the
+The automated frontend smoke matrix and current results are recorded in [Frontend QA](../engineering/frontend-qa.md). Treat that as the
 minimum automated check; repeat a short manual pass on the production hostname before public launch.
 
 If issue #28 localization expansion is implemented before active traffic, include English, Russian, Simplified Chinese,
@@ -1986,9 +1990,9 @@ Still required before broader public launch:
 
 ## Related Docs
 
-- [Architecture](architecture.md)
-- [Data Pipeline](data-pipeline.md)
-- [Security and Privacy](security-and-privacy.md)
+- [Architecture](../engineering/architecture.md)
+- [Data Pipeline](../engineering/data-pipeline.md)
+- [Security and Privacy](../engineering/security-and-privacy.md)
 - [Operations](operations.md)
 - [Ubuntu and Cloudflare Tunnel Deployment](deploy-ubuntu-cloudflare.md)
-- [Testing and Quality](testing-and-quality.md)
+- [Testing and Quality](../engineering/testing-and-quality.md)

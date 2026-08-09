@@ -216,11 +216,11 @@ Current frontend QA results are recorded in [Frontend QA](frontend-qa.md).
 
 Documentation changes should keep the following files aligned:
 
-- `docs/production-roadmap.md` for planned work and launch gates;
-- `docs/data-pipeline.md` for supported data refresh paths;
-- `docs/security-and-privacy.md` for current and planned security controls;
-- `docs/production-readiness.md` for the deploy-time gate;
-- `docs/operations.md` for operator commands.
+- `docs/operations/production-roadmap.md` for planned work and launch gates;
+- `docs/engineering/data-pipeline.md` for supported data refresh paths;
+- `docs/engineering/security-and-privacy.md` for current and planned security controls;
+- `docs/operations/production-readiness.md` for the deploy-time gate;
+- `docs/operations/operations.md` for operator commands.
 
 Before launch, remove or clearly label stale assumptions from older docs. Historical files under `docs/superpowers/` can
 remain as implementation history, but current operational docs should not require readers to reconcile conflicting

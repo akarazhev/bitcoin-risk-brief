@@ -1,6 +1,7 @@
 # USB Kit for Server Setup
 
-This directory is intended to be run on the new Ubuntu server after installing the system according to `docs/server-msi-cubi5-ubuntu-26.04.md`.
+This directory is intended to be run on the new Ubuntu server after installing the system according to
+`docs/operations/server-msi-cubi5-ubuntu-26.04.md`.
 
 ## Prepare The USB On The Workstation
 
@@ -40,7 +41,7 @@ images, or an offline package mirror.
 
 ## Contents
 
-- `docs/server-msi-cubi5-ubuntu-26.04.md` - full server setup guide.
+- `docs/operations/server-msi-cubi5-ubuntu-26.04.md` - full server setup guide.
 - `deploy-from-usb.sh` - default server entrypoint for checksum verification, deploy, restart, and health checks.
 - `project/bitcoin-risk-brief/` - project copy without `.env`, `.git`, container data, dependencies, build output, and backups.
 - `scripts/` - ordered scripts for finishing setup.

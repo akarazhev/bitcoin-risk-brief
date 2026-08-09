@@ -1,0 +1,286 @@
+# Bitcoin Risk Brief
+
+> A daily Bitcoin risk signal computed from canonical BTC/USD daily data. One deterministic score from 0.0 to 1.0,
+> its state, what changed, whether the underlying data is fresh, and the price scenarios that would move the score
+> into another band. Analytics and research context — not financial advice, not a price forecast, not a trade signal.
+
+## Read this first
+
+Always call `/api/readiness` before reporting any value. It returns HTTP 200 with `status: ready` when checks pass and
+HTTP 503 with `status: degraded` when data is stale or validation failed. Product data endpoints can still return the
+latest stored rows; treat those rows as not current unless readiness is `ready` and their dates match readiness.
+Never present a risk value without also stating its covered date and freshness.
+
+## Endpoints
+
+Base URL: https://bitcoinriskbrief.minihub.app
+
+- `GET /api/readiness`: freshness and validation state. Never cached. Check this first.
+- `GET /api/risk/latest`: the latest risk point, its state, model price, and component values.
+- `GET /api/risk/history?limit=730`: historical risk rows, ascending by timestamp.
+- `GET /api/risk/levels`: the solved price ladder — which BTC price corresponds to which risk level.
+- `GET /api/brief/latest`: the daily brief in seven locales.
+- `GET /api/openapi.json`: machine-readable route metadata, statuses, headers, and response examples.
+
+## Interpretation
+
+- Risk states: low below 0.30, neutral from 0.30 to below 0.70, high at 0.70 and above.
+- The reported price is HLC3 from the last completed daily candle. It is not a live spot price.
+- Risk-level prices are scenario outputs solved through the same model. They are not forecasts, targets, or
+  support levels.
+- Methodology is versioned and appears where the endpoint payload includes methodology metadata; do not assume every
+  response carries it.
+
+## What not to do
+
+Do not present this output as financial advice, investment advice, a price prediction, or a buy or sell
+recommendation. Do not report a value without its freshness state. Do not treat a scenario price as a forecast.
+
+## Documentation
+
+- Full technical reference: https://docs.bitcoinriskbrief.minihub.app/
+- Agent access guide: https://docs.bitcoinriskbrief.minihub.app/agents/agent-access-pack/
+- Methodology: https://docs.bitcoinriskbrief.minihub.app/product/risk-methodology/
+- Complete inline version of this file: https://bitcoinriskbrief.minihub.app/llms-full.txt
+
+## Methodology summary
+
+Current methodology version:
+
+```text
+crypto-scout-canonical-v1.1
+```
+
+The mini-product methodology is aligned with the canonical risk model from `crypto-scout-analytics` for the implemented BTC risk surface.
+
+Each daily input row must contain date, open, high, low, close, volume, market cap, and circulating supply. Prices,
+market cap, and circulating supply must be positive. Rows are sorted by date and duplicate dates are rejected.
+
+### HLC3 Price
+
+The model price is:
+
+```text
+HLC3 = (high + low + close) / 3
+```
+
+When the model price is displayed in the product or API docs, label it as `Model price` or HLC3 rather than a generic
+spot or close price. If daily high and low are displayed alongside it, `High` and `Low` refer to the same completed daily
+candle used to compute HLC3.
+
+### Trend Deviation
+
+Trend deviation uses a 365-day EMA:
+
+```text
+trend_dev = ln(HLC3 / EMA365(HLC3))
+```
+
+### Volatility Regime
+
+Volatility is the rolling population standard deviation of daily log returns:
+
+```text
+log_return[t] = ln(HLC3[t] / HLC3[t-1])
+vol_regime = rolling_std(log_return, 30 days)
+```
+
+### Turnover
+
+Turnover is enabled when valid market cap is available across the source rows:
+
+```text
+turnover = ln(volume / market_cap)
+```
+
+### Robust Z-Scores
+
+Each feature is converted to a robust rolling z-score with:
+
+- window: `1460` days
+- minimum periods: `365` days
+- center: median
+- scale: `1.4826 * MAD + 1e-12`
+- clipping: `[-6.0, 6.0]`
+
+When a window has fewer than 365 valid observations, the z-score is `0.0`.
+
+### Score Weights
+
+When turnover is enabled:
+
+| Feature | Weight |
+| --- | ---: |
+| trend deviation | `0.60` |
+| volatility regime | `0.25` |
+| turnover | `0.15` |
+
+When turnover is disabled:
+
+| Feature | Weight |
+| --- | ---: |
+| trend deviation | `0.70` |
+| volatility regime | `0.30` |
+
+### Risk Value
+
+The score is mapped to risk with a sigmoid:
+
+```text
+risk = sigmoid(score)
+```
+
+The stored risk value is always expected to be in `[0.0, 1.0]`.
+
+### Risk States
+
+| Range | State |
+| --- | --- |
+| `< 0.30` | `low` |
+| `>= 0.30` and `< 0.70` | `neutral` |
+| `>= 0.70` | `high` |
+
+### Risk Levels
+
+`/api/risk/levels` solves hypothetical BTC prices for target risk values from `0.0` to `1.0` in
+`0.025` increments.
+
+The solver:
+
+1. builds a context from the full OHLCV history;
+2. keeps non-price components fixed for the latest day;
+3. solves prices that would move the trend component to each target risk;
+4. verifies target prices through the same risk model.
+
+The `/api/risk/levels` response keeps the full `0.00` to `1.00` scenario ladder. The public frontend chart displays the practical `0.20` to `0.80` window so clipped solver endpoints remain available for diagnostics without stretching the user-facing price scale.
+
+The risk metric and risk levels are analytics outputs. They are not financial advice, investment advice, or trading recommendations. Risk levels are scenario estimates based on the current methodology and input data quality.
+
+## Endpoint response shapes
+
+Most successful data endpoints return `{ "data": "..." }`. List endpoints may also return
+`{ "data": [], "meta": {} }`. Errors use FastAPI's default JSON shape: `{ "detail": "..." }`.
+
+`GET /api/readiness` is a live freshness/status endpoint. It returns HTTP 200 when all checks pass and HTTP 503
+otherwise. It returns `Cache-Control: no-store` and `Pragma: no-cache`.
+
+```json
+{
+  "status": "ready | degraded",
+  "checks": {
+    "risk_data_available": "boolean",
+    "validation_available": "boolean",
+    "risk_range_ok": "boolean",
+    "validation_has_rows": "boolean",
+    "latest_matches_validation_end": "boolean",
+    "source_is_canonical": "boolean",
+    "data_fresh": "boolean"
+  },
+  "data": {
+    "latest_date": "YYYY-MM-DD",
+    "covered_end": "YYYY-MM-DD",
+    "data_age_days": "integer",
+    "max_age_days": "integer",
+    "source": "string",
+    "row_count": "integer",
+    "methodology_version": "string"
+  }
+}
+```
+
+`GET /api/risk/latest` returns the latest stored risk point. `price_usd` is the HLC3 model price from the latest
+completed daily candle, not a spot price or close-only value. `model_price_usd` is the explicit name for the same value.
+`low_usd` and `high_usd` come from the matching completed daily candle and can be `null`.
+
+```json
+{
+  "data": {
+    "timestamp": "RFC 3339 timestamp",
+    "price_usd": "number",
+    "model_price_usd": "number",
+    "low_usd": "number | null",
+    "high_usd": "number | null",
+    "risk": "number in [0.0, 1.0]",
+    "score": "number",
+    "risk_state": "low | neutral | high",
+    "trend_dev": "number",
+    "vol_regime": "number",
+    "turnover": "number",
+    "z_trend_dev": "number",
+    "z_vol_regime": "number",
+    "z_turnover": "number",
+    "turnover_enabled": "boolean"
+  }
+}
+```
+
+`GET /api/risk/history` returns historical risk rows sorted ascending by timestamp. Its optional `start_date` and
+`end_date` parameters use `YYYY-MM-DD`; `limit` defaults to `2000`, with a minimum of `2` and maximum of `5000`.
+
+```json
+{
+  "data": [
+    {
+      "timestamp": "RFC 3339 timestamp",
+      "price_usd": "number",
+      "risk": "number in [0.0, 1.0]",
+      "score": "number",
+      "risk_state": "low | neutral | high",
+      "trend_dev": "number",
+      "vol_regime": "number",
+      "turnover": "number",
+      "z_trend_dev": "number",
+      "z_vol_regime": "number",
+      "z_turnover": "number",
+      "turnover_enabled": "boolean"
+    }
+  ],
+  "meta": { "returned_points": "integer" }
+}
+```
+
+`GET /api/risk/levels` returns target risk levels and solved BTC prices. Under normal production operation it returns
+the latest persisted collector-generated snapshot; local or development data may use a compatible fallback.
+
+```json
+{
+  "data": [
+    { "risk": "target risk number", "price_usd": "solved scenario price" }
+  ],
+  "meta": {
+    "base": { "timestamp": "RFC 3339 timestamp", "risk": "number in [0.0, 1.0]" },
+    "methodology_version": "string",
+    "evaluation_date": "YYYY-MM-DD",
+    "current_price": "number",
+    "current_risk": "number in [0.0, 1.0]",
+    "turnover_enabled": "boolean",
+    "risk_step": "number",
+    "source_row_count": "integer"
+  }
+}
+```
+
+`GET /api/brief/latest` returns the latest stored brief snapshot. If no snapshot exists but risk rows exist, the backend
+can build a brief from latest and previous risk rows. Brief `sections` are generated for `en`, `ru`, `zh`, `de`, `fr`,
+`es`, and `ar`; `zh` is Simplified Chinese.
+
+```json
+{
+  "data": {
+    "snapshot_version": "string",
+    "as_of": "RFC 3339 timestamp",
+    "risk": "number in [0.0, 1.0]",
+    "risk_state": "low | neutral | high",
+    "price_usd": "number",
+    "delta_risk": "number",
+    "sections": {
+      "locale": {
+        "summary": "string",
+        "what_changed": "string",
+        "avoid_now": "string",
+        "confirm_next": "string"
+      }
+    }
+  }
+}
+```

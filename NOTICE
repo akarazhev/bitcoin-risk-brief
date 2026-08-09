@@ -1,0 +1,11 @@
+Bitcoin Risk Brief
+
+Bitcoin Risk Brief provides analytics and research context only. It is not financial advice, investment advice,
+a price forecast, or a trading recommendation.
+
+The Apache-2.0 license in LICENSE applies to this repository's owned source code, documentation, and configuration.
+It does not grant rights to third-party BTC/USD market data.
+
+The canonical CSV at collector/btc-csv/btc_usd_daily.csv contains third-party BTC/USD market data imported through the
+configured CoinMarketCap source workflow. Use, redistribution, attribution, and commercial reuse of that market data
+remain subject to the applicable source-provider terms and any operator review recorded in the operations docs.

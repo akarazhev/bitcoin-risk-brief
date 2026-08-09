@@ -1,0 +1,60 @@
+site_name: Bitcoin Risk Brief
+site_description: Technical reference for a daily Bitcoin risk signal — methodology, API contract, and operations.
+site_url: https://docs.bitcoinriskbrief.minihub.app/
+repo_url: https://github.com/akarazhev/bitcoin-risk-brief
+edit_uri: ""
+
+theme:
+  name: material
+  features:
+    - navigation.sections
+    - navigation.top
+    - content.code.copy
+    - search.suggest
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      toggle: { icon: material/brightness-7, name: Switch to dark mode }
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle: { icon: material/brightness-4, name: Switch to light mode }
+
+markdown_extensions:
+  - admonition
+  - tables
+  - toc: { permalink: true }
+  - pymdownx.superfences
+  - pymdownx.highlight
+
+exclude_docs: |
+  superpowers/
+  README.md
+
+nav:
+  - Home: index.md
+  - Product:
+      - Overview: product/product-spec.md
+      - Risk methodology: product/risk-methodology.md
+  - Engineering:
+      - Architecture: engineering/architecture.md
+      - Data pipeline: engineering/data-pipeline.md
+      - Freshness and validation: engineering/freshness-and-validation.md
+      - API reference: engineering/api-reference.md
+      - Security and privacy: engineering/security-and-privacy.md
+      - Testing and quality: engineering/testing-and-quality.md
+      - Frontend QA: engineering/frontend-qa.md
+      - Waitlist: engineering/waitlist.md
+  - Agents:
+      - Overview: agents/index.md
+      - Agent access pack: agents/agent-access-pack.md
+      - OpenAPI: agents/openapi.md
+  - Operations:
+      - Operations: operations/operations.md
+      - Production readiness: operations/production-readiness.md
+      - Evidence log: operations/production-evidence-log.md
+      - Roadmap: operations/production-roadmap.md
+      - Deployment: operations/deploy-ubuntu-cloudflare.md
+      - Server setup: operations/server-msi-cubi5-ubuntu-26.04.md
+      - Pilot learning loop: operations/pilot-learning-loop.md
+      - Marketing and growth: operations/marketing-and-growth.md
+      - Dependency and licence review: operations/dependency-license-review.md

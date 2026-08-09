@@ -1,5 +1,7 @@
 # MSI Cubi 5 12M Home Server Setup with Ubuntu 26.04 LTS
 
+> **Operational log.** These entries record what was verified and when. They are not claims about product capability.
+
 This document describes installation and initial hardening for an MSI Cubi 5 12M with 32 GB DDR4 and a 1 TB NVMe drive running Ubuntu Server 26.04 LTS. The goal is a local server for Podman Compose projects published through Cloudflare Tunnel from a ByFly home or office connection in Belarus.
 
 Default approach:

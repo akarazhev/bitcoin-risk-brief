@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /api/waitlist
+
+Sitemap: https://bitcoinriskbrief.minihub.app/sitemap.xml
+
+# Machine-readable summary for language models and agents:
+# https://bitcoinriskbrief.minihub.app/llms.txt
+# Analytics and research context only; not financial advice.

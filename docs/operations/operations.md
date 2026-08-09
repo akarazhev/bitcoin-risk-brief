@@ -1,5 +1,7 @@
 # Operations
 
+> **Operational log.** These entries record what was verified and when. They are not claims about product capability.
+
 ## Local Environment
 
 Create a local environment file:
@@ -156,7 +158,7 @@ repository and outside the production project checkout. A mounted off-server evi
 archive is acceptable; `./backups`, `collector/btc-csv/incoming/`, workstation downloads, and Git history are not the
 long-term provenance archive.
 
-Use [docs/import-provenance-evidence-packet-template.md](import-provenance-evidence-packet-template.md) as the sanitized
+Use [docs/operations/import-provenance-evidence-packet-template.md](import-provenance-evidence-packet-template.md) as the sanitized
 operator checklist for the packet. Fill a copy outside Git first, then copy only redacted final status, hashes, row
 counts, date ranges, cache/header facts, and accepted limitations into launch docs. The template is not completed
 production import evidence.
@@ -377,7 +379,7 @@ check names, monitored paths, assertion summaries, intervals/windows, latest che
 do not record tokens, account IDs, private dashboard URLs, recipient addresses, phone numbers, IPs, raw logs with PII, or
 secret values.
 
-Use [docs/monitoring-alert-evidence-packet-template.md](monitoring-alert-evidence-packet-template.md) to collect the
+Use [docs/operations/monitoring-alert-evidence-packet-template.md](monitoring-alert-evidence-packet-template.md) to collect the
 sanitized provider, scheduler, probe, backup freshness, Cloudflare connector, and alert-delivery fields before copying
 final outcomes into launch docs. The template is not provider evidence and does not mark the gate passed.
 
@@ -470,8 +472,8 @@ stale/degraded readiness remains a blocker until the production data issue is fi
 only benefits production after the warmup implementation is deployed there.
 
 The expensive first-miss candidate is `/api/risk/levels`, because it reads full OHLCV history and builds risk-level rows
-on demand. See
-[Public Payload Cache Warmup And Precompute Design](superpowers/specs/2026-07-01-public-payload-cache-warmup-precompute-design.md).
+on demand. Historical design context remains in
+`docs/superpowers/specs/2026-07-01-public-payload-cache-warmup-precompute-design.md`.
 
 Verify conditional revalidation:
 
@@ -721,7 +723,7 @@ dump, BTC CSV, manifest, and checksum artifacts present plus copied-backup SHA-2
 scheduling, recurring off-server copy configuration, and external alert delivery remain pending until an operator records
 redacted recurring evidence from the production host or monitoring system.
 
-Use [docs/backup-restore-evidence-packet-template.md](backup-restore-evidence-packet-template.md) to collect the
+Use [docs/operations/backup-restore-evidence-packet-template.md](backup-restore-evidence-packet-template.md) to collect the
 sanitized backup run, off-server copy, freshness/checksum, scheduler, alert-delivery, and safe restore-target fields
 outside Git before copying final outcomes into launch docs. The template is not completed backup or restore evidence.
 
@@ -937,8 +939,9 @@ evidence in [Production Readiness](production-readiness.md):
   root `docker-compose` ecosystem entry for Compose-style image references. GitHub-hosted Dependabot execution, first PR
   evidence, and Podman-specific filename handling remain pending until the config is merged/pushed and observed. Continue
   the monthly manual review for security advisories, vulnerability scan results if available, secret-scan output, Python
-  transitive inventory, container image and OS package licenses, GitHub Actions/license posture, project license choice,
-  and legal compatibility. Record only the date, scope, outcome, and required follow-up.
+  transitive inventory, container image and OS package licenses, GitHub Actions/license posture, scoped project-licence
+  boundaries, third-party market-data terms, and legal compatibility. Record only the date, scope, outcome, and required
+  follow-up.
 - Data-source terms review: accepted limitation for the unpaid/non-commercial pilot only. Record the CoinMarketCap public
   CSV and optional API usage terms/plan outcome before commercial claims, paid beta, or broader distribution. For future
   methodology sources, record terms and attribution before the source becomes production-critical.

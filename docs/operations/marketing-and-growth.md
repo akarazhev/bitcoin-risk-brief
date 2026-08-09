@@ -1,5 +1,7 @@
 # Marketing And Growth
 
+> **Operational log.** These entries record what was verified and when. They are not claims about product capability.
+
 This playbook turns the current Bitcoin Risk Brief web product into a focused four-week founder-led demand test. It is
 for the small operator-watched pilot, not a broad public launch, an automated lifecycle campaign, or a claim that the
 product has found product-market fit.
@@ -511,7 +513,7 @@ The same recurring-delivery gates apply to this Russian copy template.
 7. **Limits:** a model can omit relevant information; output quality depends on input data and methodology assumptions;
    nothing in the score predicts returns or determines a suitable action.
 
-Use [Risk Methodology](risk-methodology.md) as the source of truth. Issue
+Use [Risk Methodology](../product/risk-methodology.md) as the source of truth. Issue
 [#42](https://github.com/akarazhev/bitcoin-risk-brief/issues/42) tracks a more accessible public interpretation guide.
 
 ### Paid-Intent Question

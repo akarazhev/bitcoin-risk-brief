@@ -1,5 +1,7 @@
 # Import Provenance Evidence Packet Template
 
+> **Operational log.** These entries record what was verified and when. They are not claims about product capability.
+
 This is a template, not completed evidence. It does not prove that a production refresh/import ran, does not prove the
 source archive exists, and does not close the production import provenance launch gate by itself.
 

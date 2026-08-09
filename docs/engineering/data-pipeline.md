@@ -82,8 +82,8 @@ the scheduled run falls back to the optional official API delta refresh. With no
 visible in collector logs and the canonical CSV remains unchanged.
 
 Manual `import-cmc-csv` remains the operator fallback when public automation and any configured API fallback are
-unavailable. See
-[Scheduled Public CoinMarketCap Refresh Design](superpowers/specs/2026-07-01-scheduled-public-cmc-refresh-design.md).
+unavailable. Historical design context remains in
+`docs/superpowers/specs/2026-07-01-scheduled-public-cmc-refresh-design.md`.
 
 ## Optional CoinMarketCap API Delta Fetch
 
@@ -163,7 +163,7 @@ The evidence packet should include:
 - `Cache-Control`, `ETag`, `X-Cache`, and `X-Cache-Version` for a standard public endpoint after import;
 - collector log summary and related launch, restore, or correction note path if any.
 
-Use [docs/import-provenance-evidence-packet-template.md](import-provenance-evidence-packet-template.md) to collect these
+Use [docs/operations/import-provenance-evidence-packet-template.md](../operations/import-provenance-evidence-packet-template.md) to collect these
 fields in a copy outside Git before copying only sanitized final outcomes into launch docs. The template is not
 production import evidence and does not replace the outside-repository source/archive packet.
 

@@ -1,5 +1,7 @@
 # Operator Launch Decision Packet Template
 
+> **Operational log.** These entries record what was verified and when. They are not claims about product capability.
+
 This template helps the operator collect the missing first-traffic governance decisions for Bitcoin Risk Brief in a
 safe, consistent format.
 

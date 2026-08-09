@@ -55,10 +55,10 @@ class PrepareUsbKitTests(unittest.TestCase):
         write_file(self.source / "notes" / "ai-process.md", "local notes\n")
         write_file(self.source / "backend" / "app" / "._main.py", "mac metadata\n")
 
-        write_file(self.source / "docs" / "server-msi-cubi5-ubuntu-26.04.md", "# server\n")
-        write_file(self.source / "docs" / "deploy-ubuntu-cloudflare.md", "# deploy\n")
-        write_file(self.source / "docs" / "operations.md", "# ops\n")
-        write_file(self.source / "docs" / "production-readiness.md", "# readiness\n")
+        write_file(self.source / "docs" / "operations" / "server-msi-cubi5-ubuntu-26.04.md", "# server\n")
+        write_file(self.source / "docs" / "operations" / "deploy-ubuntu-cloudflare.md", "# deploy\n")
+        write_file(self.source / "docs" / "operations" / "operations.md", "# ops\n")
+        write_file(self.source / "docs" / "operations" / "production-readiness.md", "# readiness\n")
         write_file(
             self.source / "docs" / "superpowers" / "specs" / "2026-07-01-usb-update-install-kit-v2-design.md",
             "# design\n",
@@ -234,8 +234,8 @@ class PrepareUsbKitTests(unittest.TestCase):
         deploy_script = kit / "deploy-from-usb.sh"
         self.assertTrue(deploy_script.is_file())
         self.assertTrue(os.access(deploy_script, os.X_OK))
-        self.assertTrue((kit / "docs" / "operations.md").is_file())
-        self.assertTrue((kit / "docs" / "production-readiness.md").is_file())
+        self.assertTrue((kit / "docs" / "operations" / "operations.md").is_file())
+        self.assertTrue((kit / "docs" / "operations" / "production-readiness.md").is_file())
         update_script = kit / "scripts" / "07-update-bitcoin-risk-brief-from-usb.sh"
         self.assertTrue(update_script.is_file())
         self.assertTrue(os.access(update_script, os.X_OK))
@@ -250,6 +250,14 @@ class PrepareUsbKitTests(unittest.TestCase):
         self.assertIn("copied_categories=server-kit-readme,server-entrypoints,server-scripts,deployment-docs,project-snapshot", manifest)
         self.assertIn("project_snapshot=project/bitcoin-risk-brief", manifest)
         self.assertIn("entrypoints=deploy-from-usb.sh", manifest)
+        self.assertIn(
+            "docs=docs/operations/server-msi-cubi5-ubuntu-26.04.md,"
+            "docs/operations/deploy-ubuntu-cloudflare.md,"
+            "docs/operations/operations.md,"
+            "docs/operations/production-readiness.md,"
+            "docs/superpowers/specs/2026-07-01-usb-update-install-kit-v2-design.md",
+            manifest,
+        )
         self.assertIn("scripts/08-install-turnstile-env-from-usb.sh", manifest)
 
         checksums = (kit / "SHA256SUMS").read_text()
@@ -265,6 +273,12 @@ class PrepareUsbKitTests(unittest.TestCase):
             stderr=subprocess.PIPE,
         )
         self.assertEqual(verify.returncode, 0, verify.stderr)
+
+    def test_server_readme_uses_current_deployment_doc_paths(self) -> None:
+        text = (REPO_ROOT / "server-kit" / "README-RUN-ON-SERVER.md").read_text(encoding="utf-8")
+
+        self.assertIn("docs/operations/server-msi-cubi5-ubuntu-26.04.md", text)
+        self.assertNotIn("docs/server-msi-cubi5-ubuntu-26.04.md", text)
 
     def test_missing_future_update_script_does_not_block_packaging(self) -> None:
         update_script = self.source / "server-kit" / "scripts" / "07-update-bitcoin-risk-brief-from-usb.sh"
