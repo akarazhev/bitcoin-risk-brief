@@ -64,7 +64,21 @@ class WaitlistRequest(BaseModel):
     turnstile_token: str = Field(min_length=1, max_length=2048)
 
 
-app = FastAPI(title="Bitcoin Risk Brief API", version="0.1.0", lifespan=lifespan)
+app = FastAPI(
+    title="Bitcoin Risk Brief API",
+    version="0.1.0",
+    description=(
+        "A daily Bitcoin risk signal computed from canonical BTC/USD daily data. "
+        "Call GET /api/readiness before reporting any value: it returns HTTP 503 when data is stale or "
+        "validation failed, and a risk number without its freshness state is not usable. "
+        "This is analytics and research context, not financial advice, not a price forecast, and not a trade signal."
+    ),
+    openapi_url="/api/openapi.json",
+    docs_url=None,
+    redoc_url=None,
+    servers=[{"url": "https://bitcoinriskbrief.minihub.app", "description": "Production"}],
+    lifespan=lifespan,
+)
 
 
 def _configure_access_logger() -> logging.Logger:
@@ -294,23 +308,52 @@ async def api_access_log_middleware(request, call_next):
     return response
 
 
-@app.get("/api/health")
+@app.get(
+    "/api/health",
+    tags=["status"],
+    summary="Service health",
+    description="Returns the service health status for deployment probes.",
+)
 async def health() -> dict[str, str]:
     return {"status": "ok"}
 
 
-@app.get("/api/readiness")
+@app.get(
+    "/api/readiness",
+    tags=["status"],
+    summary="Freshness and validation state",
+    description=(
+        "Returns HTTP 200 when every check passes and HTTP 503 when the data is stale or validation failed. "
+        "Never cached. Call this before reporting any risk value."
+    ),
+)
 async def readiness() -> Response:
     payload, status_code = await _produce_readiness_payload()
     return JSONResponse(status_code=status_code, content=payload, headers=no_store_headers())
 
 
-@app.get("/api/risk/latest")
+@app.get(
+    "/api/risk/latest",
+    tags=["risk"],
+    summary="Latest Bitcoin risk signal",
+    description=(
+        "Returns the latest completed daily Bitcoin risk point and its model context. "
+        "Call GET /api/readiness first to confirm the data is usable."
+    ),
+)
 async def risk_latest(request: Request) -> Response:
     return await _cached_public_json_response(request, _produce_risk_latest_payload)
 
 
-@app.get("/api/risk/history")
+@app.get(
+    "/api/risk/history",
+    tags=["risk"],
+    summary="Historical Bitcoin risk signals",
+    description=(
+        "Returns completed daily Bitcoin risk rows in ascending timestamp order. "
+        "Call GET /api/readiness first to confirm the data is usable."
+    ),
+)
 async def risk_history(
     request: Request,
     start_date: Annotated[date | None, Query(description="Start date YYYY-MM-DD")] = None,
@@ -326,17 +369,39 @@ async def risk_history(
     )
 
 
-@app.get("/api/risk/levels")
+@app.get(
+    "/api/risk/levels",
+    tags=["risk"],
+    summary="Bitcoin risk-level price scenarios",
+    description=(
+        "Returns model-solved price scenarios for each risk level. "
+        "These outputs are not forecasts, targets, or trading instructions."
+    ),
+)
 async def risk_levels(request: Request) -> Response:
     return await _cached_public_json_response(request, _produce_risk_levels_payload)
 
 
-@app.get("/api/brief/latest")
+@app.get(
+    "/api/brief/latest",
+    tags=["brief"],
+    summary="Latest daily Bitcoin brief",
+    description=(
+        "Returns the latest daily Bitcoin risk brief in the supported locales. "
+        "Call GET /api/readiness first to confirm the data is usable."
+    ),
+)
 async def brief_latest(request: Request) -> Response:
     return await _cached_public_json_response(request, _produce_brief_latest_payload)
 
 
-@app.post("/api/waitlist", status_code=201)
+@app.post(
+    "/api/waitlist",
+    status_code=201,
+    tags=["waitlist"],
+    summary="Join the Bitcoin Risk Brief waitlist",
+    description="Stores a submitted email address or Telegram handle after Turnstile verification.",
+)
 async def waitlist_join(payload: WaitlistRequest) -> JSONResponse:
     try:
         await verify_turnstile_token(
