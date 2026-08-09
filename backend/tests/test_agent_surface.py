@@ -21,6 +21,7 @@ class AgentStaticFileTests(unittest.TestCase):
         self.assertIn("User-agent: *", text)
         self.assertIn("Allow: /", text)
         self.assertIn(f"Sitemap: {PRODUCT_URL}sitemap.xml", text)
+        self.assertIn("not financial advice", text.lower())
 
     def test_sitemap_is_valid_xml_listing_both_hosts(self) -> None:
         raw = (PUBLIC_DIR / "sitemap.xml").read_text(encoding="utf-8")
@@ -33,6 +34,7 @@ class AgentStaticFileTests(unittest.TestCase):
         locations = {node.text for node in root.iter("{http://www.sitemaps.org/schemas/sitemap/0.9}loc")}
         self.assertIn(PRODUCT_URL, locations)
         self.assertIn(DOCS_URL, locations)
+        self.assertIn("not financial advice", raw.lower())
 
     def test_llms_txt_states_the_readiness_first_rule_and_the_advice_boundary(self) -> None:
         text = (PUBLIC_DIR / "llms.txt").read_text(encoding="utf-8")
