@@ -23,3 +23,8 @@ class RepositoryFurnitureTests(unittest.TestCase):
     def test_security_policy_names_a_reporting_channel(self) -> None:
         text = (ROOT / "SECURITY.md").read_text(encoding="utf-8")
         self.assertIn("@", text, "SECURITY.md must give a contact address for reports")
+
+    def test_security_policy_preserves_advice_boundary_and_current_privacy_link(self) -> None:
+        text = (ROOT / "SECURITY.md").read_text(encoding="utf-8")
+        self.assertIn("not financial advice", text.lower())
+        self.assertIn("docs/security-and-privacy.md", text)

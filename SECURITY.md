@@ -17,7 +17,11 @@ In scope: the public product at `https://bitcoinriskbrief.minihub.app`, its publ
 Out of scope: findings that require physical access to the deployment host, denial of service through raw traffic
 volume, and reports produced solely by automated scanners without a demonstrated impact.
 
+## Product boundary
+
+Bitcoin Risk Brief is an analytics and research product, not financial advice, investment advice, or a trading recommendation.
+
 ## What this product stores
 
 The waitlist stores contacts submitted deliberately by visitors. There is no product analytics, no tracking cookie,
-and no third-party beacon. See `docs/engineering/security-and-privacy.md`.
+and no third-party beacon. See `docs/security-and-privacy.md`.
