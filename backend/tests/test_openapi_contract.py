@@ -132,3 +132,12 @@ class OpenApiContractTests(unittest.TestCase):
                     if response is not None:
                         headers = response.get("headers", {})
                         self.assertTrue(requirements["headers"].issubset(headers.keys()))
+
+    def test_waitlist_created_example_documents_boolean_created_flag(self) -> None:
+        waitlist_post = app.openapi()["paths"]["/api/waitlist"]["post"]
+        created_example = waitlist_post["responses"]["201"]["content"]["application/json"]["examples"]["shape"][
+            "value"
+        ]
+
+        self.assertIsInstance(created_example["data"]["created"], bool)
+        self.assertTrue(created_example["data"]["created"])

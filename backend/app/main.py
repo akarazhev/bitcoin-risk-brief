@@ -213,7 +213,7 @@ WAITLIST_CREATED_EXAMPLE = {
     "data": {
         "contact_type": "email",
         "locale": "en",
-        "created": "2026-06-25T00:00:00+00:00",
+        "created": True,
     }
 }
 
