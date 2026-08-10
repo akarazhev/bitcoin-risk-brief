@@ -78,6 +78,21 @@ class TelegramClientTests(unittest.IsolatedAsyncioTestCase):
 
         self.assertNotIn(token, str(caught.exception))
 
+    async def test_non_json_response_has_unknown_delivery_outcome_without_the_token(self) -> None:
+        token = "non-json-sup3rs3cret"
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            return httpx.Response(502, text="<html>bad gateway</html>")
+
+        async with httpx.AsyncClient(transport=transport(handler)) as client:
+            with self.assertRaises(TelegramDeliveryUnknown) as caught:
+                await send_channel_post(
+                    token=token, chat_id="@bitcoinriskbrief", text="hello", client=client
+                )
+
+        self.assertNotIsInstance(caught.exception, TelegramSendError)
+        self.assertNotIn(token, str(caught.exception))
+
     async def test_httpx_request_log_never_contains_the_token(self) -> None:
         token = "log-sup3rs3cret"
         records: list[logging.LogRecord] = []

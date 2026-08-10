@@ -64,7 +64,9 @@ async def send_channel_post(
     try:
         body = response.json()
     except ValueError:
-        raise TelegramSendError(f"telegram returned a non-JSON response, status={response.status_code}") from None
+        raise TelegramDeliveryUnknown(
+            f"telegram returned a non-JSON response, status={response.status_code}"
+        ) from None
 
     if not body.get("ok"):
         description = str(body.get("description", "unknown error"))
