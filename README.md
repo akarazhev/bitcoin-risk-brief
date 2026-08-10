@@ -1,12 +1,12 @@
 # Bitcoin Risk Brief
 
-Bitcoin Risk Brief is a production-pilot product that turns canonical daily BTC/USD data into a transparent risk score, freshness state, and scenario price ladder. The owned source code, documentation, and configuration are Apache-2.0; bundled third-party BTC/USD market data is not.
+Bitcoin Risk Brief is a free, open-source product that turns canonical daily BTC/USD data into a transparent risk score, freshness state, and scenario price ladder. It is free permanently: no paid tier, no accounts, no SLA. The owned source code, documentation, and configuration are Apache-2.0; bundled third-party BTC/USD market data is not.
 
 [![CI](https://github.com/akarazhev/bitcoin-risk-brief/actions/workflows/ci.yml/badge.svg)](https://github.com/akarazhev/bitcoin-risk-brief/actions/workflows/ci.yml) [![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE) [![Live site](https://img.shields.io/website?url=https%3A%2F%2Fbitcoinriskbrief.minihub.app%2F&label=live%20site)](https://bitcoinriskbrief.minihub.app/)
 
 ![Bitcoin Risk Brief first viewport with current risk and readiness](docs/assets/bitcoin-risk-brief-first-viewport.png)
 
-_First viewport captured from the public pilot on 2026-08-09; the values shown are a point-in-time example._
+_First viewport captured on 2026-08-09; the values shown are a point-in-time example._
 
 Live product: [bitcoinriskbrief.minihub.app](https://bitcoinriskbrief.minihub.app/)
 
@@ -109,7 +109,7 @@ Open: `http://localhost:3001`
 - [API reference](docs/engineering/api-reference.md)
 - [Freshness and validation](docs/engineering/freshness-and-validation.md)
 - [Agent documentation](docs/agents/index.md)
-- [Operations and production-pilot evidence](docs/operations/production-readiness.md)
+- [Operations and production evidence](docs/operations/production-readiness.md)
 
 ## Disclaimer and licence
 
