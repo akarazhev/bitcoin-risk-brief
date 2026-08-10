@@ -95,7 +95,7 @@ Use the layers in order. A post does not need every layer, but it should not lea
 2. **Change:** see how the score moved and what price scenarios would change the band.
 3. **Trust:** verify freshness, readiness, covered date, and methodology version.
 4. **Boundary:** use it as research context, not financial or investment advice.
-5. **Invitation:** join the small pilot if a band-change alert or weekly context would be useful.
+5. **Invitation:** state whether a band-change alert or weekly context would be useful.
 
 ### Proof Points Available Today
 
@@ -104,7 +104,10 @@ Use the layers in order. A post does not need every layer, but it should not lea
 - Latest covered date, readiness, freshness, row count, and methodology version.
 - Two-year history view and a practical `0.20` to `0.80` risk-level scenario window.
 - English, Russian, Chinese, German, French, Spanish, and Arabic product locales.
-- Waitlist capture for email or Telegram interest; notifications are not sent yet.
+- Waitlist capture for explicit `risk_band_alert` interest and manual follow-up; it does not send personal email or
+  Telegram alerts.
+- The collector may publish public daily posts to the Telegram channel when configured. These channel posts are public
+  and do not depend on waitlist submission.
 
 ### Main Objections
 
@@ -115,7 +118,7 @@ Use the layers in order. A post does not need every layer, but it should not lea
 | “Why not use a free risk-score site?” | Free direct alternatives exist. Bitcoin Risk Brief is testing whether a shorter daily explanation, visible operational state, and scenario ladder make the workflow more useful. | Ask the user to compare the time and clarity of both workflows; do not claim superior accuracy. |
 | “Why not use Glassnode or CryptoQuant?” | Those products cover much broader professional analysis. This product is intentionally for a narrower one-minute daily check. | Qualify whether the person wants focus or a research terminal; terminal users are not the initial ICP. |
 | “Is that the current spot price?” | No. The displayed model price is HLC3 from the completed daily candle. Scenario prices are hypothetical model inputs. | Ask whether the labels prevent confusion; record repeated model-price questions. |
-| “Will I receive an alert after joining?” | Not yet. The current form records explicit `risk_band_alert` interest for manual founder follow-up; automated email and Telegram delivery are not implemented. | Ask which band-change or digest delivery would be useful. |
+| “Will I receive an alert after joining?” | No personal alert is sent. The form records explicit `risk_band_alert` interest for manual founder follow-up; recurring personal email and Telegram delivery are not implemented. Public daily Telegram channel posts, when configured, are separate and do not depend on joining the waitlist. | Ask which band-change or digest delivery would be useful. |
 | “Why would I pay for something available on the web?” | There is no paid product today. The test asks whether reliable alerts and recurring context could save enough review time to justify a small founding pilot. | Ask the paid-intent question only after repeat use; do not accept payment from this playbook. |
 
 ## Landing-Page Copy Variants
@@ -130,7 +133,7 @@ it. Preserve the readiness, lead-storage, notification-status, and no-advice cop
 **Subheadline:** See whether modelled BTC risk is low, neutral, or high, how the score changed, and the price scenarios
 that would move the signal.
 
-**CTA:** Join the first risk-band alert test
+**CTA:** Register interest in band-change alerts
 
 ### English B: Focus
 
@@ -139,7 +142,7 @@ that would move the signal.
 **Subheadline:** A concise, methodology-backed brief with freshness, current model-input directions, and risk-band price
 scenarios.
 
-**CTA:** Join the alert pilot
+**CTA:** Tell us alert delivery would be useful
 
 ### English C: Scenario
 
@@ -148,7 +151,7 @@ scenarios.
 **Subheadline:** Start with today's modelled risk, then explore the hypothetical price levels associated with lower or
 higher risk bands.
 
-**CTA:** Follow future band changes
+**CTA:** Follow the public Telegram channel
 
 ### Russian A: Clarity
 
@@ -156,7 +159,7 @@ higher risk bands.
 
 **Subheadline:** Посмотрите текущий модельный риск BTC, изменение оценки и ценовые сценарии перехода в другой диапазон.
 
-**CTA:** Записаться в первый тест уведомлений о смене диапазона
+**CTA:** Сообщить об интересе к уведомлениям о смене диапазона
 
 ### Russian B: Focus
 
@@ -164,7 +167,7 @@ higher risk bands.
 
 **Subheadline:** Краткий отчёт с методологией, свежестью данных, факторами модели и ценовыми сценариями риска.
 
-**CTA:** Присоединиться к пилоту уведомлений
+**CTA:** Сообщить, что уведомления были бы полезны
 
 ### Russian C: Scenario
 
@@ -172,7 +175,7 @@ higher risk bands.
 
 **Subheadline:** Начните с сегодняшнего модельного риска и изучите гипотетические цены для соседних диапазонов.
 
-**CTA:** Следить за изменениями риска
+**CTA:** Подписаться на публичный Telegram-канал
 
 ## Initial Acquisition Channels
 

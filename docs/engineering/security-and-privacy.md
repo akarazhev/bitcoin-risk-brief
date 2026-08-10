@@ -60,7 +60,12 @@ deletion/unsubscribe category, manual follow-up decisions, and support mailbox r
 provider details stay outside Git. The 2026-07-11 desktop/mobile public smoke observed the note on the public host
 without any waitlist POSTs.
 
-The product currently has no authentication and no user accounts. Waitlist contacts are operational lead data and should be handled as PII.
+The product currently has no authentication and no user accounts. Waitlist contacts are operational lead data and should
+be handled as PII. The waitlist records explicit band-alert interest for manual follow-up only; it does not send
+personal email or Telegram alerts.
+
+Public Telegram channel publication is a separate one-to-many delivery path that the collector may use when configured.
+It does not use waitlist contacts and does not depend on waitlist submission.
 
 Turnstile is bot verification for waitlist submissions, not product analytics. The browser contacts
 `challenges.cloudflare.com` to obtain a token; the application sends that token only to Cloudflare Siteverify from the
@@ -73,10 +78,13 @@ uses the operator-controlled Managed-widget credentials and only `bitcoinriskbri
 `TURNSTILE_HOSTNAMES`; test credentials and local hostnames must not be used for production.
 
 The dedicated support contact path for deletion and unsubscribe requests is created and ready, with exact addresses kept
-outside Git. If the project adds email or Telegram delivery later, update this section before sending recurring messages.
+outside Git. It handles waitlist-lead deletion and manual follow-up preferences. There is no current recurring personal
+delivery to unsubscribe from; public Telegram channel publication is separate from waitlist contacts. If the project
+adds personal email or Telegram delivery later, update this section before sending recurring messages.
 
-Before recurring email or Telegram delivery, also complete the deferred email/outreach readiness gate: opt-in source,
-sender or bot ownership, unsubscribe or stop handling, provider recovery, no-advice framing, and delivery privacy copy.
+Before recurring personal email or Telegram delivery, also complete the deferred email/outreach readiness gate: opt-in
+source, sender or bot ownership, unsubscribe or stop handling, provider recovery, no-advice framing, and delivery
+privacy copy.
 
 ## Launch Governance Status
 

@@ -52,6 +52,42 @@ class TelegramClientTests(unittest.IsolatedAsyncioTestCase):
                     token="t0ken", chat_id="@bitcoinriskbrief", text="hello", client=client
                 )
 
+    async def test_empty_json_has_unknown_delivery_outcome_without_the_token(self) -> None:
+        token = "empty-json-sup3rs3cret"
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            return httpx.Response(200, json={})
+
+        async with httpx.AsyncClient(transport=transport(handler)) as client:
+            with self.assertRaises(TelegramDeliveryUnknown) as caught:
+                await send_channel_post(
+                    token=token, chat_id="@bitcoinriskbrief", text="hello", client=client
+                )
+
+        self.assertNotIsInstance(caught.exception, TelegramSendError)
+        self.assertNotIn(token, str(caught.exception))
+
+    async def test_invalid_success_message_id_has_unknown_delivery_outcome_without_the_token(
+        self,
+    ) -> None:
+        token = "message-id-sup3rs3cret"
+
+        for result in ({}, {"message_id": "4242"}):
+            with self.subTest(result=result):
+                def handler(request: httpx.Request) -> httpx.Response:
+                    return httpx.Response(200, json={"ok": True, "result": result})
+
+                async with httpx.AsyncClient(transport=transport(handler)) as client:
+                    with self.assertRaises(TelegramDeliveryUnknown) as caught:
+                        await send_channel_post(
+                            token=token,
+                            chat_id="@bitcoinriskbrief",
+                            text="hello",
+                            client=client,
+                        )
+
+                self.assertNotIn(token, str(caught.exception))
+
     async def test_never_puts_the_token_in_the_error_message(self) -> None:
         def handler(request: httpx.Request) -> httpx.Response:
             return httpx.Response(401, json={"ok": False, "description": "Unauthorized"})

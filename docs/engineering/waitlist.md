@@ -1,6 +1,7 @@
 # Waitlist
 
-The waitlist is intentionally small and production-pilot focused. It stores interest signals without sending notifications yet.
+The waitlist stores explicit band-alert interest for manual founder/operator follow-up. It does not send personal email
+or Telegram alerts.
 
 ## Frontend Behavior
 
@@ -15,9 +16,11 @@ Before a submission can be sent, the browser renders Cloudflare Turnstile and co
 `challenges.cloudflare.com` to obtain a single-use token. The frontend sends that token with the waitlist payload and
 resets the widget after each same-page attempt. The backend verifies the token server-side before it can write a lead.
 
-The public CTA positions the first test cohort for free BTC risk-alert access plus the two-year risk history and
-risk-level views during the pilot. In the current implementation, the submission still stores only a lead for manual
-founder/operator follow-up; automated email or Telegram delivery is not implemented yet.
+The public CTA records explicit `risk_band_alert` interest. In the current implementation, a submission stores only a
+lead for manual founder/operator follow-up; personal email or Telegram delivery is not implemented.
+
+The collector may publish public daily posts to the Telegram channel when configured. Channel publication is separate
+from the waitlist and does not depend on a waitlist submission.
 
 The frontend also shows a compact privacy/terms/disclaimer note near the waitlist. The note is local UI copy only; it
 does not add notification delivery, accounts, deletion handling, unsubscribe handling, or a public support channel.
@@ -35,7 +38,7 @@ Payload:
 {
   "contact": "user@example.com",
   "locale": "en",
-  "source": "landing",
+  "source": "risk_band_alert",
   "turnstile_token": "single-use-client-token"
 }
 ```
@@ -110,7 +113,9 @@ Turnstile is not a replacement for rate limiting.
 
 ## Current Scope
 
-The waitlist stores leads only. It does not send emails, Telegram messages, or daily alerts yet.
+The waitlist stores leads only. It records explicit band-alert interest for manual follow-up, but does not send personal
+emails, Telegram messages, or daily alerts. Public Telegram channel publication, when configured, is separate and does
+not require a waitlist submission.
 
 The 2026-07-12 operator decision pass records the waitlist owner role as founder/operator, review cadence as several
 times per week during pilot, retention through beta end with earlier operator-approved deletion on request, and manual

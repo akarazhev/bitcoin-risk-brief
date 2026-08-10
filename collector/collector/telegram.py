@@ -60,7 +60,7 @@ async def send_channel_post(
         if owned:
             await active.aclose()
 
-    body: dict[str, Any]
+    body: Any
     try:
         body = response.json()
     except ValueError:
@@ -68,9 +68,17 @@ async def send_channel_post(
             f"telegram returned a non-JSON response, status={response.status_code}"
         ) from None
 
-    if not body.get("ok"):
+    if not isinstance(body, dict):
+        raise TelegramDeliveryUnknown("telegram returned an invalid JSON response")
+
+    if body.get("ok") is False:
         description = str(body.get("description", "unknown error"))
         description = description.replace(token, "[REDACTED]")
         raise TelegramSendError(f"telegram rejected the post: {description}")
 
-    return int(body["result"]["message_id"])
+    result = body.get("result")
+    message_id = result.get("message_id") if isinstance(result, dict) else None
+    if body.get("ok") is not True or type(message_id) is not int:
+        raise TelegramDeliveryUnknown("telegram returned an incomplete success response")
+
+    return message_id
