@@ -837,6 +837,31 @@ export default function App() {
           {MINIHUB_URL}
           <ExternalLink size={14} aria-hidden="true" />
         </a>
+        <nav className="footer-dev-links" aria-label={t.developerLinksAriaLabel}>
+          <a
+            className="bottom-panel-link footer-token"
+            href="https://docs.bitcoinriskbrief.minihub.app/"
+            target="_blank"
+            rel="noreferrer"
+            dir="ltr"
+          >
+            Docs
+            <ExternalLink size={14} aria-hidden="true" />
+          </a>
+          <a
+            className="bottom-panel-link footer-token"
+            href="https://docs.bitcoinriskbrief.minihub.app/engineering/api-reference/"
+            target="_blank"
+            rel="noreferrer"
+            dir="ltr"
+          >
+            API
+            <ExternalLink size={14} aria-hidden="true" />
+          </a>
+          <a className="bottom-panel-link footer-token" href="/llms.txt" dir="ltr">
+            llms.txt
+          </a>
+        </nav>
       </footer>
     </main>
   )

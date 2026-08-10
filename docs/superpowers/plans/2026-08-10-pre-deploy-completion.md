@@ -301,16 +301,22 @@ class DocsSiteAgentFileTests(unittest.TestCase):
     def test_docs_llms_txt_points_at_pages_that_exist(self) -> None:
         text = (DOCS / "llms.txt").read_text(encoding="utf-8")
         prefix = "https://docs.bitcoinriskbrief.minihub.app/"
-        referenced = [line.split(prefix, 1)[1] for line in text.splitlines() if prefix in line]
+        referenced = []
+        for line in text.splitlines():
+            if prefix not in line:
+                continue
+            tail = line.split(prefix, 1)[1].lstrip()
+            if tail:
+                referenced.append(tail)
+
         self.assertGreater(len(referenced), 3, "the map should cover more than a couple of pages")
         for ref in referenced:
-            slug = ref.strip().rstrip("/)").rstrip("/")
-            if not slug:
-                continue
-            with self.subTest(slug=slug):
+            with self.subTest(page=ref):
+                self.assertEqual(ref, ref.rstrip(), "the URL must terminate the line without trailing whitespace")
+                self.assertNotIn(" ", ref, "the URL must end its line, so no prose follows it")
                 self.assertTrue(
-                    (DOCS / f"{slug}.md").is_file(),
-                    f"docs/{slug}.md does not exist, so the published URL would 404",
+                    (DOCS / f"{ref.rstrip('/')}.md").is_file(),
+                    f"docs/{ref} does not exist, so the published URL would 404",
                 )
 
     def test_docs_llms_txt_is_not_excluded_from_the_build(self) -> None:
@@ -332,34 +338,31 @@ Create `docs/llms.txt`. Unlike the product's `llms.txt`, which maps endpoints, t
 # Bitcoin Risk Brief — documentation
 
 > Technical reference for a daily Bitcoin risk signal: methodology, API contract, freshness and validation
-> semantics, and the agent access guide. The product itself is at https://bitcoinriskbrief.minihub.app/,
-> and its endpoint map is at https://bitcoinriskbrief.minihub.app/llms.txt.
+> semantics, and the agent access guide. The product itself, and its endpoint map, are at
+> https://bitcoinriskbrief.minihub.app/ and https://bitcoinriskbrief.minihub.app/llms.txt
 > Analytics and research context — not financial advice, not a price forecast, not a trade signal.
 
 ## Start here
 
-- https://docs.bitcoinriskbrief.minihub.app/agents/agent-access-pack/: the readiness-first call sequence,
-  worked endpoint examples, cache semantics, and what an agent must not present the output as.
-- https://docs.bitcoinriskbrief.minihub.app/engineering/freshness-and-validation/: what readiness asserts,
-  why staleness returns 503 rather than a stale figure, and how cached payloads are bound to a validation row.
+- Agent access pack, the readiness-first call sequence and interpretation limits: https://docs.bitcoinriskbrief.minihub.app/agents/agent-access-pack/
+- Freshness and validation, why staleness returns 503 rather than a stale figure: https://docs.bitcoinriskbrief.minihub.app/engineering/freshness-and-validation/
 
 ## Product
 
-- https://docs.bitcoinriskbrief.minihub.app/product/risk-methodology/: features, weights, normalisation
-  windows, risk states, and the risk-level solver.
-- https://docs.bitcoinriskbrief.minihub.app/product/product-spec/: what the product is and what it is not.
+- Risk methodology, features, weights, normalisation windows and the level solver: https://docs.bitcoinriskbrief.minihub.app/product/risk-methodology/
+- Product specification, what this is and what it is not: https://docs.bitcoinriskbrief.minihub.app/product/product-spec/
 
 ## Engineering
 
-- https://docs.bitcoinriskbrief.minihub.app/engineering/api-reference/: endpoints, response shapes, cache headers.
-- https://docs.bitcoinriskbrief.minihub.app/engineering/architecture/: services, runtime flow, storage.
-- https://docs.bitcoinriskbrief.minihub.app/engineering/data-pipeline/: canonical source, refresh paths, validation.
-- https://docs.bitcoinriskbrief.minihub.app/engineering/security-and-privacy/: headers, rate limits, PII handling.
-- https://docs.bitcoinriskbrief.minihub.app/agents/openapi/: where the machine-readable schema lives.
+- API reference, endpoints, response shapes and cache headers: https://docs.bitcoinriskbrief.minihub.app/engineering/api-reference/
+- Architecture, services, runtime flow and storage: https://docs.bitcoinriskbrief.minihub.app/engineering/architecture/
+- Data pipeline, canonical source, refresh paths and validation: https://docs.bitcoinriskbrief.minihub.app/engineering/data-pipeline/
+- Security and privacy, headers, rate limits and PII handling: https://docs.bitcoinriskbrief.minihub.app/engineering/security-and-privacy/
+- Where the machine-readable schema lives: https://docs.bitcoinriskbrief.minihub.app/agents/openapi/
 
 ## Operations
 
-- https://docs.bitcoinriskbrief.minihub.app/operations/production-readiness/: current gates and accepted limits.
+- Production readiness, current gates and accepted limits: https://docs.bitcoinriskbrief.minihub.app/operations/production-readiness/
 
 Operations pages are an operational log. They record what was verified and when; they are not claims about
 product capability.
@@ -376,7 +379,7 @@ Expected: `published`.
 - [ ] **Step 5: Commit**
 
 ```bash
-git add docs/llms.txt backend/tests/test_agent_surface.py
+git add .gitignore docs/llms.txt backend/tests/test_agent_surface.py docs/superpowers/plans/2026-08-10-pre-deploy-completion.md
 git commit -m "docs: serve llms.txt from the documentation site"
 ```
 

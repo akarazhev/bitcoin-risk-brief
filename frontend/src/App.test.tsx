@@ -981,6 +981,42 @@ test('renders the compact Minihub bottom panel after the charts', async () => {
   expect(riskLevelsTitle.compareDocumentPosition(footer as HTMLElement) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
 })
 
+test('links the documentation site, the API reference and llms.txt from the footer', async () => {
+  render(<App />)
+
+  const group = await screen.findByRole('navigation', { name: 'Developer and agent resources' })
+  const links = within(group).getAllByRole('link')
+
+  expect(links.map((a) => a.getAttribute('href'))).toEqual([
+    'https://docs.bitcoinriskbrief.minihub.app/',
+    'https://docs.bitcoinriskbrief.minihub.app/engineering/api-reference/',
+    '/llms.txt',
+  ])
+  expect(links.map((a) => a.textContent?.trim())).toEqual(['Docs', 'API', 'llms.txt'])
+
+  for (const link of links) {
+    if (link.getAttribute('href')?.startsWith('http')) {
+      expect(link).toHaveAttribute('target', '_blank')
+      expect(link).toHaveAttribute('rel', 'noreferrer')
+    } else {
+      expect(link).not.toHaveAttribute('target')
+    }
+  }
+})
+
+test('places the developer links inside the existing bottom panel', async () => {
+  render(<App />)
+
+  const group = await screen.findByRole('navigation', { name: 'Developer and agent resources' })
+  expect(group.closest('footer.bottom-panel')).not.toBeNull()
+})
+
+test('styles the footer developer links as a wrapping row', () => {
+  const css = readFileSync(resolve(process.cwd(), 'src/App.css'), 'utf8')
+
+  expect(css).toContain('.footer-dev-links')
+})
+
 test('uses compact chart options on narrow viewports', async () => {
   setCompactViewport(true)
   render(<App />)
