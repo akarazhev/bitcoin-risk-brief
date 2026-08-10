@@ -55,6 +55,12 @@ async def import_csv_once(pool: Any, *, refresh_remote: bool, now: datetime | No
         validation=dataset["validation"],
         validation_summary=dataset["validation_summary"],
     )
+    try:
+        from collector.publisher import publish_daily_post
+
+        await publish_daily_post(pool)
+    except Exception:
+        logger.exception("telegram_publish_failed")
     logger.info(
         "CSV import complete: %d refreshed CSV rows, %d ohlcv rows, %d risk rows, deleted stale rows=%s",
         refreshed_count,

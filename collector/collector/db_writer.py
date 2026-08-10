@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from datetime import date
 from typing import Any
 
 import asyncpg
@@ -9,6 +10,37 @@ from app.brief import build_brief
 from app.risk import METHODOLOGY_VERSION, RiskPoint, classify_risk
 from app.risk_levels import build_risk_levels, build_risk_levels_public_payload
 from collector.records import as_timestamp, build_ohlcv_records, build_validation_payload
+
+
+async def fetch_telegram_post(pool: asyncpg.Pool, as_of: date) -> dict[str, Any] | None:
+    async with pool.acquire() as connection:
+        row = await connection.fetchrow(
+            'SELECT as_of, posted_at, message_id, risk, risk_state FROM telegram_posts WHERE as_of = $1',
+            as_of,
+        )
+    return dict(row) if row else None
+
+
+async def record_telegram_post(
+    pool: asyncpg.Pool,
+    *,
+    as_of: date,
+    message_id: int | None,
+    risk: float,
+    risk_state: str,
+) -> None:
+    async with pool.acquire() as connection:
+        await connection.execute(
+            '''
+            INSERT INTO telegram_posts (as_of, message_id, risk, risk_state)
+            VALUES ($1, $2, $3, $4)
+            ON CONFLICT (as_of) DO NOTHING
+            ''',
+            as_of,
+            message_id,
+            risk,
+            risk_state,
+        )
 
 
 async def write_ohlcv_rows(pool: asyncpg.Pool, rows: list[dict[str, Any]]) -> int:
