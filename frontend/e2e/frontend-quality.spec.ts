@@ -259,7 +259,7 @@ test('supports keyboard focus navigation through public controls with mocked wai
   const languageListbox = page.getByRole('listbox', { name: /select language/i })
   const dataSourceLink = page.getByRole('link', { name: /coinmarketcap/i })
   const waitlistInput = page.getByLabel('email or @telegram')
-  const submitButton = page.getByRole('button', { name: /join waitlist/i })
+  const submitButton = page.getByRole('button', { name: /register interest/i })
 
   await pressTab()
   if (await isFocused(methodologyLink)) {
@@ -273,7 +273,7 @@ test('supports keyboard focus navigation through public controls with mocked wai
   await expect(languageListbox).toBeHidden()
   await expect(languageSelector).not.toBeFocused()
   await expect(dataSourceLink).toBeFocused()
-  const tabsFromDataSourceToWaitlist = await pressUntilFocused(pressTab, waitlistInput, 6)
+  const tabsFromDataSourceToWaitlist = await pressUntilFocused(pressTab, waitlistInput, 7)
   expect(tabsFromDataSourceToWaitlist).toBeGreaterThan(0)
   await page.keyboard.type('keyboard@example.invalid')
   await pressTab()
@@ -284,11 +284,11 @@ test('supports keyboard focus navigation through public controls with mocked wai
   await expect(submitButton).toBeFocused()
   await page.keyboard.press('Enter')
 
-  await expect(page.locator('#waitlist-status')).toHaveText('Saved. You are on the Bitcoin Risk Brief waitlist.')
+  await expect(page.locator('#waitlist-status')).toHaveText('Saved. You will hear from us when the risk band changes.')
   expect(waitlistPayloads).toEqual([{
     contact: 'keyboard@example.invalid',
     locale: 'en',
-    source: 'landing',
+    source: 'risk_band_alert',
     turnstile_token: 'e2e-turnstile-token',
   }])
 })

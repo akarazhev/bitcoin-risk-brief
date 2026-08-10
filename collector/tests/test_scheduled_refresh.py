@@ -187,6 +187,51 @@ class ScheduledPublicCmcRefreshTest(unittest.IsolatedAsyncioTestCase):
         write_levels.assert_awaited_once_with(pool, dataset["source_rows"], dataset["risk_points"])
         self.assertEqual(write_order, ["ohlcv", "risk", "delete", "levels", "brief", "validation"])
 
+    async def test_import_csv_once_logs_and_completes_when_publication_raises(self) -> None:
+        pool = object()
+        risk_point = SimpleNamespace(
+            day=date(2026, 6, 26),
+            price_hlc3=100.0,
+            risk=0.7,
+            score=1.0,
+            trend_dev=0.2,
+            vol_regime=0.1,
+            turnover=None,
+            z_trend_dev=1.0,
+            z_vol_regime=0.5,
+            z_turnover=None,
+            turnover_enabled=False,
+        )
+        dataset = {
+            "source_rows": [daily_row(date(2026, 6, 26), 100.0)],
+            "risk_points": [risk_point],
+            "validation": {"turnover_enabled": False},
+            "validation_summary": "ok",
+        }
+        write_validation = AsyncMock()
+        publish = AsyncMock(side_effect=RuntimeError("publisher failed"))
+
+        with (
+            patch.object(collector_main, "build_csv_risk_dataset", return_value=dataset),
+            patch.object(collector_db_writer, "write_ohlcv_rows", AsyncMock(return_value=1)),
+            patch.object(collector_db_writer, "write_risk_rows", AsyncMock(return_value=1)),
+            patch.object(collector_db_writer, "write_validation", write_validation),
+            patch.object(collector_db_writer, "write_brief", AsyncMock()),
+            patch.object(collector_db_writer, "write_risk_level_snapshot", AsyncMock()),
+            patch.object(
+                collector_db_writer,
+                "delete_rows_after_csv_end",
+                AsyncMock(return_value={"ohlcv": 0, "risk": 0, "brief": 0, "levels": 0}),
+            ),
+            patch("collector.publisher.publish_daily_post", publish),
+        ):
+            with self.assertLogs("collector.main", level="ERROR") as logs:
+                await collector_main.import_csv_once(pool, refresh_remote=False)
+
+        write_validation.assert_awaited_once()
+        publish.assert_awaited_once_with(pool)
+        self.assertTrue(any("telegram_publish_failed" in line for line in logs.output))
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -82,6 +82,39 @@ Operators can still run `./scripts/manage.sh download-cmc-csv` for a one-off pub
 Scheduled no-key refresh failures should alert through collector logs and stale readiness after the nightly update
 window.
 
+## Telegram Channel Publication
+
+Before enabling channel publication, apply migration `004_telegram_posts.sql` with `./scripts/manage.sh migrate`.
+Set `TELEGRAM_BOT_TOKEN` only in the operator-managed environment; an empty token disables publication before database
+reads. Set `TELEGRAM_CHANNEL_ID` to identify the public channel. The collector considers publication only after an
+import has written ready validation output.
+
+Migration `004` is idempotent. A clean install creates nullable `posted_at` with no default. An existing database that
+used the earlier branch-local `posted_at TIMESTAMPTZ NOT NULL DEFAULT now()` form is converged by dropping both the
+default and the `NOT NULL` constraint, so unconfirmed claims retain `NULL` values.
+
+The `telegram_posts` ledger claims a covered date with `message_id` and `posted_at` initially `NULL`. Telegram's
+returned message ID confirms the claim. A definitive Telegram API rejection releases an unconfirmed claim. An
+ambiguous delivery result, including a transport failure or non-JSON response after the POST, retains the claim; there
+is no automatic reclaim because a missed post is preferred over a duplicate.
+
+For the first enabled scheduled run, observe the collector log and the channel, then inspect the ledger:
+
+```sql
+SELECT as_of, message_id, posted_at FROM telegram_posts ORDER BY as_of DESC;
+```
+
+Before any manual cleanup of an unconfirmed claim, inspect exactly:
+
+```sql
+SELECT as_of FROM telegram_posts WHERE message_id IS NULL;
+```
+
+Do not clean up a claim until the channel has been checked manually and the operator has determined that no post was
+delivered. To roll back publication, first disable `TELEGRAM_BOT_TOKEN`; preserve or delete claims only after an
+operator decision based on that channel check. Automated tests must use `httpx.MockTransport` or `AsyncMock`; a
+live-channel smoke post is not safe.
+
 ## Manual Downloaded CoinMarketCap CSV Refresh
 
 Refresh BTC history without a paid CoinMarketCap API account by downloading a CSV from:

@@ -85,6 +85,18 @@ Manual `import-cmc-csv` remains the operator fallback when public automation and
 unavailable. Historical design context remains in
 `docs/superpowers/specs/2026-07-01-scheduled-public-cmc-refresh-design.md`.
 
+## Telegram Channel Publication
+
+After an import writes its validation output, the collector evaluates readiness and only then considers publishing the
+daily channel post. `TELEGRAM_BOT_TOKEN` enables publication; an empty value disables it before any database reads.
+`TELEGRAM_CHANNEL_ID` identifies the public channel. Apply migration `004_telegram_posts.sql` before enabling either
+setting in an environment.
+
+The `telegram_posts` ledger has one row per covered date. A newly inserted row is an unconfirmed claim with
+`message_id` and `posted_at` set to `NULL`; Telegram confirmation stores the returned message ID and confirmation time.
+A definitive Telegram API rejection releases an unconfirmed claim. A transport, response-parsing, or other ambiguous
+delivery result retains the claim, with no automatic reclaim, so a missed post is preferred over a duplicate.
+
 ## Optional CoinMarketCap API Delta Fetch
 
 When an API key is configured, the collector uses the official CoinMarketCap OHLCV Historical endpoint:

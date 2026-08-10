@@ -35,6 +35,14 @@ test('gives every locale an accessible name for the developer links', () => {
   }
 })
 
+test('gives every locale the channel copy and no pilot framing', () => {
+  for (const locale of supportedLocales) {
+    expect(copy[locale].channelBody, `${locale} is missing channelBody`).toBeTruthy()
+    expect(copy[locale].channelCta, `${locale} is missing channelCta`).toBeTruthy()
+    expect(copy[locale].waitlistBody, `${locale} still frames the product as a pilot`).not.toMatch(/pilot|cohort|kohorte|cohorte|试点/i)
+  }
+})
+
 test('provides exact localized Turnstile errors and privacy disclosure', () => {
   const expected = {
     en: {

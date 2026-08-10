@@ -6,8 +6,8 @@ Bitcoin Risk Brief is a compact four-service product built for validating demand
 
 | Service | Stack | Responsibilities |
 | --- | --- | --- |
-| `timescaledb` | TimescaleDB/PostgreSQL | Stores canonical OHLCV rows, computed risk rows, validation status, brief snapshots, and waitlist leads. |
-| `data-collector` | Python, asyncpg, APScheduler, httpx | Updates the BTC CSV when possible, imports the full CSV, computes risk, writes validation data, and schedules daily runs. |
+| `timescaledb` | TimescaleDB/PostgreSQL | Stores canonical OHLCV rows, computed risk rows, validation status, brief snapshots, waitlist leads, and Telegram publication claims. |
+| `data-collector` | Python, asyncpg, APScheduler, httpx | Updates the BTC CSV when possible, imports the full CSV, computes risk, writes validation data, schedules daily runs, and can publish ready daily output to the Telegram channel. |
 | `backend` | FastAPI, asyncpg | Serves health/readiness, risk, risk levels, brief, and waitlist endpoints. |
 | `frontend` | React, Vite, ECharts, nginx | Renders the product UI and proxies `/api/*` requests to the backend. |
 
@@ -23,10 +23,12 @@ All services run under `podman-compose.yml` on the `app-network` bridge network.
 6. Valid rows are merged into the CSV with atomic file replacement.
 7. The full CSV is imported into TimescaleDB.
 8. The risk series is recomputed from the full canonical source history.
-9. Validation metadata and a latest brief snapshot are written.
-10. Rows after the CSV tail are deleted from OHLCV, risk, and brief tables to prevent stale mixed-source data.
-11. The backend serves API reads from TimescaleDB.
-12. The frontend displays current risk, risk history, risk levels, brief text, and waitlist capture.
+9. Rows after the CSV tail are deleted from OHLCV, risk, brief, and risk-level snapshot tables to prevent stale mixed-source data.
+10. A current risk-level snapshot and latest brief snapshot are written.
+11. Validation metadata is written.
+12. When Telegram publication is configured, the collector publishes only after the import output is ready and records the result in the publication ledger.
+13. The backend serves API reads from TimescaleDB.
+14. The frontend displays current risk, risk history, risk levels, brief text, and waitlist capture.
 
 ## Repository Layout
 
@@ -51,8 +53,13 @@ docs/                    Product, operations, methodology, API, and deployment d
 | `brief_snapshots` | Latest daily brief payloads. |
 | `risk_level_snapshots` | Latest persisted public risk-level payloads served by `/api/risk/levels`. |
 | `waitlist_leads` | Normalized email or Telegram waitlist contacts. |
+| `telegram_posts` | One claim per covered date for channel publication, confirmed with Telegram's returned message ID. |
 
 `btc_ohlcv_daily` and `btc_risk_daily` are TimescaleDB hypertables keyed by `timestamp`.
+
+`telegram_posts` rows begin as unconfirmed claims with `message_id` and `posted_at` set to `NULL`. A successful
+Telegram response stores the message ID and confirmation time. A definitive Telegram rejection releases an
+unconfirmed claim; an ambiguous delivery result retains it to prefer a missed post over a duplicate.
 
 ## Public Entry Point
 

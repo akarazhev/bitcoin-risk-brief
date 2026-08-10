@@ -601,7 +601,7 @@ test('localizes the privacy terms and disclaimer note', async () => {
 test('disables waitlist submission until Turnstile returns a token', async () => {
   render(<App />)
 
-  const button = await screen.findByRole('button', { name: /join waitlist/i })
+  const button = await screen.findByRole('button', { name: /register interest/i })
   expect(button).toBeDisabled()
 
   verifyTurnstile()
@@ -616,7 +616,7 @@ test('clears and resets a verified token after a whitespace-only submission', as
   render(<App />)
 
   const input = await screen.findByPlaceholderText('email or @telegram')
-  const button = screen.getByRole('button', { name: /join waitlist/i })
+  const button = screen.getByRole('button', { name: /register interest/i })
   fireEvent.change(input, { target: { value: '   ' } })
   verifyTurnstile()
   expect(button).toBeEnabled()
@@ -631,13 +631,13 @@ test('clears and resets a verified token after a whitespace-only submission', as
 test('invalidates a verified token when the widget language changes', async () => {
   render(<App />)
 
-  const englishButton = await screen.findByRole('button', { name: /join waitlist/i })
+  const englishButton = await screen.findByRole('button', { name: /register interest/i })
   verifyTurnstile('old-token')
   expect(englishButton).toBeEnabled()
 
   await selectLanguage(/^FR -/)
 
-  const frenchButton = screen.getByRole('button', { name: /rejoindre la liste/i })
+  const frenchButton = screen.getByRole('button', { name: /signaler mon intérêt/i })
   expect(turnstileMocks.language).toBe('fr')
   expect(frenchButton).toBeDisabled()
 
@@ -651,22 +651,22 @@ test('submits the Turnstile token, clears the input, and resets the widget on su
   const input = await screen.findByPlaceholderText('email or @telegram')
   fireEvent.change(input, { target: { value: 'USER@example.com' } })
   verifyTurnstile()
-  fireEvent.click(screen.getByRole('button', { name: /join waitlist/i }))
+  fireEvent.click(screen.getByRole('button', { name: /register interest/i }))
 
   await waitFor(() => {
     expect(apiMocks.joinWaitlist).toHaveBeenCalledWith({
       contact: 'USER@example.com',
       locale: 'en',
-      source: 'landing',
+      source: 'risk_band_alert',
       turnstile_token: 'fresh-token',
     })
   })
   await waitFor(() => {
     expect(input).toHaveValue('')
   })
-  expect(screen.getByRole('status')).toHaveTextContent('Saved. You are on the Bitcoin Risk Brief waitlist.')
+  expect(screen.getByRole('status')).toHaveTextContent('Saved. You will hear from us when the risk band changes.')
   expect(turnstileMocks.reset).toHaveBeenCalled()
-  expect(screen.getByRole('button', { name: /join waitlist/i })).toBeDisabled()
+  expect(screen.getByRole('button', { name: /register interest/i })).toBeDisabled()
 })
 
 test('announces waitlist submitting and success states politely', async () => {
@@ -678,7 +678,7 @@ test('announces waitlist submitting and success states politely', async () => {
 
   fireEvent.change(await screen.findByPlaceholderText('email or @telegram'), { target: { value: '@status_smoke' } })
   verifyTurnstile()
-  fireEvent.click(screen.getByRole('button', { name: /join waitlist/i }))
+  fireEvent.click(screen.getByRole('button', { name: /register interest/i }))
 
   const submittingStatus = await screen.findByRole('status')
   expect(submittingStatus).toHaveTextContent('Saving...')
@@ -689,9 +689,9 @@ test('announces waitlist submitting and success states politely', async () => {
   resolveWaitlist({ data: { contact_type: 'email', locale: 'en', created: true } })
 
   await waitFor(() => {
-    expect(screen.getByRole('status')).toHaveTextContent('Saved. You are on the Bitcoin Risk Brief waitlist.')
+    expect(screen.getByRole('status')).toHaveTextContent('Saved. You will hear from us when the risk band changes.')
   })
-  expect(screen.getByRole('button', { name: /join waitlist/i })).toHaveAttribute('aria-busy', 'false')
+  expect(screen.getByRole('button', { name: /register interest/i })).toHaveAttribute('aria-busy', 'false')
 })
 
 test('announces contact validation errors assertively, preserves the contact, and resets Turnstile', async () => {
@@ -701,7 +701,7 @@ test('announces contact validation errors assertively, preserves the contact, an
   const input = await screen.findByPlaceholderText('email or @telegram')
   fireEvent.change(input, { target: { value: 'not-a-contact' } })
   verifyTurnstile()
-  fireEvent.click(screen.getByRole('button', { name: /join waitlist/i }))
+  fireEvent.click(screen.getByRole('button', { name: /register interest/i }))
 
   const alert = await screen.findByRole('alert')
   expect(alert).toHaveTextContent('Enter a valid email or Telegram handle.')
@@ -709,7 +709,7 @@ test('announces contact validation errors assertively, preserves the contact, an
   expect(input).toHaveAccessibleDescription('Enter a valid email or Telegram handle.')
   expect(input).toHaveValue('not-a-contact')
   expect(turnstileMocks.reset).toHaveBeenCalled()
-  expect(screen.getByRole('button', { name: /join waitlist/i })).toBeDisabled()
+  expect(screen.getByRole('button', { name: /register interest/i })).toBeDisabled()
 })
 
 test('shows the localized verification error and preserves the contact after a 403', async () => {
@@ -719,7 +719,7 @@ test('shows the localized verification error and preserves the contact after a 4
   const input = await screen.findByPlaceholderText('email or @telegram')
   fireEvent.change(input, { target: { value: 'USER@example.com' } })
   verifyTurnstile()
-  fireEvent.click(screen.getByRole('button', { name: /join waitlist/i }))
+  fireEvent.click(screen.getByRole('button', { name: /register interest/i }))
 
   expect(await screen.findByRole('alert')).toHaveTextContent('Complete the bot check and try again.')
   expect(input).toHaveValue('USER@example.com')
@@ -733,7 +733,7 @@ test('shows the localized temporary-unavailability error and preserves the conta
   const input = await screen.findByPlaceholderText('email or @telegram')
   fireEvent.change(input, { target: { value: 'USER@example.com' } })
   verifyTurnstile()
-  fireEvent.click(screen.getByRole('button', { name: /join waitlist/i }))
+  fireEvent.click(screen.getByRole('button', { name: /register interest/i }))
 
   expect(await screen.findByRole('alert')).toHaveTextContent('Bot verification is temporarily unavailable. Try again shortly.')
   expect(input).toHaveValue('USER@example.com')
@@ -743,7 +743,7 @@ test('shows the localized temporary-unavailability error and preserves the conta
 test('announces a localized widget error and clears the current token', async () => {
   render(<App />)
 
-  const button = await screen.findByRole('button', { name: /join waitlist/i })
+  const button = await screen.findByRole('button', { name: /register interest/i })
   verifyTurnstile()
   expect(button).toBeEnabled()
 
@@ -769,7 +769,7 @@ test('clears a stale widget error when a fresh token arrives', async () => {
   expect(screen.queryByRole('alert')).not.toBeInTheDocument()
   expect(input).not.toHaveAttribute('aria-invalid')
   expect(input).not.toHaveAttribute('aria-describedby')
-  expect(screen.getByRole('button', { name: /rejoindre la liste/i })).toBeEnabled()
+  expect(screen.getByRole('button', { name: /signaler mon intérêt/i })).toBeEnabled()
 })
 
 test('does not persist waitlist contacts in browser storage', async () => {
@@ -778,13 +778,13 @@ test('does not persist waitlist contacts in browser storage', async () => {
 
   fireEvent.change(await screen.findByPlaceholderText('email or @telegram'), { target: { value: 'USER@example.com' } })
   verifyTurnstile()
-  fireEvent.click(screen.getByRole('button', { name: /join waitlist/i }))
+  fireEvent.click(screen.getByRole('button', { name: /register interest/i }))
 
   await waitFor(() => {
     expect(apiMocks.joinWaitlist).toHaveBeenCalledWith({
       contact: 'USER@example.com',
       locale: 'en',
-      source: 'landing',
+      source: 'risk_band_alert',
       turnstile_token: 'fresh-token',
     })
   })
@@ -954,7 +954,7 @@ test('places the waitlist call to action before the charts', async () => {
   render(<App />)
 
   const waitlistTitle = await screen.findByText('Get the daily signal')
-  expect(screen.getByText('Leave an email or Telegram handle. The first test cohort gets the BTC risk alert free, plus access to the 2-year risk history and risk-level views during the pilot.')).toBeInTheDocument()
+  expect(screen.getByText('Band changes are rare. Leave an email or Telegram handle to hear about one. This is a manual follow-up — automated delivery does not exist yet.')).toBeInTheDocument()
 
   const riskHistoryTitle = await screen.findByText('Risk history, 2Y')
 
@@ -1499,13 +1499,13 @@ test('submits the selected expanded locale to the waitlist API', async () => {
   await waitFor(() => expect(turnstileMocks.language).toBe('fr'))
   fireEvent.change(await screen.findByPlaceholderText('email ou @telegram'), { target: { value: 'USER@example.com' } })
   verifyTurnstile()
-  fireEvent.click(screen.getByRole('button', { name: /rejoindre la liste/i }))
+  fireEvent.click(screen.getByRole('button', { name: /signaler mon intérêt/i }))
 
   await waitFor(() => {
     expect(apiMocks.joinWaitlist).toHaveBeenCalledWith({
       contact: 'USER@example.com',
       locale: 'fr',
-      source: 'landing',
+      source: 'risk_band_alert',
       turnstile_token: 'fresh-token',
     })
   })
@@ -1521,13 +1521,13 @@ test('keeps Arabic waitlist contact entry LTR and submits locale metadata', asyn
 
   fireEvent.change(input, { target: { value: '@arabic_test' } })
   verifyTurnstile()
-  fireEvent.click(screen.getByRole('button', { name: /انضم/ }))
+  fireEvent.click(screen.getByRole('button', { name: /تسجيل الاهتمام/ }))
 
   await waitFor(() => {
     expect(apiMocks.joinWaitlist).toHaveBeenCalledWith({
       contact: '@arabic_test',
       locale: 'ar',
-      source: 'landing',
+      source: 'risk_band_alert',
       turnstile_token: 'fresh-token',
     })
   })
@@ -1557,4 +1557,41 @@ test('defines a standard screen-reader-only utility for hidden chart data', () =
   expect(css).toContain('position: absolute')
   expect(css).toContain('width: 1px')
   expect(css).toContain('clip: rect(0, 0, 0, 0)')
+})
+
+test('offers the telegram channel as the way to get the daily signal', async () => {
+  render(<App />)
+
+  const link = await screen.findByRole('link', { name: /telegram channel/i })
+  expect(link).toHaveAttribute('href', 'https://t.me/bitcoinriskbrief')
+  expect(link).toHaveAttribute('target', '_blank')
+  expect(link).toHaveAttribute('rel', 'noreferrer')
+})
+
+test('no longer presents public views as something earned by giving a contact', async () => {
+  render(<App />)
+  await screen.findByRole('link', { name: /telegram channel/i })
+
+  const body = document.body.textContent ?? ''
+  expect(body).not.toMatch(/first test cohort/i)
+  expect(body).not.toMatch(/during the pilot/i)
+  expect(body).not.toMatch(/2-year risk history and risk-level views/i)
+})
+
+test('submits the band-alert interest under its own source value', async () => {
+  render(<App />)
+
+  const input = await screen.findByPlaceholderText('email or @telegram')
+  fireEvent.change(input, { target: { value: 'user@example.com' } })
+  verifyTurnstile()
+  fireEvent.click(screen.getByRole('button', { name: /register interest/i }))
+
+  await waitFor(() => {
+    expect(apiMocks.joinWaitlist).toHaveBeenCalledWith({
+      contact: 'user@example.com',
+      locale: 'en',
+      source: 'risk_band_alert',
+      turnstile_token: 'fresh-token',
+    })
+  })
 })

@@ -253,6 +253,11 @@ h1 { margin: 0; font-size: clamp(3rem, 9vw, 7rem); line-height: 0.9; letter-spac
 .charts { max-width: 1180px; margin: 0 auto 28px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
 .waitlist { max-width: 1180px; margin: 0 auto 28px; display: grid; grid-template-columns: 1fr minmax(280px, 420px); gap: 18px; align-items: center; }
 .waitlist svg { color: #f2b84b; }
+.waitlist > div { display: grid; gap: 12px; }
+.channel-cta { display: inline-flex; width: fit-content; align-items: center; gap: 8px; border-radius: 8px; padding: 12px 14px; background: #f2b84b; color: #16120b; font-weight: 800; text-decoration: none; }
+.channel-cta:hover { background: #f6cc72; }
+.channel-cta:focus-visible { outline: 2px solid #f2b84b; outline-offset: 3px; }
+[dir="rtl"] .channel-cta { flex-direction: row-reverse; }
 .lead-form { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
 .lead-form input { min-width: 0; flex: 1; border: 1px solid #343943; background: #0c0d0f; color: #f4f0e8; border-radius: 8px; padding: 12px; }
 .lead-form button { display: inline-flex; align-items: center; gap: 8px; border: 0; border-radius: 8px; padding: 12px 14px; background: #f2b84b; color: #16120b; font-weight: 800; cursor: pointer; }
