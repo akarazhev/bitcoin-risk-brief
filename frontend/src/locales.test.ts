@@ -29,6 +29,12 @@ test('keeps UI translation keys complete for every locale', () => {
   }
 })
 
+test('gives every locale an accessible name for the developer links', () => {
+  for (const locale of supportedLocales) {
+    expect(copy[locale].developerLinksAriaLabel, `${locale} is missing developerLinksAriaLabel`).toBeTruthy()
+  }
+})
+
 test('provides exact localized Turnstile errors and privacy disclosure', () => {
   const expected = {
     en: {

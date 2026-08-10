@@ -204,6 +204,12 @@ h1 { margin: 0; font-size: clamp(3rem, 9vw, 7rem); line-height: 0.9; letter-spac
   color: #b2ada5;
   font-size: 0.88rem;
 }
+.footer-dev-links {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px 14px;
+}
 .bottom-panel-link {
   display: inline-flex;
   align-items: center;
