@@ -14,7 +14,7 @@ from app.repository import (
 from collector.config import settings
 from collector.daily_post import compose_daily_post
 from collector.db_writer import claim_telegram_post, confirm_telegram_post, release_telegram_post
-from collector.telegram import TelegramSendError, send_channel_post
+from collector.telegram import TelegramDeliveryUnknown, TelegramSendError, send_channel_post
 
 logger = logging.getLogger(__name__)
 
@@ -35,14 +35,6 @@ async def publish_daily_post(pool: Any, *, now: datetime | None = None) -> bool:
         return False
 
     as_of = latest_risk['timestamp'].date()
-    if not await claim_telegram_post(
-        pool,
-        as_of=as_of,
-        risk=float(latest_risk['risk']),
-        risk_state=str(latest_risk['risk_state']),
-    ):
-        return False
-
     previous_risk = await fetch_previous_risk(pool)
     levels = await fetch_latest_risk_level_snapshot(pool)
     text = compose_daily_post(
@@ -51,6 +43,14 @@ async def publish_daily_post(pool: Any, *, now: datetime | None = None) -> bool:
         levels=levels,
         methodology_version=readiness['data']['methodology_version'],
     )
+    if not await claim_telegram_post(
+        pool,
+        as_of=as_of,
+        risk=float(latest_risk['risk']),
+        risk_state=str(latest_risk['risk_state']),
+    ):
+        return False
+
     try:
         message_id = await send_channel_post(
             token=settings.telegram_bot_token,
@@ -60,6 +60,9 @@ async def publish_daily_post(pool: Any, *, now: datetime | None = None) -> bool:
     except TelegramSendError:
         await release_telegram_post(pool, as_of=as_of)
         logger.exception('telegram_publish_failed')
+        return False
+    except TelegramDeliveryUnknown:
+        logger.exception('telegram_delivery_unknown')
         return False
 
     await confirm_telegram_post(pool, as_of=as_of, message_id=message_id)

@@ -10,7 +10,7 @@ sys.modules.setdefault('asyncpg', types.SimpleNamespace(Pool=object))
 
 import collector.db_writer as db_writer
 import collector.publisher as publisher
-from collector.telegram import TelegramSendError
+from collector.telegram import TelegramDeliveryUnknown, TelegramSendError
 
 LATEST = {
     'timestamp': datetime(2026, 8, 9, tzinfo=timezone.utc),
@@ -84,6 +84,7 @@ class FakeTelegramPool:
             'risk': risk,
             'risk_state': risk_state,
             'message_id': None,
+            'posted_at': None,
         }
         return {'as_of': as_of}
 
@@ -92,6 +93,7 @@ class FakeTelegramPool:
         if 'UPDATE telegram_posts SET message_id' in query:
             as_of, message_id = params
             self.rows[as_of]['message_id'] = message_id
+            self.rows[as_of]['posted_at'] = 'confirmed'
         elif 'DELETE FROM telegram_posts' in query:
             (as_of,) = params
             if self.rows[as_of]['message_id'] is None:
@@ -203,6 +205,45 @@ class PublisherTests(unittest.IsolatedAsyncioTestCase):
 
         self.assertFalse(published)
 
+    async def test_composition_failure_does_not_claim_the_date(self) -> None:
+        claim = AsyncMock()
+        send = AsyncMock()
+        with (
+            enabled(),
+            patch.object(publisher, 'fetch_latest_risk', AsyncMock(return_value=LATEST)),
+            patch.object(publisher, 'fetch_latest_validation', AsyncMock(return_value=VALIDATION)),
+            patch.object(publisher, 'fetch_previous_risk', AsyncMock(return_value=PREVIOUS)),
+            patch.object(publisher, 'fetch_latest_risk_level_snapshot', AsyncMock(return_value=LEVELS)),
+            patch.object(publisher, 'compose_daily_post', side_effect=RuntimeError('compose failed')),
+            patch.object(publisher, 'claim_telegram_post', claim),
+            patch.object(publisher, 'send_channel_post', send),
+        ):
+            with self.assertRaisesRegex(RuntimeError, 'compose failed'):
+                await publisher.publish_daily_post(object(), now=NOW)
+
+        claim.assert_not_awaited()
+        send.assert_not_awaited()
+
+    async def test_unknown_delivery_outcome_retains_the_claim(self) -> None:
+        pool = FakeTelegramPool()
+        send = AsyncMock(side_effect=TelegramDeliveryUnknown('telegram request outcome unknown'))
+        with (
+            enabled(),
+            patch.object(publisher, 'fetch_latest_risk', AsyncMock(return_value=LATEST)),
+            patch.object(publisher, 'fetch_previous_risk', AsyncMock(return_value=PREVIOUS)),
+            patch.object(publisher, 'fetch_latest_validation', AsyncMock(return_value=VALIDATION)),
+            patch.object(publisher, 'fetch_latest_risk_level_snapshot', AsyncMock(return_value=LEVELS)),
+            patch.object(publisher, 'send_channel_post', send),
+        ):
+            with self.assertLogs('collector.publisher', level='ERROR'):
+                published = await publisher.publish_daily_post(pool, now=NOW)
+
+        row = pool.rows[LATEST['timestamp'].date()]
+        self.assertFalse(published)
+        self.assertIsNone(row['message_id'])
+        self.assertIsNone(row['posted_at'])
+        self.assertFalse(any('DELETE FROM telegram_posts' in query for query in pool.executed_queries))
+
     async def test_the_confirmed_date_is_the_latest_risk_date_not_today(self) -> None:
         send = AsyncMock(return_value=4242)
         confirm = AsyncMock()
@@ -261,6 +302,7 @@ class PublisherTests(unittest.IsolatedAsyncioTestCase):
 
         self.assertTrue(published)
         self.assertEqual(4242, pool.rows[LATEST['timestamp'].date()]['message_id'])
+        self.assertEqual('confirmed', pool.rows[LATEST['timestamp'].date()]['posted_at'])
 
 
 if __name__ == '__main__':

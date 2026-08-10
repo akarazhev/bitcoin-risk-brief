@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from typing import Any
 
 import httpx
@@ -10,6 +11,23 @@ REQUEST_TIMEOUT_SECONDS = 15.0
 
 class TelegramSendError(RuntimeError):
     """Telegram refused the message. Never carries the bot token."""
+
+
+class TelegramDeliveryUnknown(RuntimeError):
+    """The request may have reached Telegram. Never carries the bot token."""
+
+
+class _TelegramTokenLogRedactor(logging.Filter):
+    def __init__(self, token: str) -> None:
+        super().__init__()
+        self._token = token
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        message = record.getMessage()
+        if self._token in message:
+            record.msg = message.replace(self._token, "[REDACTED]")
+            record.args = ()
+        return True
 
 
 async def send_channel_post(
@@ -28,11 +46,16 @@ async def send_channel_post(
 
     owned = client is None
     active = client if client is not None else httpx.AsyncClient(timeout=REQUEST_TIMEOUT_SECONDS)
+    httpx_logger = logging.getLogger("httpx")
+    token_redactor = _TelegramTokenLogRedactor(token)
+    httpx_logger.addFilter(token_redactor)
     try:
         try:
             response = await active.post(url, json=payload)
         except httpx.HTTPError:
-            raise TelegramSendError("telegram request failed") from None
+            raise TelegramDeliveryUnknown("telegram delivery outcome is unknown") from None
+        finally:
+            httpx_logger.removeFilter(token_redactor)
     finally:
         if owned:
             await active.aclose()

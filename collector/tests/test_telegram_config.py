@@ -3,11 +3,13 @@ from __future__ import annotations
 import importlib
 import os
 from pathlib import Path
+import re
 import unittest
 from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[2]
 MIGRATION = ROOT / "migrations" / "004_telegram_posts.sql"
+COMPOSE = ROOT / "podman-compose.yml"
 
 
 class TelegramConfigTests(unittest.TestCase):
@@ -49,3 +51,26 @@ class TelegramMigrationTests(unittest.TestCase):
         sql = MIGRATION.read_text(encoding="utf-8").lower()
         for forbidden in ("contact", "email", "telegram_handle", "chat_id"):
             self.assertNotIn(forbidden, sql)
+
+    def test_claim_is_unconfirmed_until_telegram_confirms_it(self) -> None:
+        sql = MIGRATION.read_text(encoding="utf-8")
+        self.assertIn("posted_at TIMESTAMPTZ,", sql)
+        self.assertNotRegex(sql, r"posted_at\s+TIMESTAMPTZ[^\n]*DEFAULT")
+
+
+class TelegramComposeConfigTests(unittest.TestCase):
+    def test_collector_receives_telegram_and_freshness_settings(self) -> None:
+        compose = COMPOSE.read_text(encoding="utf-8")
+        match = re.search(
+            r"^  data-collector:\n(?P<body>.*?)(?=^  [\w-]+:\n|\Z)",
+            compose,
+            re.MULTILINE | re.DOTALL,
+        )
+        self.assertIsNotNone(match)
+        collector = match.group("body")
+        self.assertIn("TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}", collector)
+        self.assertIn("TELEGRAM_CHANNEL_ID: ${TELEGRAM_CHANNEL_ID:-}", collector)
+        self.assertIn(
+            "DATA_FRESHNESS_MAX_AGE_DAYS: ${DATA_FRESHNESS_MAX_AGE_DAYS:-2}",
+            collector,
+        )
