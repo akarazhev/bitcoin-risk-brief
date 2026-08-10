@@ -1,0 +1,31 @@
+# Bitcoin Risk Brief — documentation
+
+> Technical reference for a daily Bitcoin risk signal: methodology, API contract, freshness and validation
+> semantics, and the agent access guide. The product itself, and its endpoint map, are at
+> https://bitcoinriskbrief.minihub.app/ and https://bitcoinriskbrief.minihub.app/llms.txt
+> Analytics and research context — not financial advice, not a price forecast, not a trade signal.
+
+## Start here
+
+- Agent access pack, the readiness-first call sequence and interpretation limits: https://docs.bitcoinriskbrief.minihub.app/agents/agent-access-pack/
+- Freshness and validation, why staleness returns 503 rather than a stale figure: https://docs.bitcoinriskbrief.minihub.app/engineering/freshness-and-validation/
+
+## Product
+
+- Risk methodology, features, weights, normalisation windows and the level solver: https://docs.bitcoinriskbrief.minihub.app/product/risk-methodology/
+- Product specification, what this is and what it is not: https://docs.bitcoinriskbrief.minihub.app/product/product-spec/
+
+## Engineering
+
+- API reference, endpoints, response shapes and cache headers: https://docs.bitcoinriskbrief.minihub.app/engineering/api-reference/
+- Architecture, services, runtime flow and storage: https://docs.bitcoinriskbrief.minihub.app/engineering/architecture/
+- Data pipeline, canonical source, refresh paths and validation: https://docs.bitcoinriskbrief.minihub.app/engineering/data-pipeline/
+- Security and privacy, headers, rate limits and PII handling: https://docs.bitcoinriskbrief.minihub.app/engineering/security-and-privacy/
+- Where the machine-readable schema lives: https://docs.bitcoinriskbrief.minihub.app/agents/openapi/
+
+## Operations
+
+- Production readiness, current gates and accepted limits: https://docs.bitcoinriskbrief.minihub.app/operations/production-readiness/
+
+Operations pages are an operational log. They record what was verified and when; they are not claims about
+product capability.

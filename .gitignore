@@ -9,6 +9,7 @@ __pycache__/
 htmlcov/
 node_modules/
 dist/
+site/
 notes/
 coverage/
 test-results/

@@ -188,3 +188,34 @@ class AgentDocumentationTests(unittest.TestCase):
         ):
             with self.subTest(token=token):
                 self.assertIn(token, text)
+
+
+class DocsSiteAgentFileTests(unittest.TestCase):
+    def test_docs_site_serves_its_own_llms_txt(self) -> None:
+        path = DOCS / "llms.txt"
+        self.assertTrue(path.is_file(), "docs/llms.txt must exist so the docs site publishes it")
+
+    def test_docs_llms_txt_points_at_pages_that_exist(self) -> None:
+        text = (DOCS / "llms.txt").read_text(encoding="utf-8")
+        prefix = "https://docs.bitcoinriskbrief.minihub.app/"
+        referenced = []
+        for line in text.splitlines():
+            if prefix not in line:
+                continue
+            tail = line.split(prefix, 1)[1].strip()
+            if tail:
+                referenced.append(tail)
+
+        self.assertGreater(len(referenced), 3, "the map should cover more than a couple of pages")
+        for ref in referenced:
+            with self.subTest(page=ref):
+                self.assertNotIn(" ", ref, "the URL must end its line, so no prose follows it")
+                self.assertTrue(
+                    (DOCS / f"{ref.rstrip('/')}.md").is_file(),
+                    f"docs/{ref} does not exist, so the published URL would 404",
+                )
+
+    def test_docs_llms_txt_is_not_excluded_from_the_build(self) -> None:
+        config = (ROOT / "mkdocs.yml").read_text(encoding="utf-8")
+        exclude_block = config.split("exclude_docs:", 1)[1].split("nav:", 1)[0]
+        self.assertNotIn("llms.txt", exclude_block)
