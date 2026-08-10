@@ -88,9 +88,29 @@ CREATE TABLE IF NOT EXISTS telegram_posts (
 Keyed on `as_of`, the covered date of the observation. One post per date, enforced by the primary key rather than by
 application logic.
 
-The row is written only after Telegram confirms the send. A failed send leaves no row, so the next import retries that
-date — but only while it is still the latest covered date. Once a newer date exists, the older one is skipped
-permanently: back-filling yesterday's announcement into a channel is noise, not a correction.
+**Claim first, then send.** An earlier revision of this design said the row is written only after Telegram confirms
+the send, and that `ON CONFLICT DO NOTHING` made a concurrent double-run harmless. That was wrong: the conflict clause
+protects the table from a duplicate row, not the channel from a duplicate post. Two runs could both read an empty
+ledger, both send, and only then collide on the insert — by which point the duplicate is public.
+
+The insert itself is the mutual exclusion:
+
+1. `INSERT ... ON CONFLICT (as_of) DO NOTHING RETURNING as_of` claims the date. No row returned means another run owns
+   it, and this one stops.
+2. Send.
+3. On success, update the row with the `message_id`.
+4. On failure, delete the claim — guarded by `message_id IS NULL`, so a confirmed post is never removed.
+
+`message_id` being null is what distinguishes a claim from a confirmed post, which is why the column is nullable.
+
+The residual window is a process dying between claiming and sending: the date stays claimed and no post appears. That
+is a **missed post, not a duplicate**, which is the correct way for this product to fail — the same principle as
+returning 503 rather than a stale figure. It is found with `SELECT as_of FROM telegram_posts WHERE message_id IS NULL`
+and cleared by deleting that row. Automatic reclaim is deliberately not implemented: it would trade a rare silence for
+a rare duplicate.
+
+A date that is no longer the latest is skipped permanently. Back-filling yesterday's announcement into a channel is
+noise, not a correction.
 
 This table holds no personal data and does not touch `waitlist_leads`. It is nonetheless a schema change and passes
 through the existing API/DB change-management gate: migration, focused tests, rollback note.
