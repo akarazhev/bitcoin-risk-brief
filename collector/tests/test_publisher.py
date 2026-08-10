@@ -260,6 +260,37 @@ class PublisherTests(unittest.IsolatedAsyncioTestCase):
 
         self.assertEqual(LATEST['timestamp'].date(), confirm.await_args.kwargs['as_of'])
 
+    async def test_a_repository_shaped_latest_risk_uses_readiness_latest_date(self) -> None:
+        latest_risk = {**LATEST, 'timestamp': '2026-08-09T00:00:00+00:00'}
+        claim = AsyncMock(return_value=True)
+        confirm = AsyncMock()
+        send = AsyncMock(return_value=4242)
+        with (
+            enabled(),
+            patch.object(publisher, 'fetch_latest_risk', AsyncMock(return_value=latest_risk)),
+            patch.object(publisher, 'fetch_previous_risk', AsyncMock(return_value=PREVIOUS)),
+            patch.object(publisher, 'fetch_latest_validation', AsyncMock(return_value=VALIDATION)),
+            patch.object(publisher, 'fetch_latest_risk_level_snapshot', AsyncMock(return_value=LEVELS)),
+            patch.object(publisher, 'claim_telegram_post', claim),
+            patch.object(publisher, 'confirm_telegram_post', confirm),
+            patch.object(publisher, 'send_channel_post', send),
+        ):
+            published = await publisher.publish_daily_post(object(), now=NOW)
+
+        self.assertTrue(published)
+        claim.assert_awaited_once_with(
+            unittest.mock.ANY,
+            as_of=LATEST['timestamp'].date(),
+            risk=0.24,
+            risk_state='low',
+        )
+        send.assert_awaited_once()
+        confirm.assert_awaited_once_with(
+            unittest.mock.ANY,
+            as_of=LATEST['timestamp'].date(),
+            message_id=4242,
+        )
+
     async def test_an_empty_token_does_not_read_the_repository(self) -> None:
         latest = AsyncMock()
         with enabled(telegram_bot_token=''), patch.object(publisher, 'fetch_latest_risk', latest):

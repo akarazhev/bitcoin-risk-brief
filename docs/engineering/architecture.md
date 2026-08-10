@@ -23,11 +23,12 @@ All services run under `podman-compose.yml` on the `app-network` bridge network.
 6. Valid rows are merged into the CSV with atomic file replacement.
 7. The full CSV is imported into TimescaleDB.
 8. The risk series is recomputed from the full canonical source history.
-9. Validation metadata and a latest brief snapshot are written.
-10. When Telegram publication is configured, the collector publishes only after the import output is ready and records the result in the publication ledger.
-11. Rows after the CSV tail are deleted from OHLCV, risk, and brief tables to prevent stale mixed-source data.
-12. The backend serves API reads from TimescaleDB.
-13. The frontend displays current risk, risk history, risk levels, brief text, and waitlist capture.
+9. Rows after the CSV tail are deleted from OHLCV, risk, brief, and risk-level snapshot tables to prevent stale mixed-source data.
+10. A current risk-level snapshot and latest brief snapshot are written.
+11. Validation metadata is written.
+12. When Telegram publication is configured, the collector publishes only after the import output is ready and records the result in the publication ledger.
+13. The backend serves API reads from TimescaleDB.
+14. The frontend displays current risk, risk history, risk levels, brief text, and waitlist capture.
 
 ## Repository Layout
 

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime
+from datetime import date, datetime
 from typing import Any
 
 from app.readiness import build_readiness_payload
@@ -34,7 +34,10 @@ async def publish_daily_post(pool: Any, *, now: datetime | None = None) -> bool:
     if readiness['status'] != 'ready' or latest_risk is None:
         return False
 
-    as_of = latest_risk['timestamp'].date()
+    latest_date = readiness['data']['latest_date']
+    if latest_date is None:
+        return False
+    as_of = date.fromisoformat(latest_date)
     previous_risk = await fetch_previous_risk(pool)
     levels = await fetch_latest_risk_level_snapshot(pool)
     text = compose_daily_post(

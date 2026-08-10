@@ -89,6 +89,10 @@ Set `TELEGRAM_BOT_TOKEN` only in the operator-managed environment; an empty toke
 reads. Set `TELEGRAM_CHANNEL_ID` to identify the public channel. The collector considers publication only after an
 import has written ready validation output.
 
+Migration `004` is idempotent. A clean install creates nullable `posted_at` with no default. An existing database that
+used the earlier branch-local `posted_at TIMESTAMPTZ NOT NULL DEFAULT now()` form is converged by dropping both the
+default and the `NOT NULL` constraint, so unconfirmed claims retain `NULL` values.
+
 The `telegram_posts` ledger claims a covered date with `message_id` and `posted_at` initially `NULL`. Telegram's
 returned message ID confirms the claim. A definitive Telegram API rejection releases an unconfirmed claim. An
 ambiguous delivery result, including a transport failure or non-JSON response after the POST, retains the claim; there
@@ -107,7 +111,9 @@ SELECT as_of FROM telegram_posts WHERE message_id IS NULL;
 ```
 
 Do not clean up a claim until the channel has been checked manually and the operator has determined that no post was
-delivered. Automated tests must use `httpx.MockTransport` or `AsyncMock`; a live-channel smoke post is not safe.
+delivered. To roll back publication, first disable `TELEGRAM_BOT_TOKEN`; preserve or delete claims only after an
+operator decision based on that channel check. Automated tests must use `httpx.MockTransport` or `AsyncMock`; a
+live-channel smoke post is not safe.
 
 ## Manual Downloaded CoinMarketCap CSV Refresh
 
