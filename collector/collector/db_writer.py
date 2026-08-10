@@ -12,34 +12,44 @@ from app.risk_levels import build_risk_levels, build_risk_levels_public_payload
 from collector.records import as_timestamp, build_ohlcv_records, build_validation_payload
 
 
-async def fetch_telegram_post(pool: asyncpg.Pool, as_of: date) -> dict[str, Any] | None:
-    async with pool.acquire() as connection:
-        row = await connection.fetchrow(
-            'SELECT as_of, posted_at, message_id, risk, risk_state FROM telegram_posts WHERE as_of = $1',
-            as_of,
-        )
-    return dict(row) if row else None
-
-
-async def record_telegram_post(
+async def claim_telegram_post(
     pool: asyncpg.Pool,
     *,
     as_of: date,
-    message_id: int | None,
     risk: float,
     risk_state: str,
-) -> None:
+) -> bool:
+    """Atomically claim the date. False means another run already owns it."""
     async with pool.acquire() as connection:
-        await connection.execute(
-            '''
-            INSERT INTO telegram_posts (as_of, message_id, risk, risk_state)
-            VALUES ($1, $2, $3, $4)
+        row = await connection.fetchrow(
+            """
+            INSERT INTO telegram_posts (as_of, risk, risk_state)
+            VALUES ($1, $2, $3)
             ON CONFLICT (as_of) DO NOTHING
-            ''',
+            RETURNING as_of
+            """,
             as_of,
-            message_id,
             risk,
             risk_state,
+        )
+    return row is not None
+
+
+async def confirm_telegram_post(pool: asyncpg.Pool, *, as_of: date, message_id: int) -> None:
+    async with pool.acquire() as connection:
+        await connection.execute(
+            "UPDATE telegram_posts SET message_id = $2, posted_at = now() WHERE as_of = $1",
+            as_of,
+            message_id,
+        )
+
+
+async def release_telegram_post(pool: asyncpg.Pool, *, as_of: date) -> None:
+    """Release an unconfirmed claim so a later run retries. Never removes a real post."""
+    async with pool.acquire() as connection:
+        await connection.execute(
+            "DELETE FROM telegram_posts WHERE as_of = $1 AND message_id IS NULL",
+            as_of,
         )
 
 

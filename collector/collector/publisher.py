@@ -13,7 +13,7 @@ from app.repository import (
 )
 from collector.config import settings
 from collector.daily_post import compose_daily_post
-from collector.db_writer import fetch_telegram_post, record_telegram_post
+from collector.db_writer import claim_telegram_post, confirm_telegram_post, release_telegram_post
 from collector.telegram import TelegramSendError, send_channel_post
 
 logger = logging.getLogger(__name__)
@@ -35,7 +35,12 @@ async def publish_daily_post(pool: Any, *, now: datetime | None = None) -> bool:
         return False
 
     as_of = latest_risk['timestamp'].date()
-    if await fetch_telegram_post(pool, as_of):
+    if not await claim_telegram_post(
+        pool,
+        as_of=as_of,
+        risk=float(latest_risk['risk']),
+        risk_state=str(latest_risk['risk_state']),
+    ):
         return False
 
     previous_risk = await fetch_previous_risk(pool)
@@ -53,14 +58,9 @@ async def publish_daily_post(pool: Any, *, now: datetime | None = None) -> bool:
             text=text,
         )
     except TelegramSendError:
+        await release_telegram_post(pool, as_of=as_of)
         logger.exception('telegram_publish_failed')
         return False
 
-    await record_telegram_post(
-        pool,
-        as_of=as_of,
-        message_id=message_id,
-        risk=float(latest_risk['risk']),
-        risk_state=str(latest_risk['risk_state']),
-    )
+    await confirm_telegram_post(pool, as_of=as_of, message_id=message_id)
     return True
