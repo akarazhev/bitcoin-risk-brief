@@ -202,13 +202,14 @@ class DocsSiteAgentFileTests(unittest.TestCase):
         for line in text.splitlines():
             if prefix not in line:
                 continue
-            tail = line.split(prefix, 1)[1].strip()
+            tail = line.split(prefix, 1)[1].lstrip()
             if tail:
                 referenced.append(tail)
 
         self.assertGreater(len(referenced), 3, "the map should cover more than a couple of pages")
         for ref in referenced:
             with self.subTest(page=ref):
+                self.assertEqual(ref, ref.rstrip(), "the URL must terminate the line without trailing whitespace")
                 self.assertNotIn(" ", ref, "the URL must end its line, so no prose follows it")
                 self.assertTrue(
                     (DOCS / f"{ref.rstrip('/')}.md").is_file(),
