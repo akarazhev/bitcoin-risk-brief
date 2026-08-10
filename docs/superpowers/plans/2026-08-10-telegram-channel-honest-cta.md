@@ -491,7 +491,7 @@ git commit -m "feat: compose the daily channel post"
 
 **Interfaces:**
 - Consumes: `send_channel_post` from Task 2, `compose_daily_post` from Task 3, `settings` from Task 1.
-- Produces: `async def publish_daily_post(pool, *, now: datetime | None = None) -> bool`, returning `True` when a post was published. `now` is passed straight through to `build_readiness_payload` so the freshness check is deterministic under test rather than dependent on the wall clock. Adds `async def record_telegram_post(pool, *, as_of, message_id, risk, risk_state) -> None` and `async def fetch_telegram_post(pool, as_of) -> dict | None` to `db_writer.py`.
+- Produces: `async def publish_daily_post(pool, *, now: datetime | None = None) -> bool`, returning `True` when a post was published. `now` is passed straight through to `build_readiness_payload` so the freshness check is deterministic under test rather than dependent on the wall clock. Adds `async def claim_telegram_post(pool, *, as_of, risk, risk_state) -> bool`, `async def confirm_telegram_post(pool, *, as_of, message_id) -> None`, and `async def release_telegram_post(pool, *, as_of) -> None` to `db_writer.py`.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -538,15 +538,16 @@ def enabled(**overrides):
     return patch.object(publisher, "settings", types.SimpleNamespace(**values))
 
 
-def repository(existing_post=None):
+def repository(claim_granted=True):
     """Patch every repository and ledger call the publisher makes."""
     return (
         patch.object(publisher, "fetch_latest_risk", AsyncMock(return_value=LATEST)),
         patch.object(publisher, "fetch_previous_risk", AsyncMock(return_value=PREVIOUS)),
         patch.object(publisher, "fetch_latest_validation", AsyncMock(return_value=VALIDATION)),
         patch.object(publisher, "fetch_latest_risk_level_snapshot", AsyncMock(return_value=LEVELS)),
-        patch.object(publisher, "fetch_telegram_post", AsyncMock(return_value=existing_post)),
-        patch.object(publisher, "record_telegram_post", AsyncMock()),
+        patch.object(publisher, "claim_telegram_post", AsyncMock(return_value=claim_granted)),
+        patch.object(publisher, "confirm_telegram_post", AsyncMock()),
+        patch.object(publisher, "release_telegram_post", AsyncMock()),
     )
 
 
@@ -586,7 +587,11 @@ Write the remaining six cases against the same helpers:
 5. degraded readiness — the payload's status is not `ready` — sends nothing and records nothing;
 6. a `TelegramSendError` records no row, so the next run retries the same date;
 7. a `TelegramSendError` propagates no exception out of `publish_daily_post`; it returns `False`;
-8. the recorded `as_of` equals the covered date of the latest risk row, not today's date.
+8. the recorded `as_of` equals the covered date of the latest risk row, not today's date;
+9. a claim that is refused sends nothing and returns `False`;
+10. a failed send releases the claim, so no row remains for that date;
+11. `release_telegram_post` does not delete a row whose `message_id` is set;
+12. a successful send stores the returned `message_id`.
 
 - [ ] **Step 2: Run tests to verify they fail**
 
@@ -598,52 +603,73 @@ Expected: FAIL — `No module named 'collector.publisher'`.
 Add to `collector/collector/db_writer.py`, matching the existing `pool.acquire()` style used by `write_validation`:
 
 ```python
-async def fetch_telegram_post(pool: asyncpg.Pool, as_of: date) -> dict[str, Any] | None:
+async def claim_telegram_post(
+    pool: asyncpg.Pool, *, as_of: date, risk: float, risk_state: str
+) -> bool:
+    """Atomically claim the date. False means another run already owns it."""
     async with pool.acquire() as connection:
         row = await connection.fetchrow(
-            "SELECT as_of, posted_at, message_id, risk, risk_state FROM telegram_posts WHERE as_of = $1",
-            as_of,
-        )
-    return dict(row) if row else None
-
-
-async def record_telegram_post(
-    pool: asyncpg.Pool,
-    *,
-    as_of: date,
-    message_id: int | None,
-    risk: float,
-    risk_state: str,
-) -> None:
-    async with pool.acquire() as connection:
-        await connection.execute(
             """
-            INSERT INTO telegram_posts (as_of, message_id, risk, risk_state)
-            VALUES ($1, $2, $3, $4)
+            INSERT INTO telegram_posts (as_of, risk, risk_state)
+            VALUES ($1, $2, $3)
             ON CONFLICT (as_of) DO NOTHING
+            RETURNING as_of
             """,
             as_of,
-            message_id,
             risk,
             risk_state,
         )
+    return row is not None
+
+
+async def confirm_telegram_post(pool: asyncpg.Pool, *, as_of: date, message_id: int) -> None:
+    async with pool.acquire() as connection:
+        await connection.execute(
+            "UPDATE telegram_posts SET message_id = $2, posted_at = now() WHERE as_of = $1",
+            as_of,
+            message_id,
+        )
+
+
+async def release_telegram_post(pool: asyncpg.Pool, *, as_of: date) -> None:
+    """Release an unconfirmed claim so a later run retries. Never removes a real post."""
+    async with pool.acquire() as connection:
+        await connection.execute(
+            "DELETE FROM telegram_posts WHERE as_of = $1 AND message_id IS NULL",
+            as_of,
+        )
 ```
 
-`ON CONFLICT DO NOTHING` makes a concurrent double-run harmless: the primary key decides, not a read-then-write race.
+**The insert is the mutual exclusion.** An earlier revision of this plan claimed `ON CONFLICT DO NOTHING` made a
+concurrent double-run harmless while still sending before recording. That was wrong: the conflict clause protects the
+table from a duplicate row, not the channel from a duplicate post. Two runs could both find an empty ledger, both send,
+and only then collide — with the duplicate already public.
 
-Create `collector/collector/publisher.py` with `publish_daily_post(pool)` doing, in order:
+`AND message_id IS NULL` in the delete is not decoration. Without it a failed cleanup could remove the record of a real
+post and cause a repost the next day.
 
-1. return `False` immediately when either setting is empty — this check comes first so nothing else runs in local development or CI;
-2. read `fetch_latest_risk`, `fetch_latest_validation` from `app.repository`;
-3. call `build_readiness_payload(latest_risk, validation, now=now, max_age_days=settings.data_freshness_max_age_days)` and return `False` unless the payload's `status` is `ready`;
+Create `collector/collector/publisher.py` with `publish_daily_post(pool, *, now=None)` doing, in order:
+
+1. return `False` immediately when either setting is empty — this check comes first so nothing else runs in local
+   development or CI;
+2. read `fetch_latest_risk` and `fetch_latest_validation` from `app.repository`;
+3. call `build_readiness_payload(latest_risk, validation, now=now, max_age_days=settings.data_freshness_max_age_days)`
+   and return `False` unless the payload's `status` is `ready`;
 4. derive `as_of` as the date of the latest risk row's `timestamp`;
-5. return `False` when `fetch_telegram_post(pool, as_of)` already returns a row;
-6. read `fetch_previous_risk` and `fetch_latest_risk_level_snapshot`;
-7. compose the text and send it;
-8. on success, `record_telegram_post(...)` and return `True`;
-9. on `TelegramSendError`, log with `logger.exception` and return `False` without recording.
+5. return `False` when `claim_telegram_post(...)` returns `False` — the claim is the gate, so there is no separate read;
+6. read `fetch_previous_risk` and `fetch_latest_risk_level_snapshot`, then compose the text;
+7. send it;
+8. on success, `confirm_telegram_post(...)` and return `True`;
+9. on `TelegramSendError`, `release_telegram_post(...)`, log with `logger.exception`, and return `False`.
 
-Then hook it into `collector/collector/main.py`, immediately after the existing `write_validation(...)` call and before the summary log line:
+The residual window is a process dying between step 5 and step 8: the date stays claimed and no post appears. That is a
+**missed post, not a duplicate**, which is the correct failure direction for this product — the same principle as
+serving 503 rather than a stale figure. Operators find it with
+`SELECT as_of FROM telegram_posts WHERE message_id IS NULL` and clear it by deleting that row. Do not implement
+automatic reclaim: it would trade a rare silence for a rare duplicate.
+
+Then hook it into `collector/collector/main.py`, immediately after the existing `write_validation(...)` call and before
+the summary log line:
 
 ```python
     try:
@@ -659,7 +685,7 @@ The broad `except` is deliberate and is the whole point: publication is best-eff
 - [ ] **Step 4: Run the checks**
 
 Run: `PYTHONPATH=backend:collector python -m unittest collector.tests.test_publisher -v`
-Expected: PASS (8 tests).
+Expected: PASS (12 tests).
 
 Run: `./scripts/manage.sh test-python`
 Expected: PASS — confirm the existing collector suites still pass, since `import_csv_once` changed.
