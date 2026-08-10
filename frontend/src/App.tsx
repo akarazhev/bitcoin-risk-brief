@@ -475,7 +475,7 @@ export default function App() {
     setJoining(true)
     setJoinError(null)
     try {
-      await joinWaitlist({ contact: value, locale, source: 'landing', turnstile_token: turnstileToken })
+      await joinWaitlist({ contact: value, locale, source: 'risk_band_alert', turnstile_token: turnstileToken })
       setLead('')
       setJoined(true)
     } catch (error) {
@@ -655,6 +655,10 @@ export default function App() {
         <div>
           <Bell size={24} />
           <h2>{t.waitlistTitle}</h2>
+          <p>{t.channelBody}</p>
+          <a className="channel-cta" href="https://t.me/bitcoinriskbrief" target="_blank" rel="noreferrer" dir="ltr">
+            {t.channelCta} <ExternalLink size={16} aria-hidden="true" />
+          </a>
           <p>{t.waitlistBody}</p>
         </div>
         <form className="lead-form" onSubmit={submitWaitlist}>
