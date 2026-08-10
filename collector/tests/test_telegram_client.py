@@ -62,3 +62,34 @@ class TelegramClientTests(unittest.IsolatedAsyncioTestCase):
                 )
 
         self.assertNotIn("sup3rs3cret", str(caught.exception))
+
+    async def test_redacts_the_token_from_transport_error(self) -> None:
+        token = "transport-sup3rs3cret"
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            raise httpx.ConnectError("connection failed", request=request)
+
+        async with httpx.AsyncClient(transport=transport(handler)) as client:
+            with self.assertRaises(TelegramSendError) as caught:
+                await send_channel_post(
+                    token=token, chat_id="@bitcoinriskbrief", text="hello", client=client
+                )
+
+        self.assertNotIn(token, str(caught.exception))
+
+    async def test_redacts_the_token_from_telegram_description(self) -> None:
+        token = "description-sup3rs3cret"
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            return httpx.Response(
+                401,
+                json={"ok": False, "description": f"invalid token {token}"},
+            )
+
+        async with httpx.AsyncClient(transport=transport(handler)) as client:
+            with self.assertRaises(TelegramSendError) as caught:
+                await send_channel_post(
+                    token=token, chat_id="@bitcoinriskbrief", text="hello", client=client
+                )
+
+        self.assertNotIn(token, str(caught.exception))

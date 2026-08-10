@@ -27,9 +27,12 @@ async def send_channel_post(
     url = f"{API_BASE}/bot{token}/sendMessage"
 
     owned = client is None
-    active = client or httpx.AsyncClient(timeout=REQUEST_TIMEOUT_SECONDS)
+    active = client if client is not None else httpx.AsyncClient(timeout=REQUEST_TIMEOUT_SECONDS)
     try:
-        response = await active.post(url, json=payload)
+        try:
+            response = await active.post(url, json=payload)
+        except httpx.HTTPError:
+            raise TelegramSendError("telegram request failed") from None
     finally:
         if owned:
             await active.aclose()
@@ -42,6 +45,7 @@ async def send_channel_post(
 
     if not body.get("ok"):
         description = str(body.get("description", "unknown error"))
+        description = description.replace(token, "[REDACTED]")
         raise TelegramSendError(f"telegram rejected the post: {description}")
 
     return int(body["result"]["message_id"])
