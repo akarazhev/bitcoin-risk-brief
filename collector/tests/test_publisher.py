@@ -62,6 +62,7 @@ def repository(claim_granted=True):
 class FakeTelegramPool:
     def __init__(self) -> None:
         self.rows: dict[object, dict[str, object]] = {}
+        self.executed_queries: list[str] = []
 
     def acquire(self):
         return self
@@ -87,6 +88,7 @@ class FakeTelegramPool:
         return {'as_of': as_of}
 
     async def execute(self, query: str, *params):
+        self.executed_queries.append(query)
         if 'UPDATE telegram_posts SET message_id' in query:
             as_of, message_id = params
             self.rows[as_of]['message_id'] = message_id
@@ -180,7 +182,8 @@ class PublisherTests(unittest.IsolatedAsyncioTestCase):
             patch.object(publisher, 'fetch_latest_risk_level_snapshot', AsyncMock(return_value=LEVELS)),
             patch.object(publisher, 'send_channel_post', send),
         ):
-            published = await publisher.publish_daily_post(pool, now=NOW)
+            with self.assertLogs('collector.publisher', level='ERROR'):
+                published = await publisher.publish_daily_post(pool, now=NOW)
 
         self.assertFalse(published)
         self.assertNotIn(LATEST['timestamp'].date(), pool.rows)
@@ -192,7 +195,8 @@ class PublisherTests(unittest.IsolatedAsyncioTestCase):
             for current_patch in patches:
                 current_patch.start()
             try:
-                published = await publisher.publish_daily_post(object(), now=NOW)
+                with self.assertLogs('collector.publisher', level='ERROR'):
+                    published = await publisher.publish_daily_post(object(), now=NOW)
             finally:
                 for current_patch in patches:
                     current_patch.stop()
@@ -239,6 +243,8 @@ class PublisherTests(unittest.IsolatedAsyncioTestCase):
         await db_writer.release_telegram_post(pool, as_of=as_of)
 
         self.assertEqual(4242, pool.rows[as_of]['message_id'])
+        self.assertEqual(1, len(pool.executed_queries))
+        self.assertIn('AND message_id IS NULL', pool.executed_queries[0])
 
     async def test_a_successful_send_stores_the_returned_message_id(self) -> None:
         pool = FakeTelegramPool()
