@@ -7,6 +7,20 @@ from app.risk import HIGH_RISK_THRESHOLD, LOW_RISK_THRESHOLD
 
 
 _LEVEL_TOLERANCE = 1e-9
+_MONTH_NAMES = (
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+)
 
 
 def band_boundary(risk_state: str, risk: float) -> float | None:
@@ -21,10 +35,12 @@ def band_boundary(risk_state: str, risk: float) -> float | None:
 
 def _format_day(value: object) -> str:
     if isinstance(value, datetime):
-        return value.strftime("%-d %B %Y")
-    if isinstance(value, date):
-        return value.strftime("%-d %B %Y")
-    return datetime.fromisoformat(str(value).replace("Z", "+00:00")).strftime("%-d %B %Y")
+        parsed = value
+    elif isinstance(value, date):
+        parsed = value
+    else:
+        parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+    return f"{parsed.day} {_MONTH_NAMES[parsed.month - 1]} {parsed.year}"
 
 
 def _signed_delta(value: float) -> str:
@@ -64,7 +80,7 @@ def compose_daily_post(
 
     if previous is not None and str(previous["risk_state"]) != latest_state:
         first_line = (
-            f"Bitcoin risk band moved from {previous['risk_state']} to {latest_state} — {latest_day}"
+            f"Bitcoin risk moved from {previous['risk_state']} to {latest_state} — {latest_day}"
         )
     else:
         first_line = f"Bitcoin Risk Brief — {latest_day}"

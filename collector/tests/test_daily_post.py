@@ -60,10 +60,20 @@ class ComposeDailyPostTests(unittest.TestCase):
             levels=LEVELS,
             methodology_version="crypto-scout-canonical-v1.1",
         )
-        first_line = text.splitlines()[0].lower()
-        self.assertIn("band", first_line)
-        self.assertIn("low", first_line)
-        self.assertIn("neutral", first_line)
+        self.assertEqual(
+            "Bitcoin risk moved from low to neutral — 9 August 2026",
+            text.splitlines()[0],
+        )
+
+    def test_dates_use_english_months_and_portable_single_digit_days(self) -> None:
+        text = compose_daily_post(
+            latest=risk_row("2026-08-01", 0.24, "low"),
+            previous=None,
+            levels=None,
+            methodology_version="crypto-scout-canonical-v1.1",
+        )
+        self.assertIn("Bitcoin Risk Brief — 1 August 2026", text)
+        self.assertNotIn("August 01", text)
 
     def test_a_missing_level_snapshot_omits_the_boundary_line(self) -> None:
         text = compose_daily_post(
