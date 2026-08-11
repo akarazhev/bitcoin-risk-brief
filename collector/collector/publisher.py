@@ -12,6 +12,7 @@ from app.repository import (
     fetch_previous_risk,
 )
 from collector.config import settings
+from collector.csv_refresh import last_completed_utc_day
 from collector.daily_post import compose_daily_post
 from collector.db_writer import claim_telegram_post, confirm_telegram_post, release_telegram_post
 from collector.telegram import TelegramDeliveryUnknown, TelegramSendError, send_channel_post
@@ -38,6 +39,13 @@ async def publish_daily_post(pool: Any, *, now: datetime | None = None) -> bool:
     if latest_date is None:
         return False
     as_of = date.fromisoformat(latest_date)
+    if as_of != last_completed_utc_day(now):
+        logger.info(
+            'telegram_publish_skipped reason=observation_behind as_of=%s expected=%s',
+            as_of.isoformat(),
+            last_completed_utc_day(now).isoformat(),
+        )
+        return False
     previous_risk = await fetch_previous_risk(pool)
     levels = await fetch_latest_risk_level_snapshot(pool)
     text = compose_daily_post(

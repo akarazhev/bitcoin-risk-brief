@@ -40,6 +40,7 @@ async def send_channel_post(
     payload = {
         "chat_id": chat_id,
         "text": text,
+        "parse_mode": "HTML",
         "disable_web_page_preview": True,
     }
     url = f"{API_BASE}/bot{token}/sendMessage"
