@@ -106,7 +106,7 @@ class PublisherTests(unittest.IsolatedAsyncioTestCase):
     async def test_an_empty_token_publishes_nothing(self) -> None:
         send = AsyncMock()
         with enabled(telegram_bot_token=''), patch.object(publisher, 'send_channel_post', send):
-            published = await publisher.publish_daily_post(object())
+            published = await publisher.publish_daily_post(object(), now=NOW)
 
         self.assertFalse(published)
         send.assert_not_awaited()
@@ -114,7 +114,7 @@ class PublisherTests(unittest.IsolatedAsyncioTestCase):
     async def test_an_empty_channel_id_publishes_nothing(self) -> None:
         send = AsyncMock()
         with enabled(telegram_channel_id=''), patch.object(publisher, 'send_channel_post', send):
-            published = await publisher.publish_daily_post(object())
+            published = await publisher.publish_daily_post(object(), now=NOW)
 
         self.assertFalse(published)
         send.assert_not_awaited()
@@ -139,6 +139,42 @@ class PublisherTests(unittest.IsolatedAsyncioTestCase):
             as_of=LATEST['timestamp'].date(),
             message_id=4242,
         )
+
+    async def test_does_not_publish_an_observation_that_is_two_days_old(self) -> None:
+        send = AsyncMock(return_value=4242)
+        patches = repository()
+        # LATEST covers 2026-08-09; "now" is 2026-08-11, so the last completed
+        # UTC day is 2026-08-10 and the observation has fallen a day behind.
+        with enabled(), patch.object(publisher, 'send_channel_post', send):
+            for p in patches:
+                p.start()
+            try:
+                published = await publisher.publish_daily_post(
+                    object(), now=datetime(2026, 8, 11, 3, 0, tzinfo=timezone.utc)
+                )
+            finally:
+                for p in patches:
+                    p.stop()
+
+        self.assertFalse(published)
+        send.assert_not_awaited()
+
+    async def test_publishes_when_the_observation_is_the_last_completed_day(self) -> None:
+        send = AsyncMock(return_value=4242)
+        patches = repository()
+        with enabled(), patch.object(publisher, 'send_channel_post', send):
+            for p in patches:
+                p.start()
+            try:
+                published = await publisher.publish_daily_post(
+                    object(), now=datetime(2026, 8, 10, 3, 0, tzinfo=timezone.utc)
+                )
+            finally:
+                for p in patches:
+                    p.stop()
+
+        self.assertTrue(published)
+        self.assertEqual(1, send.await_count)
 
     async def test_a_refused_claim_sends_nothing_and_returns_false(self) -> None:
         send = AsyncMock()
@@ -294,7 +330,7 @@ class PublisherTests(unittest.IsolatedAsyncioTestCase):
     async def test_an_empty_token_does_not_read_the_repository(self) -> None:
         latest = AsyncMock()
         with enabled(telegram_bot_token=''), patch.object(publisher, 'fetch_latest_risk', latest):
-            published = await publisher.publish_daily_post(object())
+            published = await publisher.publish_daily_post(object(), now=NOW)
 
         self.assertFalse(published)
         latest.assert_not_awaited()
@@ -302,7 +338,7 @@ class PublisherTests(unittest.IsolatedAsyncioTestCase):
     async def test_an_empty_channel_id_does_not_read_the_repository(self) -> None:
         latest = AsyncMock()
         with enabled(telegram_channel_id=''), patch.object(publisher, 'fetch_latest_risk', latest):
-            published = await publisher.publish_daily_post(object())
+            published = await publisher.publish_daily_post(object(), now=NOW)
 
         self.assertFalse(published)
         latest.assert_not_awaited()
