@@ -48,7 +48,7 @@ Response captured on 2026-08-09:
 - Shows the latest `low`, `neutral`, or `high` state alongside a two-year risk history chart.
 - Displays completed-candle HLC3 model price context and a risk-level scenario ladder in `0.025` increments.
 - Publishes a daily brief in English, Russian, Simplified Chinese, German, French, Spanish, and Arabic.
-- Exposes read-only analytics endpoints and accepts email or Telegram waitlist contacts server-side, never in browser storage; users should not submit sensitive information.
+- Exposes read-only analytics endpoints and accepts email waitlist contacts server-side, never in browser storage; users should not submit sensitive information.
 
 ## What makes it different
 

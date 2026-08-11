@@ -1,4 +1,4 @@
-import { copy, getLocaleOption, localeOptions, stateLabel, supportedLocales } from './locales'
+import { copy, getLocaleOption, localeOptions, resolveInitialLocale, stateLabel, supportedLocales } from './locales'
 
 test('defines the issue 28 supported locale set in selector order', () => {
   expect(supportedLocales).toEqual(['en', 'ru', 'zh', 'de', 'fr', 'es', 'ar'])
@@ -40,6 +40,21 @@ test('gives every locale the channel copy and no pilot framing', () => {
     expect(copy[locale].channelBody, `${locale} is missing channelBody`).toBeTruthy()
     expect(copy[locale].channelCta, `${locale} is missing channelCta`).toBeTruthy()
     expect(copy[locale].waitlistBody, `${locale} still frames the product as a pilot`).not.toMatch(/pilot|cohort|kohorte|cohorte|试点/i)
+  }
+})
+
+test('offers only email in every locale', () => {
+  for (const [code, value] of Object.entries(copy)) {
+    expect(value.placeholder, `${code} placeholder still mentions Telegram`).not.toMatch(/telegram/i)
+    expect(value.waitlistBody, `${code} body still offers a Telegram handle`).not.toMatch(/telegram/i)
+    expect(value.joinError, `${code} error still mentions Telegram`).not.toMatch(/telegram/i)
+  }
+})
+
+test('still names Telegram where the channel is offered, in every locale', () => {
+  for (const [code, value] of Object.entries(copy)) {
+    expect(value.channelBody, `${code} channel body no longer names Telegram`).toMatch(/telegram/i)
+    expect(value.channelCta, `${code} channel button no longer names Telegram`).toMatch(/telegram/i)
   }
 })
 
@@ -100,4 +115,39 @@ test('localizes core risk-state labels', () => {
 test('preserves unknown risk-state labels', () => {
   expect(stateLabel('watch', 'en')).toBe('watch')
   expect(stateLabel('toString', 'en')).toBe('toString')
+})
+
+describe('resolveInitialLocale', () => {
+  it('matches an exact supported tag', () => {
+    expect(resolveInitialLocale(['de'])).toBe('de')
+  })
+
+  it('matches on the primary subtag', () => {
+    expect(resolveInitialLocale(['de-AT'])).toBe('de')
+    expect(resolveInitialLocale(['zh-Hans-CN'])).toBe('zh')
+    expect(resolveInitialLocale(['pt-BR', 'es-ES'])).toBe('es')
+  })
+
+  it('honours preference order', () => {
+    expect(resolveInitialLocale(['fr-CA', 'de'])).toBe('fr')
+  })
+
+  it('falls back to English for anything unsupported', () => {
+    expect(resolveInitialLocale(['pt', 'sv'])).toBe('en')
+  })
+
+  it('falls back to English when the browser tells us nothing', () => {
+    expect(resolveInitialLocale(undefined)).toBe('en')
+    expect(resolveInitialLocale([])).toBe('en')
+  })
+
+  it('is case-insensitive', () => {
+    expect(resolveInitialLocale(['DE-de'])).toBe('de')
+  })
+
+  it('only ever returns a supported locale', () => {
+    for (const tag of ['de', 'xx', 'zh-Hant', '', 'ru-RU']) {
+      expect(supportedLocales).toContain(resolveInitialLocale([tag]))
+    }
+  })
 })

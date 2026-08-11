@@ -43,11 +43,9 @@ class WaitlistValidationTest(unittest.TestCase):
         self.assertEqual(normalized.normalized_contact, "user@example.com")
         self.assertEqual(normalized.contact_type, "email")
 
-    def test_normalizes_telegram_contact(self) -> None:
-        normalized = normalize_waitlist_contact(" @RiskScout_42 ")
-        self.assertEqual(normalized.contact, "@RiskScout_42")
-        self.assertEqual(normalized.normalized_contact, "@riskscout_42")
-        self.assertEqual(normalized.contact_type, "telegram")
+    def test_rejects_telegram_contact(self) -> None:
+        with self.assertRaises(InvalidWaitlistContact):
+            normalize_waitlist_contact(" @RiskScout_42 ")
 
     def test_rejects_invalid_contact(self) -> None:
         with self.assertRaises(InvalidWaitlistContact):
@@ -112,6 +110,24 @@ class WaitlistRepositoryTest(unittest.IsolatedAsyncioTestCase):
         query, args = pool.calls[0]
         self.assertIn("ON CONFLICT (normalized_contact) DO UPDATE", query)
         self.assertEqual(args[:5], ("USER@Example.COM", "user@example.com", "email", "ar", "landing"))
+
+
+class EmailOnlyContactTests(unittest.TestCase):
+    def test_a_telegram_handle_is_rejected(self) -> None:
+        with self.assertRaises(InvalidWaitlistContact):
+            normalize_waitlist_contact("@someholder")
+
+    def test_an_email_is_still_accepted_and_normalised(self) -> None:
+        result = normalize_waitlist_contact("USER@Example.COM")
+        self.assertEqual("email", result.contact_type)
+        self.assertEqual("user@example.com", result.normalized_contact)
+        self.assertEqual("USER@Example.COM", result.contact)
+
+    def test_no_input_can_produce_the_telegram_contact_type(self) -> None:
+        for candidate in ("@bitcoinriskbrief", "@a_user_name", "@12345678"):
+            with self.subTest(candidate=candidate):
+                with self.assertRaises(InvalidWaitlistContact):
+                    normalize_waitlist_contact(candidate)
 
 
 if __name__ == "__main__":

@@ -256,7 +256,6 @@ before storage.
 Accepted contacts:
 
 - email address;
-- Telegram handle matching `@[A-Za-z0-9_]{5,32}`.
 
 Response:
 

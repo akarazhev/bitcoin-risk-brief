@@ -217,7 +217,7 @@ curl --fail-with-body https://bitcoinriskbrief.minihub.app/api/brief/latest
 
 ### `POST /api/waitlist`
 
-Stores or updates an email address or Telegram handle after Turnstile verification. Replace the example token with the
+Stores or updates an email address after Turnstile verification. Replace the example token with the
 single-use token issued to the client. Unsupported locales are normalized to `en` before storage.
 
 ```bash

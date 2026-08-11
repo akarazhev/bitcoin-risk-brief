@@ -52,7 +52,7 @@ docs/                    Product, operations, methodology, API, and deployment d
 | `btc_risk_validation` | Latest validation summary and JSON diagnostics. |
 | `brief_snapshots` | Latest daily brief payloads. |
 | `risk_level_snapshots` | Latest persisted public risk-level payloads served by `/api/risk/levels`. |
-| `waitlist_leads` | Normalized email or Telegram waitlist contacts. |
+| `waitlist_leads` | Normalized email waitlist contacts. Existing Telegram rows remain historically valid. |
 | `telegram_posts` | One claim per covered date for channel publication, confirmed with Telegram's returned message ID. |
 
 `btc_ohlcv_daily` and `btc_risk_daily` are TimescaleDB hypertables keyed by `timestamp`.
