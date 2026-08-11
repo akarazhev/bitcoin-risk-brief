@@ -6,7 +6,7 @@ advice, investment advice, or a trading recommendation.
 
 ## Documentation Tiers
 
-- [Product](product/product-spec.md)
+- [Product](product/overview.md)
 - [Engineering](engineering/architecture.md)
 - [Agents](agents/index.md)
 - [Operations](operations/production-readiness.md)

@@ -33,7 +33,7 @@ exclude_docs: |
 nav:
   - Home: index.md
   - Product:
-      - Overview: product/product-spec.md
+      - Overview: product/overview.md
       - Risk methodology: product/risk-methodology.md
   - Engineering:
       - Architecture: engineering/architecture.md
@@ -48,6 +48,8 @@ nav:
       - Overview: agents/index.md
       - Agent access pack: agents/agent-access-pack.md
       - OpenAPI: agents/openapi.md
+  - Archive:
+      - Validation spec, June 2026: archive/product-spec.md
   - Operations:
       - Operations: operations/operations.md
       - Production readiness: operations/production-readiness.md
