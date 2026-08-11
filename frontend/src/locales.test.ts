@@ -51,6 +51,13 @@ test('offers only email in every locale', () => {
   }
 })
 
+test('still names Telegram where the channel is offered, in every locale', () => {
+  for (const [code, value] of Object.entries(copy)) {
+    expect(value.channelBody, `${code} channel body no longer names Telegram`).toMatch(/telegram/i)
+    expect(value.channelCta, `${code} channel button no longer names Telegram`).toMatch(/telegram/i)
+  }
+})
+
 test('provides exact localized Turnstile errors and privacy disclosure', () => {
   const expected = {
     en: {
