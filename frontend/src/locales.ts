@@ -115,6 +115,15 @@ type Copy = {
 
 export const supportedLocales = ['en', 'ru', 'zh', 'de', 'fr', 'es', 'ar'] as const satisfies readonly Locale[]
 
+export function resolveInitialLocale(languages: readonly string[] | undefined): Locale {
+  for (const tag of languages ?? []) {
+    const primary = tag.toLowerCase().split('-')[0]
+    const match = supportedLocales.find((locale) => locale === primary)
+    if (match) return match
+  }
+  return 'en'
+}
+
 export const localeOptions: readonly LocaleOption[] = [
   { code: 'en', label: 'English', shortLabel: 'EN - English', lang: 'en', dir: 'ltr' },
   { code: 'ru', label: 'Русский', shortLabel: 'RU - Русский', lang: 'ru', dir: 'ltr' },

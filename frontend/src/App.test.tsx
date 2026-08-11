@@ -1595,3 +1595,23 @@ test('submits the band-alert interest under its own source value', async () => {
     })
   })
 })
+
+test('opens in the language the browser asks for', async () => {
+  const original = Object.getOwnPropertyDescriptor(window.navigator, 'languages')
+  Object.defineProperty(window.navigator, 'languages', { value: ['de-DE', 'en'], configurable: true })
+  try {
+    render(<App />)
+    expect(await screen.findByRole('button', { name: /interesse hinterlegen/i })).toBeInTheDocument()
+  } finally {
+    if (original) Object.defineProperty(window.navigator, 'languages', original)
+    else delete (window.navigator as { languages?: readonly string[] }).languages
+  }
+})
+
+test('writes nothing to browser storage', async () => {
+  render(<App />)
+  await screen.findByRole('link', { name: /telegram channel/i })
+
+  expect(window.localStorage.length).toBe(0)
+  expect(window.sessionStorage.length).toBe(0)
+})
