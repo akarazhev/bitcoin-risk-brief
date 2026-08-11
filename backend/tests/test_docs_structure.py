@@ -8,7 +8,8 @@ ROOT = Path(__file__).resolve().parents[2]
 DOCS = ROOT / "docs"
 
 EXPECTED_LAYOUT = {
-    "product": {"product-spec.md", "risk-methodology.md"},
+    "product": {"overview.md", "risk-methodology.md"},
+    "archive": {"product-spec.md"},
     "engineering": {
         "architecture.md",
         "data-pipeline.md",

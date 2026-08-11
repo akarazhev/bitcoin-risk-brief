@@ -13,7 +13,7 @@
 ## Product
 
 - Risk methodology, features, weights, normalisation windows and the level solver: https://docs.bitcoinriskbrief.minihub.app/product/risk-methodology/
-- Product specification, what this is and what it is not: https://docs.bitcoinriskbrief.minihub.app/product/product-spec/
+- Product overview, what this is and what it is not: https://docs.bitcoinriskbrief.minihub.app/product/overview/
 
 ## Engineering
 

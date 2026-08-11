@@ -103,7 +103,7 @@ Open: `http://localhost:3001`
 ## Documentation
 
 - [Documentation index](docs/index.md)
-- [Product specification](docs/product/product-spec.md)
+- [Product overview](docs/product/overview.md)
 - [Risk methodology](docs/product/risk-methodology.md)
 - [Architecture](docs/engineering/architecture.md)
 - [API reference](docs/engineering/api-reference.md)

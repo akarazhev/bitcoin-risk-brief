@@ -692,7 +692,7 @@ Before broader public launch, recurring daily backup/off-server-copy automation,
 
 ## Related Docs
 
-- [Product Spec and Alignment Review](../product/product-spec.md)
+- [Product Spec and Alignment Review](../archive/product-spec.md), archived
 - [Production Readiness](production-readiness.md)
 - [Production Evidence Log](production-evidence-log.md)
 - [Operations](operations.md)

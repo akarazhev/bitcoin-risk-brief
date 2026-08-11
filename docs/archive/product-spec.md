@@ -1,5 +1,18 @@
 # Bitcoin Risk Brief
 
+> **Archived validation spec, June 2026.** This records what the product was planned to be before it
+> was built, and is kept because the reasoning is worth reading — not because it describes the product
+> today. It is superseded by the Portfolio Transformation Strategy, kept in the repository at
+> `docs/superpowers/specs/2026-08-05-portfolio-transformation-strategy.md` and not published to this site.
+>
+> Two sections have since been decided against and are contradicted by the current product. **Pricing
+> Test** describes a `EUR 9-19/month` paid beta; the product is free permanently, with no paid tier, no
+> accounts and no SLA. **MVP Features** offers an email or Telegram daily brief to early users; delivery
+> now works through a free public [Telegram channel](https://t.me/bitcoinriskbrief) that needs no
+> contact at all.
+>
+> For what the product is now, see [Overview](../product/overview.md).
+
 ## One-Line Product
 
 A daily Bitcoin risk page that tells a user whether BTC is currently in a low, neutral, or high risk zone, with a price
