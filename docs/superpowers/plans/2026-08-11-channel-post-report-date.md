@@ -311,6 +311,174 @@ git commit -m "fix: use the page's date vocabulary and name the right band"
 
 ---
 
+---
+
+### Task 3: Give the post typographic hierarchy
+
+**Files:**
+- Modify: `collector/collector/telegram.py`
+- Modify: `collector/collector/daily_post.py`
+- Test: `collector/tests/test_telegram_client.py`, `collector/tests/test_daily_post.py`
+
+**Interfaces:**
+- `send_channel_post` keeps its signature and starts sending `parse_mode: "HTML"`.
+- `compose_daily_post` keeps its signature and starts emitting HTML tags.
+
+**The defect.** The client sends no `parse_mode` at all, so every post arrives as flat text with no
+emphasis anywhere. That, rather than any absence of decoration, is why the post reads as unfinished:
+nothing tells the eye what matters.
+
+**HTML, not MarkdownV2.** MarkdownV2 requires escaping `.`, `-`, `+`, `(`, `)` and roughly a dozen more
+characters. The post contains all of those — dates, signed deltas, prices. One missed character makes
+Telegram reject the whole message, turning a formatting choice into a delivery risk. HTML needs only
+`<`, `>` and `&` escaped, none of which occur in this content.
+
+**No status emoji.** Coloured band indicators (green, amber, red) are the genre convention and are
+deliberately not used here, for the same reason they were rejected for the social preview card and the
+favicon: on a risk product a traffic light reads as buy, hold, sell — the recommendation this product
+declines to make everywhere else. A daily post is worse than an image for this, because it lands in a
+feed beside channels that do sell signals.
+
+- [ ] **Step 1: Write the failing tests**
+
+Append to `collector/tests/test_telegram_client.py`, inside the existing test class:
+
+```python
+    async def test_sends_html_parse_mode(self) -> None:
+        seen: dict[str, object] = {}
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            seen["body"] = request.content.decode()
+            return httpx.Response(200, json={"ok": True, "result": {"message_id": 1}})
+
+        async with httpx.AsyncClient(transport=transport(handler)) as client:
+            await send_channel_post(
+                token="t0ken", chat_id="@bitcoinriskbrief", text="<b>hi</b>", client=client
+            )
+
+        self.assertIn('"parse_mode": "HTML"', str(seen["body"]).replace("'", '"'))
+```
+
+Append to `collector/tests/test_daily_post.py`:
+
+```python
+class FormattingTests(unittest.TestCase):
+    def test_the_headline_and_the_risk_value_are_bold(self) -> None:
+        text = compose_daily_post(
+            latest=risk_row("2026-08-10", 0.24, "low"),
+            previous=risk_row("2026-08-09", 0.21, "low"),
+            levels=LEVELS,
+            methodology_version="crypto-scout-canonical-v1.1",
+        )
+        self.assertIn("<b>Bitcoin Risk Brief</b>", text)
+        self.assertIn("<b>Risk 0.24 — low</b>", text)
+
+    def test_the_advice_line_is_italic(self) -> None:
+        text = compose_daily_post(
+            latest=risk_row("2026-08-10", 0.24, "low"),
+            previous=None,
+            levels=LEVELS,
+            methodology_version="crypto-scout-canonical-v1.1",
+        )
+        self.assertIn("<i>Analytics and research context, not financial advice.</i>", text)
+
+    def test_data_derived_values_are_html_escaped(self) -> None:
+        text = compose_daily_post(
+            latest=risk_row("2026-08-10", 0.24, "low"),
+            previous=None,
+            levels=LEVELS,
+            methodology_version="crypto-scout-canonical-v1.1 <script>",
+        )
+        self.assertNotIn("<script>", text)
+        self.assertIn("&lt;script&gt;", text)
+
+    def test_no_status_emoji_is_used(self) -> None:
+        text = compose_daily_post(
+            latest=risk_row("2026-08-10", 0.82, "high"),
+            previous=risk_row("2026-08-09", 0.68, "neutral"),
+            levels=LEVELS,
+            methodology_version="crypto-scout-canonical-v1.1",
+        )
+        for glyph in ("🟢", "🟡", "🔴", "🚨", "⚠️", "📈", "📉"):
+            self.assertNotIn(glyph, text)
+
+    def test_only_permitted_tags_appear(self) -> None:
+        import re
+
+        text = compose_daily_post(
+            latest=risk_row("2026-08-10", 0.24, "low"),
+            previous=risk_row("2026-08-09", 0.21, "low"),
+            levels=LEVELS,
+            methodology_version="crypto-scout-canonical-v1.1",
+        )
+        tags = set(re.findall(r"</?([a-zA-Z]+)>", text))
+        self.assertLessEqual(tags, {"b", "i"})
+```
+
+The escaping test matters more than it looks: `methodology_version` reaches the post from the database,
+so it is the one field this function does not author itself.
+
+Existing assertions in this file that anchor on the start of the text — the report-date and band-change
+headline tests from Task 2 — need the `<b>` prefix. Update them; do not relax them to `assertIn`.
+
+- [ ] **Step 2: Run tests to verify they fail**
+
+Run: `PYTHONPATH=backend:collector python -m unittest collector.tests.test_daily_post collector.tests.test_telegram_client -v`
+Expected: FAIL — no `parse_mode` in the payload, no tags in the text.
+
+- [ ] **Step 3: Add the parse mode and the tags**
+
+In `collector/collector/telegram.py`, add one key to the payload:
+
+```python
+    payload = {
+        "chat_id": chat_id,
+        "text": text,
+        "parse_mode": "HTML",
+        "disable_web_page_preview": True,
+    }
+```
+
+In `collector/collector/daily_post.py`, escape every value that does not originate in this module —
+`methodology_version`, `risk_state`, and the previous row's state — with `html.escape`, then wrap:
+
+- the headline: `<b>Bitcoin Risk Brief</b> — report date 2026-08-11`, and on a band-change day
+  `<b>Bitcoin risk moved from low to neutral</b> — report date 2026-08-11`;
+- the risk line entirely: `<b>Risk 0.24 — low</b>`;
+- the closing line: `<i>Analytics and research context, not financial advice.</i>`.
+
+Everything else stays plain. The result:
+
+```text
+<b>Bitcoin Risk Brief</b> — report date 2026-08-11
+
+<b>Risk 0.24 — low</b>
+Change: +0.03 from 2026-08-09
+Neutral band at risk 0.30 — model price $74,098
+Coverage through 2026-08-10 · crypto-scout-canonical-v1.1
+
+bitcoinriskbrief.minihub.app
+
+<i>Analytics and research context, not financial advice.</i>
+```
+
+Two bold elements and one italic. More emphasis than that removes the hierarchy it is meant to create.
+
+- [ ] **Step 4: Run the checks**
+
+Run: `PYTHONPATH=backend:collector python -m unittest collector.tests.test_daily_post collector.tests.test_telegram_client -v`
+Expected: PASS.
+
+Run: `./scripts/manage.sh test-python`
+Expected: PASS.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add collector/collector/telegram.py collector/collector/daily_post.py collector/tests/test_telegram_client.py collector/tests/test_daily_post.py
+git commit -m "feat: give the channel post typographic hierarchy"
+```
+
 ## Verification Summary
 
 ```bash
@@ -330,5 +498,6 @@ The frontend is untouched, but run its checks anyway to prove that.
 ## Out Of Scope
 
 - Localising the channel; posts stay English.
+- Status emoji or coloured band indicators, for the reason given in Task 3.
 - Any change to the readiness rule, `DATA_FRESHNESS_MAX_AGE_DAYS`, or the page.
 - Back-filling or editing posts already published to the channel.
