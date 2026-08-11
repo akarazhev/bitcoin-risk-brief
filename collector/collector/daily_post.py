@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import date, datetime, timedelta
+import html
 import math
 
 from app.risk import HIGH_RISK_THRESHOLD, LOW_RISK_THRESHOLD
@@ -82,15 +83,18 @@ def compose_daily_post(
     report_day = _format_day(_report_date(latest["timestamp"]))
     latest_risk = float(latest["risk"])
     latest_state = str(latest["risk_state"])
+    escaped_latest_state = html.escape(latest_state)
+    escaped_methodology_version = html.escape(methodology_version)
 
     if previous is not None and str(previous["risk_state"]) != latest_state:
+        escaped_previous_state = html.escape(str(previous["risk_state"]))
         first_line = (
-            f"Bitcoin risk moved from {previous['risk_state']} to {latest_state} — report date {report_day}"
+            f"<b>Bitcoin risk moved from {escaped_previous_state} to {escaped_latest_state}</b> — report date {report_day}"
         )
     else:
-        first_line = f"Bitcoin Risk Brief — report date {report_day}"
+        first_line = f"<b>Bitcoin Risk Brief</b> — report date {report_day}"
 
-    lines = [first_line, "", f"Risk {latest_risk:.2f} — {latest_state}"]
+    lines = [first_line, "", f"<b>Risk {latest_risk:.2f} — {escaped_latest_state}</b>"]
     if previous is not None:
         delta = latest_risk - float(previous["risk"])
         lines.append(f"Change: {_signed_delta(delta)} from {_format_day(previous['timestamp'])}")
@@ -106,11 +110,11 @@ def compose_daily_post(
 
     lines.extend(
         [
-            f"Coverage through {latest_day} · {methodology_version}",
+            f"Coverage through {latest_day} · {escaped_methodology_version}",
             "",
             "bitcoinriskbrief.minihub.app",
             "",
-            "Analytics and research context, not financial advice.",
+            "<i>Analytics and research context, not financial advice.</i>",
         ]
     )
     return "\n".join(lines)

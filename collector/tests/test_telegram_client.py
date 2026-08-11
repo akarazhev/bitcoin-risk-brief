@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import json
 import unittest
 
 import httpx
@@ -13,6 +14,21 @@ def transport(handler):
 
 
 class TelegramClientTests(unittest.IsolatedAsyncioTestCase):
+    async def test_sends_html_parse_mode(self) -> None:
+        seen: dict[str, object] = {}
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            seen["body"] = request.content.decode()
+            return httpx.Response(200, json={"ok": True, "result": {"message_id": 1}})
+
+        async with httpx.AsyncClient(transport=transport(handler)) as client:
+            await send_channel_post(
+                token="t0ken", chat_id="@bitcoinriskbrief", text="<b>hi</b>", client=client
+            )
+
+        payload = json.loads(str(seen["body"]))
+        self.assertEqual("HTML", payload["parse_mode"])
+
     async def test_posts_to_the_channel_and_returns_the_message_id(self) -> None:
         seen: dict[str, object] = {}
 

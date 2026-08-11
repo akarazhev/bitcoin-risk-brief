@@ -129,17 +129,17 @@ On a band-change day the post leads with the change. Otherwise it leads with the
 ## Post Content
 
 ```
-Bitcoin Risk Brief — 7 August 2026
+<b>Bitcoin Risk Brief</b> — report date 2026-08-11
 
-Risk 0.24 — low
+<b>Risk 0.24 — low</b>
 Change: −0.01 from 6 August
 
-Neutral band begins at risk 0.30 — model price $71,400
-Data: fresh through 7 August · crypto-scout-canonical-v1.1
+Neutral band at risk 0.30 — model price $71,400
+Coverage through 2026-08-10 · crypto-scout-canonical-v1.1
 
 bitcoinriskbrief.minihub.app
 
-Analytics and research context, not financial advice.
+<i>Analytics and research context, not financial advice.</i>
 ```
 
 The boundary line is what makes the post worth reading. It answers the question the product exists to answer — what
@@ -150,9 +150,9 @@ Its source is the `risk_level_snapshots` row the collector already writes. The l
 
 | Current state | Boundary shown |
 | --- | --- |
-| `low` | `0.30`, the entry into neutral |
-| `neutral` | whichever of `0.30` and `0.70` is nearer to the current risk |
-| `high` | `0.70`, the return to neutral |
+| `low` | `Neutral` at `0.30`, the entry into neutral |
+| `neutral` | `Low` at `0.30` or `High` at `0.70`, whichever is nearer to the current risk |
+| `high` | `Neutral` at `0.70`, the return to neutral |
 
 If the snapshot is missing or lacks that point, **omit the line**. This follows the rule the product already applies to
 `low_usd` and `high_usd`: hide a value rather than show a zero or a stale one.

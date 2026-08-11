@@ -63,7 +63,7 @@ class ComposeDailyPostTests(unittest.TestCase):
             methodology_version="crypto-scout-canonical-v1.1",
         )
         self.assertEqual(
-            "Bitcoin risk moved from low to neutral — report date 2026-08-10",
+            "<b>Bitcoin risk moved from low to neutral</b> — report date 2026-08-10",
             text.splitlines()[0],
         )
 
@@ -74,7 +74,7 @@ class ComposeDailyPostTests(unittest.TestCase):
             levels=None,
             methodology_version="crypto-scout-canonical-v1.1",
         )
-        self.assertIn("Bitcoin Risk Brief — report date 2026-08-02", text)
+        self.assertIn("<b>Bitcoin Risk Brief</b> — report date 2026-08-02", text)
         self.assertIn("Coverage through 2026-08-01", text)
 
     def test_a_missing_level_snapshot_omits_the_boundary_line(self) -> None:
@@ -124,7 +124,7 @@ class ReportDateTests(unittest.TestCase):
             levels=LEVELS,
             methodology_version="crypto-scout-canonical-v1.1",
         )
-        self.assertTrue(text.startswith("Bitcoin Risk Brief — report date 2026-08-11"))
+        self.assertTrue(text.startswith("<b>Bitcoin Risk Brief</b> — report date 2026-08-11"))
 
     def test_every_date_is_iso(self) -> None:
         text = compose_daily_post(
@@ -146,7 +146,9 @@ class ReportDateTests(unittest.TestCase):
             methodology_version="crypto-scout-canonical-v1.1",
         )
         self.assertTrue(
-            text.startswith("Bitcoin risk moved from low to neutral — report date 2026-08-11")
+            text.startswith(
+                "<b>Bitcoin risk moved from low to neutral</b> — report date 2026-08-11"
+            )
         )
 
     def test_a_report_date_crossing_a_month_end_is_correct(self) -> None:
@@ -196,3 +198,56 @@ class BandNameTests(unittest.TestCase):
             methodology_version="crypto-scout-canonical-v1.1",
         )
         self.assertIn("Neutral band at risk 0.70", text)
+
+
+class FormattingTests(unittest.TestCase):
+    def test_the_headline_and_the_risk_value_are_bold(self) -> None:
+        text = compose_daily_post(
+            latest=risk_row("2026-08-10", 0.24, "low"),
+            previous=risk_row("2026-08-09", 0.21, "low"),
+            levels=LEVELS,
+            methodology_version="crypto-scout-canonical-v1.1",
+        )
+        self.assertIn("<b>Bitcoin Risk Brief</b>", text)
+        self.assertIn("<b>Risk 0.24 — low</b>", text)
+
+    def test_the_advice_line_is_italic(self) -> None:
+        text = compose_daily_post(
+            latest=risk_row("2026-08-10", 0.24, "low"),
+            previous=None,
+            levels=LEVELS,
+            methodology_version="crypto-scout-canonical-v1.1",
+        )
+        self.assertIn("<i>Analytics and research context, not financial advice.</i>", text)
+
+    def test_data_derived_values_are_html_escaped(self) -> None:
+        text = compose_daily_post(
+            latest=risk_row("2026-08-10", 0.24, "low"),
+            previous=None,
+            levels=LEVELS,
+            methodology_version="crypto-scout-canonical-v1.1 <script>",
+        )
+        self.assertNotIn("<script>", text)
+        self.assertIn("&lt;script&gt;", text)
+
+    def test_no_status_emoji_is_used(self) -> None:
+        text = compose_daily_post(
+            latest=risk_row("2026-08-10", 0.82, "high"),
+            previous=risk_row("2026-08-09", 0.68, "neutral"),
+            levels=LEVELS,
+            methodology_version="crypto-scout-canonical-v1.1",
+        )
+        for glyph in ("🟢", "🟡", "🔴", "🚨", "⚠️", "📈", "📉"):
+            self.assertNotIn(glyph, text)
+
+    def test_only_permitted_tags_appear(self) -> None:
+        import re
+
+        text = compose_daily_post(
+            latest=risk_row("2026-08-10", 0.24, "low"),
+            previous=risk_row("2026-08-09", 0.21, "low"),
+            levels=LEVELS,
+            methodology_version="crypto-scout-canonical-v1.1",
+        )
+        tags = set(re.findall(r"</?([a-zA-Z]+)>", text))
+        self.assertLessEqual(tags, {"b", "i"})
