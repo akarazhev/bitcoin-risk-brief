@@ -2,7 +2,7 @@ version: "3.8"
 
 services:
   cloudflared:
-    image: ${CLOUDFLARED_IMAGE:-docker.io/cloudflare/cloudflared:2026.6.1}
+    image: ${CLOUDFLARED_IMAGE:-docker.io/cloudflare/cloudflared:2026.7.3}
     restart: unless-stopped
     command: tunnel --no-autoupdate run
     environment:
