@@ -1,26 +1,12 @@
 from __future__ import annotations
 
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 import math
 
 from app.risk import HIGH_RISK_THRESHOLD, LOW_RISK_THRESHOLD
 
 
 _LEVEL_TOLERANCE = 1e-9
-_MONTH_NAMES = (
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December",
-)
 
 
 def band_boundary(risk_state: str, risk: float) -> float | None:
@@ -33,14 +19,32 @@ def band_boundary(risk_state: str, risk: float) -> float | None:
     return None
 
 
-def _format_day(value: object) -> str:
+def _parse_day(value: object) -> date | datetime:
     if isinstance(value, datetime):
-        parsed = value
-    elif isinstance(value, date):
-        parsed = value
-    else:
-        parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
-    return f"{parsed.day} {_MONTH_NAMES[parsed.month - 1]} {parsed.year}"
+        return value
+    if isinstance(value, date):
+        return value
+    return datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+
+
+def _format_day(value: object) -> str:
+    return _parse_day(value).strftime("%Y-%m-%d")
+
+
+def _report_date(value: object) -> date | datetime:
+    return _parse_day(value) + timedelta(days=1)
+
+
+def _band_entered(risk_state: str, boundary: float) -> str | None:
+    if risk_state == "low" and boundary == LOW_RISK_THRESHOLD:
+        return "Neutral"
+    if risk_state == "neutral" and boundary == LOW_RISK_THRESHOLD:
+        return "Low"
+    if risk_state == "neutral" and boundary == HIGH_RISK_THRESHOLD:
+        return "High"
+    if risk_state == "high" and boundary == HIGH_RISK_THRESHOLD:
+        return "Neutral"
+    return None
 
 
 def _signed_delta(value: float) -> str:
@@ -75,15 +79,16 @@ def compose_daily_post(
     methodology_version: str,
 ) -> str:
     latest_day = _format_day(latest["timestamp"])
+    report_day = _format_day(_report_date(latest["timestamp"]))
     latest_risk = float(latest["risk"])
     latest_state = str(latest["risk_state"])
 
     if previous is not None and str(previous["risk_state"]) != latest_state:
         first_line = (
-            f"Bitcoin risk moved from {previous['risk_state']} to {latest_state} — {latest_day}"
+            f"Bitcoin risk moved from {previous['risk_state']} to {latest_state} — report date {report_day}"
         )
     else:
-        first_line = f"Bitcoin Risk Brief — {latest_day}"
+        first_line = f"Bitcoin Risk Brief — report date {report_day}"
 
     lines = [first_line, "", f"Risk {latest_risk:.2f} — {latest_state}"]
     if previous is not None:
@@ -93,14 +98,15 @@ def compose_daily_post(
     boundary = band_boundary(latest_state, latest_risk)
     if boundary is not None:
         price = _level_price(levels, boundary)
-        if price is not None:
+        band = _band_entered(latest_state, boundary)
+        if price is not None and band is not None:
             lines.append(
-                f"Neutral band begins at risk {boundary:.2f} — model price ${price:,.0f}"
+                f"{band} band at risk {boundary:.2f} — model price ${price:,.0f}"
             )
 
     lines.extend(
         [
-            f"Data: fresh through {latest_day} · {methodology_version}",
+            f"Coverage through {latest_day} · {methodology_version}",
             "",
             "bitcoinriskbrief.minihub.app",
             "",
