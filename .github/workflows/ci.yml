@@ -158,3 +158,29 @@ jobs:
           path: site
       - id: deployment
         uses: actions/deploy-pages@v5
+
+  image-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build backend image
+        run: docker build -t brb-backend:ci ./backend
+      - name: Backend imports
+        run: docker run --rm brb-backend:ci python -c "import app.main"
+
+      - name: Build collector image
+        run: docker build -t brb-collector:ci -f ./collector/Dockerfile .
+      - name: Collector imports
+        run: docker run --rm brb-collector:ci python -c "import collector.main"
+
+      - name: Build frontend image
+        run: |
+          docker build -t brb-frontend:ci \
+            --build-arg VITE_TURNSTILE_SITE_KEY=1x00000000000000000000AA \
+            ./frontend
+      # nginx.conf proxies to the compose service name "backend", which resolves
+      # only inside the compose network. Point it at the loopback so nginx can
+      # finish resolving upstreams and actually validate the rest of the file.
+      - name: Frontend nginx config is valid
+        run: docker run --rm --add-host backend:127.0.0.1 brb-frontend:ci nginx -t

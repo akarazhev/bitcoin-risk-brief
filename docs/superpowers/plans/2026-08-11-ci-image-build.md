@@ -83,10 +83,15 @@ Expected: all three succeed. If one does not, stop — `main` is broken and that
 ```bash
 docker run --rm brb-backend-check python -c "import app.main; print('backend imports')"
 docker run --rm brb-collector-check python -c "import collector.main; print('collector imports')"
-docker run --rm brb-frontend-check nginx -t
+docker run --rm --add-host backend:127.0.0.1 brb-frontend-check nginx -t
 ```
 
 Expected: two `imports` lines and `syntax is ok` / `test is successful` from nginx.
+
+`--add-host` is required, not cosmetic: `nginx.conf` proxies to the compose service name `backend`,
+which resolves only inside the compose network. Without it nginx stops at
+`host not found in upstream "backend"` and validates nothing. Pointing the name at the loopback lets it
+finish resolving and check the rest of the file. Verified that a missing semicolon is still caught.
 
 These three assertions are the reason the job is worth more than a plain build. Installing is not importing: a dependency can resolve, install, and still break at import. And `nginx -t` validates `frontend/nginx.conf`, a file this project edited recently to add the SPA route allowlist — a syntax error there would otherwise surface only when the container refuses to start in production.
 
@@ -118,7 +123,7 @@ Append to `.github/workflows/ci.yml`:
             --build-arg VITE_TURNSTILE_SITE_KEY=1x00000000000000000000AA \
             ./frontend
       - name: Frontend nginx config is valid
-        run: docker run --rm brb-frontend:ci nginx -t
+        run: docker run --rm --add-host backend:127.0.0.1 brb-frontend:ci nginx -t
 ```
 
 One job with named steps rather than three jobs or a matrix: the step name already attributes a failure, and a single check name is what Task 2 adds to the ruleset. Three parallel jobs would save a couple of minutes and cost three ruleset entries to keep in sync.
