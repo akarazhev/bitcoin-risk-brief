@@ -71,7 +71,8 @@ ensures a channel post never announces an observation that has fallen behind tod
 must run before `claim_telegram_post`, so a behind observation does not consume the date. If CoinMarketCap returned
 nothing new and the CSV tail did not advance, `import_csv_once` still runs and still rewrites derived rows — but the
 covered date is unchanged and there is nothing to announce. Say nothing rather than publish a number the product itself
-would serve behind a 503.
+would show as ready. The channel gate is deliberately stricter than page readiness: a ready-but-behind observation is
+suppressed when it does not cover the last completed UTC day.
 
 ## Idempotency
 
@@ -221,6 +222,7 @@ New tests, all offline against a fake HTTP client:
 
 - A post appears automatically after a successful daily import, with no operator action.
 - No post is published while readiness is degraded or the data is stale.
+- No post is published when the observation does not cover the last completed UTC day, even if readiness is still ready.
 - Re-running an import for an already-published date produces no second post.
 - Every post carries the report date, coverage-through date, and methodology version.
 - A Telegram failure of any kind leaves the import successful.
