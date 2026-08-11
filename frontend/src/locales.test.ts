@@ -43,6 +43,14 @@ test('gives every locale the channel copy and no pilot framing', () => {
   }
 })
 
+test('offers only email in every locale', () => {
+  for (const [code, value] of Object.entries(copy)) {
+    expect(value.placeholder, `${code} placeholder still mentions Telegram`).not.toMatch(/telegram/i)
+    expect(value.waitlistBody, `${code} body still offers a Telegram handle`).not.toMatch(/telegram/i)
+    expect(value.joinError, `${code} error still mentions Telegram`).not.toMatch(/telegram/i)
+  }
+})
+
 test('provides exact localized Turnstile errors and privacy disclosure', () => {
   const expected = {
     en: {

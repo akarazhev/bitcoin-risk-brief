@@ -4,7 +4,6 @@ from dataclasses import dataclass
 import re
 
 EMAIL_RE = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
-TELEGRAM_RE = re.compile(r"^@[A-Za-z0-9_]{5,32}$")
 VALID_LOCALES = {"en", "ru", "zh", "de", "fr", "es", "ar"}
 VALID_SOURCE_RE = re.compile(r"^[A-Za-z0-9_.:-]{1,64}$")
 
@@ -33,7 +32,7 @@ def normalize_source(value: str | None) -> str:
 def normalize_waitlist_contact(value: str) -> NormalizedWaitlistContact:
     contact = value.strip()
     if not contact or len(contact) > 254:
-        raise InvalidWaitlistContact("Enter a valid email or Telegram handle")
+        raise InvalidWaitlistContact("Enter a valid email address")
 
     if EMAIL_RE.match(contact):
         return NormalizedWaitlistContact(
@@ -42,11 +41,4 @@ def normalize_waitlist_contact(value: str) -> NormalizedWaitlistContact:
             contact_type="email",
         )
 
-    if TELEGRAM_RE.match(contact):
-        return NormalizedWaitlistContact(
-            contact=contact,
-            normalized_contact=contact.lower(),
-            contact_type="telegram",
-        )
-
-    raise InvalidWaitlistContact("Enter a valid email or Telegram handle")
+    raise InvalidWaitlistContact("Enter a valid email address")

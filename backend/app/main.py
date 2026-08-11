@@ -621,7 +621,7 @@ async def brief_latest(request: Request) -> Response:
     tags=["waitlist"],
     summary="Join the Bitcoin Risk Brief waitlist",
     description=(
-        "Stores a submitted email address or Telegram handle after Turnstile verification. "
+        "Stores a submitted email address after Turnstile verification. "
         "This is not financial advice."
     ),
     responses={

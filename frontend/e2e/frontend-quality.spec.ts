@@ -258,7 +258,7 @@ test('supports keyboard focus navigation through public controls with mocked wai
   const languageSelector = page.getByRole('button', { name: /select language: english/i })
   const languageListbox = page.getByRole('listbox', { name: /select language/i })
   const dataSourceLink = page.getByRole('link', { name: /coinmarketcap/i })
-  const waitlistInput = page.getByLabel('email or @telegram')
+  const waitlistInput = page.getByLabel('your email')
   const submitButton = page.getByRole('button', { name: /register interest/i })
 
   await pressTab()

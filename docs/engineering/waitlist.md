@@ -8,7 +8,6 @@ or Telegram alerts.
 The frontend form accepts one value:
 
 - email address;
-- Telegram handle.
 
 On successful submission, the UI shows a saved state. The contact is not persisted in browser storage.
 
@@ -50,7 +49,6 @@ Contacts are validated server-side.
 | Field | Rule |
 | --- | --- |
 | email | Must match a simple email pattern with no whitespace. |
-| Telegram | Must match `@[A-Za-z0-9_]{5,32}`. |
 | locale | `en`, `ru`, `zh`, `de`, `fr`, `es`, and `ar` are accepted; invalid values fall back to `en`. |
 | source | Must match `[A-Za-z0-9_.:-]{1,64}`; invalid values fall back to `landing`. |
 | turnstile_token | Required single-use token (1-2048 characters). It must pass server-side Siteverify for the `waitlist` action and an allowed hostname. |

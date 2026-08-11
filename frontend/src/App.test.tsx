@@ -615,7 +615,7 @@ test('disables waitlist submission until Turnstile returns a token', async () =>
 test('clears and resets a verified token after a whitespace-only submission', async () => {
   render(<App />)
 
-  const input = await screen.findByPlaceholderText('email or @telegram')
+  const input = await screen.findByPlaceholderText('your email')
   const button = screen.getByRole('button', { name: /register interest/i })
   fireEvent.change(input, { target: { value: '   ' } })
   verifyTurnstile()
@@ -648,7 +648,7 @@ test('invalidates a verified token when the widget language changes', async () =
 test('submits the Turnstile token, clears the input, and resets the widget on success', async () => {
   render(<App />)
 
-  const input = await screen.findByPlaceholderText('email or @telegram')
+  const input = await screen.findByPlaceholderText('your email')
   fireEvent.change(input, { target: { value: 'USER@example.com' } })
   verifyTurnstile()
   fireEvent.click(screen.getByRole('button', { name: /register interest/i }))
@@ -676,7 +676,7 @@ test('announces waitlist submitting and success states politely', async () => {
   }))
   render(<App />)
 
-  fireEvent.change(await screen.findByPlaceholderText('email or @telegram'), { target: { value: '@status_smoke' } })
+  fireEvent.change(await screen.findByPlaceholderText('your email'), { target: { value: 'status@example.com' } })
   verifyTurnstile()
   fireEvent.click(screen.getByRole('button', { name: /register interest/i }))
 
@@ -698,15 +698,15 @@ test('announces contact validation errors assertively, preserves the contact, an
   apiMocks.joinWaitlist.mockRejectedValueOnce(new Error('invalid contact'))
   render(<App />)
 
-  const input = await screen.findByPlaceholderText('email or @telegram')
+  const input = await screen.findByPlaceholderText('your email')
   fireEvent.change(input, { target: { value: 'not-a-contact' } })
   verifyTurnstile()
   fireEvent.click(screen.getByRole('button', { name: /register interest/i }))
 
   const alert = await screen.findByRole('alert')
-  expect(alert).toHaveTextContent('Enter a valid email or Telegram handle.')
+  expect(alert).toHaveTextContent('Enter a valid email address.')
   expect(input).toHaveAttribute('aria-invalid', 'true')
-  expect(input).toHaveAccessibleDescription('Enter a valid email or Telegram handle.')
+  expect(input).toHaveAccessibleDescription('Enter a valid email address.')
   expect(input).toHaveValue('not-a-contact')
   expect(turnstileMocks.reset).toHaveBeenCalled()
   expect(screen.getByRole('button', { name: /register interest/i })).toBeDisabled()
@@ -716,7 +716,7 @@ test('shows the localized verification error and preserves the contact after a 4
   apiMocks.joinWaitlist.mockRejectedValueOnce(new apiMocks.ApiError(403))
   render(<App />)
 
-  const input = await screen.findByPlaceholderText('email or @telegram')
+  const input = await screen.findByPlaceholderText('your email')
   fireEvent.change(input, { target: { value: 'USER@example.com' } })
   verifyTurnstile()
   fireEvent.click(screen.getByRole('button', { name: /register interest/i }))
@@ -730,7 +730,7 @@ test('shows the localized temporary-unavailability error and preserves the conta
   apiMocks.joinWaitlist.mockRejectedValueOnce(new apiMocks.ApiError(503))
   render(<App />)
 
-  const input = await screen.findByPlaceholderText('email or @telegram')
+  const input = await screen.findByPlaceholderText('your email')
   fireEvent.change(input, { target: { value: 'USER@example.com' } })
   verifyTurnstile()
   fireEvent.click(screen.getByRole('button', { name: /register interest/i }))
@@ -756,7 +756,7 @@ test('announces a localized widget error and clears the current token', async ()
 test('clears a stale widget error when a fresh token arrives', async () => {
   render(<App />)
 
-  const input = await screen.findByPlaceholderText('email or @telegram')
+  const input = await screen.findByPlaceholderText('your email')
   verifyTurnstile()
   act(() => turnstileCallbacks.onError())
 
@@ -776,7 +776,7 @@ test('does not persist waitlist contacts in browser storage', async () => {
   const setItemSpy = vi.spyOn(Storage.prototype, 'setItem')
   render(<App />)
 
-  fireEvent.change(await screen.findByPlaceholderText('email or @telegram'), { target: { value: 'USER@example.com' } })
+  fireEvent.change(await screen.findByPlaceholderText('your email'), { target: { value: 'USER@example.com' } })
   verifyTurnstile()
   fireEvent.click(screen.getByRole('button', { name: /register interest/i }))
 
@@ -954,7 +954,7 @@ test('places the waitlist call to action before the charts', async () => {
   render(<App />)
 
   const waitlistTitle = await screen.findByText('Get the daily signal')
-  expect(screen.getByText('Band changes are rare. Leave an email or Telegram handle to hear about one. This is a manual follow-up — automated delivery does not exist yet.')).toBeInTheDocument()
+  expect(screen.getByText('Band changes are rare. Leave an email to hear about one. This is a manual follow-up — automated delivery does not exist yet.')).toBeInTheDocument()
 
   const riskHistoryTitle = await screen.findByText('Risk history, 2Y')
 
@@ -1497,7 +1497,7 @@ test('submits the selected expanded locale to the waitlist API', async () => {
 
   await selectLanguage(/^FR -/)
   await waitFor(() => expect(turnstileMocks.language).toBe('fr'))
-  fireEvent.change(await screen.findByPlaceholderText('email ou @telegram'), { target: { value: 'USER@example.com' } })
+  fireEvent.change(await screen.findByPlaceholderText('votre e-mail'), { target: { value: 'USER@example.com' } })
   verifyTurnstile()
   fireEvent.click(screen.getByRole('button', { name: /signaler mon intérêt/i }))
 
@@ -1516,16 +1516,16 @@ test('keeps Arabic waitlist contact entry LTR and submits locale metadata', asyn
 
   await selectLanguage(/^AR -/)
 
-  const input = await screen.findByPlaceholderText('email أو @telegram')
+  const input = await screen.findByPlaceholderText('بريدك الإلكتروني')
   expect(input).toHaveAttribute('dir', 'ltr')
 
-  fireEvent.change(input, { target: { value: '@arabic_test' } })
+  fireEvent.change(input, { target: { value: 'arabic@example.com' } })
   verifyTurnstile()
   fireEvent.click(screen.getByRole('button', { name: /تسجيل الاهتمام/ }))
 
   await waitFor(() => {
     expect(apiMocks.joinWaitlist).toHaveBeenCalledWith({
-      contact: '@arabic_test',
+      contact: 'arabic@example.com',
       locale: 'ar',
       source: 'risk_band_alert',
       turnstile_token: 'fresh-token',
@@ -1581,7 +1581,7 @@ test('no longer presents public views as something earned by giving a contact', 
 test('submits the band-alert interest under its own source value', async () => {
   render(<App />)
 
-  const input = await screen.findByPlaceholderText('email or @telegram')
+  const input = await screen.findByPlaceholderText('your email')
   fireEvent.change(input, { target: { value: 'user@example.com' } })
   verifyTurnstile()
   fireEvent.click(screen.getByRole('button', { name: /register interest/i }))
