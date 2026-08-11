@@ -132,7 +132,7 @@ On a band-change day the post leads with the change. Otherwise it leads with the
 <b>Bitcoin Risk Brief</b> — report date 2026-08-11
 
 <b>Risk 0.24 — low</b>
-Change: −0.01 from 6 August
+Change: −0.01 from 2026-08-09
 
 Neutral band at risk 0.30 — model price $71,400
 Coverage through 2026-08-10 · crypto-scout-canonical-v1.1
