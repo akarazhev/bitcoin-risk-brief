@@ -143,6 +143,7 @@ class PublisherTests(unittest.IsolatedAsyncioTestCase):
     async def test_does_not_publish_an_observation_that_is_two_days_old(self) -> None:
         send = AsyncMock(return_value=4242)
         patches = repository()
+        claim = patches[-3].new
         # LATEST covers 2026-08-09; "now" is 2026-08-11, so the last completed
         # UTC day is 2026-08-10 and the observation has fallen a day behind.
         with enabled(), patch.object(publisher, 'send_channel_post', send):
@@ -158,6 +159,7 @@ class PublisherTests(unittest.IsolatedAsyncioTestCase):
 
         self.assertFalse(published)
         send.assert_not_awaited()
+        claim.assert_not_awaited()
 
     async def test_publishes_when_the_observation_is_the_last_completed_day(self) -> None:
         send = AsyncMock(return_value=4242)

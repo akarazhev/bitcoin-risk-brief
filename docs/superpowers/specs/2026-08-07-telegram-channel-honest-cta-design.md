@@ -65,9 +65,13 @@ collector already imports from `app.*`, so these are available without new plumb
 Reuse `build_readiness_payload` from `backend/app/readiness.py`. Do not reimplement the freshness rule: two answers to
 "is this data current" would drift apart, and the readiness semantics are the product's most load-bearing claim.
 
-**Post only when readiness reports ready and fresh.** If CoinMarketCap returned nothing new and the CSV tail did not
-advance, `import_csv_once` still runs and still rewrites derived rows — but the covered date is unchanged and there is
-nothing to announce. Say nothing rather than publish a number the product itself would serve behind a 503.
+**Post only when readiness reports ready and fresh, and the observation covers the last completed UTC day.** The
+readiness check keeps the publisher aligned with the product's freshness rule; the additional last-completed-day check
+ensures a channel post never announces an observation that has fallen behind today's completed data. This second gate
+must run before `claim_telegram_post`, so a behind observation does not consume the date. If CoinMarketCap returned
+nothing new and the CSV tail did not advance, `import_csv_once` still runs and still rewrites derived rows — but the
+covered date is unchanged and there is nothing to announce. Say nothing rather than publish a number the product itself
+would serve behind a 503.
 
 ## Idempotency
 
@@ -133,7 +137,6 @@ On a band-change day the post leads with the change. Otherwise it leads with the
 
 <b>Risk 0.24 — low</b>
 Change: −0.01 from 2026-08-09
-
 Neutral band at risk 0.30 — model price $71,400
 Coverage through 2026-08-10 · crypto-scout-canonical-v1.1
 
@@ -219,7 +222,7 @@ New tests, all offline against a fake HTTP client:
 - A post appears automatically after a successful daily import, with no operator action.
 - No post is published while readiness is degraded or the data is stale.
 - Re-running an import for an already-published date produces no second post.
-- Every post carries the covered date, freshness state, and methodology version.
+- Every post carries the report date, coverage-through date, and methodology version.
 - A Telegram failure of any kind leaves the import successful.
 - No personal data is read, written, or transmitted by the publishing path.
 - With an empty `TELEGRAM_BOT_TOKEN`, the test suite makes no outbound request.
