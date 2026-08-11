@@ -77,6 +77,8 @@ CORS_ORIGINS=https://risk.example.com
 COINMARKETCAP_API_KEY=
 DATA_FRESHNESS_MAX_AGE_DAYS=2
 WAITLIST_RATE_LIMIT_PER_HOUR=20
+TELEGRAM_BOT_TOKEN=
+TELEGRAM_CHANNEL_ID=@bitcoinriskbrief
 VITE_TURNSTILE_SITE_KEY=<public-sitekey-from-operator-controlled-widget-record>
 TURNSTILE_SECRET=<matching-private-secret-from-operator-controlled-storage>
 TURNSTILE_HOSTNAMES=bitcoinriskbrief.minihub.app
@@ -89,6 +91,10 @@ For Turnstile, `VITE_TURNSTILE_SITE_KEY` receives the public sitekey returned wh
 `TURNSTILE_SECRET` receives its matching private secret from operator-controlled storage, and
 `TURNSTILE_HOSTNAMES` is exactly `bitcoinriskbrief.minihub.app`. Do not record those key values in documentation or Git.
 The site key is a frontend build input; the secret is backend runtime configuration.
+
+For Telegram channel publication, set `TELEGRAM_BOT_TOKEN` only in the server `.env`; an empty value disables collector
+publication entirely. Set `TELEGRAM_CHANNEL_ID` to `@bitcoinriskbrief` unless the operator intentionally changes the
+target channel. Do not store the bot token in Git, docs, or the USB kit.
 
 Generate a database password on the server:
 
@@ -370,6 +376,7 @@ cd /mnt/deploy-usb/bitcoin-risk-brief-server-kit
 bash scripts/01-bootstrap-host.sh
 bash scripts/02-install-cloudflared-from-usb.sh
 bash scripts/03-deploy-bitcoin-risk-brief.sh
+sudo bash scripts/09-install-telegram-env-from-usb.sh
 sudoedit /srv/projects/bitcoin-risk-brief/.env
 bash scripts/04-enable-bitcoin-risk-service.sh
 bash scripts/05-health-check.sh
@@ -378,7 +385,10 @@ bash scripts/05-health-check.sh
 Existing production deployments should use the top-level deploy entrypoint:
 
 Before the update build/restart, the operator must edit the server's existing `.env` with the three Turnstile values
-above. The production `.env` is preserved on the server and excluded from the USB kit. Then run:
+above. If channel publication should be enabled, put `bitcoin-risk-brief-telegram.env` beside the kit and run
+`sudo bash scripts/09-install-telegram-env-from-usb.sh`, or set `TELEGRAM_BOT_TOKEN` and
+`TELEGRAM_CHANNEL_ID=@bitcoinriskbrief` directly in the server `.env`. The production `.env` is preserved on the server
+and excluded from the USB kit. Then run:
 
 ```bash
 cd /mnt/deploy-usb/bitcoin-risk-brief-server-kit
