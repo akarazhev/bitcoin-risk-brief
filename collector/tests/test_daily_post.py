@@ -210,6 +210,10 @@ class FormattingTests(unittest.TestCase):
         )
         self.assertIn("<b>Bitcoin Risk Brief</b>", text)
         self.assertIn("<b>Risk 0.24 — low</b>", text)
+        self.assertEqual(2, text.count("<b>"))
+        self.assertEqual(2, text.count("</b>"))
+        self.assertEqual(1, text.count("<i>"))
+        self.assertEqual(1, text.count("</i>"))
 
     def test_the_advice_line_is_italic(self) -> None:
         text = compose_daily_post(
