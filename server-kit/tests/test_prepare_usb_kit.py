@@ -75,11 +75,13 @@ class PrepareUsbKitTests(unittest.TestCase):
             "06-debug-bitcoin-risk-service.sh",
             "07-update-bitcoin-risk-brief-from-usb.sh",
             "08-install-turnstile-env-from-usb.sh",
+            "09-install-telegram-env-from-usb.sh",
         ):
             script = self.source / "server-kit" / "scripts" / name
             write_file(script, "#!/usr/bin/env bash\necho script\n")
             make_executable(script)
         write_file(self.source / "server-kit" / "scripts" / "turnstile-env-preflight.py", "#!/usr/bin/env python3\n")
+        write_file(self.source / "server-kit" / "scripts" / "telegram-env-preflight.py", "#!/usr/bin/env python3\n")
 
         forbidden_files = [
             ".env",
@@ -164,6 +166,11 @@ class PrepareUsbKitTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertTrue((self.target / KIT_NAME / "scripts" / "turnstile-env-preflight.py").is_file())
 
+    def test_telegram_preflight_validator_is_shipped_with_server_scripts(self) -> None:
+        result = self.run_packager()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertTrue((self.target / KIT_NAME / "scripts" / "telegram-env-preflight.py").is_file())
+
     def test_project_snapshot_excludes_git_ignored_local_artifacts(self) -> None:
         result = self.run_packager()
         self.assertEqual(result.returncode, 0, result.stderr)
@@ -242,6 +249,9 @@ class PrepareUsbKitTests(unittest.TestCase):
         installer_script = kit / "scripts" / "08-install-turnstile-env-from-usb.sh"
         self.assertTrue(installer_script.is_file())
         self.assertTrue(os.access(installer_script, os.X_OK))
+        telegram_installer = kit / "scripts" / "09-install-telegram-env-from-usb.sh"
+        self.assertTrue(telegram_installer.is_file())
+        self.assertTrue(os.access(telegram_installer, os.X_OK))
 
         manifest = (kit / "manifest.txt").read_text()
         self.assertIn(f"source_commit={self.commit}", manifest)
@@ -259,12 +269,14 @@ class PrepareUsbKitTests(unittest.TestCase):
             manifest,
         )
         self.assertIn("scripts/08-install-turnstile-env-from-usb.sh", manifest)
+        self.assertIn("scripts/09-install-telegram-env-from-usb.sh", manifest)
 
         checksums = (kit / "SHA256SUMS").read_text()
         self.assertIn("manifest.txt", checksums)
         self.assertIn("README-RUN-ON-SERVER.md", checksums)
         self.assertIn("deploy-from-usb.sh", checksums)
         self.assertIn("scripts/08-install-turnstile-env-from-usb.sh", checksums)
+        self.assertIn("scripts/09-install-telegram-env-from-usb.sh", checksums)
         verify = subprocess.run(
             ["shasum", "-a", "256", "-c", "SHA256SUMS"],
             cwd=kit,

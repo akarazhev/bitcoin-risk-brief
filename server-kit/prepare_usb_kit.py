@@ -35,6 +35,8 @@ REQUIRED_SERVER_SCRIPTS = (
     "06-debug-bitcoin-risk-service.sh",
     "08-install-turnstile-env-from-usb.sh",
     "turnstile-env-preflight.py",
+    "09-install-telegram-env-from-usb.sh",
+    "telegram-env-preflight.py",
 )
 OPTIONAL_SERVER_SCRIPTS = (
     "07-update-bitcoin-risk-brief-from-usb.sh",

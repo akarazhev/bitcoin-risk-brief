@@ -58,7 +58,10 @@ Expected script list:
 - `scripts/05-health-check.sh`
 - `scripts/06-debug-bitcoin-risk-service.sh`
 - `scripts/07-update-bitcoin-risk-brief-from-usb.sh`
+- `scripts/08-install-turnstile-env-from-usb.sh`
 - `scripts/turnstile-env-preflight.py`
+- `scripts/09-install-telegram-env-from-usb.sh`
+- `scripts/telegram-env-preflight.py`
 
 ## Mount The USB On The Server
 
@@ -88,6 +91,7 @@ bash scripts/02-install-cloudflared-from-usb.sh
 sudo install -d -o apps -g apps -m 750 /srv/projects/bitcoin-risk-brief
 sudo install -o apps -g apps -m 600 project/bitcoin-risk-brief/.env.production.example /srv/projects/bitcoin-risk-brief/.env
 sudo bash scripts/08-install-turnstile-env-from-usb.sh
+sudo bash scripts/09-install-telegram-env-from-usb.sh
 sudoedit /srv/projects/bitcoin-risk-brief/.env
 bash scripts/03-deploy-bitcoin-risk-brief.sh
 bash scripts/04-enable-bitcoin-risk-service.sh
@@ -98,8 +102,17 @@ bash scripts/05-health-check.sh
 `TURNSTILE_HOSTNAMES` in the existing production `.env`; it does not deploy or restart the application. It expects the
 separate `bitcoin-risk-brief-turnstile.env` file beside the `bitcoin-risk-brief-server-kit` directory in the USB root.
 
+`09-install-telegram-env-from-usb.sh` only replaces `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHANNEL_ID` in the existing
+production `.env`; it does not deploy or restart the application. It expects the separate
+`bitcoin-risk-brief-telegram.env` file beside the `bitcoin-risk-brief-server-kit` directory in the USB root:
+
+```env
+TELEGRAM_BOT_TOKEN=<real-telegram-bot-token>
+TELEGRAM_CHANNEL_ID=@bitcoinriskbrief
+```
+
 Before running `03-deploy-bitcoin-risk-brief.sh`, those commands create the production `.env` from the placeholder-only
-template already in the USB project snapshot. The installer adds the Turnstile values; use `sudoedit` to fill in the
+template already in the USB project snapshot. The installers add the Turnstile and Telegram values; use `sudoedit` to fill in the
 remaining production values below. The deploy script validates the Turnstile values without printing them, before it
 copies the project, builds, or restarts anything:
 
@@ -112,6 +125,10 @@ Set `VITE_TURNSTILE_SITE_KEY` to the public sitekey in the operator-controlled w
 `TURNSTILE_SECRET` to its matching private secret. Set `TURNSTILE_HOSTNAMES` exactly to
 `bitcoinriskbrief.minihub.app`; do not add local or test hostnames. The site key and secret must be real production
 values, not Cloudflare test credentials or example placeholders.
+
+Set `TELEGRAM_BOT_TOKEN` only through the operator-controlled fragment or directly in the server `.env`. Keep it out of
+Git, docs, shell history, and the checksummed project snapshot. Leave it empty to disable channel publication. Set
+`TELEGRAM_CHANNEL_ID` to `@bitcoinriskbrief`; the installer rejects other targets to avoid posting to the wrong channel.
 
 If there is no domain yet, leave the production hostname empty or temporary and use Quick Tunnel only for a short check:
 
@@ -173,8 +190,15 @@ sudo test -f /srv/projects/bitcoin-risk-brief/.env
 
 Before the backup-gated update, set the same three Turnstile values in the existing `.env`: a real production
 `VITE_TURNSTILE_SITE_KEY`, its matching `TURNSTILE_SECRET`, and
-`TURNSTILE_HOSTNAMES` exactly to `bitcoinriskbrief.minihub.app`. The update runs this no-output preflight before any backup,
-project copy, build, or restart work.
+`TURNSTILE_HOSTNAMES` exactly to `bitcoinriskbrief.minihub.app`. If the deployed collector should publish daily channel
+posts, put `bitcoin-risk-brief-telegram.env` beside the kit and run:
+
+```bash
+sudo bash scripts/09-install-telegram-env-from-usb.sh
+```
+
+Leave `TELEGRAM_BOT_TOKEN` empty to keep publication disabled. The update runs the Turnstile no-output preflight before
+any backup, project copy, build, or restart work.
 
 4. Run the backup-gated update:
 

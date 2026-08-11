@@ -23,6 +23,8 @@ OFFICIAL_DUMMY_SECRETS = (
 VALID_SITEKEY = "0x4AAAAAAABbCcDdEeFfGgHhIi"
 VALID_SECRET = "synthetic-test-credential-0001"
 EXPECTED_HOSTNAME = "bitcoinriskbrief.minihub.app"
+VALID_TELEGRAM_TOKEN = "1234567890:ABCdefGHIjklMNOpqrSTUvwxYZ012345678"
+EXPECTED_TELEGRAM_CHANNEL = "@bitcoinriskbrief"
 
 
 class ServerKitScriptTests(unittest.TestCase):
@@ -54,6 +56,16 @@ class ServerKitScriptTests(unittest.TestCase):
             f"VITE_TURNSTILE_SITE_KEY={sitekey}\n"
             f"TURNSTILE_SECRET={secret}\n"
             f"TURNSTILE_HOSTNAMES={hostname}\n"
+        )
+
+    def _telegram_env(
+        self,
+        token: str = VALID_TELEGRAM_TOKEN,
+        channel: str = EXPECTED_TELEGRAM_CHANNEL,
+    ) -> str:
+        return (
+            f"TELEGRAM_BOT_TOKEN={token}\n"
+            f"TELEGRAM_CHANNEL_ID={channel}\n"
         )
 
     def _stage_turnstile_installer(self, tmp_path: Path, fragment: str) -> tuple[Path, Path]:
@@ -135,6 +147,134 @@ class ServerKitScriptTests(unittest.TestCase):
             self.assertEqual(completed.returncode, 1)
             self.assertEqual(env_file.read_bytes(), original)
             self.assertNotIn(OFFICIAL_DUMMY_SECRETS[0], completed.stdout + completed.stderr)
+
+    def _stage_telegram_installer(self, tmp_path: Path, fragment: str) -> tuple[Path, Path]:
+        usb_root = tmp_path / "usb"
+        scripts = usb_root / "bitcoin-risk-brief-server-kit" / "scripts"
+        scripts.mkdir(parents=True)
+        installer = scripts / "09-install-telegram-env-from-usb.sh"
+        installer_source = ROOT / "scripts" / installer.name
+        self.assertTrue(installer_source.is_file(), f"missing installer: {installer_source}")
+        installer.write_bytes(installer_source.read_bytes())
+        installer.chmod(0o755)
+        validator = scripts / "telegram-env-preflight.py"
+        validator.write_bytes((ROOT / "scripts" / validator.name).read_bytes())
+        validator.chmod(0o755)
+        (usb_root / "bitcoin-risk-brief-telegram.env").write_text(fragment)
+
+        project = tmp_path / "project"
+        project.mkdir()
+        env_file = project / ".env"
+        env_file.write_text(
+            "APP_ENV=production\n"
+            "TELEGRAM_BOT_TOKEN=old-token-value\n"
+            "TELEGRAM_CHANNEL_ID=@oldchannel\n"
+            "CORS_ORIGINS=https://bitcoinriskbrief.minihub.app\n"
+        )
+        return installer, env_file
+
+    def test_telegram_installer_replaces_only_telegram_values_as_app_without_printing_them(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            installer, env_file = self._stage_telegram_installer(tmp_path, self._telegram_env())
+            app_user = subprocess.run(["id", "-un"], check=True, capture_output=True, text=True).stdout.strip()
+            env = os.environ.copy()
+            env.update({"APP_USER": app_user, "PROJECT_DEST": str(env_file.parent)})
+
+            completed = subprocess.run(
+                ["bash", str(installer)],
+                env=env,
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+
+            self.assertEqual(completed.returncode, 0, completed.stderr)
+            installed = env_file.read_text()
+            self.assertIn("APP_ENV=production\n", installed)
+            self.assertIn("CORS_ORIGINS=https://bitcoinriskbrief.minihub.app\n", installed)
+            self.assertEqual(installed.count("TELEGRAM_BOT_TOKEN="), 1)
+            self.assertEqual(installed.count("TELEGRAM_CHANNEL_ID="), 1)
+            self.assertIn(self._telegram_env(), installed)
+            self.assertEqual(env_file.stat().st_mode & 0o777, 0o600)
+            output = completed.stdout + completed.stderr
+            self.assertNotIn(VALID_TELEGRAM_TOKEN, output)
+            self.assertNotIn("deploy", output.lower())
+
+    def test_telegram_installer_rejects_invalid_fragment_without_changing_env(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            installer, env_file = self._stage_telegram_installer(
+                tmp_path,
+                self._telegram_env(token="replace-with-telegram-bot-token"),
+            )
+            original = env_file.read_bytes()
+            app_user = subprocess.run(["id", "-un"], check=True, capture_output=True, text=True).stdout.strip()
+            env = os.environ.copy()
+            env.update({"APP_USER": app_user, "PROJECT_DEST": str(env_file.parent)})
+
+            completed = subprocess.run(
+                ["bash", str(installer)],
+                env=env,
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+
+            self.assertEqual(completed.returncode, 1)
+            self.assertEqual(env_file.read_bytes(), original)
+            self.assertNotIn("replace-with-telegram-bot-token", completed.stdout + completed.stderr)
+
+    def _run_telegram_preflight(self, env_text: str) -> subprocess.CompletedProcess[str]:
+        with tempfile.NamedTemporaryFile("w", delete=False) as handle:
+            handle.write(env_text)
+            env_path = handle.name
+        try:
+            return subprocess.run(
+                ["python3", str(ROOT / "scripts" / "telegram-env-preflight.py"), "--env-file", env_path],
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+        finally:
+            Path(env_path).unlink(missing_ok=True)
+
+    def test_telegram_preflight_rejects_invalid_values_without_printing_credentials(self) -> None:
+        invalid_envs = [
+            ("missing token", f"TELEGRAM_CHANNEL_ID={EXPECTED_TELEGRAM_CHANNEL}\n"),
+            ("blank token", self._telegram_env(token="")),
+            ("commented blank token", self._telegram_env(token=" # comment")),
+            ("duplicate token", self._telegram_env() + f"TELEGRAM_BOT_TOKEN={VALID_TELEGRAM_TOKEN}\n"),
+            ("invalid token assignment", self._telegram_env().replace(f"TELEGRAM_BOT_TOKEN={VALID_TELEGRAM_TOKEN}", "TELEGRAM_BOT_TOKEN")),
+            ("colon-delimited token", self._telegram_env().replace(f"TELEGRAM_BOT_TOKEN={VALID_TELEGRAM_TOKEN}", f"TELEGRAM_BOT_TOKEN: {VALID_TELEGRAM_TOKEN}")),
+            ("missing colon", self._telegram_env(token="1234567890ABCdefGHIjklMNOpqrSTUvwxYZ012345678")),
+            ("short token", self._telegram_env(token="123:short")),
+            ("placeholder token", self._telegram_env(token="replace-with-telegram-bot-token")),
+            ("blank channel", self._telegram_env(channel="")),
+            ("wrong channel", self._telegram_env(channel="@notbitcoinriskbrief")),
+            ("numeric channel", self._telegram_env(channel="-1001234567890")),
+            ("channel list", self._telegram_env(channel=f"{EXPECTED_TELEGRAM_CHANNEL},@other")),
+        ]
+
+        for label, env_text in invalid_envs:
+            with self.subTest(label=label):
+                completed = self._run_telegram_preflight(env_text)
+                self.assertEqual(completed.returncode, 1, completed.stderr)
+                self.assertNotIn(VALID_TELEGRAM_TOKEN, completed.stdout + completed.stderr)
+
+    def test_telegram_preflight_accepts_unquoted_and_quoted_safe_values_without_printing_them(self) -> None:
+        for env_text in (
+            self._telegram_env(),
+            self._telegram_env(token=f'"{VALID_TELEGRAM_TOKEN}"', channel=f'"{EXPECTED_TELEGRAM_CHANNEL}" # production'),
+            "\n".join(
+                f"export {assignment}"
+                for assignment in self._telegram_env().splitlines()
+            ) + "\n",
+        ):
+            with self.subTest(env_text=env_text):
+                completed = self._run_telegram_preflight(env_text)
+                self.assertEqual(completed.returncode, 0, completed.stderr)
+                self.assertNotIn(VALID_TELEGRAM_TOKEN, completed.stdout + completed.stderr)
 
     def _run_turnstile_preflight(self, script_name: str, env_text: str, *, preflight_only: bool) -> tuple[subprocess.CompletedProcess[str], list[str]]:
         with tempfile.TemporaryDirectory() as tmp:

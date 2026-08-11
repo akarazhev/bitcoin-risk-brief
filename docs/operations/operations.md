@@ -783,6 +783,7 @@ cd /mnt/deploy-usb/bitcoin-risk-brief-server-kit
 bash scripts/01-bootstrap-host.sh
 bash scripts/02-install-cloudflared-from-usb.sh
 bash scripts/03-deploy-bitcoin-risk-brief.sh
+sudo bash scripts/09-install-telegram-env-from-usb.sh
 sudoedit /srv/projects/bitcoin-risk-brief/.env
 bash scripts/04-enable-bitcoin-risk-service.sh
 bash scripts/05-health-check.sh
@@ -792,8 +793,12 @@ For an existing production deployment, use the top-level deploy entrypoint:
 
 Before the update build/restart, edit the existing server `.env`: set `VITE_TURNSTILE_SITE_KEY` to the public sitekey in
 the operator-controlled Managed-widget record, `TURNSTILE_SECRET` to its matching private secret from
-operator-controlled storage, and `TURNSTILE_HOSTNAMES` exactly to `bitcoinriskbrief.minihub.app`. The production `.env`
-stays on the server, is preserved by the update, and is excluded from the USB kit. Then run:
+operator-controlled storage, and `TURNSTILE_HOSTNAMES` exactly to `bitcoinriskbrief.minihub.app`. If Telegram channel
+publication should be enabled, put `bitcoin-risk-brief-telegram.env` beside the kit and run
+`sudo bash scripts/09-install-telegram-env-from-usb.sh`, or set `TELEGRAM_BOT_TOKEN` and
+`TELEGRAM_CHANNEL_ID=@bitcoinriskbrief` directly in the server `.env`; leave `TELEGRAM_BOT_TOKEN` empty to keep
+publication disabled. The production `.env` stays on the server, is preserved by the update, and is excluded from the USB
+kit. Then run:
 
 ```bash
 cd /mnt/deploy-usb/bitcoin-risk-brief-server-kit
