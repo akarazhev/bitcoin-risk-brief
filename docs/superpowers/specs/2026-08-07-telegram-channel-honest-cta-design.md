@@ -134,20 +134,26 @@ On a band-change day the post leads with the change. Otherwise it leads with the
 ## Post Content
 
 ```
-<b>Bitcoin Risk Brief</b> — report date 2026-08-11
+<b>Bitcoin Risk Brief</b> — report date 2026-08-12
 
-<b>Risk 0.24 — low</b>
-Change: −0.01 from 2026-08-09
-Neutral band at risk 0.30 — model price $71,400
-Coverage through 2026-08-10 · crypto-scout-canonical-v1.1
+<b>Risk 0.23 — low</b>
+Change: −0.01
+Model price $63,724 · HLC3 of the completed day, not the current price
+Low $63,185 · High $64,434
+Neutral band at risk 0.30 · $71,400
+Coverage through 2026-08-11 · crypto-scout-canonical-v1.1
 
 bitcoinriskbrief.minihub.app
 
 <i>Analytics and research context, not financial advice.</i>
 ```
 
+The model price line uses `model_price_usd` and disappears when that value is absent. The range line uses `low_usd` and
+`high_usd`; it disappears when either value is absent.
+
 The boundary line is what makes the post worth reading. It answers the question the product exists to answer — what
-would have to happen for the state to change — instead of restating a number the reader could have guessed.
+would have to happen for the state to change — instead of restating a number the reader could have guessed. It carries
+the scenario price at the next band boundary, not a model price.
 
 Its source is the `risk_level_snapshots` row the collector already writes. The ladder uses `risk_step: 0.025`, so
 `0.30` and `0.70` are exact points on it and need no interpolation. Selection:
