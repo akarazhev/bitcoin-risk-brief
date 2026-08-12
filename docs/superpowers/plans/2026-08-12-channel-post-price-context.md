@@ -37,7 +37,7 @@ risk 0.2307 low · model_price 63723.6756287 · low 63185.473624 · high 64433.6
 
 <b>Risk 0.23 — low</b>
 Change: −0.01
-Model price $63,724 · HLC3, not a spot quote
+Model price $63,724 · HLC3 of the completed day, not the current price
 Low $63,185 · High $64,434
 Neutral band at risk 0.30 · $74,560
 Coverage through 2026-08-11 · crypto-scout-canonical-v1.1
@@ -160,7 +160,9 @@ git commit -m "fix: name the comparison day only when it is not yesterday"
 
 **Both new lines disappear when their data is missing.** `low_usd` and `high_usd` are nullable by contract — `docs/engineering/api-reference.md` states that when the matching OHLCV row is absent they are `null` and clients must hide them rather than show zeroes. `model_price_usd` gets the same treatment. This is the third place in the post where absent data means silence rather than a substitute, alongside the boundary line and the change line.
 
-**The spot-price qualification is not optional.** A dollar figure beside the word Bitcoin reads as the price of Bitcoin. The model price is HLC3 of the completed daily candle, and the post is read on its own with no page around it to explain that. `· HLC3, not a spot quote` stays on the line.
+**The qualification is not optional, and it avoids jargon.** A dollar figure beside the word Bitcoin reads as the price of Bitcoin. The model price is HLC3 of the completed daily candle, and the post is read on its own with no page around it to explain that.
+
+An earlier draft of this plan said `not a spot quote`. That is jargon explaining jargon: understanding it requires already knowing what a spot quote is. The product's own Overview page says "a model input, not a live quote", and plainer still is simply **not the current price** — a negation needing no finance vocabulary. `HLC3` stays because it is the product's own term, labelled on the page and explained in the documentation, so a curious reader has something to look up.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -205,7 +207,7 @@ class PriceContextTests(unittest.TestCase):
 
     def test_the_model_price_is_shown_and_qualified(self) -> None:
         text = self._post()
-        self.assertIn("Model price $63,724 · HLC3, not a spot quote", text)
+        self.assertIn("Model price $63,724 · HLC3 of the completed day, not the current price", text)
 
     def test_the_day_range_uses_the_page_labels(self) -> None:
         self.assertIn("Low $63,185 · High $64,434", self._post())
