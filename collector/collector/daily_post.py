@@ -32,6 +32,16 @@ def _format_day(value: object) -> str:
     return _parse_day(value).strftime("%Y-%m-%d")
 
 
+def _is_previous_day(previous_value: object, latest_value: object) -> bool:
+    previous_day = _parse_day(previous_value)
+    latest_day = _parse_day(latest_value)
+    if isinstance(previous_day, datetime):
+        previous_day = previous_day.date()
+    if isinstance(latest_day, datetime):
+        latest_day = latest_day.date()
+    return latest_day - previous_day == timedelta(days=1)
+
+
 def _report_date(value: object) -> date | datetime:
     return _parse_day(value) + timedelta(days=1)
 
@@ -97,7 +107,21 @@ def compose_daily_post(
     lines = [first_line, "", f"<b>Risk {latest_risk:.2f} — {escaped_latest_state}</b>"]
     if previous is not None:
         delta = latest_risk - float(previous["risk"])
-        lines.append(f"Change: {_signed_delta(delta)} from {_format_day(previous['timestamp'])}")
+        line = f"Change: {_signed_delta(delta)}"
+        if not _is_previous_day(previous["timestamp"], latest["timestamp"]):
+            line += f" from {_format_day(previous['timestamp'])}"
+        lines.append(line)
+
+    model_price = latest.get("model_price_usd")
+    if model_price is not None:
+        lines.append(
+            f"Model price ${float(model_price):,.0f} · HLC3 of the completed day, not the current price"
+        )
+
+    low_price = latest.get("low_usd")
+    high_price = latest.get("high_usd")
+    if low_price is not None and high_price is not None:
+        lines.append(f"Low ${float(low_price):,.0f} · High ${float(high_price):,.0f}")
 
     boundary = band_boundary(latest_state, latest_risk)
     if boundary is not None:
@@ -105,7 +129,7 @@ def compose_daily_post(
         band = _band_entered(latest_state, boundary)
         if price is not None and band is not None:
             lines.append(
-                f"{band} band at risk {boundary:.2f} — model price ${price:,.0f}"
+                f"{band} band at risk {boundary:.2f} · ${price:,.0f}"
             )
 
     lines.extend(

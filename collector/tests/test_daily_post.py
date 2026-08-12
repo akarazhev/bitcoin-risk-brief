@@ -6,11 +6,22 @@ import unittest
 from collector.daily_post import band_boundary, compose_daily_post
 
 
-def risk_row(day: str, risk: float, state: str) -> dict:
+def risk_row(
+    day: str,
+    risk: float,
+    state: str,
+    *,
+    model_price: float | None = None,
+    low: float | None = None,
+    high: float | None = None,
+) -> dict:
     return {
         "timestamp": datetime.fromisoformat(day).replace(tzinfo=timezone.utc),
         "risk": risk,
         "risk_state": state,
+        "model_price_usd": model_price,
+        "low_usd": low,
+        "high_usd": high,
     }
 
 
@@ -48,7 +59,7 @@ class ComposeDailyPostTests(unittest.TestCase):
         self.assertIn("0.24", text)
         self.assertIn("low", text)
         self.assertIn("report date 2026-08-10", text)
-        self.assertIn("Change: −0.01 from 2026-08-08", text)
+        self.assertIn("Change: −0.01\n", text)
         self.assertIn("Coverage through 2026-08-09", text)
         self.assertIn("71,400", text)
         self.assertIn("crypto-scout-canonical-v1.1", text)
@@ -133,7 +144,7 @@ class ReportDateTests(unittest.TestCase):
             levels=LEVELS,
             methodology_version="crypto-scout-canonical-v1.1",
         )
-        self.assertIn("Change: +0.03 from 2026-08-09", text)
+        self.assertIn("Change: +0.03\n", text)
         self.assertIn("Coverage through 2026-08-10", text)
         for month in ("January", "August", "December"):
             self.assertNotIn(month, text)
@@ -255,3 +266,93 @@ class FormattingTests(unittest.TestCase):
         )
         tags = set(re.findall(r"</?([a-zA-Z]+)>", text))
         self.assertLessEqual(tags, {"b", "i"})
+
+
+class ChangeLineTests(unittest.TestCase):
+    def test_consecutive_days_omit_the_comparison_date(self) -> None:
+        text = compose_daily_post(
+            latest=risk_row("2026-08-11", 0.23, "low"),
+            previous=risk_row("2026-08-10", 0.24, "low"),
+            levels=LEVELS,
+            methodology_version="crypto-scout-canonical-v1.1",
+        )
+        self.assertIn("Change: −0.01\n", text)
+        self.assertNotIn("from 2026-08-10", text)
+
+    def test_a_gap_names_the_day_being_compared(self) -> None:
+        text = compose_daily_post(
+            latest=risk_row("2026-08-11", 0.23, "low"),
+            previous=risk_row("2026-08-09", 0.24, "low"),
+            levels=LEVELS,
+            methodology_version="crypto-scout-canonical-v1.1",
+        )
+        self.assertIn("Change: −0.01 from 2026-08-09", text)
+
+    def test_a_month_boundary_still_counts_as_consecutive(self) -> None:
+        text = compose_daily_post(
+            latest=risk_row("2026-09-01", 0.23, "low"),
+            previous=risk_row("2026-08-31", 0.24, "low"),
+            levels=LEVELS,
+            methodology_version="crypto-scout-canonical-v1.1",
+        )
+        self.assertNotIn("from 2026-08-31", text)
+
+    def test_no_previous_observation_still_omits_the_change_line(self) -> None:
+        text = compose_daily_post(
+            latest=risk_row("2026-08-11", 0.23, "low"),
+            previous=None,
+            levels=LEVELS,
+            methodology_version="crypto-scout-canonical-v1.1",
+        )
+        self.assertNotIn("Change:", text)
+
+
+class PriceContextTests(unittest.TestCase):
+    def _post(self, **overrides) -> str:
+        row = risk_row(
+            "2026-08-11", 0.23, "low",
+            model_price=63723.6756287, low=63185.473624, high=64433.6799244,
+        )
+        row.update(overrides)
+        return compose_daily_post(
+            latest=row,
+            previous=None,
+            levels=LEVELS,
+            methodology_version="crypto-scout-canonical-v1.1",
+        )
+
+    def test_the_model_price_is_shown_and_qualified(self) -> None:
+        text = self._post()
+        self.assertIn("Model price $63,724 · HLC3 of the completed day, not the current price", text)
+
+    def test_the_day_range_uses_the_page_labels(self) -> None:
+        self.assertIn("Low $63,185 · High $64,434", self._post())
+
+    def test_a_missing_model_price_omits_its_line(self) -> None:
+        text = self._post(model_price_usd=None)
+        self.assertNotIn("Model price", text)
+        self.assertIn("Low $63,185", text)
+
+    def test_a_missing_low_omits_the_whole_range_line(self) -> None:
+        text = self._post(low_usd=None)
+        self.assertNotIn("Low ", text)
+        self.assertNotIn("High ", text)
+        self.assertIn("Model price", text)
+
+    def test_a_missing_high_omits_the_whole_range_line(self) -> None:
+        text = self._post(high_usd=None)
+        self.assertNotIn("High ", text)
+        self.assertNotIn("Low ", text)
+
+    def test_the_boundary_line_no_longer_says_model_price(self) -> None:
+        text = self._post()
+        self.assertIn("Neutral band at risk 0.30 · $71,400", text)
+        # Case-insensitive on purpose: the old boundary line said "model price"
+        # in lower case, so a case-sensitive count would pass either way.
+        self.assertEqual(1, text.lower().count("model price"))
+
+    def test_prices_carry_no_decimals_and_use_separators(self) -> None:
+        text = self._post()
+        for fragment in ("$63,724", "$63,185", "$64,434"):
+            self.assertIn(fragment, text)
+        self.assertNotIn(".67", text)
