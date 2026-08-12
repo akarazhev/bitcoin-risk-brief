@@ -24,11 +24,18 @@ The post gives a boundary price with nothing to measure it against. Today it rea
 
 And the change line reads `Change: −0.01 from 2026-08-10` beside `Coverage through 2026-08-11`. Both are correct, and together they look like a one-day gap that does not exist: the previous observation simply *is* the day before.
 
-Live values used throughout this plan, from `/api/risk/latest` on 2026-08-12:
+Those two figures are **live production values** read from `/api/risk/latest` on 2026-08-12, quoted here
+to show the size of the problem:
 
 ```
 risk 0.2307 low · model_price 63723.6756287 · low 63185.473624 · high 64433.6799244 · timestamp 2026-08-11
 ```
+
+**Test values are a separate matter.** `collector/tests/test_daily_post.py` already carries a `LEVELS`
+fixture with `0.30 → 71400.0` and `0.70 → 118250.0`. **Do not change it.** Altering existing fixture
+data so a new assertion passes is the standard way to hide a regression, and the habit does not care
+that this particular price is arbitrary. The samples and assertions below use the fixture's numbers, not
+the live ones.
 
 ## Target Output
 
@@ -39,7 +46,7 @@ risk 0.2307 low · model_price 63723.6756287 · low 63185.473624 · high 64433.6
 Change: −0.01
 Model price $63,724 · HLC3 of the completed day, not the current price
 Low $63,185 · High $64,434
-Neutral band at risk 0.30 · $74,560
+Neutral band at risk 0.30 · $71,400
 Coverage through 2026-08-11 · crypto-scout-canonical-v1.1
 
 bitcoinriskbrief.minihub.app
@@ -230,7 +237,7 @@ class PriceContextTests(unittest.TestCase):
 
     def test_the_boundary_line_no_longer_says_model_price(self) -> None:
         text = self._post()
-        self.assertIn("Neutral band at risk 0.30 · $74,560", text)
+        self.assertIn("Neutral band at risk 0.30 · $71,400", text)
         # Case-insensitive on purpose: the old boundary line said "model price"
         # in lower case, so a case-sensitive count would pass either way.
         self.assertEqual(1, text.lower().count("model price"))
