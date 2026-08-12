@@ -112,13 +112,24 @@ def compose_daily_post(
             line += f" from {_format_day(previous['timestamp'])}"
         lines.append(line)
 
+    model_price = latest.get("model_price_usd")
+    if model_price is not None:
+        lines.append(
+            f"Model price ${float(model_price):,.0f} · HLC3 of the completed day, not the current price"
+        )
+
+    low_price = latest.get("low_usd")
+    high_price = latest.get("high_usd")
+    if low_price is not None and high_price is not None:
+        lines.append(f"Low ${float(low_price):,.0f} · High ${float(high_price):,.0f}")
+
     boundary = band_boundary(latest_state, latest_risk)
     if boundary is not None:
         price = _level_price(levels, boundary)
         band = _band_entered(latest_state, boundary)
         if price is not None and band is not None:
             lines.append(
-                f"{band} band at risk {boundary:.2f} — model price ${price:,.0f}"
+                f"{band} band at risk {boundary:.2f} · ${price:,.0f}"
             )
 
     lines.extend(
