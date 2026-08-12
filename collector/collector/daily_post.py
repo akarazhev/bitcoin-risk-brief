@@ -32,6 +32,16 @@ def _format_day(value: object) -> str:
     return _parse_day(value).strftime("%Y-%m-%d")
 
 
+def _is_previous_day(previous_value: object, latest_value: object) -> bool:
+    previous_day = _parse_day(previous_value)
+    latest_day = _parse_day(latest_value)
+    if isinstance(previous_day, datetime):
+        previous_day = previous_day.date()
+    if isinstance(latest_day, datetime):
+        latest_day = latest_day.date()
+    return latest_day - previous_day == timedelta(days=1)
+
+
 def _report_date(value: object) -> date | datetime:
     return _parse_day(value) + timedelta(days=1)
 
@@ -97,7 +107,10 @@ def compose_daily_post(
     lines = [first_line, "", f"<b>Risk {latest_risk:.2f} — {escaped_latest_state}</b>"]
     if previous is not None:
         delta = latest_risk - float(previous["risk"])
-        lines.append(f"Change: {_signed_delta(delta)} from {_format_day(previous['timestamp'])}")
+        line = f"Change: {_signed_delta(delta)}"
+        if not _is_previous_day(previous["timestamp"], latest["timestamp"]):
+            line += f" from {_format_day(previous['timestamp'])}"
+        lines.append(line)
 
     boundary = band_boundary(latest_state, latest_risk)
     if boundary is not None:

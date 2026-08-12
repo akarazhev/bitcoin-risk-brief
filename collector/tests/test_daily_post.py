@@ -48,7 +48,7 @@ class ComposeDailyPostTests(unittest.TestCase):
         self.assertIn("0.24", text)
         self.assertIn("low", text)
         self.assertIn("report date 2026-08-10", text)
-        self.assertIn("Change: −0.01 from 2026-08-08", text)
+        self.assertIn("Change: −0.01\n", text)
         self.assertIn("Coverage through 2026-08-09", text)
         self.assertIn("71,400", text)
         self.assertIn("crypto-scout-canonical-v1.1", text)
@@ -133,7 +133,7 @@ class ReportDateTests(unittest.TestCase):
             levels=LEVELS,
             methodology_version="crypto-scout-canonical-v1.1",
         )
-        self.assertIn("Change: +0.03 from 2026-08-09", text)
+        self.assertIn("Change: +0.03\n", text)
         self.assertIn("Coverage through 2026-08-10", text)
         for month in ("January", "August", "December"):
             self.assertNotIn(month, text)
@@ -255,3 +255,42 @@ class FormattingTests(unittest.TestCase):
         )
         tags = set(re.findall(r"</?([a-zA-Z]+)>", text))
         self.assertLessEqual(tags, {"b", "i"})
+
+
+class ChangeLineTests(unittest.TestCase):
+    def test_consecutive_days_omit_the_comparison_date(self) -> None:
+        text = compose_daily_post(
+            latest=risk_row("2026-08-11", 0.23, "low"),
+            previous=risk_row("2026-08-10", 0.24, "low"),
+            levels=LEVELS,
+            methodology_version="crypto-scout-canonical-v1.1",
+        )
+        self.assertIn("Change: −0.01\n", text)
+        self.assertNotIn("from 2026-08-10", text)
+
+    def test_a_gap_names_the_day_being_compared(self) -> None:
+        text = compose_daily_post(
+            latest=risk_row("2026-08-11", 0.23, "low"),
+            previous=risk_row("2026-08-09", 0.24, "low"),
+            levels=LEVELS,
+            methodology_version="crypto-scout-canonical-v1.1",
+        )
+        self.assertIn("Change: −0.01 from 2026-08-09", text)
+
+    def test_a_month_boundary_still_counts_as_consecutive(self) -> None:
+        text = compose_daily_post(
+            latest=risk_row("2026-09-01", 0.23, "low"),
+            previous=risk_row("2026-08-31", 0.24, "low"),
+            levels=LEVELS,
+            methodology_version="crypto-scout-canonical-v1.1",
+        )
+        self.assertNotIn("from 2026-08-31", text)
+
+    def test_no_previous_observation_still_omits_the_change_line(self) -> None:
+        text = compose_daily_post(
+            latest=risk_row("2026-08-11", 0.23, "low"),
+            previous=None,
+            levels=LEVELS,
+            methodology_version="crypto-scout-canonical-v1.1",
+        )
+        self.assertNotIn("Change:", text)
