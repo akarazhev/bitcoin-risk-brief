@@ -187,6 +187,7 @@ This resolves the Phase 9 deadlock without lowering any operational standard.
 | First delivery channel | Public Telegram channel | No recipients, therefore no consent, opt-in, or schema migration |
 | Second delivery channel | Email, committed, sequenced after the channel | Adds reach, not capability; the signal is market-wide and identical for everyone |
 | Pricing | Free, permanently | No paid tier, accounts, payment path, or SLA |
+| Waitlist naming | Identifiers keep the legacy name | The function is current; a public endpoint rename needs a deprecation path and would ride with #52's migration |
 | Status framing | Not a pilot | Replace the jargon with concrete statements of what exists and what does not |
 
 ## Git History Audit
