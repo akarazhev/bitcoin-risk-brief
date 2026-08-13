@@ -3,6 +3,29 @@
 The waitlist stores explicit band-alert interest for manual founder/operator follow-up. It does not send personal email
 or Telegram alerts.
 
+## Why It Is Still Called A Waitlist
+
+The name is older than the thing. This mechanism began as a waitlist for a product that had not launched; it is now how
+the product collects email addresses for the band-change alerts that #52 will deliver. The copy changed, the accepted
+contact types narrowed to email alone, and the recorded source became `risk_band_alert` — but the endpoint and the table
+kept their original names.
+
+**The function is current, only the name is legacy.** Removing this mechanism would remove the only way to collect an
+email address, which would make committed email delivery impossible and take away the instrument that answers whether
+anyone wants band-change alerts at all.
+
+Decided on 2026-08-13, after weighing a rename:
+
+- **User-visible copy is corrected.** Two strings in the privacy note still say "waitlist" to a reader who no longer
+  sees that word anywhere in the form. Those are fixed.
+- **`POST /api/waitlist` and `waitlist_leads` keep their names.** They are identifiers read by integrators, not prose
+  read by users. [API Reference](api-reference.md) commits this project to a deliberate deprecation path before
+  breaking a public endpoint, and spending that on tidiness would be a poor trade for a product whose stated value is a
+  stable contract.
+- **If a rename ever happens, it happens with #52.** That work migrates the schema for consent, confirmation and
+  unsubscribe state anyway, so the rename would cost one migration rather than two and would have a real reason behind
+  it.
+
 ## Frontend Behavior
 
 The frontend form accepts one value:
