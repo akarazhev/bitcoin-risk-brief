@@ -118,7 +118,7 @@ Sub-projects are ranked by what that audience sees:
 | --- | --- | --- |
 | S1 open source | Highest — nothing is visible without it | — |
 | S2 agent surface and docs site | High — the docs site is itself an artifact | Low |
-| S3 MCP server | High — a strong 2026 signal, registry listing, article material | Low |
+| S3 MCP server | High — a strong 2026 signal, registry listing, and the only channel by which an agent can actually call the product | Low |
 | S6a articles and content | High — the stated reason for the whole transformation | Medium |
 | S4 methodology and addressable URLs | Medium — visible craft, organic search | High |
 | S5a Telegram channel and honest CTA | High — removes the one dishonest element on the page | High |
@@ -209,8 +209,8 @@ Each sub-project gets its own design spec and implementation plan.
 | S1 | Open-source release | Private repo, no licence, README shape | — | ~1 week |
 | S2 | Agent surface and docs site | Agent discoverability, soft-404, docs hosting | — | ~1-1.5 weeks |
 | S5a | Telegram channel, autoposting, and the honest CTA | #43, recurring visibility, the S5b measuring instrument | #41 (soft) | ~3-4 days |
+| S6a | Articles and content | Source material for writing and video, OG images | S1, S2 | ~2 weeks |
 | S3 | MCP server | Agent integration depth, registry presence | S2 | ~1 week |
-| S6a | Articles and content | Source material for writing and video, OG images | S1, S2, S3 | ~2 weeks |
 | S4 | Public methodology and addressable URLs | #42, SEO, shareable links | S1, S2 | ~2 weeks |
 | S5b | Email delivery, consent, and analytics | #41, #45 | S4, S5a | ~3 weeks |
 
@@ -228,8 +228,12 @@ S1 and S2 are specified together in
 
 - GitHub Pages on the free tier publishes only from a public repository, so the docs site cannot exist before S1.
 - S3 needs the OpenAPI contract stabilised by S2.
-- S6a follows S3 so that the open-source release, the docs site, the agent surface, and the MCP server are all
-  available to write about. Publishing earlier would spend the strongest material before it exists.
+- S6a no longer waits for S3. The first article is about freshness and staleness, which S1 and S2 already
+  supply in full; holding it back for material it does not use would delay the sub-project that was the
+  stated reason for the whole transformation.
+- **S3 is the lever for agent usage, not the articles.** An article makes a human aware of the product;
+  an MCP server in the registry makes an agent able to call it. When the goal is stated as agents using
+  the product, S3 answers it and prose does not. It follows S6a closely rather than trailing it.
 - Product analytics (#45) moved out of the content work and into S5b. Instrumenting traffic that is not being sought
   produces noise, and the same measurement becomes meaningful once an acquisition test actually runs.
 - S4 splits the methodology audience: the docs site holds the technical reference in English, while the in-product
