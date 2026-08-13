@@ -12,15 +12,28 @@ worked example rather than the subject.
 
 | Decision | Choice |
 | --- | --- |
-| Venue | External platforms, not an own blog |
-| English | [dev.to](https://dev.to) |
-| Russian | [Habr](https://habr.com) |
+| Canonical copy | The documentation site, as plain pages under `Articles` |
+| English syndication | [dev.to](https://dev.to), with `canonical_url` pointing home |
+| Russian syndication | [Habr](https://habr.com), indicating the original |
+| Aggregators | Hacker News, Lobsters, r/programming — submitted, not published to |
+| Social | One X thread per article, a pointer rather than a serialisation |
 | Languages | Both, written separately rather than translated |
 | Byline | Andrey Karazhev. Drafts are prepared for editing, not published as written. |
 
-**Why external.** An own blog section on the documentation site would start with no audience — the same
-invisibility the open-source release was meant to cure. Distribution is the point of this sub-project;
-ownership of the canonical copy is not worth starting from zero readers.
+**Why the canonical lives at home.** An earlier revision of this design put the articles on external
+platforms only, reasoning that an own blog starts with no audience. That reasoning holds for human
+reach and misses citation: when an AI assistant answers a question by quoting an article, it cites the
+URL it found, and a piece published only to dev.to associates the argument with dev.to. Owning the
+canonical costs nothing here — two articles are plain pages in the existing navigation, and the blog
+plugin with dated indexes and feeds is not worth adding until there are ten.
+
+**Why syndicate anyway.** The reach argument was never wrong, only incomplete. dev.to and Habr carry
+the audience; the aggregators carry most of the traffic that reaches technical writing at all. Submit
+to them, do not publish there.
+
+**Why not Medium.** A third long-form venue for the same text dilutes rather than multiplies — search
+and readers both discount duplicates — and its technical audience has thinned. A third venue is better
+spent on a second subject.
 
 **Why written separately.** A direct translation from English reads as a translation on Habr, where the
 audience is technical and unforgiving of it. The argument and the evidence are shared; the prose is not.
@@ -101,7 +114,10 @@ It is the seed of a separate piece and should not be spent here.
 
 - The remaining S6a subjects. Each gets its own increment.
 - A blog section on the documentation site.
-- Cross-posting the same text to more platforms than the two chosen.
+- Medium, and any further duplicate of the same text.
+- A blog plugin, dated indexes, tags or feeds — plain pages until the volume justifies more.
+- Writing for the product audience. This is an engineering piece and it brings engineers; a article for
+  Bitcoin holders is a different subject under a different goal, and that audience stays deprioritised.
 - Video, threads, or promotion mechanics — publication is the deliverable here.
 - Any change to product code. If writing exposes a defect, it becomes an issue, not an edit inside this
   work.
