@@ -15,3 +15,4 @@ piece asserts adoption, accuracy, or investment value, and none frames the produ
 | Draft | Venue | Status |
 | --- | --- | --- |
 | [Your API should refuse to answer](2026-08-12-refusing-to-answer.en.md) | dev.to | Awaiting rewrite |
+| [API, который отказывается отвечать](2026-08-12-refusing-to-answer.ru.md) | Habr | Awaiting rewrite |
