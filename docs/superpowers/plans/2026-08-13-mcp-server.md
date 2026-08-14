@@ -15,7 +15,11 @@ Design: [MCP Server Design](../specs/2026-08-13-mcp-server-design.md).
 - **The server is read-only.** No tool writes anything. The interest form is not exposed.
 - **No network in tests, ever.** Every test injects a fake fetch. One test asserts that no socket opens.
 - **No risk computation.** The server reads the public API and calculates nothing beyond `data_state`.
-- **No change** to `backend/`, `collector/`, `frontend/`, the database, or the methodology.
+- **No change to product behaviour.** Specifically: nothing under `backend/app/`, `collector/collector/`, or
+  `frontend/src/`, and no change to the database or the methodology.
+  Task 6 does touch two files that sit under those trees but are not product code — `frontend/public/llms.txt` is a
+  static agent file, and `backend/tests/test_agent_surface.py` is where every assertion about the agent surface already
+  lives. Both are in scope for that task; a parallel test file would fragment the surface's coverage.
 - Base URL comes from `BRB_API_BASE_URL`, defaulting to `https://bitcoinriskbrief.minihub.app`.
 - **Every data response carries the freshness envelope.** This is the acceptance criterion and it is structural, not advisory.
 - Every tool description states the analytics-not-advice boundary, and every response repeats it once.
@@ -585,4 +589,4 @@ mkdocs build --strict
 - A hosted or remote server; stdio only.
 - Computing risk in the server.
 - A Python implementation.
-- Changes to `backend/`, `collector/`, `frontend/`, the database, or the methodology.
+- Changes to product behaviour: `backend/app/`, `collector/collector/`, `frontend/src/`, the database, or the methodology.
