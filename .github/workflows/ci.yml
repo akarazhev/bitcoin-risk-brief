@@ -104,6 +104,24 @@ jobs:
       - name: Run frontend browser smoke checks
         run: npm run smoke --prefix frontend
 
+  mcp-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: mcp/package-lock.json
+      - name: Install MCP server dependencies
+        run: npm ci --prefix mcp
+      - name: Type-check
+        run: npm run typecheck --prefix mcp
+      - name: Test
+        run: npm test --prefix mcp
+      - name: Build
+        run: npm run build --prefix mcp
+
   compose-validation:
     runs-on: ubuntu-latest
     env:
