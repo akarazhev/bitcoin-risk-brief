@@ -268,10 +268,22 @@ git commit -m "feat: add the public API client"
 **Interfaces:**
 - Produces:
   - `type DataState = 'current' | 'behind' | 'stale'`
-  - `interface Envelope { coveredThrough: string | null; dataState: DataState; methodology: string | null }`
+  - `interface Envelope`, defined below
   - `function lastCompletedUtcDay(now?: Date): string` returning `YYYY-MM-DD`
   - `function deriveEnvelope(readiness: unknown, now?: Date): Envelope`
   - `function renderEnvelope(envelope: Envelope): string`
+
+```typescript
+export interface Envelope {
+  coveredThrough: string | null
+  dataState: DataState
+  methodology: string | null
+  // Readiness diagnostics. Not rendered by renderEnvelope — consumed by the stale banner in Task 4.
+  dataFresh: boolean | null
+  dataAgeDays: number | null
+  maxAgeDays: number | null
+}
+```
 
 This is the module the acceptance criterion rests on, and it is pure — no network, no SDK, no I/O.
 
@@ -285,10 +297,20 @@ import { deriveEnvelope, lastCompletedUtcDay, renderEnvelope } from './freshness
 
 const NOW = new Date('2026-08-13T03:00:00Z')
 
-function readiness(status: string, coveredEnd: string | null) {
+function readiness(
+  status: string,
+  coveredEnd: string | null,
+  { dataFresh = true, ageDays = 1, maxAgeDays = 2 } = {},
+) {
   return {
     status,
-    data: { covered_end: coveredEnd, methodology_version: 'crypto-scout-canonical-v1.1' },
+    checks: { data_fresh: dataFresh },
+    data: {
+      covered_end: coveredEnd,
+      data_age_days: ageDays,
+      max_age_days: maxAgeDays,
+      methodology_version: 'crypto-scout-canonical-v1.1',
+    },
   }
 }
 
@@ -325,6 +347,23 @@ describe('deriveEnvelope', () => {
     expect(envelope.coveredThrough).toBe('2026-08-12')
     expect(envelope.methodology).toBe('crypto-scout-canonical-v1.1')
   })
+
+  it('carries the readiness diagnostics the stale banner needs', () => {
+    const envelope = deriveEnvelope(
+      readiness('degraded', '2026-08-09', { dataFresh: false, ageDays: 3, maxAgeDays: 2 }),
+      NOW,
+    )
+    expect(envelope.dataFresh).toBe(false)
+    expect(envelope.dataAgeDays).toBe(3)
+    expect(envelope.maxAgeDays).toBe(2)
+  })
+
+  it('leaves the diagnostics null when readiness cannot be understood', () => {
+    const envelope = deriveEnvelope(null, NOW)
+    expect(envelope.dataFresh).toBeNull()
+    expect(envelope.dataAgeDays).toBeNull()
+    expect(envelope.maxAgeDays).toBeNull()
+  })
 })
 
 describe('renderEnvelope', () => {
@@ -333,6 +372,11 @@ describe('renderEnvelope', () => {
     expect(text).toContain('covered_through: 2026-08-12')
     expect(text).toContain('data_state:      current')
     expect(text).toContain('methodology:     crypto-scout-canonical-v1.1')
+  })
+
+  it('prints exactly three lines — diagnostics belong to the stale banner, not the envelope', () => {
+    const text = renderEnvelope(deriveEnvelope(readiness('ready', '2026-08-12'), NOW))
+    expect(text.split('\n')).toHaveLength(3)
   })
 })
 ```
@@ -350,7 +394,18 @@ Expected: FAIL — `./freshness.js` does not exist.
 
 `deriveEnvelope` returns `stale` unless the readiness payload is an object whose `status` is exactly `'ready'`; then `current` if `covered_end` equals `lastCompletedUtcDay(now)`, otherwise `behind`.
 
-`renderEnvelope` pads the labels so the three lines align, and prints `unknown` for a null field rather than omitting the line.
+`deriveEnvelope` also lifts three readiness diagnostics: `dataFresh` from `checks.data_fresh`, `dataAgeDays` from
+`data.data_age_days`, and `maxAgeDays` from `data.max_age_days`. Each is `null` when absent or the wrong type. These
+exist because Task 4's stale banner must state how stale, and `deriveEnvelope` is the only place that parses the
+readiness payload — parsing it a second time in `format.ts` would let two answers to "is this current" drift apart.
+
+Note that `data_age_days` is computed by the backend from `latest_date`, not from `covered_end`. In a healthy system
+they are equal, which is what the `latest_matches_validation_end` check asserts; in a degraded one they may differ.
+Report each as what it is and do not derive one from the other.
+
+`renderEnvelope` pads the labels so the three lines align, and prints `unknown` for a null field rather than omitting
+the line. It renders **only** `covered_through`, `data_state` and `methodology` — the diagnostics are deliberately not
+in it, because the three-line envelope is the design's structural contract for every response.
 
 - [ ] **Step 4: Run tests**
 
@@ -380,7 +435,7 @@ git commit -m "feat: derive and render the freshness envelope"
 Create `mcp/src/format.test.ts` covering, one test each:
 
 1. `formatCurrentRisk` includes the risk value, the state, and the rendered envelope.
-2. `formatCurrentRisk` with a `stale` envelope **begins** with `DATA IS STALE — do not present these values as current.` and still contains the last known risk value.
+2. `formatCurrentRisk` with a `stale` envelope **begins** with `DATA IS STALE — do not present these values as current.`, still contains the last known risk value, and carries `Readiness reports: data_fresh false, 3 days old, tolerance 2 days.` built from the envelope's diagnostics.
 3. `formatCurrentRisk` with a `behind` envelope names the covered date without the stale banner.
 4. Every formatter's output ends with `ADVICE_LINE`.
 5. `ADVICE_LINE` contains `not financial advice`.
@@ -388,6 +443,8 @@ Create `mcp/src/format.test.ts` covering, one test each:
 7. `formatBrief` renders only the requested locale's section, not all seven.
 8. `formatLevels` renders the ladder and the evaluation date.
 9. A payload missing its `data` key produces a message saying so rather than throwing.
+10. A `stale` envelope whose diagnostics are all `null` omits the `Readiness reports:` line entirely rather than
+    printing `null` or `undefined` into it.
 
 Use payload fixtures copied from `docs/engineering/api-reference.md`, not invented shapes.
 
@@ -405,6 +462,12 @@ DATA IS STALE — do not present these values as current.
 Last known observation: risk 0.23 (low), covered through 2026-08-09.
 Readiness reports: data_fresh false, 3 days old, tolerance 2 days.
 ```
+
+The third line is built entirely from `Envelope`: `dataFresh`, `dataAgeDays`, `maxAgeDays`. The formatters never see
+the raw readiness payload and never parse it. When all three are `null` — readiness was unreadable — omit that line.
+This is the rule the product already applies to `low_usd` and `high_usd`: hide a value rather than show a wrong one.
+The first two lines stay regardless, because "the data is stale and I cannot tell you how stale" is still the honest
+answer and still forbids presenting the values as current.
 
 `ADVICE_LINE` is a single sentence appended to every response: analytics and research context, not financial advice, not a price forecast, and not a trade signal.
 
