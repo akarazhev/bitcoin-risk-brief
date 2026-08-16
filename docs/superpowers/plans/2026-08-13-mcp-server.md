@@ -428,7 +428,14 @@ git commit -m "feat: derive and render the freshness envelope"
 
 **Interfaces:**
 - Consumes: `Envelope`, `renderEnvelope` from Task 3.
-- Produces: `formatReadiness`, `formatCurrentRisk`, `formatHistory`, `formatLevels`, `formatBrief`, each `(payload: unknown, envelope: Envelope) => string`, and `const ADVICE_LINE: string`.
+- Produces:
+  - `formatReadiness`, `formatCurrentRisk`, `formatHistory`, `formatLevels` — each `(payload: unknown, envelope: Envelope) => string`
+  - `formatBrief(payload: unknown, envelope: Envelope, locale: string) => string`
+  - `const ADVICE_LINE: string`
+
+`formatBrief` is the one formatter that takes a third argument, because it is the one whose payload does not carry the
+answer: `/api/brief/latest` returns every locale in `data.sections` and the tool was asked for exactly one. A uniform
+signature here would be uniformity bought by making the formatter guess.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -440,11 +447,13 @@ Create `mcp/src/format.test.ts` covering, one test each:
 4. Every formatter's output ends with `ADVICE_LINE`.
 5. `ADVICE_LINE` contains `not financial advice`.
 6. `formatHistory` renders one line per point and states how many were returned.
-7. `formatBrief` renders only the requested locale's section, not all seven.
+7. `formatBrief(payload, envelope, 'ru')` renders the `ru` section and nothing from the other six — assert a phrase unique to each other section is absent.
 8. `formatLevels` renders the ladder and the evaluation date.
 9. A payload missing its `data` key produces a message saying so rather than throwing.
 10. A `stale` envelope whose diagnostics are all `null` omits the `Readiness reports:` line entirely rather than
     printing `null` or `undefined` into it.
+11. `formatBrief` asked for a locale the snapshot does not carry says so and names the locales it does carry, rather
+    than silently rendering `en`.
 
 Use payload fixtures copied from `docs/engineering/api-reference.md`, not invented shapes.
 
@@ -468,6 +477,12 @@ the raw readiness payload and never parse it. When all three are `null` — read
 This is the rule the product already applies to `low_usd` and `high_usd`: hide a value rather than show a wrong one.
 The first two lines stay regardless, because "the data is stale and I cannot tell you how stale" is still the honest
 answer and still forbids presenting the values as current.
+
+`formatBrief` selects `data.sections[locale]`. The API documents that older persisted snapshots may carry only `en`
+and `ru`, so a requested locale can legitimately be absent. When it is, say which locales the snapshot does carry and
+render no section at all. Do not fall back to `en`: handing a model English prose it did not ask for, without saying
+so, is the silent substitution this product exists to avoid — and the model can re-ask for a locale it now knows
+exists. The envelope and `ADVICE_LINE` still appear in that response.
 
 `ADVICE_LINE` is a single sentence appended to every response: analytics and research context, not financial advice, not a price forecast, and not a trade signal.
 
@@ -544,6 +559,10 @@ import { SERVER_NAME, SERVER_VERSION } from './version.js'
 `createServer` builds `new McpServer({ name: SERVER_NAME, version: SERVER_VERSION })` and calls `registerTool` five times. Tools without parameters declare `inputSchema: z.object({})`. `get_risk_history` declares `z.object({ days: z.number().int().min(1).max(730).default(90) })`; `get_brief` declares `z.object({ locale: z.enum(['en','ru','zh','de','fr','es','ar']).default('en') })`.
 
 Every handler fetches `/api/readiness` first, derives the envelope, then fetches its own endpoint — so no handler can return data without the envelope even if a future edit forgets.
+
+The `get_brief` handler passes its validated `locale` straight through to `formatBrief`. `index.ts` never inspects or
+filters `data.sections` itself: payload shape is `format.ts`'s responsibility, and splitting it across both modules
+would put the missing-locale case in the one module that has no test for payload shapes.
 
 Handlers return `{ content: [{ type: 'text', text }] }`.
 
