@@ -122,7 +122,7 @@ Sub-projects are ranked by what that audience sees:
 | S6a articles and content | High — the stated reason for the whole transformation | Medium |
 | S4 methodology and addressable URLs | Medium — visible craft, organic search | High |
 | S5a Telegram channel and honest CTA | High — removes the one dishonest element on the page | High |
-| S5b email delivery and analytics | — | Medium, sequenced after S5a |
+| S5b email delivery and consent spine | Medium — a visible consent contour is craft a technical reader can check | Medium, sequenced after S5a |
 
 S5a was initially ranked low on portfolio value, on the reasoning that a delivery channel serves users rather than
 clients. That was wrong. It also carries the fix for the waitlist CTA, which is the single place where the product
@@ -183,9 +183,11 @@ This resolves the Phase 9 deadlock without lowering any operational standard.
 | Docs site | MkDocs Material on GitHub Pages | Docs are already Markdown; Python matches backend and collector |
 | Docs domain | `docs.bitcoinriskbrief.minihub.app` | Separate origin keeps the product CSP untouched and the server unloaded |
 | Operator evidence | Public, relabelled | Retained in `docs/operations/` under an explicit operational-log banner |
-| Email provider | ZeptoMail with the list in PostgreSQL | List, consent, and suppression stay in owned code; roughly zero cost at pilot volume |
+| Email provider | Brevo free tier, with the list in PostgreSQL | List, consent, and suppression stay in owned code. Revised 2026-08-17: ZeptoMail's 10,000 free messages are a one-time signup credit, not a recurring allowance, so it cannot satisfy the permanently-free constraint |
 | First delivery channel | Public Telegram channel | No recipients, therefore no consent, opt-in, or schema migration |
 | Second delivery channel | Email, committed, sequenced after the channel | Adds reach, not capability; the signal is market-wide and identical for everyone |
+| S5b demand gate | Removed 2026-08-17 | The gate measured demand with an instrument that was never switched on. S5b is justified as portfolio work instead, which is this document's own stated priority |
+| S5b first pass | Consent spine and band-change alert only | The weekly digest and campaign analytics are the parts that need an audience; the consent machinery is the part that shows craft |
 | Pricing | Free, permanently | No paid tier, accounts, payment path, or SLA |
 | Waitlist naming | Identifiers keep the legacy name | The function is current; a public endpoint rename needs a deprecation path and would ride with #52's migration |
 | Status framing | Not a pilot | Replace the jargon with concrete statements of what exists and what does not |
@@ -213,7 +215,8 @@ Each sub-project gets its own design spec and implementation plan.
 | S6a | Articles and content | Source material for writing and video, OG images | S1, S2 | ~2 weeks |
 | S3 | MCP server | Agent integration depth, registry presence | S2 | ~1 week |
 | S4 | Public methodology and addressable URLs | #42, SEO, shareable links | S1, S2 | ~2 weeks |
-| S5b | Email delivery, consent, and analytics | #41, #45 | S4, S5a | ~3 weeks |
+| S5b | Email delivery and consent spine | #41 | S5a | ~1.5 weeks |
+| S5c | Weekly digest and campaign analytics | #45 | S4, S5b, an audience | deferred |
 
 **S5a moves into the pre-publication block.** This is a consequence of connecting the CTA to the channel: the page
 must not ship a promise it does not keep, and the strongest fix for "Get the daily signal" is a link to a channel that
@@ -243,9 +246,20 @@ S1 and S2 are specified together in
 - Issue #41 is a soft dependency for S5a and a hard one for S5b: a templated brief is tolerable in a channel feed and
   not tolerable in a personal inbox.
 - **Email delivery is committed, and sequenced after the channel.** Both channels ship; the order is practical, not
-  conditional. The consent contour, unsubscribe handling, suppression state, and schema migration are the same size at
-  three subscribers as at three thousand, so building them before anyone can receive a message is work without a
-  reader. The channel comes first because it needs no consent contour and gives the list somewhere to come from.
+  conditional. The channel comes first because it needs no consent contour and gives the list somewhere to come from.
+- **The subscriber gate on S5b is removed, as of 2026-08-17.** It required roughly a hundred channel subscribers before
+  email earned its three weeks. That reasoning depended on an instrument that was never switched on: no marketing has
+  run, so the count cannot rise, and a gate that cannot open is not a gate but a cancellation.
+
+  The replacement is not a lower threshold. It is a different justification. This document's own prioritisation
+  principle puts the portfolio audience first, and a consent-first delivery pipeline — double opt-in, tokens,
+  RFC 8058 one-click unsubscribe, suppression, bounce and complaint handling, an idempotent send log — is stronger
+  portfolio material than the channel, because the difficult part is visible in the code rather than only in the
+  result. Judged as portfolio work rather than as reach, S5b needs no audience to be worth building.
+
+  What that changes is scope, not size of ambition. The weekly digest and the campaign analytics of #45 are the parts
+  that genuinely require an audience; they are deferred. The consent spine and the event-triggered band-change alert
+  are not, and they carry the craft.
 - Issue #43 moves out of S5b and into pre-publication work. The waitlist copy currently promises a BTC risk alert that
   nobody receives, and presents already-public charts as gated benefits. Shipping that into the portfolio push would
   contradict the product's only differentiator; see [Delivery Design](#delivery-design).
@@ -256,11 +270,11 @@ Both channels are wanted. They are not symmetric, and the asymmetry decides the 
 
 | | Telegram channel | Email |
 | --- | --- | --- |
-| Effort | 3-4 days | ~3 weeks |
+| Effort | 3-4 days | ~1.5 weeks for the consent spine and alert |
 | Consent surface | None — no individual recipients | Double opt-in, tokens, `List-Unsubscribe`, suppression, bounces |
 | Schema | Untouched | Migration; `status` cannot currently express `unsubscribed` |
 | GDPR | Outside the contour | Inside it: DE, FR, ES locales and EUR pricing |
-| Works at zero audience | Yes | No — the infrastructure would exceed its own audience |
+| Works at zero audience | Yes | As a product, no. As portfolio work, yes — see the gate removal above |
 
 Almost the whole difference is consent and legal machinery rather than delivery. Sending the message itself is a couple
 of hours of work either way.
@@ -270,16 +284,20 @@ of hours of work either way.
 "Bitcoin risk changed band" is the same fact for every recipient. There is no per-user state, no threshold, no
 portfolio. Email therefore adds no capability over the channel; it adds reach in a different medium.
 
-That reframes the question from which channel delivers better to whether a second medium is worth three weeks of legal
-scaffolding. Today it is not. Later it likely is, because an email list is owned and a channel is not — Telegram can
-restrict reach or remove it.
+That reframed the question from which channel delivers better to whether a second medium is worth weeks of legal
+scaffolding for its reach alone. Measured that way the answer was no, which is what produced the subscriber gate.
+
+Measured as portfolio work the question does not arise: the scaffolding is the deliverable, not the overhead. And the
+reach argument still holds for later, because an email list is owned and a channel is not — Telegram can restrict
+reach or remove it.
 
 ### Cadence Must Differ Between Channels
 
 Identical content in both media is a mistake that drives unsubscription.
 
 - **Channel** — a compact daily post carrying the delta, with band changes emphasised. Daily is normal in a feed.
-- **Email** — band-change alerts and a weekly digest only. **No daily email.** Risk is `0.2395` and `low`, and it can
+- **Email** — band-change alerts only in the first pass; a weekly digest later, if there is an audience for it.
+  **No daily email.** Risk is `0.2395` and `low`, and it can
   hold there for weeks; a daily message saying "still low" earns an unsubscribe by the third one.
 
 ### The Waitlist CTA
@@ -329,10 +347,35 @@ Zoho Mail is mailbox hosting, not a sending platform:
 It has no `List-Unsubscribe` handling, no bounce processing, and no suppression list. Broadcasting through it damages
 domain reputation.
 
-[ZeptoMail is the transactional product at $2.50 per 10,000 messages with no monthly base and 10,000 free on signup](https://www.zoho.com/zeptomail/pricing.html);
-Zoho Campaigns is the marketing product. A band-change alert is event-triggered and fits ZeptoMail cleanly. A scheduled
-weekly digest is a marketing send and sits in a grey area under transactional terms; confirm against current ZeptoMail
-terms before building it, or route digests through Campaigns or a provider that permits both.
+**ZeptoMail was the original choice and no longer qualifies.** Its
+[10,000 free messages are a one-time signup credit](https://www.zoho.com/zeptomail/pricing.html), after which it is
+$2.50 per 10,000 with each credit valid six months. That is cheap, but it is not a free tier, and this product is
+permanently free.
+
+Comparison of the providers that do offer a perpetual free tier, checked 2026-08-17:
+
+| | [Brevo](https://www.brevo.com/pricing/) | [Resend](https://resend.com/pricing) |
+| --- | --- | --- |
+| Per month | ~9,000 | 3,000 |
+| **Per day** | **300** | **100** |
+| Contacts | unlimited | — |
+| Domains | — | 1 |
+| API and webhooks on the free plan | yes | yes |
+| Bounce and complaint events | yes | `email.bounced`, `email.complained`, `suppression.*` |
+
+**The daily cap binds, not the monthly one.** Every send here is a burst: a band change is one fact that goes to every
+subscriber at the same moment, and a digest is the same shape. So the daily limit sets the subscriber ceiling —
+around a hundred on Resend, around three hundred on Brevo. Resend's 3,000 a month looks sufficient and cannot be spent
+in one go.
+
+**Brevo is the choice**, for the wider daily headroom and unlimited contacts. The list, consent records and suppression
+state stay in PostgreSQL either way, so what is actually required of a provider is narrow: send, webhooks for bounces
+and complaints, and the ability to set a `List-Unsubscribe` header pointing at an endpoint we own.
+[MailerSend is excluded on that last point](https://www.mailersend.com/help/how-to-add-a-custom-unsubscribe-header) —
+it gates the `List-Unsubscribe` header behind its Professional plan.
+
+A band-change alert is event-triggered and unambiguous. A scheduled weekly digest is a marketing send and sits in a
+grey area under transactional terms — one more reason it is out of the first pass rather than in it.
 
 ### Schema Gap Blocking S5b
 
@@ -344,8 +387,11 @@ CONSTRAINT waitlist_leads_status_check CHECK (status IN ('active'))
 
 S5b must add consent records, confirmation and unsubscribe tokens, `telegram_chat_id`, bounce and suppression state,
 and a send log for idempotency. That is a backwards-compatible migration governed by the existing API/DB
-change-management gate, and it is the main reason S5b follows S5a rather than leading it: the migration is the same
-size whether the list holds three addresses or three thousand.
+change-management gate.
+
+The migration is the same size whether the list holds three addresses or three thousand. That was once the argument
+for deferring S5b; under the portfolio justification it is the argument for building it, since the fixed cost buys a
+demonstrable consent contour regardless of who is on the list.
 
 ### Legal Frame For S5b
 
