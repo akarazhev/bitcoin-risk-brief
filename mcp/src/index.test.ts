@@ -72,6 +72,20 @@ describe('MCP server wiring', () => {
     }
   })
 
+  it('describes each tool distinctly, because a client picks a tool by its description', () => {
+    const tools = registeredTools(createServer())
+    const descriptions = Object.values(tools).map((tool) => tool.description ?? '')
+
+    expect(new Set(descriptions).size).toBe(5)
+
+    // Each description must name what the tool returns, or the model is choosing on the name alone.
+    expect(tools.check_readiness.description).toContain('readiness')
+    expect(tools.get_current_risk.description).toContain('latest')
+    expect(tools.get_risk_history.description).toContain('90')
+    expect(tools.get_risk_levels.description).toContain('ladder')
+    expect(tools.get_brief.description).toContain('locale')
+  })
+
   it('fetches readiness before the latest risk and includes the envelope', async () => {
     const seen: string[] = []
     const fetchImpl = fakeFetch((url) => {
