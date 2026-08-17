@@ -1,8 +1,16 @@
 {
   "name": "@akarazhev/bitcoin-risk-brief-mcp",
   "version": "0.1.0",
+  "mcpName": "io.github.akarazhev/bitcoin-risk-brief",
   "description": "MCP server for the Bitcoin Risk Brief public API. Analytics and research context, not financial advice.",
   "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/akarazhev/bitcoin-risk-brief.git",
+    "directory": "mcp"
+  },
+  "homepage": "https://docs.bitcoinriskbrief.minihub.app/agents/mcp-server/",
+  "bugs": "https://github.com/akarazhev/bitcoin-risk-brief/issues",
   "type": "module",
   "bin": { "bitcoin-risk-brief-mcp": "dist/index.js" },
   "files": ["dist", "README.md", "LICENSE"],

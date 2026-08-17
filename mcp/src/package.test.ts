@@ -18,6 +18,44 @@ afterEach(() => {
   }
 })
 
+describe('registry metadata', () => {
+  const pkg = JSON.parse(readFileSync(join(packageDir, 'package.json'), 'utf-8')) as {
+    name: string
+    version: string
+    mcpName?: string
+    repository?: { url?: string }
+  }
+  const server = JSON.parse(readFileSync(join(packageDir, 'server.json'), 'utf-8')) as {
+    name: string
+    version: string
+    repository?: { url?: string }
+    packages: Array<{ registryType: string; identifier: string; version: string }>
+  }
+
+  // The registry rejects a submission whose server.json disagrees with the published package, and npm
+  // versions are immutable — a mismatch caught after publishing costs a version bump to fix.
+  it('names the server identically in package.json and server.json', () => {
+    expect(pkg.mcpName).toBe('io.github.akarazhev/bitcoin-risk-brief')
+    expect(server.name).toBe(pkg.mcpName)
+  })
+
+  it('points server.json at the package that is actually published', () => {
+    const npmPackage = server.packages.find((entry) => entry.registryType === 'npm')
+    expect(npmPackage?.identifier).toBe(pkg.name)
+  })
+
+  it('keeps all three versions in step', () => {
+    const npmPackage = server.packages.find((entry) => entry.registryType === 'npm')
+    expect(server.version).toBe(pkg.version)
+    expect(npmPackage?.version).toBe(pkg.version)
+  })
+
+  it('declares the repository in both files', () => {
+    expect(pkg.repository?.url).toContain('akarazhev/bitcoin-risk-brief')
+    expect(server.repository?.url).toContain('akarazhev/bitcoin-risk-brief')
+  })
+})
+
 describe('published package', () => {
   it('removes stale test artifacts before a production build', () => {
     mkdirSync(distDir, { recursive: true })
