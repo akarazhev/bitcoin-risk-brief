@@ -85,7 +85,15 @@ const briefPayload = {
 
 const readinessPayload = {
   status: 'ready',
-  checks: { data_fresh: true },
+  checks: {
+    risk_data_available: true,
+    validation_available: true,
+    risk_range_ok: true,
+    validation_has_rows: true,
+    latest_matches_validation_end: true,
+    source_is_canonical: true,
+    data_fresh: true,
+  },
   data: {
     latest_date: '2026-06-25',
     covered_end: '2026-06-25',
@@ -141,6 +149,34 @@ describe('response formatters', () => {
 
     expect(text).toContain('covered_through: 2026-06-24')
     expect(text).not.toContain('DATA IS STALE')
+    expect(text).not.toContain('Current observation')
+  })
+
+  it('renders every readiness check with its explicit value', () => {
+    const text = formatReadiness({
+      ...readinessPayload,
+      checks: {
+        risk_data_available: true,
+        validation_available: false,
+        risk_range_ok: true,
+        validation_has_rows: false,
+        latest_matches_validation_end: true,
+        source_is_canonical: false,
+        data_fresh: true,
+      },
+    }, currentEnvelope)
+
+    for (const line of [
+      'risk_data_available: true',
+      'validation_available: false',
+      'risk_range_ok: true',
+      'validation_has_rows: false',
+      'latest_matches_validation_end: true',
+      'source_is_canonical: false',
+      'data_fresh: true',
+    ]) {
+      expect(text).toContain(line)
+    }
   })
 
   it('appends the advice boundary to every formatter response', () => {

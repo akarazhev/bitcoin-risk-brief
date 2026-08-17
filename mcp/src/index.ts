@@ -1,15 +1,18 @@
+#!/usr/bin/env node
 import { McpServer } from '@modelcontextprotocol/server'
 import { serveStdio } from '@modelcontextprotocol/server/stdio'
 import * as z from 'zod/v4'
 import { type Fetch, getJson } from './api.js'
 import {
+  ADVICE_LINE,
   formatBrief,
   formatCurrentRisk,
   formatHistory,
   formatLevels,
   formatReadiness,
+  formatUpstreamError,
 } from './format.js'
-import { deriveEnvelope } from './freshness.js'
+import { deriveEnvelope, type Envelope } from './freshness.js'
 import { SERVER_NAME, SERVER_VERSION } from './version.js'
 
 interface Dependencies {
@@ -24,12 +27,28 @@ function textResult(text: string) {
 }
 
 function errorResult(error: unknown) {
-  return textResult(error instanceof Error ? error.message : 'Bitcoin Risk Brief API request failed')
+  const message = error instanceof Error ? error.message : 'Bitcoin Risk Brief API request failed'
+  return textResult(`${message}\n${ADVICE_LINE}`)
 }
 
 async function readinessFirst(deps: Dependencies) {
   const readiness = await getJson('/api/readiness', { fetchImpl: deps.fetchImpl })
-  return { readiness: readiness.body, envelope: deriveEnvelope(readiness.body, deps.now) }
+  return {
+    readiness: readiness.body,
+    readinessStatus: readiness.status,
+    envelope: deriveEnvelope(readiness.body, deps.now),
+  }
+}
+
+function formatEndpoint(
+  result: { status: number; body: unknown },
+  envelope: Envelope,
+  formatter: (payload: unknown, envelope: Envelope) => string,
+): string {
+  if (result.status < 200 || result.status >= 300) {
+    return formatUpstreamError(result.status, result.body, envelope)
+  }
+  return formatter(result.body, envelope)
 }
 
 export function createServer(deps: Dependencies = {}): McpServer {
@@ -40,8 +59,8 @@ export function createServer(deps: Dependencies = {}): McpServer {
     inputSchema: z.object({}),
   }, async () => {
     try {
-      const { readiness, envelope } = await readinessFirst(deps)
-      return textResult(formatReadiness(readiness, envelope))
+      const { readiness, readinessStatus, envelope } = await readinessFirst(deps)
+      return textResult(formatReadiness(readiness, envelope, readinessStatus))
     } catch (error) {
       return errorResult(error)
     }
@@ -54,7 +73,7 @@ export function createServer(deps: Dependencies = {}): McpServer {
     try {
       const { envelope } = await readinessFirst(deps)
       const latest = await getJson('/api/risk/latest', { fetchImpl: deps.fetchImpl })
-      return textResult(formatCurrentRisk(latest.body, envelope))
+      return textResult(formatEndpoint(latest, envelope, formatCurrentRisk))
     } catch (error) {
       return errorResult(error)
     }
@@ -66,8 +85,11 @@ export function createServer(deps: Dependencies = {}): McpServer {
   }, async ({ days }) => {
     try {
       const { envelope } = await readinessFirst(deps)
-      const history = await getJson(`/api/risk/history?limit=${days}`, { fetchImpl: deps.fetchImpl })
-      return textResult(formatHistory(history.body, envelope))
+      const backendLimit = Math.max(days, 2)
+      const history = await getJson(`/api/risk/history?limit=${backendLimit}`, { fetchImpl: deps.fetchImpl })
+      return textResult(formatEndpoint(history, envelope, (payload, currentEnvelope) => (
+        formatHistory(payload, currentEnvelope, days)
+      )))
     } catch (error) {
       return errorResult(error)
     }
@@ -80,7 +102,7 @@ export function createServer(deps: Dependencies = {}): McpServer {
     try {
       const { envelope } = await readinessFirst(deps)
       const levels = await getJson('/api/risk/levels', { fetchImpl: deps.fetchImpl })
-      return textResult(formatLevels(levels.body, envelope))
+      return textResult(formatEndpoint(levels, envelope, formatLevels))
     } catch (error) {
       return errorResult(error)
     }
@@ -93,7 +115,9 @@ export function createServer(deps: Dependencies = {}): McpServer {
     try {
       const { envelope } = await readinessFirst(deps)
       const brief = await getJson('/api/brief/latest', { fetchImpl: deps.fetchImpl })
-      return textResult(formatBrief(brief.body, envelope, locale))
+      return textResult(formatEndpoint(brief, envelope, (payload, currentEnvelope) => (
+        formatBrief(payload, currentEnvelope, locale)
+      )))
     } catch (error) {
       return errorResult(error)
     }

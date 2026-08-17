@@ -1,5 +1,6 @@
 import net from 'node:net'
-import { describe, expect, it, vi } from 'vitest'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import { ADVICE_LINE } from './format.js'
 import { createServer } from './index.js'
 
 function fakeFetch(impl: (url: string) => Response | Promise<Response>) {
@@ -9,7 +10,15 @@ function fakeFetch(impl: (url: string) => Response | Promise<Response>) {
 function readinessResponse() {
   return new Response(JSON.stringify({
     status: 'ready',
-    checks: { data_fresh: true },
+    checks: {
+      risk_data_available: true,
+      validation_available: true,
+      risk_range_ok: true,
+      validation_has_rows: true,
+      latest_matches_validation_end: true,
+      source_is_canonical: true,
+      data_fresh: true,
+    },
     data: {
       covered_end: '2026-08-12',
       methodology_version: 'crypto-scout-canonical-v1.1',
@@ -28,6 +37,26 @@ interface RegisteredTool {
 }
 
 describe('MCP server wiring', () => {
+  const originalConnect = net.Socket.prototype.connect
+
+  beforeAll(() => {
+    net.Socket.prototype.connect = function () {
+      throw new Error('OUTBOUND NETWORK ATTEMPTED')
+    } as never
+  })
+
+  afterAll(() => {
+    net.Socket.prototype.connect = originalConnect
+  })
+
+  beforeEach(() => {
+    process.env.BRB_API_BASE_URL = 'http://mcp-test.invalid'
+  })
+
+  afterEach(() => {
+    delete process.env.BRB_API_BASE_URL
+  })
+
   it('registers exactly the five read-only tools with the no-advice boundary', () => {
     const tools = registeredTools(createServer())
 
@@ -59,10 +88,38 @@ describe('MCP server wiring', () => {
 
     expect(fetchImpl).toHaveBeenCalledTimes(2)
     expect(seen).toEqual([
-      'https://bitcoinriskbrief.minihub.app/api/readiness',
-      'https://bitcoinriskbrief.minihub.app/api/risk/latest',
+      'http://mcp-test.invalid/api/readiness',
+      'http://mcp-test.invalid/api/risk/latest',
     ])
     expect(result.content[0].text).toContain('data_state:')
+  })
+
+  it('renders a readiness 503 as an informative degraded state', async () => {
+    const tools = registeredTools(createServer({
+      fetchImpl: fakeFetch(() => new Response(JSON.stringify({
+        status: 'degraded',
+        checks: {
+          risk_data_available: true,
+          validation_available: true,
+          risk_range_ok: true,
+          validation_has_rows: true,
+          latest_matches_validation_end: true,
+          source_is_canonical: true,
+          data_fresh: false,
+        },
+        data: {
+          covered_end: '2026-08-09',
+          methodology_version: 'crypto-scout-canonical-v1.1',
+        },
+      }), { status: 503 })),
+      now: new Date('2026-08-13T03:00:00Z'),
+    }))
+
+    const result = await tools.check_readiness.handler({}, {})
+
+    expect(result.content[0].text).toContain('Readiness status: degraded (HTTP 503).')
+    expect(result.content[0].text).toContain('data_state:      stale')
+    expect(result.content[0].text).toContain(ADVICE_LINE)
   })
 
   it('defaults risk history to 90 days and rejects days above 730', () => {
@@ -70,6 +127,34 @@ describe('MCP server wiring', () => {
 
     expect(tools.get_risk_history.inputSchema.parse({})).toEqual({ days: 90 })
     expect(() => tools.get_risk_history.inputSchema.parse({ days: 731 })).toThrow()
+  })
+
+  it('requests a backend-valid history limit and renders one point when days is one', async () => {
+    const seen: string[] = []
+    const fetchImpl = fakeFetch((url) => {
+      seen.push(url)
+      if (url.endsWith('/api/readiness')) return readinessResponse()
+      if (url.endsWith('/api/risk/history?limit=2')) {
+        return new Response(JSON.stringify({
+          data: [
+            { timestamp: '2026-08-11T00:00:00Z', risk: 0.20, risk_state: 'low' },
+            { timestamp: '2026-08-12T00:00:00Z', risk: 0.21, risk_state: 'low' },
+          ],
+        }), { status: 200 })
+      }
+      throw new Error(`Unexpected URL: ${url}`)
+    })
+    const tools = registeredTools(createServer({ fetchImpl, now: new Date('2026-08-13T03:00:00Z') }))
+
+    const result = await tools.get_risk_history.handler({ days: 1 }, {})
+
+    expect(seen).toEqual([
+      'http://mcp-test.invalid/api/readiness',
+      'http://mcp-test.invalid/api/risk/history?limit=2',
+    ])
+    expect(result.content[0].text).toContain('1 points returned.')
+    expect(result.content[0].text).toContain('2026-08-12: risk 0.21 (low)')
+    expect(result.content[0].text).not.toContain('2026-08-11: risk 0.20 (low)')
   })
 
   it('defaults the brief locale to English', async () => {
@@ -92,29 +177,62 @@ describe('MCP server wiring', () => {
     expect(result.content[0].text).toContain('English brief')
   })
 
-  it('reports an unreachable API without inventing a risk number', async () => {
+  it('reports unreachable and malformed responses with the advice boundary once', async () => {
     const tools = registeredTools(createServer({
       fetchImpl: fakeFetch(() => {
         throw new TypeError('network down')
       }),
     }))
 
-    const result = await tools.get_current_risk.handler({}, {})
+    const unreachable = await tools.get_current_risk.handler({}, {})
 
-    expect(result.content[0].text).toContain('API is unreachable')
-    expect(result.content[0].text).not.toMatch(/risk\s+\d/)
+    expect(unreachable.content[0].text).toContain('API is unreachable')
+    expect(unreachable.content[0].text).not.toMatch(/risk\s+\d/)
+    expect(unreachable.content[0].text.split(ADVICE_LINE)).toHaveLength(2)
+
+    const malformedTools = registeredTools(createServer({
+      fetchImpl: fakeFetch(() => new Response('<html>502</html>', { status: 502 })),
+    }))
+    const malformed = await malformedTools.get_current_risk.handler({}, {})
+
+    expect(malformed.content[0].text).toContain('malformed JSON')
+    expect(malformed.content[0].text.split(ADVICE_LINE)).toHaveLength(2)
   })
 
-  it('opens no socket during the whole suite', async () => {
-    const original = net.Socket.prototype.connect
-    net.Socket.prototype.connect = function () {
-      throw new Error('OUTBOUND NETWORK ATTEMPTED')
-    } as never
-    try {
-      const server = createServer({ fetchImpl: fakeFetch(() => new Response('{}', { status: 200 })) })
-      expect(server).toBeDefined()
-    } finally {
-      net.Socket.prototype.connect = original
-    }
+  it('surfaces an upstream endpoint status instead of treating it as missing data', async () => {
+    const tools = registeredTools(createServer({
+      fetchImpl: fakeFetch((url) => {
+        if (url.endsWith('/api/readiness')) return readinessResponse()
+        if (url.endsWith('/api/risk/latest')) {
+          return new Response(JSON.stringify({ detail: 'No current risk row is available.' }), { status: 500 })
+        }
+        throw new Error(`Unexpected URL: ${url}`)
+      }),
+    }))
+
+    const result = await tools.get_current_risk.handler({}, {})
+
+    expect(result.content[0].text).toContain('HTTP 500')
+    expect(result.content[0].text).not.toContain('Response data is missing.')
+  })
+
+  it('uses fake fetch while every handler runs under the socket guard', async () => {
+    const fetchImpl = fakeFetch((url) => {
+      if (url.endsWith('/api/readiness')) return readinessResponse()
+      if (url.endsWith('/api/risk/latest')) return new Response(JSON.stringify({ data: { risk: 0.23, risk_state: 'low' } }))
+      if (url.endsWith('/api/risk/history?limit=2')) return new Response(JSON.stringify({ data: [] }))
+      if (url.endsWith('/api/risk/levels')) return new Response(JSON.stringify({ data: [], meta: {} }))
+      if (url.endsWith('/api/brief/latest')) return new Response(JSON.stringify({ data: { sections: { en: {} } } }))
+      throw new Error(`Unexpected URL: ${url}`)
+    })
+    const tools = registeredTools(createServer({ fetchImpl, now: new Date('2026-08-13T03:00:00Z') }))
+
+    await tools.check_readiness.handler({}, {})
+    await tools.get_current_risk.handler({}, {})
+    await tools.get_risk_history.handler({ days: 2 }, {})
+    await tools.get_risk_levels.handler({}, {})
+    await tools.get_brief.handler({ locale: 'en' }, {})
+
+    expect(fetchImpl).toHaveBeenCalledTimes(9)
   })
 })

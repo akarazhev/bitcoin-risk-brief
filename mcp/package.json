@@ -5,10 +5,11 @@
   "license": "Apache-2.0",
   "type": "module",
   "bin": { "bitcoin-risk-brief-mcp": "dist/index.js" },
-  "files": ["dist"],
+  "files": ["dist", "README.md", "LICENSE"],
   "engines": { "node": ">=22" },
   "scripts": {
-    "build": "tsc -b",
+    "build": "node ./scripts/clean-dist.mjs && tsc -p tsconfig.build.json",
+    "prepack": "npm run build",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },

@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ApiMalformed, ApiUnreachable, baseUrl, getJson } from './api.js'
 
 function fakeFetch(impl: (url: string) => Response | Promise<Response>) {
@@ -9,19 +9,18 @@ afterEach(() => {
   delete process.env.BRB_API_BASE_URL
 })
 
-describe('baseUrl', () => {
-  it('defaults to production', () => {
-    expect(baseUrl()).toBe('https://bitcoinriskbrief.minihub.app')
-  })
+beforeEach(() => {
+  process.env.BRB_API_BASE_URL = 'http://mcp-test.invalid'
+})
 
-  it('honours the environment override so tests never reach production', () => {
-    process.env.BRB_API_BASE_URL = 'http://localhost:9999'
-    expect(baseUrl()).toBe('http://localhost:9999')
+describe('baseUrl', () => {
+  it('honours the non-production environment override', () => {
+    expect(baseUrl()).toBe('http://mcp-test.invalid')
   })
 
   it('strips a trailing slash so paths do not double up', () => {
-    process.env.BRB_API_BASE_URL = 'http://localhost:9999/'
-    expect(baseUrl()).toBe('http://localhost:9999')
+    process.env.BRB_API_BASE_URL = 'http://mcp-test.invalid/'
+    expect(baseUrl()).toBe('http://mcp-test.invalid')
   })
 })
 
@@ -47,7 +46,6 @@ describe('getJson', () => {
   })
 
   it('requests the path against the configured base', async () => {
-    process.env.BRB_API_BASE_URL = 'http://localhost:9999'
     const seen: string[] = []
     const fetchImpl = fakeFetch((url) => {
       seen.push(url)
@@ -55,6 +53,6 @@ describe('getJson', () => {
     })
     await getJson('/api/risk/latest', { fetchImpl })
 
-    expect(seen).toEqual(['http://localhost:9999/api/risk/latest'])
+    expect(seen).toEqual(['http://mcp-test.invalid/api/risk/latest'])
   })
 })

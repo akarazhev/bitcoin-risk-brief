@@ -4,6 +4,16 @@ export const ADVICE_LINE = 'Analytics and research context, not financial advice
 
 type PayloadRecord = Record<string, unknown>
 
+const READINESS_CHECKS = [
+  'risk_data_available',
+  'validation_available',
+  'risk_range_ok',
+  'validation_has_rows',
+  'latest_matches_validation_end',
+  'source_is_canonical',
+  'data_fresh',
+] as const
+
 function isRecord(value: unknown): value is PayloadRecord {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
@@ -56,12 +66,20 @@ function missingData(envelope: Envelope): string {
   return complete(['Response data is missing.'], envelope)
 }
 
-export function formatReadiness(payload: unknown, envelope: Envelope): string {
-  const data = responseData(payload)
-  if (data === null) return missingData(envelope)
-
+export function formatReadiness(payload: unknown, envelope: Envelope, httpStatus: number = 200): string {
   const status = isRecord(payload) && typeof payload.status === 'string' ? payload.status : 'unknown'
-  return complete([`Readiness status: ${status}.`], envelope)
+  const checks = isRecord(payload) && isRecord(payload.checks) ? payload.checks : {}
+  const lines = [`Readiness status: ${status} (HTTP ${httpStatus}).`, 'Readiness checks:']
+  for (const check of READINESS_CHECKS) {
+    const value = typeof checks[check] === 'boolean' ? String(checks[check]) : 'unknown'
+    lines.push(`${check}: ${value}`)
+  }
+  return complete(lines, envelope)
+}
+
+export function formatUpstreamError(status: number, payload: unknown, envelope: Envelope): string {
+  const detail = isRecord(payload) && typeof payload.detail === 'string' ? ` ${payload.detail}` : ''
+  return complete([`Upstream API returned HTTP ${status}.${detail}`], envelope)
 }
 
 export function formatCurrentRisk(payload: unknown, envelope: Envelope): string {
@@ -70,19 +88,22 @@ export function formatCurrentRisk(payload: unknown, envelope: Envelope): string 
 
   const risk = numberText(data.risk)
   const state = typeof data.risk_state === 'string' ? data.risk_state : 'unknown'
-  const observation = envelope.dataState === 'stale'
-    ? `Last known observation: risk ${risk} (${state}), covered through ${envelope.coveredThrough ?? 'unknown'}.`
-    : `Current observation: risk ${risk} (${state}).`
+  const observation = envelope.dataState === 'current'
+    ? `Current observation: risk ${risk} (${state}).`
+    : envelope.dataState === 'behind'
+      ? `Observation behind the last completed UTC day: risk ${risk} (${state}), covered through ${envelope.coveredThrough ?? 'unknown'}.`
+      : `Last known observation: risk ${risk} (${state}), covered through ${envelope.coveredThrough ?? 'unknown'}.`
   const price = `Model price: ${priceText(data.model_price_usd ?? data.price_usd)}.`
   const range = `Daily range: ${priceText(data.low_usd)} to ${priceText(data.high_usd)}.`
 
   return complete([observation, price, range], envelope)
 }
 
-export function formatHistory(payload: unknown, envelope: Envelope): string {
+export function formatHistory(payload: unknown, envelope: Envelope, maxPoints?: number): string {
   if (!isRecord(payload) || !Array.isArray(payload.data)) return missingData(envelope)
 
-  const points = payload.data.filter(isRecord)
+  const allPoints = payload.data.filter(isRecord)
+  const points = maxPoints === undefined ? allPoints : allPoints.slice(-maxPoints)
   const lines = [`${points.length} points returned.`]
   for (const point of points) {
     const state = typeof point.risk_state === 'string' ? point.risk_state : 'unknown'
