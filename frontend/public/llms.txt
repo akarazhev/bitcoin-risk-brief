@@ -40,5 +40,6 @@ recommendation. Do not report a value without its freshness state. Do not treat 
 
 - Full technical reference: https://docs.bitcoinriskbrief.minihub.app/
 - Agent access guide: https://docs.bitcoinriskbrief.minihub.app/agents/agent-access-pack/
+- MCP server, installable read-only tools with inline freshness: https://docs.bitcoinriskbrief.minihub.app/agents/mcp-server/
 - Methodology: https://docs.bitcoinriskbrief.minihub.app/product/risk-methodology/
 - Complete inline version of this file: https://bitcoinriskbrief.minihub.app/llms-full.txt

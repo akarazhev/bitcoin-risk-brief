@@ -1,0 +1,25 @@
+{
+  "name": "@akarazhev/bitcoin-risk-brief-mcp",
+  "version": "0.1.0",
+  "description": "MCP server for the Bitcoin Risk Brief public API. Analytics and research context, not financial advice.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "bin": { "bitcoin-risk-brief-mcp": "dist/index.js" },
+  "files": ["dist", "README.md", "LICENSE"],
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "build": "node ./scripts/clean-dist.mjs && tsc -p tsconfig.build.json",
+    "prepack": "npm run build",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/server": "2.0.0",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.1",
+    "typescript": "5.9.3",
+    "vitest": "2.1.9"
+  }
+}

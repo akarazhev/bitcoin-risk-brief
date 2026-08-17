@@ -4,6 +4,8 @@ This tier is the landing page for agent-facing discovery and integration documen
 
 - [Agent Access Pack](agent-access-pack.md): readiness-first call sequence, endpoint examples, cache behavior, rate
   limits, and interpretation boundaries.
+- [MCP Server](mcp-server.md): install command, read-only tool contract, inline freshness envelope, and degraded-data
+  behavior.
 - [OpenAPI](openapi.md): machine-readable schema location and client-generation example.
 - [Freshness and validation](../engineering/freshness-and-validation.md): the readiness checks, validation record,
   cache-version binding, and provenance contract.
