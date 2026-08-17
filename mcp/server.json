@@ -1,0 +1,29 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.akarazhev/bitcoin-risk-brief",
+  "description": "Read the daily Bitcoin risk signal with its freshness state attached to every response. Analytics and research context, not financial advice.",
+  "repository": {
+    "url": "https://github.com/akarazhev/bitcoin-risk-brief",
+    "source": "github"
+  },
+  "version": "0.1.0",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "@akarazhev/bitcoin-risk-brief-mcp",
+      "version": "0.1.0",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "description": "Base URL of the Bitcoin Risk Brief API. Defaults to the public instance at https://bitcoinriskbrief.minihub.app.",
+          "isRequired": false,
+          "isSecret": false,
+          "format": "string",
+          "name": "BRB_API_BASE_URL"
+        }
+      ]
+    }
+  ]
+}
