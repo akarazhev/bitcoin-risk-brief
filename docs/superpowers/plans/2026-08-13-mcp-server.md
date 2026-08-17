@@ -268,10 +268,22 @@ git commit -m "feat: add the public API client"
 **Interfaces:**
 - Produces:
   - `type DataState = 'current' | 'behind' | 'stale'`
-  - `interface Envelope { coveredThrough: string | null; dataState: DataState; methodology: string | null }`
+  - `interface Envelope`, defined below
   - `function lastCompletedUtcDay(now?: Date): string` returning `YYYY-MM-DD`
   - `function deriveEnvelope(readiness: unknown, now?: Date): Envelope`
   - `function renderEnvelope(envelope: Envelope): string`
+
+```typescript
+export interface Envelope {
+  coveredThrough: string | null
+  dataState: DataState
+  methodology: string | null
+  // Readiness diagnostics. Not rendered by renderEnvelope — consumed by the stale banner in Task 4.
+  dataFresh: boolean | null
+  dataAgeDays: number | null
+  maxAgeDays: number | null
+}
+```
 
 This is the module the acceptance criterion rests on, and it is pure — no network, no SDK, no I/O.
 
@@ -285,10 +297,20 @@ import { deriveEnvelope, lastCompletedUtcDay, renderEnvelope } from './freshness
 
 const NOW = new Date('2026-08-13T03:00:00Z')
 
-function readiness(status: string, coveredEnd: string | null) {
+function readiness(
+  status: string,
+  coveredEnd: string | null,
+  { dataFresh = true, ageDays = 1, maxAgeDays = 2 } = {},
+) {
   return {
     status,
-    data: { covered_end: coveredEnd, methodology_version: 'crypto-scout-canonical-v1.1' },
+    checks: { data_fresh: dataFresh },
+    data: {
+      covered_end: coveredEnd,
+      data_age_days: ageDays,
+      max_age_days: maxAgeDays,
+      methodology_version: 'crypto-scout-canonical-v1.1',
+    },
   }
 }
 
@@ -325,6 +347,23 @@ describe('deriveEnvelope', () => {
     expect(envelope.coveredThrough).toBe('2026-08-12')
     expect(envelope.methodology).toBe('crypto-scout-canonical-v1.1')
   })
+
+  it('carries the readiness diagnostics the stale banner needs', () => {
+    const envelope = deriveEnvelope(
+      readiness('degraded', '2026-08-09', { dataFresh: false, ageDays: 3, maxAgeDays: 2 }),
+      NOW,
+    )
+    expect(envelope.dataFresh).toBe(false)
+    expect(envelope.dataAgeDays).toBe(3)
+    expect(envelope.maxAgeDays).toBe(2)
+  })
+
+  it('leaves the diagnostics null when readiness cannot be understood', () => {
+    const envelope = deriveEnvelope(null, NOW)
+    expect(envelope.dataFresh).toBeNull()
+    expect(envelope.dataAgeDays).toBeNull()
+    expect(envelope.maxAgeDays).toBeNull()
+  })
 })
 
 describe('renderEnvelope', () => {
@@ -333,6 +372,11 @@ describe('renderEnvelope', () => {
     expect(text).toContain('covered_through: 2026-08-12')
     expect(text).toContain('data_state:      current')
     expect(text).toContain('methodology:     crypto-scout-canonical-v1.1')
+  })
+
+  it('prints exactly three lines — diagnostics belong to the stale banner, not the envelope', () => {
+    const text = renderEnvelope(deriveEnvelope(readiness('ready', '2026-08-12'), NOW))
+    expect(text.split('\n')).toHaveLength(3)
   })
 })
 ```
@@ -350,7 +394,18 @@ Expected: FAIL — `./freshness.js` does not exist.
 
 `deriveEnvelope` returns `stale` unless the readiness payload is an object whose `status` is exactly `'ready'`; then `current` if `covered_end` equals `lastCompletedUtcDay(now)`, otherwise `behind`.
 
-`renderEnvelope` pads the labels so the three lines align, and prints `unknown` for a null field rather than omitting the line.
+`deriveEnvelope` also lifts three readiness diagnostics: `dataFresh` from `checks.data_fresh`, `dataAgeDays` from
+`data.data_age_days`, and `maxAgeDays` from `data.max_age_days`. Each is `null` when absent or the wrong type. These
+exist because Task 4's stale banner must state how stale, and `deriveEnvelope` is the only place that parses the
+readiness payload — parsing it a second time in `format.ts` would let two answers to "is this current" drift apart.
+
+Note that `data_age_days` is computed by the backend from `latest_date`, not from `covered_end`. In a healthy system
+they are equal, which is what the `latest_matches_validation_end` check asserts; in a degraded one they may differ.
+Report each as what it is and do not derive one from the other.
+
+`renderEnvelope` pads the labels so the three lines align, and prints `unknown` for a null field rather than omitting
+the line. It renders **only** `covered_through`, `data_state` and `methodology` — the diagnostics are deliberately not
+in it, because the three-line envelope is the design's structural contract for every response.
 
 - [ ] **Step 4: Run tests**
 
@@ -373,21 +428,32 @@ git commit -m "feat: derive and render the freshness envelope"
 
 **Interfaces:**
 - Consumes: `Envelope`, `renderEnvelope` from Task 3.
-- Produces: `formatReadiness`, `formatCurrentRisk`, `formatHistory`, `formatLevels`, `formatBrief`, each `(payload: unknown, envelope: Envelope) => string`, and `const ADVICE_LINE: string`.
+- Produces:
+  - `formatReadiness`, `formatCurrentRisk`, `formatHistory`, `formatLevels` — each `(payload: unknown, envelope: Envelope) => string`
+  - `formatBrief(payload: unknown, envelope: Envelope, locale: string) => string`
+  - `const ADVICE_LINE: string`
+
+`formatBrief` is the one formatter that takes a third argument, because it is the one whose payload does not carry the
+answer: `/api/brief/latest` returns every locale in `data.sections` and the tool was asked for exactly one. A uniform
+signature here would be uniformity bought by making the formatter guess.
 
 - [ ] **Step 1: Write the failing test**
 
 Create `mcp/src/format.test.ts` covering, one test each:
 
 1. `formatCurrentRisk` includes the risk value, the state, and the rendered envelope.
-2. `formatCurrentRisk` with a `stale` envelope **begins** with `DATA IS STALE — do not present these values as current.` and still contains the last known risk value.
+2. `formatCurrentRisk` with a `stale` envelope **begins** with `DATA IS STALE — do not present these values as current.`, still contains the last known risk value, and carries `Readiness reports: data_fresh false, 3 days old, tolerance 2 days.` built from the envelope's diagnostics.
 3. `formatCurrentRisk` with a `behind` envelope names the covered date without the stale banner.
 4. Every formatter's output ends with `ADVICE_LINE`.
 5. `ADVICE_LINE` contains `not financial advice`.
 6. `formatHistory` renders one line per point and states how many were returned.
-7. `formatBrief` renders only the requested locale's section, not all seven.
+7. `formatBrief(payload, envelope, 'ru')` renders the `ru` section and nothing from the other six — assert a phrase unique to each other section is absent.
 8. `formatLevels` renders the ladder and the evaluation date.
 9. A payload missing its `data` key produces a message saying so rather than throwing.
+10. A `stale` envelope whose diagnostics are all `null` omits the `Readiness reports:` line entirely rather than
+    printing `null` or `undefined` into it.
+11. `formatBrief` asked for a locale the snapshot does not carry says so and names the locales it does carry, rather
+    than silently rendering `en`.
 
 Use payload fixtures copied from `docs/engineering/api-reference.md`, not invented shapes.
 
@@ -405,6 +471,18 @@ DATA IS STALE — do not present these values as current.
 Last known observation: risk 0.23 (low), covered through 2026-08-09.
 Readiness reports: data_fresh false, 3 days old, tolerance 2 days.
 ```
+
+The third line is built entirely from `Envelope`: `dataFresh`, `dataAgeDays`, `maxAgeDays`. The formatters never see
+the raw readiness payload and never parse it. When all three are `null` — readiness was unreadable — omit that line.
+This is the rule the product already applies to `low_usd` and `high_usd`: hide a value rather than show a wrong one.
+The first two lines stay regardless, because "the data is stale and I cannot tell you how stale" is still the honest
+answer and still forbids presenting the values as current.
+
+`formatBrief` selects `data.sections[locale]`. The API documents that older persisted snapshots may carry only `en`
+and `ru`, so a requested locale can legitimately be absent. When it is, say which locales the snapshot does carry and
+render no section at all. Do not fall back to `en`: handing a model English prose it did not ask for, without saying
+so, is the silent substitution this product exists to avoid — and the model can re-ask for a locale it now knows
+exists. The envelope and `ADVICE_LINE` still appear in that response.
 
 `ADVICE_LINE` is a single sentence appended to every response: analytics and research context, not financial advice, not a price forecast, and not a trade signal.
 
@@ -482,6 +560,10 @@ import { SERVER_NAME, SERVER_VERSION } from './version.js'
 
 Every handler fetches `/api/readiness` first, derives the envelope, then fetches its own endpoint — so no handler can return data without the envelope even if a future edit forgets.
 
+The `get_brief` handler passes its validated `locale` straight through to `formatBrief`. `index.ts` never inspects or
+filters `data.sections` itself: payload shape is `format.ts`'s responsibility, and splitting it across both modules
+would put the missing-locale case in the one module that has no test for payload shapes.
+
 Handlers return `{ content: [{ type: 'text', text }] }`.
 
 The module ends with `serveStdio(() => createServer())` guarded so importing the file in a test does not start a transport.
@@ -512,13 +594,29 @@ git commit -m "feat: register the five tools and serve over stdio"
 **Interfaces:**
 - Consumes: the package name from Task 1.
 
+**Running the Python tests.** Use the repository's virtualenv interpreter, not a bare `python` or `python3`:
+
+```bash
+if [[ -x .venv/bin/python ]]; then PYTHON=.venv/bin/python; else PYTHON=python3; fi
+```
+
+`python` unqualified exists only in CI, where `actions/setup-python` puts it on `PATH`. Locally there may be no such
+binary at all. And bare `python3` is worse than absent: on a Homebrew macOS it is currently 3.14, which cannot install
+`pydantic-core` or `asyncpg` — the finding that closed issues #21 and #18 — so it imports nothing and every test errors
+on `ModuleNotFoundError`. If the guard above falls through to `python3` and the suite errors on missing `fastapi`, the
+venv is what is missing, not the tests.
+
+Note that `-k` filters after discovery, so an import error in any unrelated module under `backend/tests` still surfaces.
+`-k agent_surface` also matches `test_repository_furniture.ReadmeTests.test_readme_links_the_agent_surface_and_the_licence`,
+because `-k` matches the whole test id and that method name contains the string. Both are expected.
+
 - [ ] **Step 1: Write the failing test**
 
 Append to `backend/tests/test_agent_surface.py` a test asserting `docs/agents/mcp-server.md` exists, names the install command, and states the no-advice boundary; and that `frontend/public/llms.txt` links the MCP page so an agent arriving by crawl finds the installable path.
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `PYTHONPATH=backend:collector python -m unittest discover -s backend/tests -k agent_surface -v`
+Run: `PYTHONPATH=backend:collector "${PYTHON}" -m unittest discover -s backend/tests -k agent_surface -v`
 Expected: FAIL.
 
 - [ ] **Step 3: Write the page and the links**
@@ -529,7 +627,7 @@ Remember the constraint the existing test enforces: `docs/llms.txt` entries put 
 
 - [ ] **Step 4: Run the checks**
 
-Run: `PYTHONPATH=backend:collector python -m unittest discover -s backend/tests`
+Run: `PYTHONPATH=backend:collector "${PYTHON}" -m unittest discover -s backend/tests`
 Run: `mkdocs build --strict`
 Expected: PASS.
 
@@ -576,12 +674,17 @@ Read the `main` ruleset, append `{ "context": "mcp-build" }` to `required_status
 npm test --prefix mcp
 npm run typecheck --prefix mcp
 npm run build --prefix mcp
-./scripts/manage.sh test-python
+PYTHONPATH=backend:collector "${PYTHON}" -m unittest discover -s backend/tests -v
+PYTHONPATH=backend:collector "${PYTHON}" -m unittest discover -s collector/tests -v
 npm test --prefix frontend
 npm run build --prefix frontend
 ./scripts/manage.sh validate
 mkdocs build --strict
 ```
+
+`./scripts/manage.sh test-python` is the documented entry point and would normally appear here, but it invokes bare
+`python3` and so fails on a machine whose `python3` is Homebrew 3.14. That is a pre-existing repository defect, not
+something this plan introduces or fixes; the two explicit lines above are what it would have run.
 
 ## Out Of Scope
 
