@@ -27,6 +27,7 @@ describe('registry metadata', () => {
   }
   const server = JSON.parse(readFileSync(join(packageDir, 'server.json'), 'utf-8')) as {
     name: string
+    description: string
     version: string
     repository?: { url?: string }
     packages: Array<{ registryType: string; identifier: string; version: string }>
@@ -53,6 +54,29 @@ describe('registry metadata', () => {
   it('declares the repository in both files', () => {
     expect(pkg.repository?.url).toContain('akarazhev/bitcoin-risk-brief')
     expect(server.repository?.url).toContain('akarazhev/bitcoin-risk-brief')
+  })
+
+  // The registry rejected a 141-character description with a 422. Its schema limits are pinned here so
+  // a local test fails first, instead of a submission failing after the npm version is already spent.
+  it('keeps server.json inside the registry schema limits', () => {
+    expect(server.description.length).toBeGreaterThanOrEqual(1)
+    expect(server.description.length).toBeLessThanOrEqual(100)
+
+    expect(server.name.length).toBeGreaterThanOrEqual(3)
+    expect(server.name.length).toBeLessThanOrEqual(200)
+    expect(server.name).toMatch(/^[a-zA-Z0-9.-]+\/[a-zA-Z0-9._-]+$/)
+
+    expect(server.version).not.toBe('latest')
+    expect(server.version).toMatch(/^\d+\.\d+\.\d+/)
+
+    for (const entry of server.packages) {
+      expect(entry.version).not.toBe('latest')
+      expect(entry.version.length).toBeGreaterThanOrEqual(1)
+    }
+  })
+
+  it('still states the no-advice boundary despite the length limit', () => {
+    expect(server.description.toLowerCase()).toContain('not advice')
   })
 })
 
