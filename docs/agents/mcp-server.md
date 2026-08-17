@@ -46,7 +46,7 @@ When `/api/readiness` is degraded, a data tool still returns the last stored dat
 honestly. Its response begins with:
 
 ```text
-DATA IS STALE - do not present these values as current.
+DATA IS STALE — do not present these values as current.
 ```
 
 It then includes the last known observation where applicable, readiness diagnostics such as `data_fresh`,
