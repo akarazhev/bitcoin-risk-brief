@@ -1,7 +1,8 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.akarazhev/bitcoin-risk-brief",
-  "description": "Read the daily Bitcoin risk signal with its freshness state attached to every response. Analytics and research context, not financial advice.",
+  "description": "Daily Bitcoin risk with freshness state on every response. Research context, not advice.",
+  "websiteUrl": "https://docs.bitcoinriskbrief.minihub.app/agents/mcp-server/",
   "repository": {
     "url": "https://github.com/akarazhev/bitcoin-risk-brief",
     "source": "github"
