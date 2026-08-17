@@ -1,4 +1,4 @@
-import { execFileSync, spawnSync } from 'node:child_process'
+import { execFileSync, spawn, spawnSync } from 'node:child_process'
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, renameSync, rmSync, symlinkSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { basename, join, resolve } from 'node:path'
@@ -112,4 +112,63 @@ describe('published package', () => {
     expect(binRun.status).toBe(0)
     expect(basename(tarball)).toBe(manifest.filename)
   })
+
+  // Exiting 0 is indistinguishable from serving nothing, which is how 0.1.0 shipped an entrypoint
+  // guard that npm's .bin symlink defeated. This launches the way npx does and demands an answer.
+  it('serves over stdio when launched through a .bin symlink, as npx launches it', async () => {
+    const packDir = mkdtempSync(join(tmpdir(), 'bitcoin-risk-brief-mcp-pack-'))
+    const unpackDir = mkdtempSync(join(tmpdir(), 'bitcoin-risk-brief-mcp-unpack-'))
+    const npmCacheDir = mkdtempSync(join(tmpdir(), 'bitcoin-risk-brief-mcp-npm-cache-'))
+    tempDirs.push(packDir, unpackDir, npmCacheDir)
+
+    if (existsSync(distDir)) renameSync(distDir, backupDistDir)
+    const packed = JSON.parse(execFileSync('npm', ['pack', '--json', '--pack-destination', packDir], {
+      cwd: packageDir,
+      encoding: 'utf-8',
+      env: { ...process.env, npm_config_cache: npmCacheDir },
+    })) as Array<{ filename: string }>
+    execFileSync('tar', ['-xzf', join(packDir, packed[0].filename), '-C', unpackDir])
+
+    const unpackedPackage = join(unpackDir, 'package')
+    symlinkSync(join(packageDir, 'node_modules'), join(unpackedPackage, 'node_modules'), 'dir')
+
+    // Reproduce node_modules/.bin: a symlink pointing at the real entrypoint.
+    const binDir = join(unpackDir, 'bin')
+    mkdirSync(binDir, { recursive: true })
+    const linkPath = join(binDir, 'bitcoin-risk-brief-mcp')
+    symlinkSync(join(unpackedPackage, 'dist', 'index.js'), linkPath, 'file')
+
+    const child = spawn(process.execPath, [linkPath], { stdio: ['pipe', 'pipe', 'pipe'] })
+    try {
+      const firstResponse = new Promise<string>((resolveResponse, rejectResponse) => {
+        let buffered = ''
+        const timer = setTimeout(() => rejectResponse(new Error(`no response; stdout was ${JSON.stringify(buffered)}`)), 15_000)
+        child.stdout.on('data', (chunk) => {
+          buffered += String(chunk)
+          const newline = buffered.indexOf('\n')
+          if (newline !== -1) {
+            clearTimeout(timer)
+            resolveResponse(buffered.slice(0, newline))
+          }
+        })
+        child.on('exit', () => {
+          clearTimeout(timer)
+          rejectResponse(new Error(`exited without answering; stdout was ${JSON.stringify(buffered)}`))
+        })
+      })
+
+      child.stdin.write(`${JSON.stringify({
+        jsonrpc: '2.0',
+        id: 1,
+        method: 'initialize',
+        params: { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'probe', version: '0' } },
+      })}\n`)
+
+      const message = JSON.parse(await firstResponse) as { id?: number; result?: { serverInfo?: { name?: string } } }
+      expect(message.id).toBe(1)
+      expect(message.result?.serverInfo?.name).toBe('bitcoin-risk-brief')
+    } finally {
+      child.kill()
+    }
+  }, 40_000)
 })

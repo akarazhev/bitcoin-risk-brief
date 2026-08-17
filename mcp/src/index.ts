@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+import { realpathSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
 import { McpServer } from '@modelcontextprotocol/server'
 import { serveStdio } from '@modelcontextprotocol/server/stdio'
 import * as z from 'zod/v4'
@@ -141,6 +143,18 @@ export function createServer(deps: Dependencies = {}): McpServer {
   return server
 }
 
-if (process.argv[1] !== undefined && import.meta.url === new URL(`file://${process.argv[1]}`).href) {
+// npm installs the bin as a symlink in node_modules/.bin, so process.argv[1] is the link while
+// import.meta.url is the real file. Comparing them as paths without resolving the link makes this
+// false under npx — the documented install path — and the server exits silently having served nothing.
+export function isMainModule(argv1: string | undefined = process.argv[1]): boolean {
+  if (argv1 === undefined) return false
+  try {
+    return realpathSync(argv1) === realpathSync(fileURLToPath(import.meta.url))
+  } catch {
+    return false
+  }
+}
+
+if (isMainModule()) {
   serveStdio(() => createServer())
 }
