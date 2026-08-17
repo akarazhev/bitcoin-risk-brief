@@ -61,8 +61,28 @@ case "${1:-help}" in
     ./scripts/warm-public-cache.sh
     ;;
   test-python)
-    PYTHONPATH=backend:collector python3 -m unittest discover -s backend/tests -v
-    PYTHONPATH=backend:collector python3 -m unittest discover -s collector/tests -v
+    # Bare python3 is not the tests' interpreter. On Homebrew macOS it is now 3.14,
+    # which cannot build pydantic-core or asyncpg (issues #21, #18), so every import
+    # fails. Prefer the repository virtualenv; PYTHON overrides for CI, where
+    # actions/setup-python already supplies a correct interpreter.
+    PYTHON="${PYTHON:-}"
+    if [[ -z "${PYTHON}" ]]; then
+      if [[ -x .venv/bin/python ]]; then PYTHON=.venv/bin/python; else PYTHON=python3; fi
+    fi
+    if ! "${PYTHON}" -c 'import fastapi' >/dev/null 2>&1; then
+      {
+        echo "${PYTHON} cannot import fastapi, so the test dependencies are not installed for it."
+        echo
+        echo "Create the virtualenv the tests expect:"
+        echo "  python3.13 -m venv .venv"
+        echo "  .venv/bin/python -m pip install -r backend/requirements.txt -r collector/requirements.txt"
+        echo
+        echo "Python 3.14 will not work: pydantic-core and asyncpg have no wheels for it (issues #21, #18)."
+      } >&2
+      exit 1
+    fi
+    PYTHONPATH=backend:collector "${PYTHON}" -m unittest discover -s backend/tests -v
+    PYTHONPATH=backend:collector "${PYTHON}" -m unittest discover -s collector/tests -v
     ;;
   help|*)
     echo "Usage: $0 {validate|migrate|start|stop|logs [service]|backfill|run-now|download-cmc-csv [expected-end-date]|import-cmc-csv <path> [expected-end-date]|warm-public-cache|test-python}"
