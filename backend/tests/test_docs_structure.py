@@ -23,6 +23,7 @@ EXPECTED_LAYOUT = {
     "agents": {
         "index.md",
         "agent-access-pack.md",
+        "mcp-server.md",
         "openapi.md",
     },
     "operations": {

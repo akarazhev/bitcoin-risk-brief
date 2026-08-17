@@ -189,6 +189,20 @@ class AgentDocumentationTests(unittest.TestCase):
             with self.subTest(token=token):
                 self.assertIn(token, text)
 
+    def test_mcp_server_page_is_installable_and_discoverable(self) -> None:
+        page = DOCS / "agents" / "mcp-server.md"
+        self.assertTrue(page.is_file(), "docs/agents/mcp-server.md must exist")
+
+        text = page.read_text(encoding="utf-8")
+        self.assertIn("npx -y @akarazhev/bitcoin-risk-brief-mcp", text)
+        self.assertIn("not financial advice", text.lower())
+
+        public_llms = (PUBLIC_DIR / "llms.txt").read_text(encoding="utf-8")
+        self.assertIn(
+            "https://docs.bitcoinriskbrief.minihub.app/agents/mcp-server/",
+            public_llms,
+        )
+
 
 class DocsSiteAgentFileTests(unittest.TestCase):
     def test_docs_site_serves_its_own_llms_txt(self) -> None:

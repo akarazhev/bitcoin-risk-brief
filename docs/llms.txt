@@ -8,6 +8,7 @@
 ## Start here
 
 - Agent access pack, the readiness-first call sequence and interpretation limits: https://docs.bitcoinriskbrief.minihub.app/agents/agent-access-pack/
+- MCP server, installable read-only tools with inline freshness: https://docs.bitcoinriskbrief.minihub.app/agents/mcp-server/
 - Freshness and validation, why staleness returns 503 rather than a stale figure: https://docs.bitcoinriskbrief.minihub.app/engineering/freshness-and-validation/
 
 ## Product
