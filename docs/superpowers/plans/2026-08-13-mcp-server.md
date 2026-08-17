@@ -594,13 +594,29 @@ git commit -m "feat: register the five tools and serve over stdio"
 **Interfaces:**
 - Consumes: the package name from Task 1.
 
+**Running the Python tests.** Use the repository's virtualenv interpreter, not a bare `python` or `python3`:
+
+```bash
+if [[ -x .venv/bin/python ]]; then PYTHON=.venv/bin/python; else PYTHON=python3; fi
+```
+
+`python` unqualified exists only in CI, where `actions/setup-python` puts it on `PATH`. Locally there may be no such
+binary at all. And bare `python3` is worse than absent: on a Homebrew macOS it is currently 3.14, which cannot install
+`pydantic-core` or `asyncpg` — the finding that closed issues #21 and #18 — so it imports nothing and every test errors
+on `ModuleNotFoundError`. If the guard above falls through to `python3` and the suite errors on missing `fastapi`, the
+venv is what is missing, not the tests.
+
+Note that `-k` filters after discovery, so an import error in any unrelated module under `backend/tests` still surfaces.
+`-k agent_surface` also matches `test_repository_furniture.ReadmeTests.test_readme_links_the_agent_surface_and_the_licence`,
+because `-k` matches the whole test id and that method name contains the string. Both are expected.
+
 - [ ] **Step 1: Write the failing test**
 
 Append to `backend/tests/test_agent_surface.py` a test asserting `docs/agents/mcp-server.md` exists, names the install command, and states the no-advice boundary; and that `frontend/public/llms.txt` links the MCP page so an agent arriving by crawl finds the installable path.
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `PYTHONPATH=backend:collector python -m unittest discover -s backend/tests -k agent_surface -v`
+Run: `PYTHONPATH=backend:collector "${PYTHON}" -m unittest discover -s backend/tests -k agent_surface -v`
 Expected: FAIL.
 
 - [ ] **Step 3: Write the page and the links**
@@ -611,7 +627,7 @@ Remember the constraint the existing test enforces: `docs/llms.txt` entries put 
 
 - [ ] **Step 4: Run the checks**
 
-Run: `PYTHONPATH=backend:collector python -m unittest discover -s backend/tests`
+Run: `PYTHONPATH=backend:collector "${PYTHON}" -m unittest discover -s backend/tests`
 Run: `mkdocs build --strict`
 Expected: PASS.
 
@@ -658,12 +674,17 @@ Read the `main` ruleset, append `{ "context": "mcp-build" }` to `required_status
 npm test --prefix mcp
 npm run typecheck --prefix mcp
 npm run build --prefix mcp
-./scripts/manage.sh test-python
+PYTHONPATH=backend:collector "${PYTHON}" -m unittest discover -s backend/tests -v
+PYTHONPATH=backend:collector "${PYTHON}" -m unittest discover -s collector/tests -v
 npm test --prefix frontend
 npm run build --prefix frontend
 ./scripts/manage.sh validate
 mkdocs build --strict
 ```
+
+`./scripts/manage.sh test-python` is the documented entry point and would normally appear here, but it invokes bare
+`python3` and so fails on a machine whose `python3` is Homebrew 3.14. That is a pre-existing repository defect, not
+something this plan introduces or fixes; the two explicit lines above are what it would have run.
 
 ## Out Of Scope
 
