@@ -34,6 +34,7 @@ EXPECTED_LAYOUT = {
         "deploy-ubuntu-cloudflare.md",
         "server-msi-cubi5-ubuntu-26.04.md",
         "pilot-learning-loop.md",
+        "uptime-monitoring.md",
         "marketing-and-growth.md",
         "dependency-license-review.md",
         "backup-restore-evidence-packet-template.md",

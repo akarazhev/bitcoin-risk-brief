@@ -58,6 +58,7 @@ nav:
       - Roadmap: operations/production-roadmap.md
       - Deployment: operations/deploy-ubuntu-cloudflare.md
       - Server setup: operations/server-msi-cubi5-ubuntu-26.04.md
+      - Uptime monitoring: operations/uptime-monitoring.md
       - Pilot learning loop: operations/pilot-learning-loop.md
       - Marketing and growth: operations/marketing-and-growth.md
       - Dependency and licence review: operations/dependency-license-review.md

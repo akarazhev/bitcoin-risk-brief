@@ -404,8 +404,21 @@ Small operator-watched pilot monitoring coverage accepted on 2026-07-14:
 - Cloudflare Tunnel Health Alert is configured.
 - External uptime monitor provider category is HetrixTools/external uptime monitor provider.
 - Public homepage availability monitoring is configured for `https://bitcoinriskbrief.minihub.app/`.
-- This accepted coverage is intentionally limited to Tunnel health plus homepage availability for a small
-  operator-watched pilot. It is not full API readiness/freshness monitoring and does not prove alert delivery.
+- This accepted coverage was intentionally limited to Tunnel health plus homepage availability for a small
+  operator-watched pilot. It was not full API readiness/freshness monitoring and did not prove alert delivery.
+
+Endpoint monitoring extended on 2026-08-19:
+
+- Ten external uptime monitors cover `/api/readiness`, `/api/health`, data freshness, the homepage,
+  `/api/risk/latest`, `/api/risk/levels`, `/api/brief/latest`, the product `llms.txt`, the documentation site, and the
+  documentation `llms.txt`. Each asserts a response keyword in addition to the status code, so a proxy error page
+  answering HTTP 200 is caught.
+- The monitor set is checked in at [`uptime-monitors.csv`](uptime-monitors.csv) and explained in
+  [Uptime monitoring](uptime-monitoring.md). It carries public URLs and keywords only.
+- Cloudflare adds nothing further here: Health Checks require Pro and Load Balancing is a paid add-on, so the free plan
+  keeps Tunnel health only.
+- Still unconfirmed, and not claimed: the daily 00:00-01:15 UTC maintenance window on the freshness monitor, the alert
+  delivery test, and the alert routing destination. Record those before broader readiness claims.
 
 Before broader public traffic, configure and record redacted evidence for these monitors. Store provider names, sanitized
 check names, monitored paths, assertion summaries, intervals/windows, latest check status, and delivery-test status only;

@@ -1,0 +1,11 @@
+Name,Target,Keyword,Port
+BRB API readiness,https://bitcoinriskbrief.minihub.app/api/readiness,"""status"":""ready""",
+BRB API health,https://bitcoinriskbrief.minihub.app/api/health,"""status"":""ok""",
+BRB API freshness,https://bitcoinriskbrief.minihub.app/api/readiness,"""data_age_days"":1",
+BRB homepage,https://bitcoinriskbrief.minihub.app/,Bitcoin Risk Brief,
+BRB API latest risk,https://bitcoinriskbrief.minihub.app/api/risk/latest,"""model_price_usd""",
+BRB API risk levels,https://bitcoinriskbrief.minihub.app/api/risk/levels,"""evaluation_date""",
+BRB API brief,https://bitcoinriskbrief.minihub.app/api/brief/latest,"""sections""",
+BRB agent llms.txt,https://bitcoinriskbrief.minihub.app/llms.txt,Always call `/api/readiness` before reporting any value,
+BRB docs site,https://docs.bitcoinriskbrief.minihub.app/,Bitcoin Risk Brief,
+BRB docs llms.txt,https://docs.bitcoinriskbrief.minihub.app/llms.txt,Technical reference for a daily Bitcoin risk signal,
