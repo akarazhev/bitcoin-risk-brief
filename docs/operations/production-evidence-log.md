@@ -70,13 +70,24 @@ Small-pilot external monitoring acceptance recorded on 2026-07-14:
 - Sanitized coverage accepted for the small operator-watched pilot: Cloudflare Tunnel Health Alert is configured; the
   external uptime monitor provider category is HetrixTools/external uptime monitor provider; and a homepage availability
   monitor is configured for the public homepage.
-- Accepted limitation: this proves only Tunnel health notification plus public homepage availability coverage for a small
-  operator-watched pilot. No dedicated external `/api/health` monitor evidence, dedicated external `/api/readiness`
-  freshness monitor evidence, JSON assertion evidence, stale-data after-window alert evidence, or explicit alert delivery
-  test evidence is recorded yet.
-- Broader launch monitoring remains pending before broader traffic or broader readiness claims: dedicated external
-  `/api/health` monitor evidence, dedicated external `/api/readiness` freshness monitor evidence, and explicit sanitized
-  alert delivery evidence without private details.
+- Accepted limitation as of that date: this proved only Tunnel health notification plus public homepage availability
+  coverage for a small operator-watched pilot.
+
+Endpoint monitoring coverage recorded on 2026-08-19:
+
+- Ten external uptime monitors are configured, covering `/api/readiness`, `/api/health`, data freshness, the homepage,
+  `/api/risk/latest`, `/api/risk/levels`, `/api/brief/latest`, the product `llms.txt`, the documentation site, and the
+  documentation `llms.txt`. This closes the previously pending dedicated `/api/health`, dedicated `/api/readiness`
+  freshness, and response-assertion monitor items.
+- Each monitor asserts a keyword present in the healthy response as well as the status code. The sanitized monitor set
+  is checked in at `docs/operations/uptime-monitors.csv`; it contains public URLs and keywords only. No account IDs,
+  monitor IDs, dashboard URLs, recipients, or webhook URLs are recorded here or there.
+- Still pending, and not claimed: the daily 00:00-01:15 UTC maintenance window on the freshness monitor, explicit
+  sanitized alert delivery test evidence, and confirmation that alert routing goes to a private destination rather than
+  the public Telegram channel.
+- Detection timing, stated so it is not overclaimed: with the freshness monitor and its window, a failed import surfaces
+  at about 01:15 UTC the same morning. Without the window, the readiness monitor surfaces it roughly 23 hours after the
+  failed run, because freshness tolerates `data_age_days <= 2`.
 
 Fresh manual backup/off-server copy and public readiness evidence recorded on 2026-07-15:
 
