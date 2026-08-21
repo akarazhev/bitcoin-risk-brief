@@ -82,9 +82,13 @@ Endpoint monitoring coverage recorded on 2026-08-19:
 - Each monitor asserts a keyword present in the healthy response as well as the status code. The sanitized monitor set
   is checked in at `docs/operations/uptime-monitors.csv`; it contains public URLs and keywords only. No account IDs,
   monitor IDs, dashboard URLs, recipients, or webhook URLs are recorded here or there.
-- Still pending, and not claimed: the daily 00:00-01:15 UTC maintenance window on the freshness monitor, explicit
-  sanitized alert delivery test evidence, and confirmation that alert routing goes to a private destination rather than
-  the public Telegram channel.
+- Operator confirmation received the same day, closing the three items this block first left open: the daily
+  00:00-01:15 UTC maintenance window is set on the freshness monitor; an alert delivery test was performed and the
+  notification was received; and alert routing goes to a private destination, not the public Telegram channel. Per the
+  sanitisation rule above, the recipient, channel, and provider destination are not recorded.
+- Remaining monitoring limitations, stated so coverage is not overclaimed: no collector-stage failure alert, no
+  detection of a partially successful run, no backup freshness alert, and no probe for delivery of the daily Telegram
+  post, which has no HTTP surface. These stay deferred broader-launch work.
 - Detection timing, stated so it is not overclaimed: with the freshness monitor and its window, a failed import surfaces
   at about 01:15 UTC the same morning. Without the window, the readiness monitor surfaces it roughly 23 hours after the
   failed run, because freshness tolerates `data_age_days <= 2`.

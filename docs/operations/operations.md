@@ -417,8 +417,12 @@ Endpoint monitoring extended on 2026-08-19:
   [Uptime monitoring](uptime-monitoring.md). It carries public URLs and keywords only.
 - Cloudflare adds nothing further here: Health Checks require Pro and Load Balancing is a paid add-on, so the free plan
   keeps Tunnel health only.
-- Still unconfirmed, and not claimed: the daily 00:00-01:15 UTC maintenance window on the freshness monitor, the alert
-  delivery test, and the alert routing destination. Record those before broader readiness claims.
+- Confirmed by the operator on 2026-08-19: the daily 00:00-01:15 UTC maintenance window is set on the freshness
+  monitor, an alert delivery test was performed and the notification arrived, and alert routing goes to a private
+  destination rather than the public Telegram channel. The destination itself is deliberately not recorded.
+- What endpoint monitoring still cannot see: which stage of a collector run failed, a run that partially succeeded,
+  backup freshness, and delivery of the daily Telegram post, which has no HTTP surface to probe. A direct collector
+  failure alert remains deferred broader-launch work.
 
 Before broader public traffic, configure and record redacted evidence for these monitors. Store provider names, sanitized
 check names, monitored paths, assertion summaries, intervals/windows, latest check status, and delivery-test status only;
