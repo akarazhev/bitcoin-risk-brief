@@ -24,11 +24,15 @@ Out of scope entirely: any change to `crypto-scout-canonical-v1.1`, new indicato
 ## URL Scheme
 
 ```
-/                  en   home       canonical=self, x-default
-/ru/  /zh/  /de/  /fr/  /es/  /ar/  localised homes
-/methodology       en   guide
+/                    en   home     canonical=self, x-default
+/ru  /zh  /de  /fr  /es  /ar       localised homes
+/methodology         en   guide
 /ru/methodology  …  /ar/methodology
 ```
+
+No trailing slashes. Every document is a flat file: `dist/index.html`, `dist/ru.html`,
+`dist/methodology.html`, `dist/ru/methodology.html`. `dist/ru.html` and the `dist/ru/` directory coexist without
+conflict, which was verified against both nginx and `vite preview` before this design was fixed.
 
 Fourteen documents. The path carries the short locale code (`zh`); the full BCP-47 tag (`zh-CN`) goes in `hreflang`.
 Both come from `localeOptions` in `frontend/src/locales.ts`, which already carries `lang` and `dir` per locale — so
@@ -146,13 +150,31 @@ by eye and cannot verify Chinese or Arabic — and it does not drop the seven-lo
 
 ### nginx
 
-`location /` changes from `try_files $uri =404` to `try_files $uri $uri.html $uri/ =404`. That one directive covers all
-four shapes: `/` takes `index.html`, `/ru/` the directory index, `/methodology` the file `methodology.html` with no
-redirect and no trailing slash, `/ru/methodology` likewise.
+`location /` changes from `try_files $uri =404` to `try_files $uri $uri.html =404`. `location = /` is untouched and
+keeps serving `index.html`.
 
-An unknown path still finds no file, no `.html` and no directory, and still gets a genuine 404 — so
-`test_unknown_paths_are_not_rewritten_to_the_app_shell` and `test_fallthrough_location_returns_404` keep protecting
-that contract instead of being loosened to accommodate this change.
+Directory resolution is deliberately absent. An earlier draft used `try_files $uri $uri.html $uri/ =404`; running it
+against nginx showed `/ru/` answering **403**, because the directory has no index and autoindex is off. Dropping
+`$uri/` turns that into a clean 404 and costs nothing, since `location = /` already handles the only directory that
+matters.
+
+Verified against nginx 1.29-alpine before this design was fixed:
+
+| Path | Result |
+| --- | --- |
+| `/` | 200, the English home |
+| `/ru` | 200, `ru.html` |
+| `/ru/` | 404 |
+| `/methodology` | 200, `methodology.html` |
+| `/ru/methodology` | 200 |
+| `/nonsense`, `/ru/nonsense` | 404 |
+
+`test_unknown_paths_are_not_rewritten_to_the_app_shell` keeps passing unchanged: the new directive still contains no
+`/index.html` fallback. `test_fallthrough_location_returns_404` asserts the literal string `try_files $uri =404;` and
+must be updated to assert the property rather than the spelling — the fallthrough ends in `=404` and never falls back
+to the app shell.
+
+`/en` and `/en/methodology` need explicit `return 301` rules, because `try_files` alone would 404 them.
 
 Issue #42 proposed extending an allowlist of SPA routes. Generating real files removes the need for one: there is
 nothing to enumerate, and no list to forget to update when S4b adds per-date URLs.
@@ -189,6 +211,12 @@ New tests:
 - the sitemap and the route matrix agree in both directions;
 - a localised route is added to the Playwright smoke run, which already applies axe checks, covering the issue's
   keyboard-accessibility criterion.
+
+**The 404 contract and the `/en` redirects are asserted only against the nginx configuration, never in Playwright.**
+The smoke suite runs against `vite preview`, which was measured answering **HTTP 200 with the root document** for
+`/nonsense` and for any directory path without a trailing slash. A Playwright assertion about 404 would therefore
+pass in production and fail in the smoke run, or worse, silently assert nothing. Playwright navigates only to the four
+canonical shapes, all of which behave identically under `vite preview` and nginx.
 
 `documentHead.test.ts` and `structuredData.test.ts` currently read the source `frontend/index.html`, which is a
 template. They move to the generated documents — what is actually served. The assertion gets stronger rather than
