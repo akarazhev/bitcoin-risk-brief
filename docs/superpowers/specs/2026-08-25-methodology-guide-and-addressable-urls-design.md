@@ -79,13 +79,38 @@ each pair, calls `renderToString`, replaces the head and the contents of `#root`
 `react-dom` is already a dependency, so this adds none. It needs no browser, and the output is a deterministic function
 of the source rather than of whatever a headless page happened to finish painting.
 
-### Three Things That Do Not Survive Server Rendering Today
+### What Actually Needs Changing For Server Rendering
 
 - `App.tsx` reads `navigator.languages` during initialisation. Locale becomes an input; the automatic hop moves into a
-  client-only effect. This work is required by the URL scheme regardless of how rendering is done.
-- The ECharts chart and the Turnstile widget touch the DOM. The server renders their containers at the same
-  dimensions; mounting stays on the client.
+  client-only effect. This is required by the URL scheme regardless of how rendering is done.
 - `main.tsx` moves from `createRoot` to `hydrateRoot`, because every served document is now prerendered.
+
+**The chart and the Turnstile widget need nothing.** An earlier draft assumed both would break under
+`renderToString` and planned client-only wrappers for them. Running it showed otherwise: the current `App` renders on
+the server without throwing. `echarts-for-react` and the Turnstile component both touch the DOM from effects and refs,
+which `renderToString` never invokes. Building guards for them would have been work spent on a problem that does not
+exist.
+
+Hydration matches for the same reason. The server produces the loading shell, and the client's first render — before
+any fetch resolves — produces the same shell. `getCompactChartPreference` is already guarded with
+`typeof window !== 'undefined'` and is only read on the data-bearing path, which neither side renders first.
+
+### What The Home Documents Actually Contain
+
+Measured before this design was fixed: `renderToString(<App />)` produces **79 bytes** —
+`<main class="shell centered"><p class="loading">Loading risk data...</p></main>`. `App.tsx:512` returns early when
+`latest`, `brief` or `readiness` is absent, and the prerender has none of them.
+
+So a prerendered home document carries a localised head and an empty body. That is a real limitation, stated rather
+than glossed: the head is what a search engine uses to tell seven language versions apart, and it is worth having, but
+the page text is not in the response.
+
+Opening that text up means replacing the early return so each section handles missing data itself. It is worthwhile —
+`App.tsx:542` onward holds localised copy for the methodology blurb, the channel call to action and the disclaimer,
+none of which depends on fetched data — but it is surgery on an 874-line component serving the highest-traffic page,
+and it does not belong in the same change as seven locales and a new build step. It is follow-up work.
+
+The guide has no such problem. Its content is prose, so it renders in full.
 
 ### The Prerender Never Calls The API
 
@@ -237,7 +262,9 @@ would chase a symptom, and unreliably. The network guard catches the cause: ther
 
 - `/methodology` and `/ru/methodology` can be pasted into a chat client and open directly to that content, in that
   language.
-- The content of any of the fourteen documents is present in the server response with JavaScript disabled.
+- The **guide's** content is present in the server response with JavaScript disabled, in all seven locales.
+- The **home** documents carry a localised title, description, `hreflang` set, `lang` and `dir` in the server
+  response. Their body remains client-rendered; see the limitation below.
 - No live risk value appears in any generated document.
 - A reader can explain why `0.25` is classified as low and how the next band is determined.
 - A reader can distinguish the model price from a live spot price, and a level scenario from a forecast.
