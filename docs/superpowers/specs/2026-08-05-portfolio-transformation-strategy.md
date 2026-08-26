@@ -120,7 +120,7 @@ Sub-projects are ranked by what that audience sees:
 | S2 agent surface and docs site | High — the docs site is itself an artifact | Low |
 | S3 MCP server | High — a strong 2026 signal, registry listing, and the only channel by which an agent can actually call the product | Low |
 | S6a articles and content | High — the stated reason for the whole transformation | Medium |
-| S4 methodology and addressable URLs | Medium — visible craft, organic search | High |
+| S4a interpretation guide and addressable URLs | Medium — visible craft, organic search | High |
 | S5a Telegram channel and honest CTA | High — removes the one dishonest element on the page | High |
 | S5b email delivery and consent spine | Medium — a visible consent contour is craft a technical reader can check | Medium, sequenced after S5a |
 
@@ -214,9 +214,10 @@ Each sub-project gets its own design spec and implementation plan.
 | S5a | Telegram channel, autoposting, and the honest CTA | #43, recurring visibility, the S5b measuring instrument | #41 (soft) | ~3-4 days |
 | S6a | Articles and content | Source material for writing and video, OG images | S1, S2 | ~2 weeks |
 | S3 | MCP server | Agent integration depth, registry presence | S2 | ~1 week |
-| S4 | Public methodology and addressable URLs | #42, SEO, shareable links | S1, S2 | ~2 weeks |
+| S4a | Interpretation guide and locale-addressable URLs | #42, SEO, shareable links | S1, S2 | shipped 2026-08-26 |
+| S4b | Per-date snapshots at `/risk/YYYY-MM-DD` | #103, citable observations | S4a, a decision on 5,887 dates | deferred |
 | S5b | Email delivery and consent spine | #41 | S5a | ~1.5 weeks |
-| S5c | Weekly digest and campaign analytics | #45 | S4, S5b, an audience | deferred |
+| S5c | Weekly digest and campaign analytics | #45 | S5b, an audience | deferred |
 
 **S5a moves into the pre-publication block.** This is a consequence of connecting the CTA to the channel: the page
 must not ship a promise it does not keep, and the strongest fix for "Get the daily signal" is a link to a channel that
@@ -240,6 +241,14 @@ S1 and S2 are specified together in
   the product, S3 answers it and prose does not. It follows S6a closely rather than trailing it.
 - Product analytics (#45) moved out of the content work and into S5b. Instrumenting traffic that is not being sought
   produces noise, and the same measurement becomes meaningful once an acquisition test actually runs.
+**S4a shipped on 2026-08-26 with one limitation worth recording.** The seven home documents carry a localised head and
+an empty body: `App.tsx:512` returns a loading shell without data, and the prerender deliberately has none, because
+freezing today's risk into a crawlable document is the one thing this product must not do. The guide itself renders in
+full, and is discoverable through the sitemap, `llms.txt` and its own `hreflang` set.
+
+Opening up the home body — so a search engine sees the localised copy that already exists past that early return — is
+worthwhile follow-up work on the highest-traffic component. It belongs to neither S4b nor S5b.
+
 - S4 splits the methodology audience: the docs site holds the technical reference in English, while the in-product
   `/methodology` page holds the localised interpretation guide that issue #42 actually asks for. They do not duplicate.
 - S5b requires a schema migration that S5a does not, because a public Telegram channel has no individual recipients.
