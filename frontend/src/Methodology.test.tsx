@@ -60,4 +60,11 @@ describe('Methodology', () => {
     const { container } = render(<Methodology locale="en" />)
     expect(container.textContent).not.toMatch(/\brisk 0\.\d\d\b/i)
   })
+
+  it('shows the risk boundaries and methodology version to the reader', () => {
+    const { container } = render(<Methodology locale="en" />)
+    expect(container.textContent).toContain('0.30')
+    expect(container.textContent).toContain('0.70')
+    expect(container.textContent).toContain('crypto-scout-canonical-v1.1')
+  })
 })

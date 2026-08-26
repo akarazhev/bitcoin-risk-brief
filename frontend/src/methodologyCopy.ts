@@ -56,7 +56,7 @@ export const methodologyCopy: Record<Locale, MethodologyCopy> = {
       {
         heading: "When not to trust today's number.",
         body: [
-          "The data has to be current and it has to have passed validation. When it is not, the API returns HTTP 503 rather than a stale figure, and this page says so instead of quietly showing yesterday's value. A number without its date is not usable, which is why the covered date travels with every response.",
+          'The data has to be current and it has to have passed validation. A separate readiness check reports both, and it answers with HTTP 503 instead of a green light when either fails. The data endpoints behave differently on purpose: they keep returning the last rows they hold, so a value means nothing without the covered date beside it and a readiness state that agrees. This page shows both, and says plainly when the data has fallen behind.',
         ],
       },
       {
@@ -68,7 +68,7 @@ export const methodologyCopy: Record<Locale, MethodologyCopy> = {
       {
         heading: 'What happens when the methodology changes.',
         body: [
-          'The version is stamped on every response — currently crypto-scout-canonical-v1.1. A change that alters the numbers gets a new version string, so a value you recorded earlier can always be traced to the rules that produced it.',
+          'The methodology carries a version, currently crypto-scout-canonical-v1.1, reported by the readiness check and alongside the level ladder. A change that alters the numbers gets a new version string, so a value recorded earlier can always be traced back to the rules that produced it.',
         ],
       },
     ],
@@ -112,7 +112,7 @@ export const methodologyCopy: Record<Locale, MethodologyCopy> = {
       {
         heading: 'Когда не следует доверять сегодняшнему числу.',
         body: [
-          'Данные должны быть актуальными и пройти проверку. Если это не так, API возвращает HTTP 503 вместо устаревшего значения, а страница сообщает об этом, а не незаметно показывает вчерашнее число. Число без даты непригодно для использования, поэтому дата покрытия передаётся в каждом ответе.',
+          'Данные должны быть актуальными и пройти проверку. Отдельная проверка готовности сообщает оба состояния и отвечает HTTP 503 вместо сигнала готовности, если любое из них не выполнено. Эндпоинты данных намеренно ведут себя иначе: они продолжают возвращать последние сохранённые строки, поэтому значение ничего не значит без даты покрытия и согласующегося с ней состояния готовности. Эта страница показывает и то и другое и прямо сообщает, когда данные отстают.',
         ],
       },
       {
@@ -124,7 +124,7 @@ export const methodologyCopy: Record<Locale, MethodologyCopy> = {
       {
         heading: 'Что происходит при изменении методологии.',
         body: [
-          'Версия указывается в каждом ответе — сейчас это crypto-scout-canonical-v1.1. Изменение, влияющее на числа, получает новую строку версии, поэтому ранее записанное значение всегда можно связать с правилами, по которым оно было рассчитано.',
+          'Методология имеет версию — сейчас это crypto-scout-canonical-v1.1, — которую сообщают проверка готовности и лестница уровней. Изменение, влияющее на числа, получает новую строку версии, поэтому ранее записанное значение всегда можно связать с правилами, по которым оно было рассчитано.',
         ],
       },
     ],
@@ -168,7 +168,7 @@ export const methodologyCopy: Record<Locale, MethodologyCopy> = {
       {
         heading: '什么时候不应信任今天的数值。',
         body: [
-          '数据必须是最新的，并且必须通过验证。否则，API 会返回 HTTP 503，而不是陈旧数值；本页面也会明确说明，而不会悄悄显示昨天的数值。没有日期的数值无法使用，因此每个响应都会附带其覆盖日期。',
+          '数据必须是最新的，并且必须通过验证。单独的就绪检查会报告这两项；只要任一项失败，它就会返回 HTTP 503，而不是绿色就绪信号。数据端点有意采用不同的行为：它们继续返回所保存的最新数据行，因此如果没有对应的覆盖日期和一致的就绪状态，数值本身没有意义。本页面会同时显示两者，并在数据滞后时明确说明。',
         ],
       },
       {
@@ -180,7 +180,7 @@ export const methodologyCopy: Record<Locale, MethodologyCopy> = {
       {
         heading: '方法发生变化时会怎样。',
         body: [
-          '每个响应都会标注版本，目前为 crypto-scout-canonical-v1.1。任何会改变数值的调整都会获得新的版本字符串，因此你之前记录的数值始终可以追溯到生成它的规则。',
+          '该方法带有版本，目前为 crypto-scout-canonical-v1.1；就绪检查会报告该版本，风险等级阶梯旁也会显示。任何会改变数值的调整都会获得新的版本字符串，因此你之前记录的数值始终可以追溯到生成它的规则。',
         ],
       },
     ],
@@ -224,7 +224,7 @@ export const methodologyCopy: Record<Locale, MethodologyCopy> = {
       {
         heading: 'Wann man der heutigen Zahl nicht vertrauen sollte.',
         body: [
-          'Die Daten müssen aktuell sein und die Validierung bestanden haben. Ist das nicht der Fall, gibt die API HTTP 503 statt eines veralteten Werts zurück, und diese Seite weist darauf hin, anstatt unbemerkt den gestrigen Wert zu zeigen. Eine Zahl ohne Datum ist nicht verwendbar; deshalb wird das abgedeckte Datum mit jeder Antwort übermittelt.',
+          'Die Daten müssen aktuell sein und die Validierung bestanden haben. Eine separate Bereitschaftsprüfung meldet beides und antwortet mit HTTP 503 statt mit grünem Licht, wenn eine der Prüfungen fehlschlägt. Die Datenendpunkte verhalten sich absichtlich anders: Sie liefern weiterhin die zuletzt gespeicherten Zeilen. Ein Wert bedeutet daher nichts ohne das zugehörige Abdeckungsdatum und einen dazu passenden Bereitschaftsstatus. Diese Seite zeigt beides und weist klar darauf hin, wenn die Daten zurückliegen.',
         ],
       },
       {
@@ -236,7 +236,7 @@ export const methodologyCopy: Record<Locale, MethodologyCopy> = {
       {
         heading: 'Was bei einer Änderung der Methodik geschieht.',
         body: [
-          'Jede Antwort trägt eine Versionsangabe — derzeit crypto-scout-canonical-v1.1. Eine Änderung, die die Zahlen verändert, erhält eine neue Versionszeichenfolge. So lässt sich ein früher aufgezeichneter Wert immer auf die Regeln zurückführen, die ihn erzeugt haben.',
+          'Die Methodik trägt eine Version, derzeit crypto-scout-canonical-v1.1, die von der Bereitschaftsprüfung und neben der Stufenleiter gemeldet wird. Eine Änderung, die die Zahlen verändert, erhält eine neue Versionszeichenfolge. So lässt sich ein früher aufgezeichneter Wert immer auf die Regeln zurückführen, die ihn erzeugt haben.',
         ],
       },
     ],
@@ -280,7 +280,7 @@ export const methodologyCopy: Record<Locale, MethodologyCopy> = {
       {
         heading: 'Quand ne pas faire confiance au chiffre du jour.',
         body: [
-          'Les données doivent être à jour et avoir passé la validation. Sinon, l’API renvoie HTTP 503 plutôt qu’un chiffre périmé, et cette page l’indique au lieu d’afficher discrètement la valeur de la veille. Un chiffre sans date n’est pas exploitable, raison pour laquelle la date couverte accompagne chaque réponse.',
+          'Les données doivent être à jour et avoir passé la validation. Un contrôle de disponibilité séparé indique ces deux états et répond avec HTTP 503 plutôt qu’avec un feu vert si l’un d’eux échoue. Les points de terminaison de données se comportent volontairement autrement : ils continuent de renvoyer les dernières lignes qu’ils détiennent. Une valeur ne signifie donc rien sans la date couverte et un état de disponibilité concordant. Cette page affiche les deux et indique clairement lorsque les données ont pris du retard.',
         ],
       },
       {
@@ -292,7 +292,7 @@ export const methodologyCopy: Record<Locale, MethodologyCopy> = {
       {
         heading: 'Ce qui se passe lorsque la méthodologie change.',
         body: [
-          'La version figure sur chaque réponse — actuellement crypto-scout-canonical-v1.1. Toute modification qui change les chiffres reçoit une nouvelle chaîne de version, afin qu’une valeur enregistrée auparavant puisse toujours être rattachée aux règles qui l’ont produite.',
+          'La méthodologie porte une version, actuellement crypto-scout-canonical-v1.1, indiquée par le contrôle de disponibilité et à côté de l’échelle des niveaux. Toute modification qui change les chiffres reçoit une nouvelle chaîne de version, afin qu’une valeur enregistrée auparavant puisse toujours être rattachée aux règles qui l’ont produite.',
         ],
       },
     ],
@@ -336,7 +336,7 @@ export const methodologyCopy: Record<Locale, MethodologyCopy> = {
       {
         heading: 'Cuándo no confiar en la cifra de hoy.',
         body: [
-          'Los datos deben estar actualizados y haber superado la validación. Cuando no es así, la API devuelve HTTP 503 en lugar de una cifra obsoleta, y esta página lo indica en vez de mostrar discretamente el valor de ayer. Una cifra sin fecha no se puede utilizar, por eso la fecha cubierta acompaña a cada respuesta.',
+          'Los datos deben estar actualizados y haber superado la validación. Una comprobación de disponibilidad separada informa de ambas cosas y responde con HTTP 503 en lugar de dar luz verde cuando alguna falla. Los endpoints de datos se comportan de otra forma a propósito: siguen devolviendo las últimas filas que conservan. Por eso, un valor no significa nada sin la fecha cubierta y un estado de disponibilidad que coincida. Esta página muestra ambos y avisa claramente cuando los datos se han quedado atrás.',
         ],
       },
       {
@@ -348,7 +348,7 @@ export const methodologyCopy: Record<Locale, MethodologyCopy> = {
       {
         heading: 'Qué ocurre cuando cambia la metodología.',
         body: [
-          'La versión aparece en cada respuesta; actualmente es crypto-scout-canonical-v1.1. Un cambio que altere las cifras recibe una nueva cadena de versión, de modo que cualquier valor registrado anteriormente siempre pueda vincularse con las reglas que lo produjeron.',
+          'La metodología lleva una versión, actualmente crypto-scout-canonical-v1.1, que se informa en la comprobación de disponibilidad y junto a la escala de niveles. Un cambio que altere las cifras recibe una nueva cadena de versión, de modo que cualquier valor registrado anteriormente siempre pueda vincularse con las reglas que lo produjeron.',
         ],
       },
     ],
@@ -392,7 +392,7 @@ export const methodologyCopy: Record<Locale, MethodologyCopy> = {
       {
         heading: 'متى ينبغي عدم الوثوق برقم اليوم.',
         body: [
-          'يجب أن تكون البيانات حديثة وأن تكون قد اجتازت التحقق. وعندما لا تكون كذلك، تعيد الواجهة البرمجية HTTP 503 بدلًا من رقم قديم، وتوضح الصفحة ذلك بدلًا من عرض قيمة الأمس بصمت. لا يمكن استخدام رقم من دون تاريخه، ولذلك يرافق تاريخ التغطية كل استجابة.',
+          'يجب أن تكون البيانات حديثة وأن تكون قد اجتازت التحقق. يبلّغ فحص جاهزية منفصل عن الأمرين، ويرد بحالة HTTP 503 بدلًا من إشارة خضراء إذا فشل أي منهما. وتتصرف نقاط نهاية البيانات بصورة مختلفة عن قصد: فهي تواصل إعادة آخر الصفوف المحفوظة لديها، لذلك لا تعني القيمة شيئًا من دون تاريخ التغطية الموافق لها وحالة جاهزية متسقة معه. تعرض هذه الصفحة الأمرين وتوضح صراحةً عندما تتأخر البيانات.',
         ],
       },
       {
@@ -404,7 +404,7 @@ export const methodologyCopy: Record<Locale, MethodologyCopy> = {
       {
         heading: 'ما الذي يحدث عند تغيير المنهجية.',
         body: [
-          'يُثبت الإصدار على كل استجابة، وهو حاليًا crypto-scout-canonical-v1.1. ويحصل أي تغيير يعدّل الأرقام على سلسلة إصدار جديدة، بحيث يمكن دائمًا تتبع أي قيمة سجلتها سابقًا إلى القواعد التي أنتجتها.',
+          'تحمل المنهجية إصدارًا، وهو حاليًا crypto-scout-canonical-v1.1، ويبلّغ عنه فحص الجاهزية ويظهر بجانب سُلّم المستويات. ويحصل أي تغيير يعدّل الأرقام على سلسلة إصدار جديدة، بحيث يمكن دائمًا تتبع أي قيمة سجلتها سابقًا إلى القواعد التي أنتجتها.',
         ],
       },
     ],
