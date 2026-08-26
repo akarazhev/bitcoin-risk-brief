@@ -271,7 +271,7 @@ function resizeChartWhenReady(chart: { resize: (opts?: typeof AUTO_CHART_SIZE) =
 }
 
 export default function App() {
-  const [locale, setLocale] = useState<Locale>(() =>
+  const [locale] = useState<Locale>(() =>
     resolveInitialLocale(typeof navigator === 'undefined' ? undefined : navigator.languages),
   )
   const [latest, setLatest] = useState<RiskPoint | null>(null)
@@ -549,10 +549,7 @@ export default function App() {
             label={t.languageSelector}
             locale={locale}
             options={localeOptions}
-            onLocaleChange={(nextLocale) => {
-              setTurnstileToken(null)
-              setLocale(nextLocale)
-            }}
+            route="home"
           />
         </div>
       </nav>

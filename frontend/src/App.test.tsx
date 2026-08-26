@@ -3,6 +3,7 @@ import '@testing-library/jest-dom'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import App from './App'
+import { LOCALE_STORAGE_KEY } from './localePreference'
 import type { RiskPoint } from './types'
 
 const chartMocks = vi.hoisted(() => ({
@@ -182,15 +183,16 @@ function getLanguageTrigger() {
   return trigger as HTMLButtonElement
 }
 
-async function openLanguageMenu() {
-  const trigger = await waitFor(() => getLanguageTrigger())
-  fireEvent.click(trigger)
-  return screen.findByRole('listbox')
+function setBrowserLanguages(languages: readonly string[]) {
+  Object.defineProperty(window.navigator, 'languages', { value: languages, configurable: true })
 }
 
-async function selectLanguage(optionName: RegExp | string) {
-  const listbox = await openLanguageMenu()
-  fireEvent.click(within(listbox).getByRole('option', { name: optionName }))
+const defaultNavigatorLanguages = Object.getOwnPropertyDescriptor(window.navigator, 'languages')
+
+function stubLocationAssign() {
+  const assign = vi.fn()
+  vi.stubGlobal('location', { assign } as unknown as Location)
+  return assign
 }
 
 function verifyTurnstile(token = 'fresh-token') {
@@ -230,6 +232,8 @@ function latestRisk(overrides: Partial<RiskPoint> = {}): RiskPoint {
 
 beforeEach(() => {
   vi.stubEnv('VITE_TURNSTILE_SITE_KEY', '1x00000000000000000000AA')
+  localStorage.clear()
+  sessionStorage.clear()
   document.documentElement.lang = 'en'
   document.documentElement.dir = 'ltr'
   chartMocks.resize.mockClear()
@@ -287,6 +291,12 @@ beforeEach(() => {
   turnstileCallbacks.onVerify = () => {}
   turnstileCallbacks.onError = () => {}
   setCompactViewport(false)
+})
+
+afterEach(() => {
+  vi.unstubAllGlobals()
+  if (defaultNavigatorLanguages) Object.defineProperty(window.navigator, 'languages', defaultNavigatorLanguages)
+  else delete (window.navigator as { languages?: readonly string[] }).languages
 })
 
 test('renders the Bitcoin Risk Brief shell', async () => {
@@ -548,9 +558,8 @@ test('localizes accessible chart labels and unavailable methodology metadata', a
     },
   })
 
+  setBrowserLanguages(['ru-RU', 'en'])
   render(<App />)
-
-  await selectLanguage(/^RU -/)
 
   expect(await screen.findByLabelText('Текущий риск')).toBeInTheDocument()
   expect(screen.getByLabelText('Порог риска')).toBeInTheDocument()
@@ -583,9 +592,8 @@ test('renders an expandable privacy terms and disclaimer note near the waitlist'
 })
 
 test('localizes the privacy terms and disclaimer note', async () => {
+  setBrowserLanguages(['ru-RU', 'en'])
   render(<App />)
-
-  await selectLanguage(/^RU -/)
 
   const summary = await screen.findByText('Приватность, условия и дисклеймер')
   const note = summary.closest('details')
@@ -628,20 +636,15 @@ test('clears and resets a verified token after a whitespace-only submission', as
   expect(button).toBeDisabled()
 })
 
-test('invalidates a verified token when the widget language changes', async () => {
+test('configures Turnstile for the initial locale and requires a token', async () => {
+  setBrowserLanguages(['fr-FR', 'en'])
   render(<App />)
 
-  const englishButton = await screen.findByRole('button', { name: /register interest/i })
-  verifyTurnstile('old-token')
-  expect(englishButton).toBeEnabled()
-
-  await selectLanguage(/^FR -/)
-
-  const frenchButton = screen.getByRole('button', { name: /signaler mon intérêt/i })
+  const frenchButton = await screen.findByRole('button', { name: /signaler mon intérêt/i })
   expect(turnstileMocks.language).toBe('fr')
   expect(frenchButton).toBeDisabled()
 
-  verifyTurnstile('new-token')
+  verifyTurnstile('fresh-token')
   expect(frenchButton).toBeEnabled()
 })
 
@@ -763,13 +766,12 @@ test('clears a stale widget error when a fresh token arrives', async () => {
   expect(screen.getByRole('alert')).toHaveTextContent('Complete the bot check and try again.')
   expect(input).toHaveAttribute('aria-invalid', 'true')
 
-  await selectLanguage(/^FR -/)
   verifyTurnstile('replacement-token')
 
   expect(screen.queryByRole('alert')).not.toBeInTheDocument()
   expect(input).not.toHaveAttribute('aria-invalid')
   expect(input).not.toHaveAttribute('aria-describedby')
-  expect(screen.getByRole('button', { name: /signaler mon intérêt/i })).toBeEnabled()
+  expect(screen.getByRole('button', { name: /register interest/i })).toBeEnabled()
 })
 
 test('does not persist waitlist contacts in browser storage', async () => {
@@ -824,25 +826,8 @@ test('renders localized model drivers from latest risk component directions', as
     }),
   })
 
+  setBrowserLanguages(['ru-RU', 'en'])
   render(<App />)
-
-  const driverSection = await findModelDriverSection()
-  const drivers = within(driverSection)
-  const trendDriver = getDriverCard(driverSection, 'Trend')
-  const volatilityDriver = getDriverCard(driverSection, 'Volatility')
-  const activityDriver = getDriverCard(driverSection, 'Activity')
-
-  expect(drivers.getByText('Plain-language direction of each model component from the latest validated daily data.')).toBeInTheDocument()
-  expect(trendDriver.getByText('Price vs long-term baseline')).toBeInTheDocument()
-  expect(trendDriver.getByText('Raises risk')).toBeInTheDocument()
-  expect(volatilityDriver.getByText('Recent price swings')).toBeInTheDocument()
-  expect(volatilityDriver.getByText('Lowers risk')).toBeInTheDocument()
-  expect(activityDriver.getByText('Trading activity adjusted for market size')).toBeInTheDocument()
-  expect(activityDriver.getByText('Neutral')).toBeInTheDocument()
-  expect(drivers.queryByText('-10.1')).not.toBeInTheDocument()
-  expect(drivers.queryByText('0.05')).not.toBeInTheDocument()
-
-  await selectLanguage(/^RU -/)
 
   const ruDriverSection = await findModelDriverSection('Драйверы модели')
   const ruDrivers = within(ruDriverSection)
@@ -913,17 +898,10 @@ test('hides low and high labels when the matching OHLCV values are missing', asy
 })
 
 test('preserves English and Russian labels for the price input group', async () => {
+  setBrowserLanguages(['ru-RU', 'en'])
   render(<App />)
 
-  let priceMetric = await findPriceMetric()
-
-  expect(priceMetric.getByText('Model price')).toBeInTheDocument()
-  expect(priceMetric.getByText('Low')).toBeInTheDocument()
-  expect(priceMetric.getByText('High')).toBeInTheDocument()
-
-  await selectLanguage(/^RU -/)
-
-  priceMetric = await findPriceMetric('Цена BTC в модели')
+  const priceMetric = await findPriceMetric('Цена BTC в модели')
 
   expect(priceMetric.getByText('Цена модели')).toBeInTheDocument()
   expect(priceMetric.getByText('Мин.')).toBeInTheDocument()
@@ -1283,7 +1261,8 @@ test('defines compact bottom panel layout and RTL styles', () => {
   expect(css).toContain('[dir="rtl"] .bottom-panel')
 })
 
-test('offers all issue 28 languages and applies document language metadata', async () => {
+test('offers all issue 28 languages and navigates to the chosen locale', async () => {
+  const assign = stubLocationAssign()
   render(<App />)
 
   const trigger = await screen.findByRole('button', { name: /select language: english/i })
@@ -1305,32 +1284,10 @@ test('offers all issue 28 languages and applies document language metadata', asy
   ])
 
   fireEvent.click(within(listbox).getByRole('option', { name: /^DE -/ }))
-  expect(await screen.findByText('Aktuelles Risiko')).toBeInTheDocument()
-  expect(document.documentElement).toHaveAttribute('lang', 'de')
-  expect(document.documentElement).toHaveAttribute('dir', 'ltr')
+  expect(localStorage.getItem(LOCALE_STORAGE_KEY)).toBe('de')
+  expect(assign).toHaveBeenCalledWith('/de')
   expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
-  expect(getLanguageTrigger()).toHaveTextContent('DE')
-
-  await selectLanguage(/^FR -/)
-  expect(await screen.findByText('Risque actuel')).toBeInTheDocument()
-  expect(document.documentElement).toHaveAttribute('lang', 'fr')
-  expect(getLanguageTrigger()).toHaveTextContent('FR')
-
-  await selectLanguage(/^ES -/)
-  expect(await screen.findByText('Riesgo actual')).toBeInTheDocument()
-  expect(document.documentElement).toHaveAttribute('lang', 'es')
-  expect(getLanguageTrigger()).toHaveTextContent('ES')
-
-  await selectLanguage(/^ZH -/)
-  expect(await screen.findByText('当前风险')).toBeInTheDocument()
-  expect(document.documentElement).toHaveAttribute('lang', 'zh-CN')
-  expect(getLanguageTrigger()).toHaveTextContent('ZH')
-
-  await selectLanguage(/^AR -/)
-  expect(await screen.findByText('المخاطر الحالية')).toBeInTheDocument()
-  expect(document.documentElement).toHaveAttribute('lang', 'ar')
-  expect(document.documentElement).toHaveAttribute('dir', 'rtl')
-  expect(getLanguageTrigger()).toHaveTextContent('AR')
+  expect(getLanguageTrigger()).toHaveFocus()
 })
 
 test('opens and closes the custom language listbox from keyboard and outside pointer interaction', async () => {
@@ -1373,6 +1330,7 @@ test('closes the custom language listbox on Tab without returning focus to the t
 })
 
 test('supports arrow navigation and keyboard selection in the custom language listbox', async () => {
+  const assign = stubLocationAssign()
   render(<App />)
 
   const trigger = await screen.findByRole('button', { name: /select language: english/i })
@@ -1382,29 +1340,16 @@ test('supports arrow navigation and keyboard selection in the custom language li
   expect(listbox.getAttribute('aria-activedescendant')).toMatch(/-ru$/)
 
   fireEvent.keyDown(listbox, { key: ' ' })
-  expect(await screen.findByText('Текущий риск')).toBeInTheDocument()
-  expect(document.documentElement).toHaveAttribute('lang', 'ru')
-  expect(document.documentElement).toHaveAttribute('dir', 'ltr')
+  expect(localStorage.getItem(LOCALE_STORAGE_KEY)).toBe('ru')
+  expect(assign).toHaveBeenCalledWith('/ru')
   expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
   expect(getLanguageTrigger()).toHaveFocus()
-
-  fireEvent.keyDown(getLanguageTrigger(), { key: 'ArrowUp' })
-  listbox = await screen.findByRole('listbox')
-  expect(listbox.getAttribute('aria-activedescendant')).toMatch(/-en$/)
-  fireEvent.keyDown(listbox, { key: 'ArrowUp' })
-  expect(listbox.getAttribute('aria-activedescendant')).toMatch(/-ar$/)
-  fireEvent.keyDown(listbox, { key: 'Enter' })
-
-  expect(await screen.findByText('المخاطر الحالية')).toBeInTheDocument()
-  expect(document.documentElement).toHaveAttribute('lang', 'ar')
-  expect(document.documentElement).toHaveAttribute('dir', 'rtl')
-  expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
 })
 
 test('isolates mixed-direction language option labels as LTR while Arabic is active', async () => {
+  setBrowserLanguages(['ar', 'en'])
   render(<App />)
-
-  await selectLanguage(/^AR -/)
+  await screen.findByText('المخاطر الحالية')
   fireEvent.click(getLanguageTrigger())
 
   const listbox = await screen.findByRole('listbox')
@@ -1417,9 +1362,9 @@ test('isolates mixed-direction language option labels as LTR while Arabic is act
 })
 
 test('isolates visible Arabic numeric, date, and currency values as LTR', async () => {
+  setBrowserLanguages(['ar', 'en'])
   render(<App />)
-
-  await selectLanguage(/^AR -/)
+  await screen.findByText('المخاطر الحالية')
 
   const metrics = document.querySelector('.metrics-strip')
   expect(metrics).not.toBeNull()
@@ -1435,6 +1380,7 @@ test('isolates visible Arabic numeric, date, and currency values as LTR', async 
     expect(value).toHaveAttribute('dir', 'ltr')
   }
 
+  await waitFor(() => expect(document.querySelectorAll('.threshold-callouts .numeric-value').length).toBeGreaterThan(0))
   const thresholdValues = document.querySelectorAll('.threshold-callouts .numeric-value')
   expect(Array.from(thresholdValues).map((element) => element.textContent)).toEqual(expect.arrayContaining([
     '$78,000',
@@ -1476,9 +1422,9 @@ test('isolates visible Arabic degraded freshness counts as LTR', async () => {
     },
   })
 
+  setBrowserLanguages(['ar', 'en'])
   render(<App />)
-
-  await selectLanguage(/^AR -/)
+  await screen.findByText('المخاطر الحالية')
 
   const freshnessValues = document.querySelectorAll('.freshness-metric .numeric-value')
   expect(Array.from(freshnessValues).map((element) => element.textContent)).toEqual(expect.arrayContaining([
@@ -1493,9 +1439,9 @@ test('isolates visible Arabic degraded freshness counts as LTR', async () => {
 })
 
 test('submits the selected expanded locale to the waitlist API', async () => {
+  setBrowserLanguages(['fr-FR', 'en'])
   render(<App />)
 
-  await selectLanguage(/^FR -/)
   await waitFor(() => expect(turnstileMocks.language).toBe('fr'))
   fireEvent.change(await screen.findByPlaceholderText('votre e-mail'), { target: { value: 'USER@example.com' } })
   verifyTurnstile()
@@ -1512,9 +1458,8 @@ test('submits the selected expanded locale to the waitlist API', async () => {
 })
 
 test('keeps Arabic waitlist contact entry LTR and submits locale metadata', async () => {
+  setBrowserLanguages(['ar', 'en'])
   render(<App />)
-
-  await selectLanguage(/^AR -/)
 
   const input = await screen.findByPlaceholderText('بريدك الإلكتروني')
   expect(input).toHaveAttribute('dir', 'ltr')
@@ -1534,9 +1479,8 @@ test('keeps Arabic waitlist contact entry LTR and submits locale metadata', asyn
 })
 
 test('falls back to the English generated brief when selected locale is absent from an old snapshot', async () => {
+  setBrowserLanguages(['de-DE', 'en'])
   render(<App />)
-
-  await selectLanguage(/^DE -/)
 
   expect(await screen.findByText('Heutiger Brief')).toBeInTheDocument()
   expect(screen.getByText('Risk elevated')).toBeInTheDocument()

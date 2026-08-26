@@ -3,12 +3,14 @@ import type { KeyboardEvent as ReactKeyboardEvent } from 'react'
 import { Languages } from 'lucide-react'
 import type { LocaleOption } from './locales'
 import type { Locale } from './types'
+import { storeLocale } from './localePreference'
+import { urlPathFor, type RouteName } from './routes'
 
 type LanguageSelectProps = {
   label: string
   locale: Locale
   options: readonly LocaleOption[]
-  onLocaleChange: (locale: Locale) => void
+  route: RouteName
 }
 
 function wrappedIndex(index: number, length: number) {
@@ -19,7 +21,7 @@ function optionId(listboxId: string, option: LocaleOption) {
   return `${listboxId}-${option.code}`
 }
 
-export function LanguageSelect({ label, locale, options, onLocaleChange }: LanguageSelectProps) {
+export function LanguageSelect({ label, locale, options, route }: LanguageSelectProps) {
   const listboxId = useId()
   const rootRef = useRef<HTMLDivElement>(null)
   const buttonRef = useRef<HTMLButtonElement>(null)
@@ -60,8 +62,13 @@ export function LanguageSelect({ label, locale, options, onLocaleChange }: Langu
     setOpen(true)
   }
 
+  const chooseLocale = (next: Locale) => {
+    storeLocale(next)
+    location.assign(urlPathFor(route, next))
+  }
+
   const selectOption = (option: LocaleOption) => {
-    onLocaleChange(option.code)
+    chooseLocale(option.code)
     setOpen(false)
     buttonRef.current?.focus()
   }
