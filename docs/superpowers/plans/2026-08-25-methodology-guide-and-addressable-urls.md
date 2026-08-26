@@ -189,6 +189,8 @@ git commit -m "feat: define the route and locale matrix"
 
 ---
 
+---
+
 ### Task 2: The head builder
 
 **Files:**
@@ -390,202 +392,135 @@ git commit -m "feat: build per-document head metadata"
 ```
 
 ---
-### Task 3: Locale becomes an input, not a guess
+
+---
+
+### Task 3: The locale preference and the language selector
 
 **Files:**
-- Create: `frontend/src/Root.tsx`, `frontend/src/Root.test.tsx`
-- Modify: `frontend/src/App.tsx:273-276`, `frontend/src/main.tsx`, `frontend/src/LanguageSelect.tsx`
+- Create: `frontend/src/localePreference.ts`, `frontend/src/localePreference.test.ts`
+- Modify: `frontend/src/LanguageSelect.tsx`
 
 **Interfaces:**
-- Consumes: `documentForPath`, `urlPathFor`, `RouteName` from Task 1.
+- Consumes: `urlPathFor` and `RouteName` from Task 1, `Locale` from `locales.ts`.
 - Produces:
-  - `function Root(props: { route: RouteName; locale: Locale }): JSX.Element`
-  - `App` changes from `App()` to `App({ locale }: { locale: Locale })`
-  - `const LOCALE_STORAGE_KEY = 'brb.locale'` exported from `Root.tsx`
+  - `const LOCALE_STORAGE_KEY = 'brb.locale'`
+  - `function readStoredLocale(): Locale | null`
+  - `function storeLocale(locale: Locale): void`
+  - `LanguageSelect` gains a required `route: RouteName` prop and navigates instead of calling a setter.
 
-**Locale stops being state.** Each document is one language, so the language cannot change without navigating. This
-deletes a `useState` rather than adding one, and it is what makes a link carry its language.
+**Why this is its own task.** The stored preference is read by two unrelated things: the selector writes it, and the
+home page's automatic hop reads it. Putting it in either one makes the other depend on it, and an earlier draft of
+this plan did exactly that — it declared `LOCALE_STORAGE_KEY` in `Root.tsx` while `LanguageSelect` also needed it,
+which made Task 3 and Task 4 depend on each other. A shared leaf module removes the cycle instead of ordering around
+it.
 
 - [ ] **Step 1: Write the failing test**
 
-Create `frontend/src/Root.test.tsx`:
+Create `frontend/src/localePreference.test.ts`:
 
 ```typescript
-import { render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { LOCALE_STORAGE_KEY, Root } from './Root'
+import { LOCALE_STORAGE_KEY, readStoredLocale, storeLocale } from './localePreference'
 
-const replace = vi.fn()
+beforeEach(() => localStorage.clear())
+afterEach(() => vi.unstubAllGlobals())
 
-beforeEach(() => {
-  localStorage.clear()
-  replace.mockClear()
-  vi.stubGlobal('location', { pathname: '/', replace } as unknown as Location)
-})
-
-afterEach(() => {
-  vi.unstubAllGlobals()
-})
-
-describe('Root', () => {
-  it('renders the guide when the route says so', () => {
-    render(<Root route="methodology" locale="en" />)
-    expect(screen.getByRole('heading', { level: 1 })).toBeTruthy()
+describe('locale preference', () => {
+  it('round-trips a supported locale', () => {
+    storeLocale('ru')
+    expect(localStorage.getItem(LOCALE_STORAGE_KEY)).toBe('ru')
+    expect(readStoredLocale()).toBe('ru')
   })
 
-  it('sends a first-time visitor from the English root to their own language', () => {
-    vi.stubGlobal('navigator', { languages: ['ru-RU', 'ru'] } as unknown as Navigator)
-    render(<Root route="home" locale="en" />)
-    expect(replace).toHaveBeenCalledWith('/ru')
+  it('reports no preference when nothing was stored', () => {
+    expect(readStoredLocale()).toBeNull()
   })
 
-  it('never redirects away from a locale that is already in the URL', () => {
-    vi.stubGlobal('navigator', { languages: ['ru-RU'] } as unknown as Navigator)
-    render(<Root route="home" locale="de" />)
-    expect(replace).not.toHaveBeenCalled()
+  it('ignores a stored value that is not a supported locale', () => {
+    localStorage.setItem(LOCALE_STORAGE_KEY, 'klingon')
+    expect(readStoredLocale()).toBeNull()
   })
 
-  it('never redirects once a language was chosen by hand', () => {
-    localStorage.setItem(LOCALE_STORAGE_KEY, 'en')
-    vi.stubGlobal('navigator', { languages: ['ru-RU'] } as unknown as Navigator)
-    render(<Root route="home" locale="en" />)
-    expect(replace).not.toHaveBeenCalled()
-  })
-
-  it('does not redirect a visitor whose language is already English', () => {
-    vi.stubGlobal('navigator', { languages: ['en-GB'] } as unknown as Navigator)
-    render(<Root route="home" locale="en" />)
-    expect(replace).not.toHaveBeenCalled()
-  })
-
-  it('never redirects away from the guide, only from the home page', () => {
-    vi.stubGlobal('navigator', { languages: ['ru-RU'] } as unknown as Navigator)
-    render(<Root route="methodology" locale="en" />)
-    expect(replace).not.toHaveBeenCalled()
+  it('survives storage that throws, as private modes do', () => {
+    vi.stubGlobal('localStorage', {
+      getItem() { throw new Error('denied') },
+      setItem() { throw new Error('denied') },
+    } as unknown as Storage)
+    expect(readStoredLocale()).toBeNull()
+    expect(() => storeLocale('de')).not.toThrow()
   })
 })
 ```
 
-- [ ] **Step 2: Run the test and watch it fail**
+- [ ] **Step 2: Run it and watch it fail**
 
-Run: `npm test --prefix frontend -- src/Root.test.tsx`
-Expected: FAIL — `Failed to resolve import "./Root"`.
+Run: `npm test --prefix frontend -- src/localePreference.test.ts`
+Expected: FAIL — `Failed to resolve import "./localePreference"`.
 
-- [ ] **Step 3: Write `Root.tsx`**
+- [ ] **Step 3: Write the module**
+
+Create `frontend/src/localePreference.ts`:
 
 ```typescript
-import { useEffect } from 'react'
-import App from './App'
-import Methodology from './Methodology'
-import { resolveInitialLocale, type Locale } from './locales'
-import { urlPathFor, type RouteName } from './routes'
+import { supportedLocales, type Locale } from './locales'
 
 export const LOCALE_STORAGE_KEY = 'brb.locale'
 
-function readStoredLocale(): string | null {
+function isLocale(value: string | null): value is Locale {
+  return value !== null && (supportedLocales as readonly string[]).includes(value)
+}
+
+export function readStoredLocale(): Locale | null {
   try {
-    return localStorage.getItem(LOCALE_STORAGE_KEY)
+    const stored = localStorage.getItem(LOCALE_STORAGE_KEY)
+    return isLocale(stored) ? stored : null
   } catch {
-    // Private browsing modes can throw on access. A missing preference is the safe answer.
+    // Private browsing can throw on access. No preference is the safe answer.
     return null
   }
 }
 
-export function Root({ route, locale }: { route: RouteName; locale: Locale }) {
-  useEffect(() => {
-    // Only the unprefixed English home guesses. Every other document states its language in the URL,
-    // and a visitor who chose by hand is never moved again.
-    if (route !== 'home' || locale !== 'en') return
-    if (readStoredLocale() !== null) return
-    const detected = resolveInitialLocale(navigator?.languages)
-    if (detected === 'en') return
-    location.replace(urlPathFor('home', detected))
-  }, [route, locale])
-
-  return route === 'methodology' ? <Methodology locale={locale} /> : <App locale={locale} />
-}
-
-export default Root
-```
-
-Both a named and a default export: `Root.test.tsx` imports `{ Root }` alongside `LOCALE_STORAGE_KEY`, and
-`main.tsx` and `entry-server.tsx` import the default.
-
-- [ ] **Step 4: Make `App` take its locale**
-
-In `frontend/src/App.tsx`, replace the locale state at line 273-276:
-
-```typescript
-export default function App() {
-  const [locale, setLocale] = useState<Locale>(() =>
-    resolveInitialLocale(typeof navigator === 'undefined' ? undefined : navigator.languages),
-  )
-```
-
-with:
-
-```typescript
-export default function App({ locale }: { locale: Locale }) {
-```
-
-Then remove the now-unused `setLocale` from wherever `LanguageSelect` receives it, and drop the
-`resolveInitialLocale` import if nothing else in the file uses it. TypeScript will name every site.
-
-- [ ] **Step 5: Make the language selector navigate**
-
-In `frontend/src/LanguageSelect.tsx`, the component currently calls a setter. It now writes the manual choice and
-navigates, so the language lives in the URL:
-
-```typescript
-function chooseLocale(next: Locale) {
+export function storeLocale(locale: Locale): void {
   try {
-    localStorage.setItem(LOCALE_STORAGE_KEY, next)
+    localStorage.setItem(LOCALE_STORAGE_KEY, locale)
   } catch {
     // A failed write only means the automatic hop may run again. Navigation still happens.
   }
+}
+```
+
+- [ ] **Step 4: Run it and watch it pass**
+
+Run: `npm test --prefix frontend -- src/localePreference.test.ts`
+Expected: PASS, 4 tests.
+
+- [ ] **Step 5: Make the selector navigate**
+
+`frontend/src/LanguageSelect.tsx` currently calls a setter passed from `App`. Give it a required `route: RouteName`
+prop and replace the setter call with:
+
+```typescript
+function chooseLocale(next: Locale) {
+  storeLocale(next)
   location.assign(urlPathFor(route, next))
 }
 ```
 
-`LanguageSelect` therefore needs the current `route` as a prop. Pass it from `App` and from `Methodology`.
+Keep the existing markup, ARIA attributes and keyboard behaviour exactly as they are; only the effect of choosing
+changes. `App` passes `route="home"` for now — Task 5 is where `App` stops owning locale entirely.
 
-- [ ] **Step 6: Hydrate instead of mounting**
-
-Replace `frontend/src/main.tsx` entirely:
-
-```typescript
-import React from 'react'
-import ReactDOM from 'react-dom/client'
-import Root from './Root'
-import { documentForPath } from './routes'
-import './App.css'
-
-const current = documentForPath(location.pathname)
-const route = current?.route ?? 'home'
-const locale = current?.locale ?? 'en'
-
-ReactDOM.hydrateRoot(
-  document.getElementById('root')!,
-  <React.StrictMode>
-    <Root route={route} locale={locale} />
-  </React.StrictMode>,
-)
-```
-
-Every served document is prerendered, so hydration is always correct. The fallbacks exist only for `vite dev`, which
-serves `index.html` for any path.
-
-- [ ] **Step 7: Run the tests**
+- [ ] **Step 6: Run the whole suite**
 
 Run: `npm test --prefix frontend`
-Expected: PASS. `App.test.tsx` renders `<App />` and now needs `<App locale="en" />`; update every call site it names.
+Expected: PASS. Any existing test that renders `LanguageSelect` must now pass `route`; TypeScript names each one.
 
-- [ ] **Step 8: Commit**
+- [ ] **Step 7: Commit**
 
 ```bash
-git add frontend/src/Root.tsx frontend/src/Root.test.tsx frontend/src/App.tsx \
-        frontend/src/App.test.tsx frontend/src/main.tsx frontend/src/LanguageSelect.tsx
-git commit -m "feat: take locale from the URL instead of the browser"
+git add frontend/src/localePreference.ts frontend/src/localePreference.test.ts \
+        frontend/src/LanguageSelect.tsx frontend/src/App.tsx
+git commit -m "feat: remember the chosen language and navigate on change"
 ```
 
 ---
@@ -597,7 +532,8 @@ git commit -m "feat: take locale from the URL instead of the browser"
 - Test: `backend/tests/test_methodology_guide.py`
 
 **Interfaces:**
-- Consumes: `Locale` from `locales.ts`, `urlPathFor` from Task 1.
+- Consumes: `Locale` from `locales.ts`, `urlPathFor` from Task 1, and the `route`-aware `LanguageSelect` from
+  Task 3. This task must not import `Root`; `Root` imports it.
 - Produces:
   - `interface MethodologySection { heading: string; body: string[] }`
   - `interface MethodologyCopy { title: string; intro: string; translationNotice: string | null; sections: MethodologySection[]; referenceLinkLabel: string }`
@@ -804,7 +740,187 @@ git commit -m "feat: publish the interpretation guide in seven locales"
 ```
 
 ---
-### Task 5: The prerender
+
+---
+
+### Task 5: Locale becomes an input, not a guess
+
+**Files:**
+- Create: `frontend/src/Root.tsx`, `frontend/src/Root.test.tsx`
+- Modify: `frontend/src/App.tsx:273-276`, `frontend/src/main.tsx`
+
+**Interfaces:**
+- Consumes: `documentForPath`, `urlPathFor`, `RouteName` from Task 1; `LOCALE_STORAGE_KEY` and `readStoredLocale`
+  from Task 3; `Methodology` from Task 4.
+- Produces:
+  - `function Root(props: { route: RouteName; locale: Locale }): JSX.Element`
+  - `App` changes from `App()` to `App({ locale }: { locale: Locale })`
+  - `Root` is exported both by name and as the default
+
+**Locale stops being state.** Each document is one language, so the language cannot change without navigating. This
+deletes a `useState` rather than adding one, and it is what makes a link carry its language.
+
+- [ ] **Step 1: Write the failing test**
+
+Create `frontend/src/Root.test.tsx`:
+
+```typescript
+import { render, screen } from '@testing-library/react'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { LOCALE_STORAGE_KEY } from './localePreference'
+import { Root } from './Root'
+
+const replace = vi.fn()
+
+beforeEach(() => {
+  localStorage.clear()
+  replace.mockClear()
+  vi.stubGlobal('location', { pathname: '/', replace } as unknown as Location)
+})
+
+afterEach(() => {
+  vi.unstubAllGlobals()
+})
+
+describe('Root', () => {
+  it('renders the guide when the route says so', () => {
+    render(<Root route="methodology" locale="en" />)
+    expect(screen.getByRole('heading', { level: 1 })).toBeTruthy()
+  })
+
+  it('sends a first-time visitor from the English root to their own language', () => {
+    vi.stubGlobal('navigator', { languages: ['ru-RU', 'ru'] } as unknown as Navigator)
+    render(<Root route="home" locale="en" />)
+    expect(replace).toHaveBeenCalledWith('/ru')
+  })
+
+  it('never redirects away from a locale that is already in the URL', () => {
+    vi.stubGlobal('navigator', { languages: ['ru-RU'] } as unknown as Navigator)
+    render(<Root route="home" locale="de" />)
+    expect(replace).not.toHaveBeenCalled()
+  })
+
+  it('never redirects once a language was chosen by hand', () => {
+    localStorage.setItem(LOCALE_STORAGE_KEY, 'en')
+    vi.stubGlobal('navigator', { languages: ['ru-RU'] } as unknown as Navigator)
+    render(<Root route="home" locale="en" />)
+    expect(replace).not.toHaveBeenCalled()
+  })
+
+  it('does not redirect a visitor whose language is already English', () => {
+    vi.stubGlobal('navigator', { languages: ['en-GB'] } as unknown as Navigator)
+    render(<Root route="home" locale="en" />)
+    expect(replace).not.toHaveBeenCalled()
+  })
+
+  it('never redirects away from the guide, only from the home page', () => {
+    vi.stubGlobal('navigator', { languages: ['ru-RU'] } as unknown as Navigator)
+    render(<Root route="methodology" locale="en" />)
+    expect(replace).not.toHaveBeenCalled()
+  })
+})
+```
+
+- [ ] **Step 2: Run the test and watch it fail**
+
+Run: `npm test --prefix frontend -- src/Root.test.tsx`
+Expected: FAIL — `Failed to resolve import "./Root"`.
+
+- [ ] **Step 3: Write `Root.tsx`**
+
+```typescript
+import { useEffect } from 'react'
+import App from './App'
+import Methodology from './Methodology'
+import { readStoredLocale } from './localePreference'
+import { resolveInitialLocale, type Locale } from './locales'
+import { urlPathFor, type RouteName } from './routes'
+
+export function Root({ route, locale }: { route: RouteName; locale: Locale }) {
+  useEffect(() => {
+    // Only the unprefixed English home guesses. Every other document states its language in the URL,
+    // and a visitor who chose by hand is never moved again.
+    if (route !== 'home' || locale !== 'en') return
+    if (readStoredLocale() !== null) return
+    const detected = resolveInitialLocale(navigator?.languages)
+    if (detected === 'en') return
+    location.replace(urlPathFor('home', detected))
+  }, [route, locale])
+
+  return route === 'methodology' ? <Methodology locale={locale} /> : <App locale={locale} />
+}
+
+export default Root
+```
+
+Both a named and a default export: `Root.test.tsx` imports `{ Root }` by name, while `main.tsx` and
+`entry-server.tsx` import the default. `LOCALE_STORAGE_KEY` comes from `./localePreference`, not from here — that
+separation is what keeps this task and Task 4 from depending on each other.
+
+- [ ] **Step 4: Make `App` take its locale**
+
+In `frontend/src/App.tsx`, replace the locale state at line 273-276:
+
+```typescript
+export default function App() {
+  const [locale, setLocale] = useState<Locale>(() =>
+    resolveInitialLocale(typeof navigator === 'undefined' ? undefined : navigator.languages),
+  )
+```
+
+with:
+
+```typescript
+export default function App({ locale }: { locale: Locale }) {
+```
+
+Then remove the now-unused `setLocale` from wherever `LanguageSelect` receives it, and drop the
+`resolveInitialLocale` import if nothing else in the file uses it. TypeScript will name every site.
+
+- [ ] **Step 5: Hydrate instead of mounting**
+
+Replace `frontend/src/main.tsx` entirely:
+
+```typescript
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import Root from './Root'
+import { documentForPath } from './routes'
+import './App.css'
+
+const current = documentForPath(location.pathname)
+const route = current?.route ?? 'home'
+const locale = current?.locale ?? 'en'
+
+ReactDOM.hydrateRoot(
+  document.getElementById('root')!,
+  <React.StrictMode>
+    <Root route={route} locale={locale} />
+  </React.StrictMode>,
+)
+```
+
+Every served document is prerendered, so hydration is always correct. The fallbacks exist only for `vite dev`, which
+serves `index.html` for any path.
+
+- [ ] **Step 6: Run the tests**
+
+Run: `npm test --prefix frontend`
+Expected: PASS. `App.test.tsx` renders `<App />` and now needs `<App locale="en" />`; update every call site it names.
+
+- [ ] **Step 7: Commit**
+
+```bash
+git add frontend/src/Root.tsx frontend/src/Root.test.tsx frontend/src/App.tsx \
+        frontend/src/App.test.tsx frontend/src/main.tsx
+git commit -m "feat: take locale from the URL instead of the browser"
+```
+
+---
+
+---
+
+### Task 6: The prerender
 
 **Files:**
 - Create: `frontend/src/entry-server.tsx`, `frontend/scripts/prerender.mjs`, `frontend/src/entry-server.test.tsx`
@@ -812,7 +928,7 @@ git commit -m "feat: publish the interpretation guide in seven locales"
 - Modify: `frontend/src/documentHead.test.ts`, `frontend/src/structuredData.test.ts`
 
 **Interfaces:**
-- Consumes: `Root` from Task 3, `buildHead`/`renderHead` from Task 2, `siteDocuments` from Task 1.
+- Consumes: `Root` from Task 5, `buildHead`/`renderHead` from Task 2, `siteDocuments` from Task 1.
 - Produces: `function renderDocument(route: RouteName, locale: Locale): { html: string; head: string; lang: string; dir: string }`
   exported from `entry-server.tsx`.
 
@@ -1033,7 +1149,9 @@ git commit -m "feat: prerender every document at build time"
 
 ---
 
-### Task 6: Serving
+---
+
+### Task 7: Serving
 
 **Files:**
 - Modify: `frontend/nginx.conf`, `frontend/public/sitemap.xml`, `frontend/public/llms.txt`
@@ -1188,6 +1306,9 @@ git commit -m "feat: serve the addressable routes and list them for agents"
 ```
 
 ---
+
+---
+
 
 ## Verification Summary
 
