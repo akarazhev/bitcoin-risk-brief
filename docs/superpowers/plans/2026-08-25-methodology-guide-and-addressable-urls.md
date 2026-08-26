@@ -252,6 +252,17 @@ describe('buildHead', () => {
 })
 
 describe('renderHead', () => {
+  it('emits every per-document social tag, and no static one', () => {
+    const html = renderHead(buildHead('home', 'en'))
+    for (const perDocument of ['og:title', 'og:description', 'og:url', 'twitter:title', 'twitter:description']) {
+      expect(html).toContain(perDocument)
+    }
+    // These are identical on all fourteen documents and stay in index.html, outside the marker block.
+    for (const static_ of ['og:image', 'og:site_name', 'og:type', 'twitter:card']) {
+      expect(html).not.toContain(static_)
+    }
+  })
+
   it('emits one canonical link and one alternate per entry', () => {
     const html = renderHead(buildHead('methodology', 'ru'))
     expect(html.match(/rel="canonical"/g)).toHaveLength(1)
@@ -363,6 +374,8 @@ export function renderHead(fields: HeadFields): string {
     `<meta property="og:title" content="${escapeAttribute(fields.title)}" />`,
     `<meta property="og:description" content="${escapeAttribute(fields.description)}" />`,
     `<meta property="og:url" content="${escapeAttribute(fields.canonical)}" />`,
+    `<meta name="twitter:title" content="${escapeAttribute(fields.title)}" />`,
+    `<meta name="twitter:description" content="${escapeAttribute(fields.description)}" />`,
   ]
   for (const alternate of fields.alternates) {
     lines.push(
@@ -377,7 +390,7 @@ export function renderHead(fields: HeadFields): string {
 - [ ] **Step 4: Run the test and watch it pass**
 
 Run: `npm test --prefix frontend -- src/head.test.ts`
-Expected: PASS, 7 tests.
+Expected: PASS, 8 tests.
 
 - [ ] **Step 5: Run the whole frontend suite**
 
@@ -938,15 +951,32 @@ Node is the obvious wrong turn here.
 
 - [ ] **Step 1: Add explicit head markers to the template**
 
-In `frontend/index.html`, wrap the parts that differ per document in markers, leaving charset, viewport and icons
-outside them. The block to enclose is the existing `<title>`, `description`, `canonical`, and every `og:` meta:
+**The criterion, which decides every case: the marker block holds what differs between the fourteen documents.
+Anything identical on all of them stays outside, in a single copy.** Do not sort the tags by prefix — `og:title`
+varies and `og:image` does not, and they sit next to each other.
 
-```html
-    <!--per-document-head-->
-    <title>Bitcoin Risk Brief</title>
-    ...existing description, canonical and og tags...
-    <!--/per-document-head-->
-```
+Move exactly these eight inside `<!--per-document-head-->` … `<!--/per-document-head-->`:
+
+| Tag | Why it varies |
+| --- | --- |
+| `<title>` | localised, and different for the guide |
+| `<meta name="description">` | same |
+| `<link rel="canonical">` | one per document |
+| `<meta property="og:title">` | localised |
+| `<meta property="og:description">` | localised |
+| `<meta property="og:url">` | one per document |
+| `<meta name="twitter:title">` | localised |
+| `<meta name="twitter:description">` | localised |
+| the `WebSite` JSON-LD block | carries `inLanguage` and `url` |
+
+Leave everything else where it is: charset, viewport, the icon links, `og:type`, `og:site_name`, `og:image`,
+`og:image:width`, `og:image:height`, `og:image:alt`, `twitter:card`, and **the `Dataset` JSON-LD block**. The
+`Dataset` describes the data rather than the page, so it is the same on all fourteen; `structuredData.test.ts`
+requires both a `Dataset` and a `WebSite` type to be present, and it is satisfied by the static block plus the one
+`renderHead` emits.
+
+The template holds two `<script type="application/ld+json">` blocks. The first is the `Dataset` and stays put; the
+second is the `WebSite` and moves inside the markers.
 
 Replacing a marked block is deterministic; regex-matching a `<head>` is not.
 
@@ -1132,6 +1162,10 @@ describe.skipIf(!built)('document head', () => {
 ```
 
 The assertion gets stronger: it now checks what is served rather than what is authored.
+
+One detail `structuredData.test.ts` must respect: `dist/index.html` carries `Dataset` and `WebSite`, while
+`dist/methodology.html` carries `Dataset` and `TechArticle`, because `buildHead` emits `TechArticle` for the guide.
+Assert `WebSite` against the home document only, and add a matching `TechArticle` assertion for the guide.
 
 - [ ] **Step 10: Run everything**
 
