@@ -3,9 +3,11 @@ import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 const root = resolve(__dirname, '..')
-const html = readFileSync(resolve(root, 'index.html'), 'utf-8')
+const distIndex = resolve(root, 'dist/index.html')
+const built = existsSync(distIndex)
+const html = built ? readFileSync(distIndex, 'utf-8') : ''
 
-describe('document head', () => {
+describe.skipIf(!built)('document head (requires frontend/dist build)', () => {
   it('declares the svg icon, the png fallback and the apple touch icon', () => {
     expect(html).toContain('<link rel="icon" type="image/svg+xml" href="/favicon.svg"')
     expect(html).toContain('<link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png"')

@@ -245,6 +245,19 @@ class FrontendSecurityHeaderTests(unittest.TestCase):
             with self.subTest(job=job):
                 self.assertNotIn("TURNSTILE_SECRET", _named_yaml_block(workflow, job))
 
+    def test_frontend_build_verifies_generated_documents_after_build(self) -> None:
+        frontend_build = _named_yaml_block(CI_WORKFLOW.read_text(), "frontend-build")
+        build_step = "      - name: Build frontend\n        run: npm run build --prefix frontend"
+        verify_step = (
+            "      - name: Verify the generated documents\n"
+            "        run: npm test --prefix frontend -- "
+            "src/documentHead.test.ts src/structuredData.test.ts"
+        )
+
+        self.assertIn(build_step, frontend_build)
+        self.assertIn(verify_step, frontend_build)
+        self.assertLess(frontend_build.index(build_step), frontend_build.index(verify_step))
+
 
 if __name__ == "__main__":
     unittest.main()

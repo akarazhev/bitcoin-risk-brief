@@ -85,6 +85,8 @@ jobs:
         run: npm ci --prefix frontend
       - name: Build frontend
         run: npm run build --prefix frontend
+      - name: Verify the generated documents
+        run: npm test --prefix frontend -- src/documentHead.test.ts src/structuredData.test.ts
 
   frontend-smoke:
     runs-on: ubuntu-latest

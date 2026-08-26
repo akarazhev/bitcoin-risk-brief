@@ -241,6 +241,23 @@ test('passes a focused axe accessibility scan on the rendered page', async ({ pa
   expect(violations).toEqual([])
 })
 
+test('serves the Russian methodology route as a localized document', async ({ page }) => {
+  await page.goto('/ru/methodology')
+
+  await expect(page.getByRole('heading', { level: 1, name: 'Как читать Bitcoin Risk Brief' })).toBeVisible()
+  await expect.poll(async () => page.evaluate(() => document.documentElement.lang)).toBe('ru')
+
+  const accessibilityScanResults = await new AxeBuilder({ page }).analyze()
+  const violations = accessibilityScanResults.violations.map((violation) => ({
+    id: violation.id,
+    impact: violation.impact,
+    description: violation.description,
+    nodes: violation.nodes.map((node) => node.target),
+  }))
+
+  expect(violations).toEqual([])
+})
+
 test('supports keyboard focus navigation through public controls with mocked waitlist submit', async ({ page, browserName }) => {
   const waitlistPayloads: unknown[] = []
   const pressTab = () => page.keyboard.press(browserName === 'webkit' ? 'Alt+Tab' : 'Tab')

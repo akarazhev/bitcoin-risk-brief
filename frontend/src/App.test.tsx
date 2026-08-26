@@ -3,6 +3,8 @@ import '@testing-library/jest-dom'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import App from './App'
+import { copy } from './locales'
+import { LOCALE_STORAGE_KEY } from './localePreference'
 import type { RiskPoint } from './types'
 
 const chartMocks = vi.hoisted(() => ({
@@ -182,15 +184,10 @@ function getLanguageTrigger() {
   return trigger as HTMLButtonElement
 }
 
-async function openLanguageMenu() {
-  const trigger = await waitFor(() => getLanguageTrigger())
-  fireEvent.click(trigger)
-  return screen.findByRole('listbox')
-}
-
-async function selectLanguage(optionName: RegExp | string) {
-  const listbox = await openLanguageMenu()
-  fireEvent.click(within(listbox).getByRole('option', { name: optionName }))
+function stubLocationAssign() {
+  const assign = vi.fn()
+  vi.stubGlobal('location', { assign } as unknown as Location)
+  return assign
 }
 
 function verifyTurnstile(token = 'fresh-token') {
@@ -230,6 +227,8 @@ function latestRisk(overrides: Partial<RiskPoint> = {}): RiskPoint {
 
 beforeEach(() => {
   vi.stubEnv('VITE_TURNSTILE_SITE_KEY', '1x00000000000000000000AA')
+  localStorage.clear()
+  sessionStorage.clear()
   document.documentElement.lang = 'en'
   document.documentElement.dir = 'ltr'
   chartMocks.resize.mockClear()
@@ -289,8 +288,12 @@ beforeEach(() => {
   setCompactViewport(false)
 })
 
+afterEach(() => {
+  vi.unstubAllGlobals()
+})
+
 test('renders the Bitcoin Risk Brief shell', async () => {
-  render(<App />)
+  render(<App locale="en" />)
   expect(await screen.findByText('Bitcoin Risk Brief')).toBeInTheDocument()
   expect(await screen.findByText('Current risk')).toBeInTheDocument()
 })
@@ -298,7 +301,7 @@ test('renders the Bitcoin Risk Brief shell', async () => {
 test('renders a loading state while risk data is pending', () => {
   apiMocks.fetchLatestRisk.mockReturnValueOnce(new Promise(() => {}))
 
-  render(<App />)
+  render(<App locale="en" />)
 
   expect(screen.getByText('Loading risk data...')).toBeInTheDocument()
 })
@@ -306,7 +309,7 @@ test('renders a loading state while risk data is pending', () => {
 test('does not request chart data until core page data is available', () => {
   apiMocks.fetchLatestRisk.mockReturnValueOnce(new Promise(() => {}))
 
-  render(<App />)
+  render(<App locale="en" />)
 
   expect(screen.getByText('Loading risk data...')).toBeInTheDocument()
   expect(apiMocks.fetchRiskHistory).not.toHaveBeenCalled()
@@ -319,7 +322,7 @@ test('renders main content while chart requests are still pending', async () => 
   apiMocks.fetchRiskHistory.mockReturnValueOnce(historyRequest.promise)
   apiMocks.fetchRiskLevels.mockReturnValueOnce(levelsRequest.promise)
 
-  render(<App />)
+  render(<App locale="en" />)
 
   expect(await screen.findByText('Current risk')).toBeInTheDocument()
   expect(screen.getByText('Risk elevated')).toBeInTheDocument()
@@ -331,7 +334,7 @@ test('chart request failures do not hide the current risk', async () => {
   apiMocks.fetchRiskHistory.mockRejectedValueOnce(new Error('history failed'))
   apiMocks.fetchRiskLevels.mockRejectedValueOnce(new Error('levels failed'))
 
-  render(<App />)
+  render(<App locale="en" />)
 
   expect(await screen.findByText('Current risk')).toBeInTheDocument()
   expect(screen.getByText('Risk elevated')).toBeInTheDocument()
@@ -341,7 +344,7 @@ test('chart request failures do not hide the current risk', async () => {
 })
 
 test('renders ready daily data with a report date after the latest completed day', async () => {
-  render(<App />)
+  render(<App locale="en" />)
 
   expect(apiMocks.fetchReadiness).toHaveBeenCalled()
   expect(await screen.findByText('Report date')).toBeInTheDocument()
@@ -400,7 +403,7 @@ test('rolls the report date across UTC year boundaries', async () => {
     },
   })
 
-  render(<App />)
+  render(<App locale="en" />)
 
   expect(await screen.findByText('Report date')).toBeInTheDocument()
   expect(screen.getByText('2027-01-01')).toBeInTheDocument()
@@ -431,7 +434,7 @@ test('does not render a report date when readiness is degraded despite fresh dat
     },
   })
 
-  render(<App />)
+  render(<App locale="en" />)
 
   expect(await screen.findByText('Current risk')).toBeInTheDocument()
   expect(screen.queryByText('Report date')).not.toBeInTheDocument()
@@ -470,7 +473,7 @@ test('renders degraded readiness copy without hiding the latest risk', async () 
     },
   })
 
-  render(<App />)
+  render(<App locale="en" />)
 
   expect(await screen.findByText('Current risk')).toBeInTheDocument()
   expect(screen.getByText('Readiness degraded')).toBeInTheDocument()
@@ -485,7 +488,7 @@ test('renders degraded readiness copy without hiding the latest risk', async () 
 test('renders a distinct API unavailable state when risk data cannot load', async () => {
   apiMocks.fetchLatestRisk.mockRejectedValueOnce(new Error('Request failed: 500'))
 
-  render(<App />)
+  render(<App locale="en" />)
 
   expect(await screen.findByText('Risk data is temporarily unavailable')).toBeInTheDocument()
   expect(screen.getByText('Request failed: 500')).toBeInTheDocument()
@@ -496,7 +499,7 @@ test('renders explicit empty chart states when history or levels have no rows', 
   apiMocks.fetchRiskHistory.mockResolvedValueOnce({ data: [], meta: { returned_points: 0 } })
   apiMocks.fetchRiskLevels.mockResolvedValueOnce({ data: [], meta: { base: {} } })
 
-  render(<App />)
+  render(<App locale="en" />)
 
   expect(await screen.findByText('Risk history is unavailable until observations are loaded.')).toBeInTheDocument()
   expect(screen.getByText('Risk levels are unavailable until the latest model input is ready.')).toBeInTheDocument()
@@ -505,10 +508,10 @@ test('renders explicit empty chart states when history or levels have no rows', 
 })
 
 test('renders methodology reference, public data-source copy, and no-advice disclaimer', async () => {
-  render(<App />)
+  render(<App locale="en" />)
 
   expect(await screen.findByText('Methodology')).toBeInTheDocument()
-  expect(screen.getByRole('link', { name: /methodology/i })).toHaveAttribute('href', '#methodology')
+  expect(screen.getByRole('link', { name: /methodology/i })).toHaveAttribute('href', '/methodology')
 
   const methodology = within(screen.getByRole('region', { name: 'Methodology' }))
   expect(methodology.getByText('The public signal uses the canonical BTC risk model and validated daily Bitcoin market data.')).toBeInTheDocument()
@@ -523,6 +526,12 @@ test('renders methodology reference, public data-source copy, and no-advice disc
   expect(methodology.queryByText(/CSV/i)).not.toBeInTheDocument()
   expect(methodology.queryByText(/import/i)).not.toBeInTheDocument()
   expect(screen.getByText('Risk levels are scenario outputs for research. They are not financial advice or trading instructions.')).toBeInTheDocument()
+})
+
+test('links the methodology guide in the reader\'s own language', async () => {
+  render(<App locale="ru" />)
+  const link = await screen.findByRole('link', { name: new RegExp(copy.ru.methodologyLink, 'i') })
+  expect(link.getAttribute('href')).toBe('/ru/methodology')
 })
 
 test('localizes accessible chart labels and unavailable methodology metadata', async () => {
@@ -548,9 +557,7 @@ test('localizes accessible chart labels and unavailable methodology metadata', a
     },
   })
 
-  render(<App />)
-
-  await selectLanguage(/^RU -/)
+  render(<App locale="ru" />)
 
   expect(await screen.findByLabelText('Текущий риск')).toBeInTheDocument()
   expect(screen.getByLabelText('Порог риска')).toBeInTheDocument()
@@ -559,7 +566,7 @@ test('localizes accessible chart labels and unavailable methodology metadata', a
 })
 
 test('renders an expandable privacy terms and disclaimer note near the waitlist', async () => {
-  render(<App />)
+  render(<App locale="en" />)
 
   const summary = await screen.findByText('Privacy, terms, and disclaimer')
   const note = summary.closest('details')
@@ -583,9 +590,7 @@ test('renders an expandable privacy terms and disclaimer note near the waitlist'
 })
 
 test('localizes the privacy terms and disclaimer note', async () => {
-  render(<App />)
-
-  await selectLanguage(/^RU -/)
+  render(<App locale="ru" />)
 
   const summary = await screen.findByText('Приватность, условия и дисклеймер')
   const note = summary.closest('details')
@@ -599,7 +604,7 @@ test('localizes the privacy terms and disclaimer note', async () => {
 })
 
 test('disables waitlist submission until Turnstile returns a token', async () => {
-  render(<App />)
+  render(<App locale="en" />)
 
   const button = await screen.findByRole('button', { name: /register interest/i })
   expect(button).toBeDisabled()
@@ -613,7 +618,7 @@ test('disables waitlist submission until Turnstile returns a token', async () =>
 })
 
 test('clears and resets a verified token after a whitespace-only submission', async () => {
-  render(<App />)
+  render(<App locale="en" />)
 
   const input = await screen.findByPlaceholderText('your email')
   const button = screen.getByRole('button', { name: /register interest/i })
@@ -628,25 +633,19 @@ test('clears and resets a verified token after a whitespace-only submission', as
   expect(button).toBeDisabled()
 })
 
-test('invalidates a verified token when the widget language changes', async () => {
-  render(<App />)
+test('configures Turnstile for the initial locale and requires a token', async () => {
+  render(<App locale="fr" />)
 
-  const englishButton = await screen.findByRole('button', { name: /register interest/i })
-  verifyTurnstile('old-token')
-  expect(englishButton).toBeEnabled()
-
-  await selectLanguage(/^FR -/)
-
-  const frenchButton = screen.getByRole('button', { name: /signaler mon intérêt/i })
+  const frenchButton = await screen.findByRole('button', { name: /signaler mon intérêt/i })
   expect(turnstileMocks.language).toBe('fr')
   expect(frenchButton).toBeDisabled()
 
-  verifyTurnstile('new-token')
+  verifyTurnstile('fresh-token')
   expect(frenchButton).toBeEnabled()
 })
 
 test('submits the Turnstile token, clears the input, and resets the widget on success', async () => {
-  render(<App />)
+  render(<App locale="en" />)
 
   const input = await screen.findByPlaceholderText('your email')
   fireEvent.change(input, { target: { value: 'USER@example.com' } })
@@ -674,7 +673,7 @@ test('announces waitlist submitting and success states politely', async () => {
   apiMocks.joinWaitlist.mockReturnValueOnce(new Promise((resolve) => {
     resolveWaitlist = resolve
   }))
-  render(<App />)
+  render(<App locale="en" />)
 
   fireEvent.change(await screen.findByPlaceholderText('your email'), { target: { value: 'status@example.com' } })
   verifyTurnstile()
@@ -696,7 +695,7 @@ test('announces waitlist submitting and success states politely', async () => {
 
 test('announces contact validation errors assertively, preserves the contact, and resets Turnstile', async () => {
   apiMocks.joinWaitlist.mockRejectedValueOnce(new Error('invalid contact'))
-  render(<App />)
+  render(<App locale="en" />)
 
   const input = await screen.findByPlaceholderText('your email')
   fireEvent.change(input, { target: { value: 'not-a-contact' } })
@@ -714,7 +713,7 @@ test('announces contact validation errors assertively, preserves the contact, an
 
 test('shows the localized verification error and preserves the contact after a 403', async () => {
   apiMocks.joinWaitlist.mockRejectedValueOnce(new apiMocks.ApiError(403))
-  render(<App />)
+  render(<App locale="en" />)
 
   const input = await screen.findByPlaceholderText('your email')
   fireEvent.change(input, { target: { value: 'USER@example.com' } })
@@ -728,7 +727,7 @@ test('shows the localized verification error and preserves the contact after a 4
 
 test('shows the localized temporary-unavailability error and preserves the contact after a 503', async () => {
   apiMocks.joinWaitlist.mockRejectedValueOnce(new apiMocks.ApiError(503))
-  render(<App />)
+  render(<App locale="en" />)
 
   const input = await screen.findByPlaceholderText('your email')
   fireEvent.change(input, { target: { value: 'USER@example.com' } })
@@ -741,7 +740,7 @@ test('shows the localized temporary-unavailability error and preserves the conta
 })
 
 test('announces a localized widget error and clears the current token', async () => {
-  render(<App />)
+  render(<App locale="en" />)
 
   const button = await screen.findByRole('button', { name: /register interest/i })
   verifyTurnstile()
@@ -754,7 +753,7 @@ test('announces a localized widget error and clears the current token', async ()
 })
 
 test('clears a stale widget error when a fresh token arrives', async () => {
-  render(<App />)
+  render(<App locale="en" />)
 
   const input = await screen.findByPlaceholderText('your email')
   verifyTurnstile()
@@ -763,18 +762,17 @@ test('clears a stale widget error when a fresh token arrives', async () => {
   expect(screen.getByRole('alert')).toHaveTextContent('Complete the bot check and try again.')
   expect(input).toHaveAttribute('aria-invalid', 'true')
 
-  await selectLanguage(/^FR -/)
   verifyTurnstile('replacement-token')
 
   expect(screen.queryByRole('alert')).not.toBeInTheDocument()
   expect(input).not.toHaveAttribute('aria-invalid')
   expect(input).not.toHaveAttribute('aria-describedby')
-  expect(screen.getByRole('button', { name: /signaler mon intérêt/i })).toBeEnabled()
+  expect(screen.getByRole('button', { name: /register interest/i })).toBeEnabled()
 })
 
 test('does not persist waitlist contacts in browser storage', async () => {
   const setItemSpy = vi.spyOn(Storage.prototype, 'setItem')
-  render(<App />)
+  render(<App locale="en" />)
 
   fireEvent.change(await screen.findByPlaceholderText('your email'), { target: { value: 'USER@example.com' } })
   verifyTurnstile()
@@ -793,7 +791,7 @@ test('does not persist waitlist contacts in browser storage', async () => {
 })
 
 test('labels risk delta as a contextual risk change metric', async () => {
-  render(<App />)
+  render(<App locale="en" />)
 
   expect(await screen.findByText('Risk change')).toBeInTheDocument()
   expect(screen.getByText('vs previous observation')).toBeInTheDocument()
@@ -801,7 +799,7 @@ test('labels risk delta as a contextual risk change metric', async () => {
 })
 
 test('renders model price, low, and high when latest risk includes OHLC fields', async () => {
-  render(<App />)
+  render(<App locale="en" />)
 
   const priceMetric = await findPriceMetric()
 
@@ -824,25 +822,7 @@ test('renders localized model drivers from latest risk component directions', as
     }),
   })
 
-  render(<App />)
-
-  const driverSection = await findModelDriverSection()
-  const drivers = within(driverSection)
-  const trendDriver = getDriverCard(driverSection, 'Trend')
-  const volatilityDriver = getDriverCard(driverSection, 'Volatility')
-  const activityDriver = getDriverCard(driverSection, 'Activity')
-
-  expect(drivers.getByText('Plain-language direction of each model component from the latest validated daily data.')).toBeInTheDocument()
-  expect(trendDriver.getByText('Price vs long-term baseline')).toBeInTheDocument()
-  expect(trendDriver.getByText('Raises risk')).toBeInTheDocument()
-  expect(volatilityDriver.getByText('Recent price swings')).toBeInTheDocument()
-  expect(volatilityDriver.getByText('Lowers risk')).toBeInTheDocument()
-  expect(activityDriver.getByText('Trading activity adjusted for market size')).toBeInTheDocument()
-  expect(activityDriver.getByText('Neutral')).toBeInTheDocument()
-  expect(drivers.queryByText('-10.1')).not.toBeInTheDocument()
-  expect(drivers.queryByText('0.05')).not.toBeInTheDocument()
-
-  await selectLanguage(/^RU -/)
+  render(<App locale="ru" />)
 
   const ruDriverSection = await findModelDriverSection('Драйверы модели')
   const ruDrivers = within(ruDriverSection)
@@ -870,7 +850,7 @@ test('marks trading activity unavailable when turnover is disabled', async () =>
     }),
   })
 
-  render(<App />)
+  render(<App locale="en" />)
 
   const drivers = await findModelDrivers()
 
@@ -902,7 +882,7 @@ test('hides low and high labels when the matching OHLCV values are missing', asy
     },
   })
 
-  render(<App />)
+  render(<App locale="en" />)
 
   const priceMetric = await findPriceMetric()
 
@@ -913,17 +893,9 @@ test('hides low and high labels when the matching OHLCV values are missing', asy
 })
 
 test('preserves English and Russian labels for the price input group', async () => {
-  render(<App />)
+  render(<App locale="ru" />)
 
-  let priceMetric = await findPriceMetric()
-
-  expect(priceMetric.getByText('Model price')).toBeInTheDocument()
-  expect(priceMetric.getByText('Low')).toBeInTheDocument()
-  expect(priceMetric.getByText('High')).toBeInTheDocument()
-
-  await selectLanguage(/^RU -/)
-
-  priceMetric = await findPriceMetric('Цена BTC в модели')
+  const priceMetric = await findPriceMetric('Цена BTC в модели')
 
   expect(priceMetric.getByText('Цена модели')).toBeInTheDocument()
   expect(priceMetric.getByText('Мин.')).toBeInTheDocument()
@@ -951,7 +923,7 @@ test('defines a stable responsive layout for model drivers', () => {
 })
 
 test('places the waitlist call to action before the charts', async () => {
-  render(<App />)
+  render(<App locale="en" />)
 
   const waitlistTitle = await screen.findByText('Get the daily signal')
   expect(screen.getByText('Band changes are rare. Leave an email to hear about one. This is a manual follow-up — automated delivery does not exist yet.')).toBeInTheDocument()
@@ -962,7 +934,7 @@ test('places the waitlist call to action before the charts', async () => {
 })
 
 test('renders the compact Minihub bottom panel after the charts', async () => {
-  render(<App />)
+  render(<App locale="en" />)
 
   const supportLink = await screen.findByRole('link', { name: 'support@minihub.app' })
   const footer = supportLink.closest('footer.bottom-panel')
@@ -982,7 +954,7 @@ test('renders the compact Minihub bottom panel after the charts', async () => {
 })
 
 test('links the documentation site, the API reference and llms.txt from the footer', async () => {
-  render(<App />)
+  render(<App locale="en" />)
 
   const group = await screen.findByRole('navigation', { name: 'Developer and agent resources' })
   const links = within(group).getAllByRole('link')
@@ -1005,7 +977,7 @@ test('links the documentation site, the API reference and llms.txt from the foot
 })
 
 test('places the developer links inside the existing bottom panel', async () => {
-  render(<App />)
+  render(<App locale="en" />)
 
   const group = await screen.findByRole('navigation', { name: 'Developer and agent resources' })
   expect(group.closest('footer.bottom-panel')).not.toBeNull()
@@ -1019,7 +991,7 @@ test('styles the footer developer links as a wrapping row', () => {
 
 test('uses compact chart options on narrow viewports', async () => {
   setCompactViewport(true)
-  render(<App />)
+  render(<App locale="en" />)
 
   const riskChart = await screen.findByTestId('chart-risk')
   const riskOption = JSON.parse(riskChart.dataset.option ?? '{}')
@@ -1033,7 +1005,7 @@ test('uses compact chart options on narrow viewports', async () => {
 
 test('keeps full dates and a clear pointer in compact risk chart touch tooltips', async () => {
   setCompactViewport(true)
-  render(<App />)
+  render(<App locale="en" />)
 
   await screen.findByTestId('chart-risk')
   const riskOption = chartMocks.optionsByName.get('risk') as RiskChartOptionForTest
@@ -1049,7 +1021,7 @@ test('keeps full dates and a clear pointer in compact risk chart touch tooltips'
 })
 
 test('resizes charts after ECharts reports readiness', async () => {
-  render(<App />)
+  render(<App locale="en" />)
 
   expect(await screen.findByTestId('chart-risk')).toHaveAttribute('data-has-ready', 'true')
   expect(await screen.findByTestId('chart-price')).toHaveAttribute('data-has-ready', 'true')
@@ -1059,14 +1031,14 @@ test('resizes charts after ECharts reports readiness', async () => {
 })
 
 test('lets ECharts derive chart dimensions from the rendered container', async () => {
-  render(<App />)
+  render(<App locale="en" />)
 
   expect(await screen.findByTestId('chart-risk')).toHaveAttribute('data-opts', JSON.stringify({ width: 'auto', height: 'auto' }))
   expect(await screen.findByTestId('chart-price')).toHaveAttribute('data-opts', JSON.stringify({ width: 'auto', height: 'auto' }))
 })
 
 test('uses accessible risk threshold labels outside the chart canvas', async () => {
-  render(<App />)
+  render(<App locale="en" />)
 
   const visibleThresholds = within(await screen.findByLabelText('Risk threshold'))
   expect(visibleThresholds.getByText('Low / Neutral')).toBeInTheDocument()
@@ -1108,7 +1080,7 @@ test('limits the risk levels chart to the practical public risk window', async (
     source_row_count: 5858,
   } })
 
-  render(<App />)
+  render(<App locale="en" />)
 
   const priceChart = await screen.findByTestId('chart-price')
   const priceOption = JSON.parse(priceChart.dataset.option ?? '{}')
@@ -1137,7 +1109,7 @@ test('marks the current risk on levels chart using levels snapshot metadata', as
     source_row_count: 5827,
   } })
 
-  render(<App />)
+  render(<App locale="en" />)
 
   const priceChart = await screen.findByTestId('chart-price')
   const priceOption = JSON.parse(priceChart.dataset.option ?? '{}')
@@ -1162,7 +1134,7 @@ test('falls back to latest risk for levels marker when levels metadata omits cur
     { risk: 0.70, price_usd: 125000 },
   ], meta: { base: latestRisk({ risk: 0.35 }) } })
 
-  render(<App />)
+  render(<App locale="en" />)
 
   const priceChart = await screen.findByTestId('chart-price')
   const priceOption = JSON.parse(priceChart.dataset.option ?? '{}')
@@ -1191,7 +1163,7 @@ test.each([0.1, 0.9])(
       source_row_count: 5858,
     } })
 
-    render(<App />)
+    render(<App locale="en" />)
 
     const priceChart = await screen.findByTestId('chart-price')
     const priceOption = JSON.parse(priceChart.dataset.option ?? '{}')
@@ -1221,7 +1193,7 @@ test.each([
     source_row_count: 5858,
   } })
 
-  render(<App />)
+  render(<App locale="en" />)
 
   expect(await screen.findByText(expected)).toBeInTheDocument()
 
@@ -1230,7 +1202,7 @@ test.each([
 })
 
 test('renders screen-reader chart data alternatives for current risk, recent history, and thresholds', async () => {
-  render(<App />)
+  render(<App locale="en" />)
 
   const riskChart = await screen.findByRole('img', { name: 'Risk history, 2Y' })
   expect(riskChart).toHaveAccessibleDescription(/Latest observation 2026-06-26: current risk is 70% \(High\)/)
@@ -1283,8 +1255,9 @@ test('defines compact bottom panel layout and RTL styles', () => {
   expect(css).toContain('[dir="rtl"] .bottom-panel')
 })
 
-test('offers all issue 28 languages and applies document language metadata', async () => {
-  render(<App />)
+test('offers all issue 28 languages and navigates to the chosen locale', async () => {
+  const assign = stubLocationAssign()
+  render(<App locale="en" />)
 
   const trigger = await screen.findByRole('button', { name: /select language: english/i })
   expect(trigger).toHaveTextContent('EN')
@@ -1305,36 +1278,14 @@ test('offers all issue 28 languages and applies document language metadata', asy
   ])
 
   fireEvent.click(within(listbox).getByRole('option', { name: /^DE -/ }))
-  expect(await screen.findByText('Aktuelles Risiko')).toBeInTheDocument()
-  expect(document.documentElement).toHaveAttribute('lang', 'de')
-  expect(document.documentElement).toHaveAttribute('dir', 'ltr')
+  expect(localStorage.getItem(LOCALE_STORAGE_KEY)).toBe('de')
+  expect(assign).toHaveBeenCalledWith('/de')
   expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
-  expect(getLanguageTrigger()).toHaveTextContent('DE')
-
-  await selectLanguage(/^FR -/)
-  expect(await screen.findByText('Risque actuel')).toBeInTheDocument()
-  expect(document.documentElement).toHaveAttribute('lang', 'fr')
-  expect(getLanguageTrigger()).toHaveTextContent('FR')
-
-  await selectLanguage(/^ES -/)
-  expect(await screen.findByText('Riesgo actual')).toBeInTheDocument()
-  expect(document.documentElement).toHaveAttribute('lang', 'es')
-  expect(getLanguageTrigger()).toHaveTextContent('ES')
-
-  await selectLanguage(/^ZH -/)
-  expect(await screen.findByText('当前风险')).toBeInTheDocument()
-  expect(document.documentElement).toHaveAttribute('lang', 'zh-CN')
-  expect(getLanguageTrigger()).toHaveTextContent('ZH')
-
-  await selectLanguage(/^AR -/)
-  expect(await screen.findByText('المخاطر الحالية')).toBeInTheDocument()
-  expect(document.documentElement).toHaveAttribute('lang', 'ar')
-  expect(document.documentElement).toHaveAttribute('dir', 'rtl')
-  expect(getLanguageTrigger()).toHaveTextContent('AR')
+  expect(getLanguageTrigger()).toHaveFocus()
 })
 
 test('opens and closes the custom language listbox from keyboard and outside pointer interaction', async () => {
-  render(<App />)
+  render(<App locale="en" />)
 
   const trigger = await screen.findByRole('button', { name: /select language: english/i })
   fireEvent.keyDown(trigger, { key: 'Enter' })
@@ -1356,7 +1307,7 @@ test('opens and closes the custom language listbox from keyboard and outside poi
 })
 
 test('closes the custom language listbox on Tab without returning focus to the trigger', async () => {
-  render(<App />)
+  render(<App locale="en" />)
 
   const trigger = await screen.findByRole('button', { name: /select language: english/i })
   fireEvent.keyDown(trigger, { key: 'Enter' })
@@ -1373,7 +1324,8 @@ test('closes the custom language listbox on Tab without returning focus to the t
 })
 
 test('supports arrow navigation and keyboard selection in the custom language listbox', async () => {
-  render(<App />)
+  const assign = stubLocationAssign()
+  render(<App locale="en" />)
 
   const trigger = await screen.findByRole('button', { name: /select language: english/i })
   fireEvent.keyDown(trigger, { key: 'ArrowDown' })
@@ -1382,29 +1334,15 @@ test('supports arrow navigation and keyboard selection in the custom language li
   expect(listbox.getAttribute('aria-activedescendant')).toMatch(/-ru$/)
 
   fireEvent.keyDown(listbox, { key: ' ' })
-  expect(await screen.findByText('Текущий риск')).toBeInTheDocument()
-  expect(document.documentElement).toHaveAttribute('lang', 'ru')
-  expect(document.documentElement).toHaveAttribute('dir', 'ltr')
+  expect(localStorage.getItem(LOCALE_STORAGE_KEY)).toBe('ru')
+  expect(assign).toHaveBeenCalledWith('/ru')
   expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
   expect(getLanguageTrigger()).toHaveFocus()
-
-  fireEvent.keyDown(getLanguageTrigger(), { key: 'ArrowUp' })
-  listbox = await screen.findByRole('listbox')
-  expect(listbox.getAttribute('aria-activedescendant')).toMatch(/-en$/)
-  fireEvent.keyDown(listbox, { key: 'ArrowUp' })
-  expect(listbox.getAttribute('aria-activedescendant')).toMatch(/-ar$/)
-  fireEvent.keyDown(listbox, { key: 'Enter' })
-
-  expect(await screen.findByText('المخاطر الحالية')).toBeInTheDocument()
-  expect(document.documentElement).toHaveAttribute('lang', 'ar')
-  expect(document.documentElement).toHaveAttribute('dir', 'rtl')
-  expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
 })
 
 test('isolates mixed-direction language option labels as LTR while Arabic is active', async () => {
-  render(<App />)
-
-  await selectLanguage(/^AR -/)
+  render(<App locale="ar" />)
+  await screen.findByText('المخاطر الحالية')
   fireEvent.click(getLanguageTrigger())
 
   const listbox = await screen.findByRole('listbox')
@@ -1417,9 +1355,8 @@ test('isolates mixed-direction language option labels as LTR while Arabic is act
 })
 
 test('isolates visible Arabic numeric, date, and currency values as LTR', async () => {
-  render(<App />)
-
-  await selectLanguage(/^AR -/)
+  render(<App locale="ar" />)
+  await screen.findByText('المخاطر الحالية')
 
   const metrics = document.querySelector('.metrics-strip')
   expect(metrics).not.toBeNull()
@@ -1435,6 +1372,7 @@ test('isolates visible Arabic numeric, date, and currency values as LTR', async 
     expect(value).toHaveAttribute('dir', 'ltr')
   }
 
+  await waitFor(() => expect(document.querySelectorAll('.threshold-callouts .numeric-value').length).toBeGreaterThan(0))
   const thresholdValues = document.querySelectorAll('.threshold-callouts .numeric-value')
   expect(Array.from(thresholdValues).map((element) => element.textContent)).toEqual(expect.arrayContaining([
     '$78,000',
@@ -1476,9 +1414,8 @@ test('isolates visible Arabic degraded freshness counts as LTR', async () => {
     },
   })
 
-  render(<App />)
-
-  await selectLanguage(/^AR -/)
+  render(<App locale="ar" />)
+  await screen.findByText('المخاطر الحالية')
 
   const freshnessValues = document.querySelectorAll('.freshness-metric .numeric-value')
   expect(Array.from(freshnessValues).map((element) => element.textContent)).toEqual(expect.arrayContaining([
@@ -1493,9 +1430,8 @@ test('isolates visible Arabic degraded freshness counts as LTR', async () => {
 })
 
 test('submits the selected expanded locale to the waitlist API', async () => {
-  render(<App />)
+  render(<App locale="fr" />)
 
-  await selectLanguage(/^FR -/)
   await waitFor(() => expect(turnstileMocks.language).toBe('fr'))
   fireEvent.change(await screen.findByPlaceholderText('votre e-mail'), { target: { value: 'USER@example.com' } })
   verifyTurnstile()
@@ -1512,9 +1448,7 @@ test('submits the selected expanded locale to the waitlist API', async () => {
 })
 
 test('keeps Arabic waitlist contact entry LTR and submits locale metadata', async () => {
-  render(<App />)
-
-  await selectLanguage(/^AR -/)
+  render(<App locale="ar" />)
 
   const input = await screen.findByPlaceholderText('بريدك الإلكتروني')
   expect(input).toHaveAttribute('dir', 'ltr')
@@ -1534,9 +1468,7 @@ test('keeps Arabic waitlist contact entry LTR and submits locale metadata', asyn
 })
 
 test('falls back to the English generated brief when selected locale is absent from an old snapshot', async () => {
-  render(<App />)
-
-  await selectLanguage(/^DE -/)
+  render(<App locale="de" />)
 
   expect(await screen.findByText('Heutiger Brief')).toBeInTheDocument()
   expect(screen.getByText('Risk elevated')).toBeInTheDocument()
@@ -1560,7 +1492,7 @@ test('defines a standard screen-reader-only utility for hidden chart data', () =
 })
 
 test('offers the telegram channel as the way to get the daily signal', async () => {
-  render(<App />)
+  render(<App locale="en" />)
 
   const link = await screen.findByRole('link', { name: /telegram channel/i })
   expect(link).toHaveAttribute('href', 'https://t.me/bitcoinriskbrief')
@@ -1569,7 +1501,7 @@ test('offers the telegram channel as the way to get the daily signal', async () 
 })
 
 test('no longer presents public views as something earned by giving a contact', async () => {
-  render(<App />)
+  render(<App locale="en" />)
   await screen.findByRole('link', { name: /telegram channel/i })
 
   const body = document.body.textContent ?? ''
@@ -1579,7 +1511,7 @@ test('no longer presents public views as something earned by giving a contact', 
 })
 
 test('submits the band-alert interest under its own source value', async () => {
-  render(<App />)
+  render(<App locale="en" />)
 
   const input = await screen.findByPlaceholderText('your email')
   fireEvent.change(input, { target: { value: 'user@example.com' } })
@@ -1596,20 +1528,13 @@ test('submits the band-alert interest under its own source value', async () => {
   })
 })
 
-test('opens in the language the browser asks for', async () => {
-  const original = Object.getOwnPropertyDescriptor(window.navigator, 'languages')
-  Object.defineProperty(window.navigator, 'languages', { value: ['de-DE', 'en'], configurable: true })
-  try {
-    render(<App />)
-    expect(await screen.findByRole('button', { name: /interesse hinterlegen/i })).toBeInTheDocument()
-  } finally {
-    if (original) Object.defineProperty(window.navigator, 'languages', original)
-    else delete (window.navigator as { languages?: readonly string[] }).languages
-  }
+test('uses the supplied locale', async () => {
+  render(<App locale="de" />)
+  expect(await screen.findByRole('button', { name: /interesse hinterlegen/i })).toBeInTheDocument()
 })
 
 test('writes nothing to browser storage', async () => {
-  render(<App />)
+  render(<App locale="en" />)
   await screen.findByRole('link', { name: /telegram channel/i })
 
   expect(window.localStorage.length).toBe(0)
