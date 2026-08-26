@@ -5,6 +5,8 @@ import { describe, expect, it } from 'vitest'
 const distIndex = resolve(__dirname, '../dist/index.html')
 const distMethodology = resolve(__dirname, '../dist/methodology.html')
 const built = existsSync(distIndex) && existsSync(distMethodology)
+const indexHtml = built ? readFileSync(distIndex, 'utf-8') : ''
+const methodologyHtml = built ? readFileSync(distMethodology, 'utf-8') : ''
 
 function extractJsonLd(html: string): Record<string, unknown>[] {
   const matches = [...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)]
@@ -12,9 +14,6 @@ function extractJsonLd(html: string): Record<string, unknown>[] {
 }
 
 describe.skipIf(!built)('structured data (requires frontend/dist build)', () => {
-  const indexHtml = readFileSync(distIndex, 'utf-8')
-  const methodologyHtml = readFileSync(distMethodology, 'utf-8')
-
   it('is present and parses as JSON', () => {
     expect(extractJsonLd(indexHtml).length).toBeGreaterThan(0)
     expect(extractJsonLd(methodologyHtml).length).toBeGreaterThan(0)

@@ -4,10 +4,15 @@ import { describe, expect, it } from 'vitest'
 import { SITE_ORIGIN, siteDocuments } from './routes'
 
 const xml = readFileSync(resolve(__dirname, '../public/sitemap.xml'), 'utf-8')
-const listed = new Set([...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]))
+const rawLocations = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1])
+const listed = new Set(rawLocations)
 const DOCS_URL = 'https://docs.bitcoinriskbrief.minihub.app/'
 
 describe('sitemap', () => {
+  it('lists each location exactly once', () => {
+    expect(rawLocations).toHaveLength(new Set(rawLocations).size)
+  })
+
   it('lists every document', () => {
     for (const document of siteDocuments) {
       const expected = document.urlPath === '/' ? `${SITE_ORIGIN}/` : `${SITE_ORIGIN}${document.urlPath}`

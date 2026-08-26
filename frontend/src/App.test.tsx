@@ -3,6 +3,7 @@ import '@testing-library/jest-dom'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import App from './App'
+import { copy } from './locales'
 import { LOCALE_STORAGE_KEY } from './localePreference'
 import type { RiskPoint } from './types'
 
@@ -510,7 +511,7 @@ test('renders methodology reference, public data-source copy, and no-advice disc
   render(<App locale="en" />)
 
   expect(await screen.findByText('Methodology')).toBeInTheDocument()
-  expect(screen.getByRole('link', { name: /methodology/i })).toHaveAttribute('href', '#methodology')
+  expect(screen.getByRole('link', { name: /methodology/i })).toHaveAttribute('href', '/methodology')
 
   const methodology = within(screen.getByRole('region', { name: 'Methodology' }))
   expect(methodology.getByText('The public signal uses the canonical BTC risk model and validated daily Bitcoin market data.')).toBeInTheDocument()
@@ -525,6 +526,12 @@ test('renders methodology reference, public data-source copy, and no-advice disc
   expect(methodology.queryByText(/CSV/i)).not.toBeInTheDocument()
   expect(methodology.queryByText(/import/i)).not.toBeInTheDocument()
   expect(screen.getByText('Risk levels are scenario outputs for research. They are not financial advice or trading instructions.')).toBeInTheDocument()
+})
+
+test('links the methodology guide in the reader\'s own language', async () => {
+  render(<App locale="ru" />)
+  const link = await screen.findByRole('link', { name: new RegExp(copy.ru.methodologyLink, 'i') })
+  expect(link.getAttribute('href')).toBe('/ru/methodology')
 })
 
 test('localizes accessible chart labels and unavailable methodology metadata', async () => {

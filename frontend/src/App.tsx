@@ -5,6 +5,7 @@ import { Bell, CheckCircle2, ExternalLink, Radio, Send, ShieldAlert, TriangleAle
 import { ApiError, fetchBrief, fetchLatestRisk, fetchReadiness, fetchRiskHistory, fetchRiskLevels, joinWaitlist } from './api'
 import { LanguageSelect } from './LanguageSelect'
 import { copy, getLocaleOption, localeOptions, stateLabel } from './locales'
+import { urlPathFor } from './routes'
 import Turnstile from './Turnstile'
 import type { TurnstileHandle } from './Turnstile'
 import type { BriefPayload, Locale, ReadinessPayload, RiskLevel, RiskLevelsMeta, RiskPoint } from './types'
@@ -541,7 +542,7 @@ export default function App({ locale }: { locale: Locale }) {
       <nav className="topbar" aria-label={t.languageNavigation}>
         <div className="brand"><Radio size={18} /> BTC Risk Brief</div>
         <div className="top-actions">
-          <a className="methodology-link" href="#methodology"><ExternalLink size={15} /> {t.methodologyLink}</a>
+          <a className="methodology-link" href={urlPathFor('methodology', locale)}><ExternalLink size={15} /> {t.methodologyLink}</a>
           <LanguageSelect
             label={t.languageSelector}
             locale={locale}
