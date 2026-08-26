@@ -653,6 +653,32 @@ class MethodologyGuideTests(unittest.TestCase):
         self.assertEqual(float(_constant("BAND_HIGH")), HIGH_RISK_THRESHOLD)
         self.assertEqual(_constant("METHODOLOGY_VERSION"), METHODOLOGY_VERSION)
 
+    def test_the_english_guide_shows_the_boundaries_it_declares(self) -> None:
+        # The constants can be right while the prose says something else. Assert the reader sees them.
+        text = COPY.read_text(encoding="utf-8")
+        self.assertIn("0.30", text)
+        self.assertIn("0.70", text)
+        self.assertIn("crypto-scout-canonical-v1.1", text)
+
+    def test_the_guide_does_not_overstate_the_freshness_contract(self) -> None:
+        # frontend/public/llms.txt was corrected for this exact misconception and is guarded by
+        # test_agent_surface.py. The guide must not reintroduce it. These phrases are English, so
+        # scanning the whole file is both sufficient and safe: a translation cannot contain them.
+        english = " ".join(COPY.read_text(encoding="utf-8").split()).lower()
+        for overstatement in (
+            "503 rather than a stale figure",
+            "stamped on every response",
+            "travels with every response",
+            "version on every response",
+        ):
+            self.assertNotIn(
+                overstatement,
+                english,
+                "only /api/readiness answers 503 for stale data; the data endpoints keep serving "
+                "stored rows, and the methodology version is not on every response",
+            )
+        self.assertIn("readiness", english)
+
     def test_the_guide_does_not_republish_the_model_weights(self) -> None:
         text = COPY.read_text(encoding="utf-8")
         # Only the three weights are safe to forbid as substrings. 0.30 and 0.70 are also the band
@@ -705,17 +731,19 @@ English sections, in order:
 5. **The level ladder is not a forecast.** It answers a backwards question: holding everything except price fixed, at
    what price would the model report each risk level? That is a description of the model's shape, not a prediction, a
    target, a support line, or a trade. If the other inputs move, the ladder moves with them.
-6. **When not to trust today's number.** The data has to be current and it has to have passed validation. When it is
-   not, the API returns HTTP 503 rather than a stale figure, and this page says so instead of quietly showing
-   yesterday's value. A number without its date is not usable, which is why the covered date travels with every
-   response.
+6. **When not to trust today's number.** The data has to be current and it has to have passed validation. A separate
+   readiness check reports both, and it answers with HTTP 503 instead of a green light when either fails. The data
+   endpoints behave differently on purpose: they keep returning the last rows they hold, so a value means nothing
+   without the covered date beside it and a readiness state that agrees. This page shows both, and says plainly when
+   the data has fallen behind.
 7. **What the model cannot see.** It has no on-chain data, no news, no order-book depth, and no knowledge of anything
    that happened after the last completed day. It works on daily bars, so a fall and recovery inside one day is
    invisible to it. It assumes the future resembles the past well enough for a historical comparison to mean something,
    and that assumption fails exactly when it would be most useful.
-8. **What happens when the methodology changes.** The version is stamped on every response — currently
-   `crypto-scout-canonical-v1.1`. A change that alters the numbers gets a new version string, so a value you recorded
-   earlier can always be traced to the rules that produced it.
+8. **What happens when the methodology changes.** The methodology carries a version, currently
+   `crypto-scout-canonical-v1.1`, reported by the readiness check and alongside the level ladder. A change that alters
+   the numbers gets a new version string, so a value recorded earlier can always be traced back to the rules that
+   produced it.
 
 Close with a link labelled by `referenceLinkLabel` pointing at
 `https://docs.bitcoinriskbrief.minihub.app/product/risk-methodology/`.
@@ -905,16 +933,25 @@ const current = documentForPath(location.pathname)
 const route = current?.route ?? 'home'
 const locale = current?.locale ?? 'en'
 
-ReactDOM.hydrateRoot(
-  document.getElementById('root')!,
+const container = document.getElementById('root')!
+const tree = (
   <React.StrictMode>
     <Root route={route} locale={locale} />
-  </React.StrictMode>,
+  </React.StrictMode>
 )
+
+// Production always serves a prerendered document, so the container has children and we hydrate.
+// vite dev serves index.html with an empty #root for any path; hydrating that logs a misleading
+// mismatch before React recovers, so mount there instead.
+if (container.firstChild) {
+  ReactDOM.hydrateRoot(container, tree)
+} else {
+  ReactDOM.createRoot(container).render(tree)
+}
 ```
 
-Every served document is prerendered, so hydration is always correct. The fallbacks exist only for `vite dev`, which
-serves `index.html` for any path.
+The `documentForPath` fallbacks exist for the same dev-only reason: in production the pathname always resolves to one
+of the fourteen documents.
 
 - [ ] **Step 6: Run the tests**
 
@@ -1167,17 +1204,31 @@ One detail `structuredData.test.ts` must respect: `dist/index.html` carries `Dat
 `dist/methodology.html` carries `Dataset` and `TechArticle`, because `buildHead` emits `TechArticle` for the guide.
 Assert `WebSite` against the home document only, and add a matching `TechArticle` assertion for the guide.
 
-- [ ] **Step 10: Run everything**
+- [ ] **Step 10: Make CI run the tests that need a build**
+
+`frontend-tests` runs the suite without building and `frontend-build` builds without testing, so the two tests moved
+in Step 9 would skip on every CI run and assert nothing. Add a step to the `frontend-build` job in
+`.github/workflows/ci.yml`, after `Build frontend`:
+
+```yaml
+      - name: Verify the generated documents
+        run: npm test --prefix frontend -- src/documentHead.test.ts src/structuredData.test.ts
+```
+
+That job already exports `VITE_TURNSTILE_SITE_KEY`, so the build it runs produces the `dist` these tests read.
+
+- [ ] **Step 11: Run everything**
 
 Run: `npm test --prefix frontend`
 Expected: PASS.
 
-- [ ] **Step 11: Commit**
+- [ ] **Step 12: Commit**
 
 ```bash
 git add frontend/src/entry-server.tsx frontend/src/entry-server.test.tsx \
         frontend/scripts/prerender.mjs frontend/index.html frontend/package.json \
-        frontend/.gitignore frontend/src/documentHead.test.ts frontend/src/structuredData.test.ts
+        frontend/.gitignore frontend/src/documentHead.test.ts frontend/src/structuredData.test.ts \
+        .github/workflows/ci.yml
 git commit -m "feat: prerender every document at build time"
 ```
 
