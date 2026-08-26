@@ -1193,10 +1193,27 @@ ls frontend/dist/*.html frontend/dist/*/methodology.html | wc -l   # 14
 ```typescript
 const distIndex = resolve(__dirname, '../dist/index.html')
 const built = existsSync(distIndex)
-describe.skipIf(!built)('document head', () => {
-  // ...assert against readFileSync(distIndex, 'utf-8')
+
+// Read guarded, not inside the describe body. skipIf skips the *tests*, but Vitest still executes
+// the describe callback to collect them, so a readFileSync placed there runs even when skipped and
+// throws ENOENT on a clean checkout — which is exactly what the frontend-tests job is.
+const html = built ? readFileSync(distIndex, 'utf-8') : ''
+
+describe.skipIf(!built)('document head (requires frontend/dist)', () => {
+  it('...', () => {
+    expect(html).toContain('...')
+  })
 })
 ```
+
+**Verify the guard by deleting the build**, not by trusting it:
+
+```bash
+rm -rf frontend/dist && npm test --prefix frontend    # must pass, with those suites skipped
+```
+
+Both files need this. A local run usually has a stale `dist` lying around, so the failure appears only in CI, where
+the checkout is clean.
 
 The assertion gets stronger: it now checks what is served rather than what is authored.
 
