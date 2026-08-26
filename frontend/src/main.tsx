@@ -1,10 +1,16 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import App from './App'
+import Root from './Root'
+import { documentForPath } from './routes'
 import './App.css'
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
+const current = documentForPath(location.pathname)
+const route = current?.route ?? 'home'
+const locale = current?.locale ?? 'en'
+
+ReactDOM.hydrateRoot(
+  document.getElementById('root')!,
   <React.StrictMode>
-    <App />
+    <Root route={route} locale={locale} />
   </React.StrictMode>,
 )

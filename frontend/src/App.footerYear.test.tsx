@@ -97,7 +97,7 @@ test('renders the Minihub copyright year from the runtime date', async () => {
   const { default: RuntimeApp } = await import('./App')
   vi.useRealTimers()
 
-  render(<RuntimeApp />)
+  render(<RuntimeApp locale="en" />)
 
   const supportLink = await screen.findByRole('link', { name: 'support@minihub.app' })
   const footer = supportLink.closest('footer.bottom-panel')

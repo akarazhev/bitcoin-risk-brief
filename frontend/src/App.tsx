@@ -4,7 +4,7 @@ import type { EChartsOption } from 'echarts'
 import { Bell, CheckCircle2, ExternalLink, Radio, Send, ShieldAlert, TriangleAlert } from 'lucide-react'
 import { ApiError, fetchBrief, fetchLatestRisk, fetchReadiness, fetchRiskHistory, fetchRiskLevels, joinWaitlist } from './api'
 import { LanguageSelect } from './LanguageSelect'
-import { copy, getLocaleOption, localeOptions, resolveInitialLocale, stateLabel } from './locales'
+import { copy, getLocaleOption, localeOptions, stateLabel } from './locales'
 import Turnstile from './Turnstile'
 import type { TurnstileHandle } from './Turnstile'
 import type { BriefPayload, Locale, ReadinessPayload, RiskLevel, RiskLevelsMeta, RiskPoint } from './types'
@@ -270,10 +270,7 @@ function resizeChartWhenReady(chart: { resize: (opts?: typeof AUTO_CHART_SIZE) =
   window.setTimeout(resize, 250)
 }
 
-export default function App() {
-  const [locale] = useState<Locale>(() =>
-    resolveInitialLocale(typeof navigator === 'undefined' ? undefined : navigator.languages),
-  )
+export default function App({ locale }: { locale: Locale }) {
   const [latest, setLatest] = useState<RiskPoint | null>(null)
   const [historyState, setHistoryState] = useState<ChartLoadState<RiskPoint[]>>({
     status: 'idle',
