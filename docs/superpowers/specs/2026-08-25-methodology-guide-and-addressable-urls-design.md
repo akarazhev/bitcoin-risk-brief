@@ -156,7 +156,10 @@ Ordered by the questions a reader actually asks:
    the one that already forced a wording change in the Telegram post.
 5. **The level ladder is not a forecast** — solved backwards with the non-price inputs held fixed. It answers "at what
    price would the model say X", not "the price will be X".
-6. **When not to trust today's number** — freshness, readiness, and why the API returns 503 rather than a stale figure.
+6. **When not to trust today's number** — freshness and validation, why the readiness check answers 503 when either
+   fails, and why the data endpoints keep serving stored rows regardless, so a value is only meaningful beside its
+   covered date. `frontend/public/llms.txt` states this correctly and
+   `backend/tests/test_agent_surface.py` guards the wording; the guide must not contradict either.
 7. **What the model cannot see** — regime change, no on-chain data, no news, and daily granularity that cannot observe
    an intraday reversal.
 8. **What happens when the methodology changes** — the version policy.
