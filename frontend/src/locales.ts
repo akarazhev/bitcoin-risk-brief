@@ -13,6 +13,10 @@ export type LocaleOption = {
 type RiskStateLabels = Record<'low' | 'neutral' | 'high', string>
 
 type Copy = {
+  headTitle: string
+  headDescription: string
+  headTitleMethodology: string
+  headDescriptionMethodology: string
   languageNavigation: string
   languageSelector: string
   footerAriaLabel: string
@@ -157,6 +161,10 @@ export function stateLabel(state: string, locale: Locale) {
 
 export const copy: Record<Locale, Copy> = {
   en: {
+    headTitle: 'Bitcoin Risk Brief | Daily BTC Risk Signal',
+    headDescription: 'Daily Bitcoin risk context from validated market data. Research, not financial advice.',
+    headTitleMethodology: 'Bitcoin Risk Brief Methodology',
+    headDescriptionMethodology: 'How the Bitcoin Risk Brief signal is calculated, interpreted, and limited.',
     languageNavigation: 'Language',
     languageSelector: 'Select language',
     footerAriaLabel: 'Minihub support and copyright',
@@ -257,6 +265,10 @@ export const copy: Record<Locale, Copy> = {
     unavailable: 'unavailable',
   },
   ru: {
+    headTitle: 'Bitcoin Risk Brief | Ежедневный риск-сигнал BTC',
+    headDescription: 'Ежедневный контекст риска Bitcoin по валидированным рыночным данным. Не финансовый совет.',
+    headTitleMethodology: 'Методология Bitcoin Risk Brief',
+    headDescriptionMethodology: 'Как рассчитывается, интерпретируется и ограничивается сигнал Bitcoin Risk Brief.',
     languageNavigation: 'Язык',
     languageSelector: 'Выберите язык',
     footerAriaLabel: 'Поддержка Minihub и авторские права',
@@ -357,6 +369,10 @@ export const copy: Record<Locale, Copy> = {
     unavailable: 'недоступно',
   },
   zh: {
+    headTitle: 'Bitcoin Risk Brief | 每日 BTC 风险信号',
+    headDescription: '基于已验证市场数据的每日比特币风险背景信息，仅供研究参考，不构成财务建议。',
+    headTitleMethodology: 'Bitcoin Risk Brief 方法论',
+    headDescriptionMethodology: 'Bitcoin Risk Brief 信号的计算方式、解读方法和局限性。',
     languageNavigation: '语言',
     languageSelector: '选择语言',
     footerAriaLabel: 'Minihub 支持和版权',
@@ -457,6 +473,10 @@ export const copy: Record<Locale, Copy> = {
     unavailable: '不可用',
   },
   de: {
+    headTitle: 'Bitcoin Risk Brief | Tägliches BTC-Risikosignal',
+    headDescription: 'Täglicher Bitcoin-Risikokontext aus validierten Marktdaten. Forschung, keine Finanzberatung.',
+    headTitleMethodology: 'Bitcoin Risk Brief Methodik',
+    headDescriptionMethodology: 'Wie das Bitcoin-Risk-Brief-Signal berechnet, interpretiert und begrenzt wird.',
     languageNavigation: 'Sprache',
     languageSelector: 'Sprache auswählen',
     footerAriaLabel: 'Minihub Support und Copyright',
@@ -557,6 +577,10 @@ export const copy: Record<Locale, Copy> = {
     unavailable: 'nicht verfügbar',
   },
   fr: {
+    headTitle: 'Bitcoin Risk Brief | Signal quotidien de risque BTC',
+    headDescription: 'Contexte quotidien du risque Bitcoin à partir de données de marché validées. Recherche, pas un conseil financier.',
+    headTitleMethodology: 'Méthodologie de Bitcoin Risk Brief',
+    headDescriptionMethodology: 'Comment le signal Bitcoin Risk Brief est calculé, interprété et limité.',
     languageNavigation: 'Langue',
     languageSelector: 'Choisir la langue',
     footerAriaLabel: 'Assistance Minihub et droits d’auteur',
@@ -657,6 +681,10 @@ export const copy: Record<Locale, Copy> = {
     unavailable: 'indisponible',
   },
   es: {
+    headTitle: 'Bitcoin Risk Brief | Señal diaria de riesgo BTC',
+    headDescription: 'Contexto diario del riesgo de Bitcoin con datos de mercado validados. Investigación, no asesoramiento financiero.',
+    headTitleMethodology: 'Metodología de Bitcoin Risk Brief',
+    headDescriptionMethodology: 'Cómo se calcula, interpreta y limita la señal de Bitcoin Risk Brief.',
     languageNavigation: 'Idioma',
     languageSelector: 'Seleccionar idioma',
     footerAriaLabel: 'Soporte de Minihub y copyright',
@@ -757,6 +785,10 @@ export const copy: Record<Locale, Copy> = {
     unavailable: 'no disponible',
   },
   ar: {
+    headTitle: 'Bitcoin Risk Brief | إشارة مخاطر BTC اليومية',
+    headDescription: 'سياق يومي لمخاطر بيتكوين من بيانات سوق موثقة. للبحث وليس نصيحة مالية.',
+    headTitleMethodology: 'منهجية Bitcoin Risk Brief',
+    headDescriptionMethodology: 'كيفية حساب إشارة Bitcoin Risk Brief وتفسيرها وحدودها.',
     languageNavigation: 'اللغة',
     languageSelector: 'اختر اللغة',
     footerAriaLabel: 'دعم Minihub وحقوق النشر',
