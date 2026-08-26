@@ -1239,7 +1239,8 @@ git commit -m "feat: prerender every document at build time"
 ### Task 7: Serving
 
 **Files:**
-- Modify: `frontend/nginx.conf`, `frontend/public/sitemap.xml`, `frontend/public/llms.txt`
+- Modify: `frontend/nginx.conf`, `frontend/public/sitemap.xml`, `frontend/public/llms.txt`, `frontend/src/App.tsx`,
+  `frontend/src/App.test.tsx`
 - Modify: `backend/tests/test_agent_surface.py`
 - Create: `frontend/src/sitemap.test.ts`
 - Modify: `frontend/e2e/frontend-quality.spec.ts`
@@ -1360,7 +1361,49 @@ In `frontend/public/llms.txt`, add one line to the links section:
 
 `docs/llms.txt` is not touched; it belongs to the documentation site.
 
-- [ ] **Step 7: Add a localised route to the smoke run**
+- [ ] **Step 7: Point the home page at the guide**
+
+Issue #42 requires the guide to be "reachable from the existing public page" and linked "prominently from the current
+methodology entry point". Without this the guide lives at a URL no visitor to the site can reach, and the sub-project
+is visible only to crawlers.
+
+`frontend/src/App.tsx:544` currently links the in-page summary:
+
+```tsx
+<a className="methodology-link" href="#methodology">
+```
+
+Point it at the guide, in the reader's own language:
+
+```tsx
+<a className="methodology-link" href={urlPathFor('methodology', locale)}>
+```
+
+The compact `#methodology` section stays as a summary; its link now leads to the full explanation. Add a test to
+`frontend/src/App.test.tsx`:
+
+```typescript
+it('links the methodology guide in the reader\'s own language', () => {
+  render(<App locale="ru" />)
+  const link = screen.getByRole('link', { name: new RegExp(copy.ru.methodologyLink, 'i') })
+  expect(link.getAttribute('href')).toBe('/ru/methodology')
+})
+```
+
+- [ ] **Step 8: Make a duplicated sitemap entry fail**
+
+`sitemap.test.ts` collects locations into a `Set`, so a URL listed twice satisfies both directions. Count before
+deduplicating:
+
+```typescript
+const rawLocations = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1])
+
+it('lists each location exactly once', () => {
+  expect(rawLocations).toHaveLength(new Set(rawLocations).size)
+})
+```
+
+- [ ] **Step 9: Add a localised route to the smoke run**
 
 In `frontend/e2e/frontend-quality.spec.ts`, add a test that navigates to `/ru/methodology`, asserts the `<h1>` is
 present and `document.documentElement.lang` is `ru`, and runs the same axe check the existing tests use.
@@ -1369,7 +1412,7 @@ present and `document.documentElement.lang` is `ru`, and runs the same axe check
 redirect: the smoke suite runs against `vite preview`, which was measured answering HTTP 200 with the root document
 for unknown paths and for directory paths without a trailing slash. Those contracts belong to Step 5.
 
-- [ ] **Step 8: Run everything**
+- [ ] **Step 10: Run everything**
 
 ```bash
 npm test --prefix frontend
@@ -1381,12 +1424,12 @@ npm run smoke --prefix frontend
 
 Expected: PASS.
 
-- [ ] **Step 9: Commit**
+- [ ] **Step 11: Commit**
 
 ```bash
 git add frontend/nginx.conf frontend/public/sitemap.xml frontend/public/llms.txt \
         frontend/src/sitemap.test.ts backend/tests/test_agent_surface.py \
-        frontend/e2e/frontend-quality.spec.ts
+        frontend/e2e/frontend-quality.spec.ts frontend/src/App.tsx frontend/src/App.test.tsx
 git commit -m "feat: serve the addressable routes and list them for agents"
 ```
 
