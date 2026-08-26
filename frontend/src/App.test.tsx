@@ -586,7 +586,7 @@ test('renders an expandable privacy terms and disclaimer note near the waitlist'
   expect(noteElement).toHaveTextContent('No buy, sell, portfolio, or trading action is recommended')
   expect(noteElement).toHaveTextContent('no paid support SLA is provided')
   expect(noteElement).toHaveTextContent('does not include product analytics or tracking-cookie code')
-  expect(noteElement).toHaveTextContent('Cloudflare Turnstile checks waitlist submissions for automated abuse.')
+  expect(noteElement).toHaveTextContent('Cloudflare Turnstile checks form submissions for automated abuse.')
 })
 
 test('localizes the privacy terms and disclaimer note', async () => {

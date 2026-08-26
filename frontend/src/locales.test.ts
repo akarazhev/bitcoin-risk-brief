@@ -63,37 +63,37 @@ test('provides exact localized Turnstile errors and privacy disclosure', () => {
     en: {
       turnstileError: 'Complete the bot check and try again.',
       turnstileUnavailable: 'Bot verification is temporarily unavailable. Try again shortly.',
-      privacyNoteTurnstile: 'Cloudflare Turnstile checks waitlist submissions for automated abuse.',
+      privacyNoteTurnstile: 'Cloudflare Turnstile checks form submissions for automated abuse.',
     },
     ru: {
       turnstileError: 'Пройдите проверку на бота и повторите попытку.',
       turnstileUnavailable: 'Проверка на бота временно недоступна. Повторите попытку чуть позже.',
-      privacyNoteTurnstile: 'Cloudflare Turnstile проверяет отправку формы листа ожидания на автоматические злоупотребления.',
+      privacyNoteTurnstile: 'Cloudflare Turnstile проверяет отправку формы на автоматические злоупотребления.',
     },
     zh: {
       turnstileError: '请完成人机验证后重试。',
       turnstileUnavailable: '人机验证暂时不可用，请稍后重试。',
-      privacyNoteTurnstile: 'Cloudflare Turnstile 会检查候补名单提交，以防止自动化滥用。',
+      privacyNoteTurnstile: 'Cloudflare Turnstile 会检查表单提交，以防止自动化滥用。',
     },
     de: {
       turnstileError: 'Schließen Sie die Bot-Prüfung ab und versuchen Sie es erneut.',
       turnstileUnavailable: 'Die Bot-Prüfung ist vorübergehend nicht verfügbar. Versuchen Sie es gleich noch einmal.',
-      privacyNoteTurnstile: 'Cloudflare Turnstile prüft Wartelistenanmeldungen auf automatisierten Missbrauch.',
+      privacyNoteTurnstile: 'Cloudflare Turnstile prüft Formularübermittlungen auf automatisierten Missbrauch.',
     },
     fr: {
       turnstileError: 'Effectuez la vérification anti-robot puis réessayez.',
       turnstileUnavailable: 'La vérification anti-robot est temporairement indisponible. Réessayez dans un instant.',
-      privacyNoteTurnstile: 'Cloudflare Turnstile vérifie les inscriptions à la liste d’attente contre les abus automatisés.',
+      privacyNoteTurnstile: 'Cloudflare Turnstile vérifie les envois du formulaire contre les abus automatisés.',
     },
     es: {
       turnstileError: 'Completa la verificación anti-bot y vuelve a intentarlo.',
       turnstileUnavailable: 'La verificación anti-bot no está disponible temporalmente. Inténtalo de nuevo en breve.',
-      privacyNoteTurnstile: 'Cloudflare Turnstile comprueba los envíos a la lista de espera para evitar abusos automatizados.',
+      privacyNoteTurnstile: 'Cloudflare Turnstile comprueba los envíos del formulario para evitar abusos automatizados.',
     },
     ar: {
       turnstileError: 'أكمل التحقق من الروبوت ثم حاول مرة أخرى.',
       turnstileUnavailable: 'التحقق من الروبوت غير متاح مؤقتا. حاول مرة أخرى بعد قليل.',
-      privacyNoteTurnstile: 'يتحقق Cloudflare Turnstile من طلبات قائمة الانتظار لمنع إساءة الاستخدام الآلي.',
+      privacyNoteTurnstile: 'يتحقق Cloudflare Turnstile من عمليات إرسال النموذج لمنع إساءة الاستخدام الآلي.',
     },
   }
 
@@ -148,6 +148,25 @@ describe('resolveInitialLocale', () => {
   it('only ever returns a supported locale', () => {
     for (const tag of ['de', 'xx', 'zh-Hant', '', 'ru-RU']) {
       expect(supportedLocales).toContain(resolveInitialLocale([tag]))
+    }
+  })
+})
+
+describe('user-visible copy', () => {
+  // The keys waitlistTitle and waitlistBody keep the legacy name deliberately: they are
+  // identifiers, and docs/engineering/waitlist.md records why. Their values are what a reader
+  // sees, and no reader can find a "waitlist" anywhere on the page.
+  it('never shows the word waitlist to a reader, in any locale', () => {
+    for (const locale of supportedLocales) {
+      for (const [key, value] of Object.entries(copy[locale])) {
+        const strings = typeof value === 'string' ? [value] : Array.isArray(value) ? value : []
+        for (const text of strings) {
+          expect(
+            String(text).toLowerCase(),
+            `copy.${locale}.${key} shows a word the page never displays`,
+          ).not.toContain('waitlist')
+        }
+      }
     }
   })
 })
