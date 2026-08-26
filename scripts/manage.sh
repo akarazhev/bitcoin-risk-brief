@@ -81,6 +81,23 @@ case "${1:-help}" in
       } >&2
       exit 1
     fi
+    # backend/tests/test_frontend_security_headers.py shells out to npm run build, so a wrong Node
+    # fails a Python suite with a SyntaxError that reads like a bug in our code. nvm's default alias
+    # applies to non-interactive shells, which is what this script runs in, and it is easy to leave
+    # pointing at an old version while an interactive shell has a current one.
+    NODE_MAJOR="$(node -v 2>/dev/null | sed 's/^v//; s/\..*//')"
+    if [[ -z "${NODE_MAJOR}" ]] || (( NODE_MAJOR < 22 )); then
+      {
+        echo "Node ${NODE_MAJOR:-(not found)} is too old; the frontend build needs 22 or newer."
+        echo
+        echo "  nvm use 22            # this shell"
+        echo "  nvm alias default 22  # every shell, including the non-interactive ones tests use"
+        echo
+        echo "Symptom if ignored: 'SyntaxError: Unexpected token .' from optional chaining, which"
+        echo "looks like a defect in scripts/require-turnstile-sitekey.mjs and is not one."
+      } >&2
+      exit 1
+    fi
     PYTHONPATH=backend:collector "${PYTHON}" -m unittest discover -s backend/tests -v
     PYTHONPATH=backend:collector "${PYTHON}" -m unittest discover -s collector/tests -v
     ;;
