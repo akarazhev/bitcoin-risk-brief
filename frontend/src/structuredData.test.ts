@@ -20,11 +20,12 @@ describe.skipIf(!built)('structured data (requires frontend/dist build)', () => 
     expect(extractJsonLd(methodologyHtml).length).toBeGreaterThan(0)
   })
 
-  it('declares a Dataset and WebSite on home, plus a TechArticle for the guide', () => {
+  it('declares Dataset and WebSite on home, and Dataset and TechArticle for the guide', () => {
     const homeTypes = extractJsonLd(indexHtml).map((entry) => entry['@type'])
     const guideTypes = extractJsonLd(methodologyHtml).map((entry) => entry['@type'])
     expect(homeTypes).toContain('Dataset')
     expect(homeTypes).toContain('WebSite')
+    expect(guideTypes).toContain('Dataset')
     expect(guideTypes).toContain('TechArticle')
   })
 

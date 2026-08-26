@@ -37,6 +37,16 @@ describe('buildHead', () => {
 })
 
 describe('renderHead', () => {
+  it('emits every per-document social tag, and no static one', () => {
+    const html = renderHead(buildHead('home', 'en'))
+    for (const perDocument of ['og:title', 'og:description', 'og:url', 'twitter:title', 'twitter:description']) {
+      expect(html).toContain(perDocument)
+    }
+    for (const static_ of ['og:image', 'og:site_name', 'og:type', 'twitter:card']) {
+      expect(html).not.toContain(static_)
+    }
+  })
+
   it('emits one canonical link and one alternate per entry', () => {
     const html = renderHead(buildHead('methodology', 'ru'))
     expect(html.match(/rel="canonical"/g)).toHaveLength(1)

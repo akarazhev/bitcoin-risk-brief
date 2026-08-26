@@ -16,7 +16,7 @@ const HEAD_END = '<!--/per-document-head-->'
 
 const headStart = template.indexOf(HEAD_START)
 const headEnd = template.indexOf(HEAD_END)
-if (headStart === -1 || headEnd === -1) {
+if (headStart === -1 || headEnd === -1 || headEnd < headStart) {
   throw new Error('index.html lost its per-document-head markers')
 }
 

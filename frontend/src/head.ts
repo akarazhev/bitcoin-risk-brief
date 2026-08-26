@@ -74,6 +74,8 @@ export function renderHead(fields: HeadFields): string {
     `<meta property="og:title" content="${escapeAttribute(fields.title)}" />`,
     `<meta property="og:description" content="${escapeAttribute(fields.description)}" />`,
     `<meta property="og:url" content="${escapeAttribute(fields.canonical)}" />`,
+    `<meta name="twitter:title" content="${escapeAttribute(fields.title)}" />`,
+    `<meta name="twitter:description" content="${escapeAttribute(fields.description)}" />`,
   ]
   for (const alternate of fields.alternates) {
     lines.push(
