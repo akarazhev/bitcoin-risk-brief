@@ -107,7 +107,22 @@ class NginxRouteTests(unittest.TestCase):
 
     def test_fallthrough_location_returns_404(self) -> None:
         text = NGINX_CONF.read_text(encoding="utf-8")
-        self.assertIn("try_files $uri =404;", text)
+        self.assertIn("try_files $uri $uri.html =404;", text)
+        self.assertNotIn("/index.html;", text.split("location /assets/")[0])
+
+    def test_locale_and_guide_paths_resolve_to_flat_files(self) -> None:
+        text = NGINX_CONF.read_text(encoding="utf-8")
+        # $uri.html is what turns /ru into ru.html and /ru/methodology into ru/methodology.html.
+        self.assertIn("$uri.html", text)
+        # $uri/ would answer 403 for /ru/, because the directory carries no index.
+        self.assertNotIn("$uri/", text)
+
+    def test_english_prefixed_paths_redirect_to_the_canonical_ones(self) -> None:
+        text = NGINX_CONF.read_text(encoding="utf-8")
+        self.assertIn("location = /en {", text)
+        self.assertIn("return 301 /;", text)
+        self.assertIn("location = /en/methodology {", text)
+        self.assertIn("return 301 /methodology;", text)
 
 
 class AgentDocumentationTests(unittest.TestCase):
