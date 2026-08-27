@@ -43,6 +43,13 @@ audience is technical and unforgiving of it. The argument and the evidence are s
 **Freshness is part of the answer.** An API that returns a number without its freshness state lies by
 omission. An API that returns a stale number while knowing it is stale simply lies.
 
+**Refusing is a form, not the rule.** Sharpened on 2026-08-27 by section 6. The title says "refuse to
+answer", and for an HTTP status or a channel post that is right, because neither has room to explain
+itself. A tool response a model reads does have room, and there the honest move is to lead with the
+problem and hand over everything needed to answer correctly. The rule underneath all four places is
+narrower and truer: never let a value travel without its freshness. Refusal is what that becomes when
+there is nowhere to put the explanation.
+
 The article generalises past crypto and past this product: any system serving derived data on a schedule
 faces the same decision, and most of them answer it by shipping a figure and letting the reader guess how
 old it is.
@@ -75,9 +82,14 @@ proof, not subject.
    beside it. So its gate is stricter than the API's: publish only when the observation covers the last
    completed UTC day. The consequence is stated plainly — missed days become possible and do not
    self-heal.
-6. **What it costs.** You must decide what "current" means and defend it. Silence becomes a valid
+6. **The agent inverts it.** Added 2026-08-27, after the MCP server shipped. Every tool handler fetches
+   readiness before its own endpoint, so no response can omit the freshness envelope even if a later
+   edit forgets — a guarantee of a different kind from the three above, which were choices that could
+   quietly lapse. And when the data is stale the server explains rather than refuses, because a tool
+   response has room where an HTTP status and a channel post do not.
+7. **What it costs.** You must decide what "current" means and defend it. Silence becomes a valid
    output, which is uncomfortable to ship and harder to explain than a number.
-7. **Open it yourself.** Repository, the freshness and validation reference, the live endpoint.
+8. **Open it yourself.** Repository, the freshness and validation reference, the live endpoint.
 
 ## Evidence Used
 
