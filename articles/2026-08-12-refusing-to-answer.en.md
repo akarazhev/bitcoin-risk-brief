@@ -114,6 +114,37 @@ I want to be honest about what that costs, because it is a real cost and it does
 
 The same logic decided a smaller thing. The post shows the price at which the risk band would change. When the underlying snapshot is missing that point, the line disappears instead of showing a zero or the nearest guess. Three places in one short message where absent data means silence.
 
+## The agent is where refusing stops working
+
+Then we shipped an MCP server, so a model can call the product directly, and the decision came back inverted.
+
+Every tool handler starts the same way:
+
+```typescript
+async function readinessFirst(deps: Dependencies) {
+  const readiness = await getJson('/api/readiness', { fetchImpl: deps.fetchImpl })
+  return {
+    readiness: readiness.body,
+    readinessStatus: readiness.status,
+    envelope: deriveEnvelope(readiness.body, deps.now),
+  }
+}
+```
+
+Readiness is fetched before the handler touches its own endpoint, so no response can carry a value without its covered date, its freshness state, and the methodology version. That is a different kind of guarantee from the three above. Those were decisions we made and could quietly stop making. This one survives a later edit that forgets, because there is no path through the code that produces a value without first producing the envelope.
+
+Then the twist. When the data is stale, the server does not refuse:
+
+```text
+DATA IS STALE — do not present these values as current.
+Last known observation: risk 0.23 (low), covered through 2026-08-09.
+Readiness reports: data_fresh false, 3 days old, tolerance 2 days.
+```
+
+An HTTP status has nowhere to explain itself, so 503 is the whole message. A channel post has nowhere either, so silence is. A tool response is structured text a model reads, and it has room. The model gets everything it needs to answer honestly, and no way to answer as though the data were current.
+
+Which means the rule I have been describing is not really "refuse to answer". It is **never let a value travel without its freshness**. Refusing is what that turns into when there is nowhere to put the explanation.
+
 ## What it actually costs
 
 **You have to decide what "current" means, and defend it.** Two days? One? It is a product decision wearing an engineering costume, and no default saves you from making it. We picked two for the API and one for the channel, and the fact that those differ is the interesting admission: freshness is not a property of the data, it is a property of the data *plus how it will be read*.
