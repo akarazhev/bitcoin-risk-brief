@@ -10,6 +10,7 @@ DOCS = ROOT / "docs"
 EXPECTED_LAYOUT = {
     "product": {"overview.md", "risk-methodology.md"},
     "archive": {"product-spec.md"},
+    "articles": {"index.md"},
     "engineering": {
         "architecture.md",
         "data-pipeline.md",
@@ -59,6 +60,21 @@ class DocsStructureTests(unittest.TestCase):
         for tier, names in EXPECTED_LAYOUT.items():
             present = {path.name for path in (DOCS / tier).glob("*.md")}
             self.assertEqual(names, present, f"docs/{tier}/ contents differ from the planned layout")
+
+    def test_every_published_article_is_listed_in_the_articles_index(self) -> None:
+        # mkdocs --strict already refuses a page missing from the nav. Nothing else notices an
+        # article that is published but absent from the overview, where a reader looks for it.
+        index = DOCS / "articles" / "index.md"
+        listed = index.read_text(encoding="utf-8")
+        for path in sorted((DOCS / "articles").glob("*.md")):
+            if path.name == "index.md":
+                continue
+            with self.subTest(article=path.name):
+                self.assertIn(
+                    path.stem,
+                    listed,
+                    "an article in docs/articles/ must appear in the Published table of its index",
+                )
 
     def test_no_stray_markdown_left_at_the_docs_root(self) -> None:
         stray = {path.name for path in DOCS.glob("*.md")} - {"README.md", "index.md"}

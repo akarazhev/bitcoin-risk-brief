@@ -49,6 +49,8 @@ nav:
       - Agent access pack: agents/agent-access-pack.md
       - MCP server: agents/mcp-server.md
       - OpenAPI: agents/openapi.md
+  - Articles:
+      - Overview: articles/index.md
   - Archive:
       - Validation spec, June 2026: archive/product-spec.md
   - Operations:
