@@ -21,11 +21,14 @@ until a reader found both.
 1. The author rewrites the draft in their own voice. This is a rewrite, not a proofread — a piece that
    reads as machine-written costs more than no piece at all.
 2. `git mv` it from `articles/` to `docs/articles/`, and delete the draft header comment.
-3. Add it to the `Articles` section of `mkdocs.yml`. Create that section if it is the first one.
-4. Syndicate: dev.to with `canonical_url` pointing at the documentation site, Habr indicating the
-   original. Then submit to Hacker News, Lobsters and r/programming, and post one X thread pointing at
-   the canonical.
-5. Update the table below with the live URLs.
+3. Add it to the `Articles` section of `mkdocs.yml`, which already exists. `mkdocs build --strict`
+   fails on a page missing from the nav, so this cannot be forgotten.
+4. Add it to the Published table in `docs/articles/index.md`. A test in
+   `backend/tests/test_docs_structure.py` fails if an article is published without being listed there.
+5. Syndicate: dev.to with `canonical_url` pointing at the page on the documentation site, Habr
+   indicating the original. Then submit to Hacker News, Lobsters and r/programming, and post one X
+   thread pointing at the canonical.
+6. Update the table below with the live URLs.
 
 Each draft carries a header comment stating its status, its intended venue, and the design document it
 follows. A draft is raw material — structure, facts and verified links — prepared for the author to
