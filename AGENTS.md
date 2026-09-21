@@ -82,7 +82,7 @@ The main agent remains responsible for:
 
 ## Coding Style & Naming Conventions
 
-Python targets Python 3.13 in CI. Use four-space indentation, type hints where useful, `snake_case` for functions/modules, and `PascalCase` for Pydantic models and classes. Keep backend API routes under `/api/*` and prefer small pure helpers for risk logic. TypeScript uses ES modules, React function components, two-space indentation, single quotes, `PascalCase` components, and `camelCase` functions/state.
+Python targets Python 3.14, matching the version the backend and collector containers run. Use four-space indentation, type hints where useful, `snake_case` for functions/modules, and `PascalCase` for Pydantic models and classes. Keep backend API routes under `/api/*` and prefer small pure helpers for risk logic. TypeScript uses ES modules, React function components, two-space indentation, single quotes, `PascalCase` components, and `camelCase` functions/state.
 
 ## Testing Guidelines
 
