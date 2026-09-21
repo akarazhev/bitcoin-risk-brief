@@ -131,6 +131,12 @@ language with no frontend involvement.
 Self-contained HTML with inline CSS, matching the product palette. All responses carry `Cache-Control: no-store`,
 following `POST /api/waitlist`.
 
+**These pages need their own Content-Security-Policy, which this design originally failed to say.**
+`backend/app/security.py` sets `default-src 'none'`, correct for JSON and fatal for a page that must load its own
+styles. `security_headers_middleware` applies headers with `setdefault`, so a route setting its own wins.
+[S4b](2026-09-21-per-date-risk-snapshots-design.md) introduces the HTML header set beside `build_security_headers`;
+use it here rather than writing a second one. Whichever sub-project is implemented first builds it.
+
 ### Rules
 
 - **No Turnstile on confirm or unsubscribe.** A mail client cannot solve a challenge, and unsubscription must never be
