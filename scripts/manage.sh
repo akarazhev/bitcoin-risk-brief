@@ -61,10 +61,9 @@ case "${1:-help}" in
     ./scripts/warm-public-cache.sh
     ;;
   test-python)
-    # Bare python3 is not the tests' interpreter. On Homebrew macOS it is now 3.14,
-    # which cannot build pydantic-core or asyncpg (issues #21, #18), so every import
-    # fails. Prefer the repository virtualenv; PYTHON overrides for CI, where
-    # actions/setup-python already supplies a correct interpreter.
+    # Prefer the repository virtualenv: a bare python3 is whatever the machine happens to
+    # provide, and usually has none of our dependencies installed. PYTHON overrides for CI,
+    # where actions/setup-python already supplies a prepared interpreter.
     PYTHON="${PYTHON:-}"
     if [[ -z "${PYTHON}" ]]; then
       if [[ -x .venv/bin/python ]]; then PYTHON=.venv/bin/python; else PYTHON=python3; fi
@@ -74,10 +73,8 @@ case "${1:-help}" in
         echo "${PYTHON} cannot import fastapi, so the test dependencies are not installed for it."
         echo
         echo "Create the virtualenv the tests expect:"
-        echo "  python3.13 -m venv .venv"
+        echo "  python3 -m venv .venv"
         echo "  .venv/bin/python -m pip install -r backend/requirements.txt -r collector/requirements.txt"
-        echo
-        echo "Python 3.14 will not work: pydantic-core and asyncpg have no wheels for it (issues #21, #18)."
       } >&2
       exit 1
     fi
