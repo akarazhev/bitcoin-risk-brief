@@ -124,6 +124,13 @@ class NginxRouteTests(unittest.TestCase):
         self.assertIn("location = /en/methodology {", text)
         self.assertIn("return 301 /methodology;", text)
 
+    def test_redirects_are_relative_so_they_survive_the_tunnel(self) -> None:
+        # With nginx's default, `return 301 /;` is sent as an absolute URL built from the request host and
+        # nginx's own listening port: behind the Cloudflare tunnel, /en answered
+        # `Location: http://bitcoinriskbrief.minihub.app:3000/` — plain HTTP, on a port Cloudflare does not proxy.
+        server_scope = NGINX_CONF.read_text(encoding="utf-8").split("location ", 1)[0]
+        self.assertIn("absolute_redirect off;", server_scope)
+
 
 class AgentDocumentationTests(unittest.TestCase):
     def test_the_three_agent_pages_exist(self) -> None:

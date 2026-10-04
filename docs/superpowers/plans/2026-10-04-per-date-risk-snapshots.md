@@ -82,9 +82,9 @@ plan's dry run; the unit fixtures missed both.
    prefixed locales. Owned by Task 6.
 9. **A missing or incomplete label file** must stop the app from starting, not answer 500 on the first page request.
    Owned by Tasks 6 and 7.
-10. **nginx: no `add_header` in the proxied locations, and relative redirects.** One `add_header` drops every
-    inherited security header for that location; an absolute redirect leaks nginx's port 3000 through the tunnel.
-    Owned by Task 8.
+10. **nginx: no `add_header` in the proxied locations.** One `add_header` drops every inherited security header for
+    that location. Owned by Task 8. Its routing check also pins relative `Location` headers, which `main` already sends
+    — see Task 8.
 
 ---
 ### Task 1: One file for the labels both sides render
@@ -1771,12 +1771,11 @@ counts CSP lines and must still count four.
 **`proxy_pass http://backend:8000;` has no URI part,** unlike `/api/`'s `http://backend:8000/api/`. nginx forbids a URI
 part in a regex location, and without one it passes the request path through unchanged — which is what all three need.
 
-**Redirects become relative: `absolute_redirect off;` at server level.** This fixes a defect S4a shipped and production
-has not yet received. With nginx's default, `return 301 /;` is sent as an absolute URL built from the request's host
-and *nginx's own listening port*, so behind the Cloudflare tunnel `/en` answers
-`Location: http://bitcoinriskbrief.minihub.app:3000/` — plain HTTP, on a port Cloudflare does not proxy. Reproduced
-against the built frontend image on 2026-10-04. A relative `Location: /` is valid HTTP and survives every proxy in
-front of nginx. If a hotfix has already added the directive by the time you start, leave it and skip that line.
+**Redirects are already relative; keep them so.** `frontend/nginx.conf` on `main` sets `absolute_redirect off;`,
+added by a hotfix after this plan's dry run found that nginx's default built `Location` from its own port — `/en`
+answered `Location: http://bitcoinriskbrief.minihub.app:3000/` behind the tunnel. `NginxRouteTests` already guards
+the directive. The new `/en/risk/` redirect inherits it; do not add the directive again, and do not move it into a
+location.
 
 **Checking the routing with the real nginx.** Text assertions on `nginx.conf` cannot tell whether a location actually
 wins. `scripts/check-nginx-routes.sh` runs the built frontend image *without a backend*, with `backend` pointed at the
@@ -1815,10 +1814,6 @@ Append to class `NginxRouteTests` in the same file:
         self.assertIn("location ~ ^/en/risk/(.*)$ {", text)
         self.assertIn("return 301 /risk/$1;", text)
 
-    def test_redirects_are_relative_so_they_survive_the_tunnel(self) -> None:
-        server_scope = NGINX_CONF.read_text(encoding="utf-8").split("location ", 1)[0]
-        self.assertIn("absolute_redirect off;", server_scope)
-
     def test_ci_checks_the_routing_with_the_real_nginx(self) -> None:
         ci = (ROOT / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
         self.assertIn("./scripts/check-nginx-routes.sh brb-frontend:ci", ci)
@@ -1840,18 +1835,12 @@ In `backend/tests/test_frontend_security_headers.py`, append to class `FrontendS
 Run: `PYTHONPATH=backend:collector .venv/bin/python -m unittest backend/tests/test_agent_surface.py backend/tests/test_frontend_security_headers.py -v`
 (`node -v` must print v22.x first: `test_frontend_security_headers.py` runs `npm run prebuild`, and under an older
 Node three unrelated sitekey tests fail too.)
-Expected: FAIL — the robots test, the four new `NginxRouteTests`, and the new header test (`AssertionError: location
-/risk/ block not found`).
+Expected: FAIL — the robots test, the three new `NginxRouteTests`, and the new header test (`AssertionError: location
+/risk/ block not found`); five failures.
 
 - [ ] **Step 3: Add the locations**
 
-In `frontend/nginx.conf`, add one line directly after `index index.html;`:
-
-```nginx
-  absolute_redirect off;
-```
-
-and insert this directly after the closing `}` of `location /api/`:
+In `frontend/nginx.conf`, insert this directly after the closing `}` of `location /api/`:
 
 ```nginx
 
