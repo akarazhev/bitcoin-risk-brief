@@ -123,7 +123,21 @@ a crawler following that link indexes it, which is correct, because a cited obse
 simply do not invite a crawl of 5,914 dates. For the same reason there is no `noindex` on older pages — it would
 forbid exactly the case this sub-project exists for.
 
-Like S4a's sitemap, the file stays committed and a Vitest test requires it to agree with the route matrix.
+### The Window Cannot Live In The Committed File
+
+S4a made `frontend/public/sitemap.xml` a committed file, and `frontend/src/sitemap.test.ts` requires it to list
+exactly the route matrix plus the documentation site. A rolling ninety-day window cannot go there: it would be wrong
+the next morning, and it would break that test the same day.
+
+So there are two sitemaps, which `robots.txt` supports natively with a second `Sitemap:` line:
+
+| File | Contents | Where it lives |
+| --- | --- | --- |
+| `/sitemap.xml` | S4a's fourteen documents and the documentation site | committed, unchanged, still checked against the route matrix |
+| `/sitemap-risk.xml` | the ninety-day window across seven locales | served by the backend, where the dates are |
+
+No sitemap index is needed and S4a's contract is untouched. The dynamic file is generated from the same query that
+answers the pages themselves, so it cannot list a date the site would 404.
 
 ## One Source For The Localised Labels
 
