@@ -74,8 +74,10 @@ row, so the page can say **why** the risk was what it was rather than only what 
 3. Model price — HLC3 of that day — and the day's low and high.
 4. The three model drivers with direction: raised risk, neutral, lowered risk, derived from the z-scores exactly as
    the home page does it.
-5. The localised brief prose for that state. `backend/app/brief.py` composes it from a pair of consecutive
-   observations in all seven locales, so this is real text rather than a label.
+5. The localised brief summary for that state — the sentence of `backend/app/brief.py`'s prose that describes the
+   state, in all seven locales, so this is real text rather than a label. The brief's other three parts address a
+   reader of the current reading — what changed since the last observation, what to avoid now, what to confirm next —
+   and are not shown. The neutral summary drops its "right now" in every locale, so that it reads true under any date.
 6. The band boundaries and the methodology version.
 7. Links to the live page and the methodology guide, and the analytics-not-advice boundary.
 
@@ -176,9 +178,10 @@ New tests:
 - a known date renders the value, the band, the three drivers, and the localised prose, in each of the seven locales;
 - the page never presents itself as a current observation, asserted on its wording the way the methodology guide is;
 - an HTML response carries a CSP that permits its own styles, and **not** `default-src 'none'`;
-- `ETag` and `X-Cache-Version` on a per-date page match what the JSON endpoints return for the same import;
-- the sitemap contains exactly the ninety-day window across seven locales plus S4a's documents, agreeing with the
-  route matrix in both directions;
+- `X-Cache-Version` on a per-date page matches what the JSON endpoints return for the same import, and its `ETag`
+  changes when that version does;
+- `/sitemap-risk.xml` contains exactly the ninety-day window across seven locales, and the committed `/sitemap.xml`
+  still agrees with S4a's route matrix in both directions;
 - nginx proxies `/risk/` and `/<locale>/risk/` and still 404s everything else;
 - the shared label file is present inside the built backend image, so the context change is proven rather than
   assumed.
