@@ -33,9 +33,9 @@ describe.skipIf(!built)('structured data (requires frontend/dist build)', () => 
     expect(String(dataset?.description).toLowerCase()).toContain('not financial advice')
   })
 
-  it('does not license third-party BTC market data as Apache-2.0', () => {
+  it('points the dataset license at NOTICE, not at Apache-2.0', () => {
     const dataset = extractJsonLd(indexHtml).find((entry) => entry['@type'] === 'Dataset')
-    expect(dataset?.license).toBeUndefined()
+    expect(dataset?.license).toBe('https://github.com/akarazhev/bitcoin-risk-brief/blob/main/NOTICE')
     expect(String(dataset?.usageInfo).toLowerCase()).toContain('third-party btc/usd market data')
     expect(String(dataset?.usageInfo).toLowerCase()).toContain('not financial advice')
   })
